@@ -29,14 +29,16 @@ public class Parser {
 	private static Node parseStatement (TokenStream tokens) {
 		Node result = null;
 
-		if (tokens.match(TokenType.TextBlock, false))
+		if (tokens.match(TokenType.TextBlock, false)) {
 			result = new Text(tokens.consume().getSpan());
-		else
+		} else {
 			result = parseExpression(tokens);
+		}
 
 		// consume semi-colons as statement delimiters
-		while (tokens.match(";", true))
+		while (tokens.match(";", true)) {
 			;
+		}
 
 		return result;
 	}
@@ -148,7 +150,9 @@ public class Parser {
 			
 			stream.expect(":");
 			values.add(parseExpression(stream));
-			if (!stream.match("}", false)) stream.expect(TokenType.Comma);
+			if (!stream.match("}", false)) {
+				stream.expect(TokenType.Comma);
+			}
 		}
 		Span closeCurly = stream.expect("}").getSpan();
 		return new MapLiteral(new Span(openCurly, closeCurly), keys, values);
@@ -160,7 +164,9 @@ public class Parser {
 		List<Expression> values = new ArrayList<>();
 		while (stream.hasMore() && !stream.match(TokenType.RightBracket, false)) {
 			values.add(parseExpression(stream));
-			if (!stream.match(TokenType.RightBracket, false)) stream.expect(TokenType.Comma);
+			if (!stream.match(TokenType.RightBracket, false)) {
+				stream.expect(TokenType.Comma);
+			}
 		}
 
 		Span closeBracket = stream.expect(TokenType.RightBracket).getSpan();
@@ -179,9 +185,9 @@ public class Parser {
 			if (stream.match(TokenType.LeftParantheses, false)) {
 				List<Expression> arguments = parseArguments(stream);
 				Span closingSpan = stream.expect(TokenType.RightParantheses).getSpan();
-				if (result instanceof VariableAccess || result instanceof MapOrArrayAccess)
+				if (result instanceof VariableAccess || result instanceof MapOrArrayAccess) {
 					result = new FunctionCall(new Span(result.getSpan(), closingSpan), result, arguments);
-				else if (result instanceof MemberAccess) {
+				} else if (result instanceof MemberAccess) {
 					result = new MethodCall(new Span(result.getSpan(), closingSpan), (MemberAccess)result, arguments);
 				} else {
 					ExpressionError.error("Expected a variable, field or method.", stream);
@@ -211,7 +217,9 @@ public class Parser {
 		List<Expression> arguments = new ArrayList<Expression>();
 		while (stream.hasMore() && !stream.match(TokenType.RightParantheses, false)) {
 			arguments.add(parseExpression(stream));
-			if (!stream.match(TokenType.RightParantheses, false)) stream.expect(TokenType.Comma);
+			if (!stream.match(TokenType.RightParantheses, false)) {
+				stream.expect(TokenType.Comma);
+			}
 		}
 		return arguments;
 	}
