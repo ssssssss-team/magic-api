@@ -1,0 +1,49 @@
+{
+  "groups" : [{
+    "sourceType": "com.ssssssss.spring.boot.starter.S8Properties",
+    "name": "ssssssss",
+    "type": "com.ssssssss.spring.boot.starter.S8Properties"
+  },{
+    "sourceType": "com.ssssssss.spring.boot.starter.S8Properties",
+    "name": "page-config",
+    "sourceMethod": "getPageConfig()",
+    "type": "com.ssssssss.spring.boot.starter.PageConfig"
+  }],
+  "properties" : [{
+    "sourceType": "com.ssssssss.spring.boot.starter.PageConfig",
+    "name": "ssssssss.page-config.page",
+    "type": "java.lang.Long",
+    "description": "page参数名"
+  },{
+    "sourceType": "com.ssssssss.spring.boot.starter.PageConfig",
+    "name": "ssssssss.page-config.size",
+    "type": "java.lang.Long",
+    "defaultValue": "size",
+    "description": "size参数名"
+  },{
+    "sourceType": "com.ssssssss.spring.boot.starter.PageConfig",
+    "name": "ssssssss.page-config.defaul-page",
+    "type": "java.lang.Long",
+    "description": "默认首页"
+  },{
+    "sourceType": "com.ssssssss.spring.boot.starter.PageConfig",
+    "name": "ssssssss.page-config.default-size",
+    "type": "java.lang.Long",
+    "description": "默认页大小"
+  },{
+    "sourceType": "com.ssssssss.spring.boot.starter.S8Properties",
+    "name": "ssssssss.xml-locations",
+    "type": "java.lang.String[]",
+    "description": "XML文件位置"
+  },{
+    "sourceType": "com.ssssssss.spring.boot.starter.S8Properties",
+    "name": "ssssssss.enableRefresh",
+    "type": "java.lang.Boolean",
+    "description": "是否启动自动刷新XML文件"
+  },{
+    "sourceType": "com.ssssssss.spring.boot.starter.S8Properties",
+    "name": "ssssssss.mapUnderscoreToCamelCase",
+    "type": "java.lang.Boolean",
+    "description": "是否启用驼峰命名"
+  }]
+}
