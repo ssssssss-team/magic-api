@@ -1,8 +1,6 @@
-package com.ssssssss.handler;
+package com.ssssssss.context;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.util.HashMap;
 
 public class SessionContext {
 
