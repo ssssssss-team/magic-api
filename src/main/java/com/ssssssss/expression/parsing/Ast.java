@@ -377,6 +377,9 @@ public abstract class Ast {
 		}
 
 		private Object evaluateGreater (Object left, Object right) {
+			if(left == null || right == null){
+				return false;
+			}
 			if (left instanceof Double || right instanceof Double) {
 				return ((Number)left).doubleValue() > ((Number)right).doubleValue();
 			} else if (left instanceof Float || right instanceof Float) {
