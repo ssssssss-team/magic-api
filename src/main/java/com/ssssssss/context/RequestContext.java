@@ -29,18 +29,34 @@ public class RequestContext extends HashMap<String,Object> {
         put("session",new SessionContext(request.getSession()));
     }
 
+    /**
+     * 获取HttpServletRequest对象
+     */
     public HttpServletRequest getRequest() {
         return request;
     }
 
+    /**
+     * 追加SQL参数
+     *
+     * @param value
+     */
     public void addParameter(Object value){
         this.parameters.add(value);
     }
 
+    /**
+     * 获取SQL参数
+     * @return
+     */
     public List<Object> getParameters() {
         return parameters;
     }
 
+    /**
+     * 执行表达式
+     * @param expression    表达式
+     */
     public Object evaluate(String expression){
         return engine.executeWrap(expression,this);
     }

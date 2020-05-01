@@ -6,8 +6,14 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 普通SQL节点
+ */
 public class TextSqlNode extends SqlNode{
 
+    /**
+     * SQL
+     */
     private String text;
 
     public TextSqlNode(String text) {
@@ -18,8 +24,10 @@ public class TextSqlNode extends SqlNode{
     public String getSql(RequestContext context) {
         String sql = text;
         if(StringUtils.isNotBlank(text)){
+            // 提取#{}表达式
             List<String> expressions = extractParameter(expressionRegx,text);
             for (String expression : expressions) {
+                // 执行表达式
                 Object val = context.evaluate(expression);
                 context.addParameter(val);
                 sql = sql.replaceFirst(expressionRegx.pattern(), "?");

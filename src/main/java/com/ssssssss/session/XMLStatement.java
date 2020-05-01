@@ -14,7 +14,7 @@ public class XMLStatement {
     private String requestMapping;
 
     /**
-     * xml文件中sql语句，包括select/insert/update/delete
+     * xml文件中sql语句，包括select-list/select-one/insert/update/delete
      */
     private List<SqlStatement> sqlStatements = new ArrayList<>();
 

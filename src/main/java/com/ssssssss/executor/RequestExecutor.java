@@ -29,13 +29,19 @@ public class RequestExecutor {
         this.expressionEngine = expressionEngine;
     }
 
+    /**
+     * http请求入口
+     */
     @ResponseBody
     public Object invoke(HttpServletRequest request) throws SQLException {
+        // 创建RequestContex对象，供后续使用
         RequestContext requestContext = new RequestContext(request,expressionEngine);
+        // 解析requestMapping
         String requestMapping = request.getServletPath();
         if (requestMapping.endsWith("/")) {
             requestMapping = requestMapping.substring(0, requestMapping.length() - 1);
         }
+        //执行SQL
         Object value = statementExecutor.execute(configuration.getStatement(requestMapping), requestContext);
         return new JsonBean<>(value);
     }

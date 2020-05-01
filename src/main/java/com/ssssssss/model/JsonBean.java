@@ -1,13 +1,28 @@
 package com.ssssssss.model;
 
+/**
+ * 统一返回值对象
+ */
 public class JsonBean<T> {
 
+    /**
+     * 状态码
+     */
     private int code = 1;
 
+    /**
+     * 状态说明
+     */
     private String message = "success";
 
+    /**
+     * 实际逻辑
+     */
     private T data;
 
+    /**
+     * 服务器时间
+     */
     private long timestamp = System.currentTimeMillis();
 
     public JsonBean(int code, String message) {

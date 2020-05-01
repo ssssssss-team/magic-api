@@ -5,18 +5,39 @@ import com.ssssssss.scripts.SqlNode;
 
 public class SqlStatement {
 
+    /**
+     * 请求路径
+     */
     private String requestMapping;
 
+    /**
+     * 请求方法
+     */
     private String requestMethod;
 
+    /**
+     * SQL模式
+     */
     private SqlMode sqlMode;
 
+    /**
+     * SQL节点
+     */
     private SqlNode sqlNode;
 
+    /**
+     * 是否开启分页
+     */
     private boolean pagination;
 
+    /**
+     * 返回值类型
+     */
     private Class<?> returnType;
 
+    /**
+     * XMLStatement对象
+     */
     private XMLStatement xmlStatement;
 
     public String getRequestMapping() {

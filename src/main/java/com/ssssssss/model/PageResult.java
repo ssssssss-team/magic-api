@@ -2,10 +2,19 @@ package com.ssssssss.model;
 
 import java.util.List;
 
+/**
+ * 分页执行结果
+ */
 public class PageResult<T> {
 
+    /**
+     * 总条数
+     */
     private long total;
 
+    /**
+     * 数据项
+     */
     private List<T> list;
 
     public PageResult(long total, List<T> list) {

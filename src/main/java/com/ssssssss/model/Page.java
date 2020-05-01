@@ -1,5 +1,8 @@
 package com.ssssssss.model;
 
+/**
+ * 分页对象
+ */
 public class Page {
 
     private long limit;
