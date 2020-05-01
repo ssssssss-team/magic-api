@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ssssssss request-mapping="/user" >
+    <sql id="customSql">
+        username,password
+    </sql>
     <!-- select/update/insert/delete -->
     <select-list request-mapping="/list" request-method="get" page="true">
-        select username from sys_user
+        select <include refid="customSql"/> from sys_user
     </select-list>
     <insert request-mapping="/add" return-type="boolean">
         insert into sys_user(username,password,role_id) values(#{username},#{password},#{roleId})

@@ -33,16 +33,15 @@ public class XmlFileLoader implements Runnable{
     public void run() {
         try {
             Resource[] resources = resourceResolver.getResources(this.pattern);
-            for (int i = 0; i < resources.length; i++) {
-                Resource resource = resources[i];
+            for (Resource resource : resources) {
                 File file = resource.getFile();
                 Long lastModified = fileMap.get(resource.getDescription());
+                fileMap.put(resource.getDescription(), file.lastModified());
                 //判断是否更新
-                if(lastModified == null || lastModified < file.lastModified()){
+                if (lastModified == null || lastModified < file.lastModified()) {
                     XMLStatement xmlStatement = S8XMLFileParser.parse(file);
                     xmlStatement.getSqlStatements().forEach(configuration::addStatement);
                 }
-                fileMap.put(resource.getDescription(),file.lastModified());
             }
         } catch (Exception e) {
             logger.error("读取失败",e);

@@ -1,6 +1,7 @@
 package com.ssssssss.utils;
 
 import com.ssssssss.enums.SqlMode;
+import com.ssssssss.exception.S8Exception;
 import com.ssssssss.scripts.ForeachSqlNode;
 import com.ssssssss.scripts.IfSqlNode;
 import com.ssssssss.scripts.SqlNode;
@@ -17,6 +18,10 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,10 +38,12 @@ public class S8XMLFileParser {
 
     private static final List<String> TAG_NAMES = Arrays.asList("select-list", "select-one", "insert", "update", "delete");
 
+    private static final XPath xpath = XPathFactory.newInstance().newXPath();
+
     /**
      * 解析xml文件
      */
-    public static XMLStatement parse(File file) {
+    static XMLStatement parse(File file) {
         XMLStatement statement = null;
         try {
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
@@ -44,7 +51,7 @@ public class S8XMLFileParser {
             statement = parseRoot(document);
             // 解析select/insert/update/delete节点
             for (String tagName : TAG_NAMES) {
-                statement.addSqlStatement(parseSqlStatement(statement, document.getElementsByTagName(tagName)));
+                statement.addSqlStatement(parseSqlStatement(statement, tagName, document));
             }
         } catch (SAXException | IOException | ParserConfigurationException e) {
             logger.error("解析S8XML文件出错", e);
@@ -65,8 +72,9 @@ public class S8XMLFileParser {
     /**
      * 解析节点
      */
-    private static List<SqlStatement> parseSqlStatement(XMLStatement xmlStatement, NodeList nodeList) {
+    private static List<SqlStatement> parseSqlStatement(XMLStatement xmlStatement, String tagName, Document document) {
         List<SqlStatement> sqlStatements = new ArrayList<>();
+        NodeList nodeList = document.getElementsByTagName(tagName);
         for (int i = 0, len = nodeList.getLength(); i < len; i++) {
             Node item = nodeList.item(i);
             SqlStatement sqlStatement = new SqlStatement();
@@ -100,7 +108,7 @@ public class S8XMLFileParser {
             }
             SqlNode root = new TextSqlNode("");
             // 解析sql语句
-            parseNodeList(root, item.getChildNodes());
+            parseNodeList(root, document, item.getChildNodes());
             sqlStatement.setSqlNode(root);
             sqlStatements.add(sqlStatement);
         }
@@ -110,25 +118,35 @@ public class S8XMLFileParser {
     /**
      * 递归解析子节点
      */
-    private static void parseNodeList(SqlNode sqlNode, NodeList nodeList) {
+    private static void parseNodeList(SqlNode sqlNode, Document document, NodeList nodeList) {
         for (int i = 0, len = nodeList.getLength(); i < len; i++) {
             Node node = nodeList.item(i);
             if (node.getNodeType() == Node.TEXT_NODE) {
                 sqlNode.addChildNode(new TextSqlNode(node.getNodeValue().trim()));
             } else if (node.getNodeType() != Node.COMMENT_NODE) {
                 String nodeName = node.getNodeName();
-                SqlNode childNode = null;
+                SqlNode childNode;
                 if ("foreach".equals(nodeName)) {
                     childNode = parseForeachSqlNode(node);
                 } else if ("if".equals(nodeName)) {
                     childNode = parseIfSqlNode(node);
+                } else if ("include".equalsIgnoreCase(nodeName)) {
+                    String refId = getNodeAttributeValue(node, "refid");
+                    Assert.isNotBlank(refId, "refid 不能为空！");
+                    try {
+                        Node refSqlNode = (Node) xpath.compile(String.format("//sql[@id=\"%s\"]", refId)).evaluate(document, XPathConstants.NODE);
+                        Assert.isNotNull(refSqlNode, "找不到sql[" + refId + "]");
+                        childNode = new TextSqlNode(refSqlNode.getTextContent().trim());
+                    } catch (XPathExpressionException e) {
+                        throw new S8Exception("找不到sql[" + refId + "]");
+                    }
                 } else {
                     logger.error("不支持的标签:[{}]", nodeName);
                     return;
                 }
                 sqlNode.addChildNode(childNode);
                 if (node.hasChildNodes()) {
-                    parseNodeList(childNode, node.getChildNodes());
+                    parseNodeList(childNode, document, node.getChildNodes());
                 }
             }
         }
