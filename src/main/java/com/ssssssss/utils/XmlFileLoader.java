@@ -20,7 +20,7 @@ public class XmlFileLoader implements Runnable{
     /**
      * 路径表达式
      */
-    private String pattern;
+    private String[] patterns;
 
     private Configuration configuration;
 
@@ -33,26 +33,28 @@ public class XmlFileLoader implements Runnable{
 
     private ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
 
-    public XmlFileLoader(String pattern, Configuration configuration) {
-        this.pattern = pattern;
+    public XmlFileLoader(String[] patterns, Configuration configuration) {
+        this.patterns = patterns;
         this.configuration = configuration;
     }
 
     @Override
     public void run() {
         try {
-            // 提取所有符合表达式的XML文件
-            Resource[] resources = resourceResolver.getResources(this.pattern);
-            for (Resource resource : resources) {
-                File file = resource.getFile();
-                // 获取上次修改时间
-                Long lastModified = fileMap.get(resource.getDescription());
-                // 修改缓存
-                fileMap.put(resource.getDescription(), file.lastModified());
-                //判断是否更新
-                if (lastModified == null || lastModified < file.lastModified()) {
-                    XMLStatement xmlStatement = S8XMLFileParser.parse(file);
-                    xmlStatement.getSqlStatements().forEach(configuration::addStatement);
+            for (String pattern : this.patterns) {
+                // 提取所有符合表达式的XML文件
+                Resource[] resources = resourceResolver.getResources(pattern);
+                for (Resource resource : resources) {
+                    File file = resource.getFile();
+                    // 获取上次修改时间
+                    Long lastModified = fileMap.get(resource.getDescription());
+                    // 修改缓存
+                    fileMap.put(resource.getDescription(), file.lastModified());
+                    //判断是否更新
+                    if (lastModified == null || lastModified < file.lastModified()) {
+                        XMLStatement xmlStatement = S8XMLFileParser.parse(file);
+                        xmlStatement.getSqlStatements().forEach(configuration::addStatement);
+                    }
                 }
             }
         } catch (Exception e) {

@@ -36,7 +36,7 @@ public class Configuration implements InitializingBean {
     /**
      * xml位置
      */
-    private String xmlLocations;
+    private String[] xmlLocations;
 
     /**
      * 是否自动刷新
@@ -103,7 +103,7 @@ public class Configuration implements InitializingBean {
         this.requestHandleMethod = requestHandleMethod;
     }
 
-    public void setXmlLocations(String xmlLocations) {
+    public void setXmlLocations(String[] xmlLocations) {
         this.xmlLocations = xmlLocations;
     }
 
