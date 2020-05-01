@@ -16,8 +16,17 @@ public class SqlExecutor {
 
     private Logger logger = LoggerFactory.getLogger(SqlExecutor.class);
 
+    /**
+     * 是否启用驼峰命名
+     */
+    private boolean mapUnderscoreToCamelCase;
+
     public SqlExecutor(DataSource dataSource) {
         this.dataSource = dataSource;
+    }
+
+    public void setMapUnderscoreToCamelCase(boolean mapUnderscoreToCamelCase) {
+        this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
     }
 
     public Object execute(SqlMode mode, String sql, List<Object> parameters, Class<?> returnType) throws SQLException {
@@ -95,11 +104,7 @@ public class SqlExecutor {
                 ResultSetMetaData rsd = rs.getMetaData();
                 int columnCount = rsd.getColumnCount();
                 if (rs.next()) {
-                    Map<String, Object> row = new HashMap<>(columnCount);
-                    for (int i = 1; i <= columnCount; i++) {
-                        row.put(rsd.getColumnName(i), rs.getObject(i));
-                    }
-                    return row;
+                    return fetchResultSet(rs);
                 }
             } else if (rs.next()) {
                 return rs.getObject(1, returnType);
@@ -120,15 +125,8 @@ public class SqlExecutor {
             rs = stmt.executeQuery();
             List<Object> list = new ArrayList<>();
             if (returnType == null || returnType == Map.class) {
-                Map<String, Object> row;
-                ResultSetMetaData rsd = rs.getMetaData();
-                int columnCount = rsd.getColumnCount();
                 while (rs.next()) {
-                    row = new HashMap<>(columnCount);
-                    for (int i = 1; i <= columnCount; i++) {
-                        row.put(rsd.getColumnName(i), rs.getObject(i));
-                    }
-                    list.add(row);
+                    list.add(fetchResultSet(rs));
                 }
             } else {
                 while (rs.next()) {
@@ -140,6 +138,37 @@ public class SqlExecutor {
             closeResultSet(rs);
             closeStatement(stmt);
         }
+    }
+
+    private Map<String,Object> fetchResultSet(ResultSet rs) throws SQLException {
+        ResultSetMetaData rsd = rs.getMetaData();
+        int columnCount = rsd.getColumnCount();
+        Map<String,Object> row = new HashMap<>(columnCount);
+        for (int i = 1; i <= columnCount; i++) {
+            row.put(underscoreToCamelCase(rsd.getColumnName(i)), rs.getObject(i));
+        }
+        return row;
+    }
+
+    private String underscoreToCamelCase(String columnName){
+        if(mapUnderscoreToCamelCase){
+            columnName = columnName.toLowerCase();
+            boolean upperCase = false;
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < columnName.length(); i++) {
+                char ch = columnName.charAt(i);
+                if (ch == '_') {
+                    upperCase = true;
+                } else if (upperCase) {
+                    sb.append(Character.toUpperCase(ch));
+                    upperCase = false;
+                } else {
+                    sb.append(ch);
+                }
+            }
+            columnName = sb.toString();
+        }
+        return columnName;
     }
 
     private List<Object> queryForList(String sql, List<Object> params, Class<?> returnType) throws SQLException {

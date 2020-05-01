@@ -17,7 +17,6 @@ import javax.sql.DataSource;
 @Configuration
 public class S8Configuration {
 
-
     @Bean
     public RequestExecutor requestExecutor() {
         return new RequestExecutor();
@@ -36,7 +35,9 @@ public class S8Configuration {
 
     @Bean
     public StatementExecutor statementExecutor(DataSource dataSource,PageProvider pageProvider) {
-        return new StatementExecutor(new SqlExecutor(dataSource),pageProvider);
+        SqlExecutor sqlExecutor = new SqlExecutor(dataSource);
+        sqlExecutor.setMapUnderscoreToCamelCase(true);
+        return new StatementExecutor(sqlExecutor, pageProvider);
     }
 
     @Bean

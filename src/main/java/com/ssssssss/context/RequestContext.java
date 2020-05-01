@@ -25,6 +25,8 @@ public class RequestContext extends HashMap<String,Object> {
             put(key,request.getParameter(key));
         }
         put("header",new HeaderContext(request));
+        put("cookie",new CookieContext(request));
+        put("session",new SessionContext(request.getSession()));
     }
 
     public HttpServletRequest getRequest() {
