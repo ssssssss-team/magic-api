@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * xml文件解析
@@ -30,7 +31,7 @@ public class S8XMLFileParser {
 
     private static Logger logger = LoggerFactory.getLogger(S8XMLFileParser.class);
 
-    private static final List<String> TAG_NAMES = Arrays.asList("select", "insert", "update", "delete");
+    private static final List<String> TAG_NAMES = Arrays.asList("select-list", "select-one", "insert", "update", "delete");
 
     /**
      * 解析xml文件
@@ -70,30 +71,32 @@ public class S8XMLFileParser {
             Node item = nodeList.item(i);
             SqlStatement sqlStatement = new SqlStatement();
             sqlStatement.setXmlStatement(xmlStatement);
+            // 设置SqlMode
+            sqlStatement.setSqlMode(SqlMode.valueOf(item.getNodeName().toUpperCase().replace("-", "_")));
+
             String requestMapping = getNodeAttributeValue(item, "request-mapping");
-            Assert.isNotBlank(requestMapping,"请求方法不能为空！");
+            Assert.isNotBlank(requestMapping, "请求方法不能为空！");
             // 设置请求路径
             sqlStatement.setRequestMapping(StringUtils.defaultString(xmlStatement.getRequestMapping()) + requestMapping);
             // 设置请求方法
             sqlStatement.setRequestMethod(getNodeAttributeValue(item, "request-method"));
             String returnType = getNodeAttributeValue(item, "return-type");
-            if("int".equalsIgnoreCase(returnType)){
+            if ("int".equalsIgnoreCase(returnType)) {
                 sqlStatement.setReturnType(Integer.class);
-                sqlStatement.setSqlMode(SqlMode.SELECT_NUMBER);
-            }else if("double".equalsIgnoreCase(returnType)){
-                sqlStatement.setSqlMode(SqlMode.SELECT_NUMBER);
+            } else if ("double".equalsIgnoreCase(returnType)) {
                 sqlStatement.setReturnType(Double.class);
-            }else if("long".equalsIgnoreCase(returnType)){
-                sqlStatement.setSqlMode(SqlMode.SELECT_NUMBER);
+            } else if ("long".equalsIgnoreCase(returnType)) {
                 sqlStatement.setReturnType(Long.class);
-            }else if("string".equalsIgnoreCase(returnType)){
+            } else if ("string".equalsIgnoreCase(returnType)) {
                 sqlStatement.setReturnType(String.class);
-            }else if("map".equalsIgnoreCase(returnType)){
-                sqlStatement.setSqlMode(SqlMode.SELECT_ONE);
-            }else{
-                sqlStatement.setSqlMode(SqlMode.SELECT_LIST);
+            } else if ("boolean".equalsIgnoreCase(returnType)) {
+                sqlStatement.setReturnType(Boolean.class);
+            } else {
+                sqlStatement.setReturnType(Map.class);
+            }
+            if (SqlMode.SELECT_LIST == sqlStatement.getSqlMode()) {
                 //设置是否是分页
-                sqlStatement.setPagination("true".equalsIgnoreCase(getNodeAttributeValue(item,"page")));
+                sqlStatement.setPagination("true".equalsIgnoreCase(getNodeAttributeValue(item, "page")));
             }
             SqlNode root = new TextSqlNode("");
             // 解析sql语句
@@ -112,7 +115,7 @@ public class S8XMLFileParser {
             Node node = nodeList.item(i);
             if (node.getNodeType() == Node.TEXT_NODE) {
                 sqlNode.addChildNode(new TextSqlNode(node.getNodeValue().trim()));
-            } else if(node.getNodeType() != Node.COMMENT_NODE){
+            } else if (node.getNodeType() != Node.COMMENT_NODE) {
                 String nodeName = node.getNodeName();
                 SqlNode childNode = null;
                 if ("foreach".equals(nodeName)) {

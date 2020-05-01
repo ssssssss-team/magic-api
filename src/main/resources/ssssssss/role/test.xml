@@ -1,71 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ssssssss request-mapping="/user" >
     <!-- select/update/insert/delete -->
-    <select request-mapping="/list" request-method="get" page="true">
-        select name from sys_role where name in (
-        <foreach collection="names.split(',')" item="item" separator=",">
-            #{item}
-        </foreach>
-        )
-    </select>
-    <select request-mapping="/one" request-method="get" return-type="map">
-        select name from sys_role
+    <select-list request-mapping="/list" request-method="get" page="true">
+        select username from sys_user
+    </select-list>
+    <insert request-mapping="/add" return-type="boolean">
+        insert into sys_user(username,password,role_id) values(#{username},#{password},#{roleId})
+    </insert>
+    <select-one request-mapping="/one" request-method="get" return-type="map">
+        select username from sys_user
         <if test="name != null and name.length() > 0">
-            where name like concat('%','${name}','%')
+            where username like concat('%','${name}','%')
         </if>
         limit 1
-    </select>
-    <select request-mapping="/test" page="true">
-        select
-        u.id,
-        u.name,
-        u.login_name,
-        u.unit_name,
-        u.user_type,
-        u.email,
-        u.phone,
-        u.mobile,
-        u.car_id,
-        u.USER_REGISTER_TYPE,
-        o.name office_name
-        from sys_user u
-        left join sys_office o on o.id = u.office_id
-        where u.del_flag = 0
-        <if test="officeId != null and officeId !='' and officeId != '0'.toString()">
-            and find_in_set(u.office_id,getOfficeChildList(#{officeId}))
-        </if>
-        <if test="name != null and name !=''">
-            and u.name like concat('%',#{name},'%')
-        </if>
-        <if test="unitName != null and unitName !=''">
-            and u.unit_name like concat('%',#{unitName},'%')
-        </if>
-        <if test="userRegisterType != null and userRegisterType !=''">
-            and u.user_register_type = #{userRegisterType}
-        </if>
-        <if test="loginName != null and loginName !=''">
-            and u.login_name like concat('%',#{loginName},'%')
-        </if>
-        <if test="carId != null and carId !=''">
-            and u.car_id like concat('%',#{carId},'%')
-        </if>
-        <if test="createBy != null and createBy !=''">
-            and u.create_by = #{createBy}
-        </if>
-        <if test="isRegisterFinish != null and isRegisterFinish != ''">
-            and u.is_register_finish = #{isRegisterFinish}
-        </if>
-        <if test="examineState != null and examineState != ''">
-            and u.EXAMINE_STATE = #{examineState}
-        </if>
-        <if test="roleIds != null and roleIds.length() > 0">
-            and u.id in (
-            select user_id from sys_user_role where role_id in
-            <foreach collection="roleIds.split(',')" item="roleId" open="(" separator="," close=")">
-                #{roleId}
-            </foreach>
-            )
-        </if>
-        order by u.create_date desc
-    </select>
+    </select-one>
 </ssssssss>

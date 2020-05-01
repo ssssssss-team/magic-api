@@ -23,22 +23,22 @@ public class StatementExecutor {
 
     public Object execute(SqlStatement sqlStatement, RequestContext context) throws SQLException {
         String sql = sqlStatement.getSqlNode().getSql(context).trim();
-        if(sqlStatement.isPagination()){
+        if (sqlStatement.isPagination()) {
             Page page = pageProvider.getPage(context.getRequest());
             return sqlExecutor.doInConnection(connection -> {
                 PageResult<Object> pageResult = new PageResult<>();
                 Dialect dialect = DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
-                long total = sqlExecutor.queryForNumber(connection,dialect.getCountSql(sql),context.getParameters(),Long.class);
+                long total = sqlExecutor.queryForOne(connection, dialect.getCountSql(sql), context.getParameters(), Long.class);
                 pageResult.setTotal(total);
-                if(total > 0){
+                if (total > 0) {
                     String pageSql = dialect.getPageSql(sql, page.getOffset(), page.getLimit());
                     context.addParameter(page.getLimit());
                     context.addParameter(page.getOffset());
-                    pageResult.setList(sqlExecutor.queryForList(connection,pageSql,context.getParameters(),sqlStatement.getReturnType()));
+                    pageResult.setList(sqlExecutor.queryForList(connection, pageSql, context.getParameters(), sqlStatement.getReturnType()));
                 }
                 return pageResult;
             });
-        }else{
+        } else {
             return sqlExecutor.execute(sqlStatement.getSqlMode(), sql, context.getParameters(), sqlStatement.getReturnType());
         }
     }

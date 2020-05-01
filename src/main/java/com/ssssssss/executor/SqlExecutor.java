@@ -33,11 +33,13 @@ public class SqlExecutor {
         if (SqlMode.SELECT_LIST == mode) {
             return queryForList(sql, parameters, returnType == null ? Map.class : returnType);
         } else if (SqlMode.UPDATE == mode || SqlMode.INSERT == mode || SqlMode.DELETE == mode) {
-            return update(sql, parameters);
+            int value = update(sql, parameters);
+            if(returnType == Boolean.class){
+                return value > 0;
+            }
+            return value;
         } else if (SqlMode.SELECT_ONE == mode) {
             return queryForOne(sql, parameters, returnType);
-        } else if (SqlMode.SELECT_NUMBER == mode) {
-            return queryForNumber(sql, parameters, returnType);
         } else {
             throw new S8Exception("暂时不支持[" + mode + "]模式");
         }
@@ -68,43 +70,15 @@ public class SqlExecutor {
         }
     }
 
-    private <T> T queryForNumber(String sql, List<Object> params, Class<T> returnType) throws SQLException {
-        Connection conn = getConnection();
-        try {
-            return queryForNumber(conn, sql, params, returnType);
-        } finally {
-            closeConnection(conn);
-        }
-    }
-
-    public <T> T queryForNumber(Connection connection, String sql, List<Object> params, Class<T> returnType) throws SQLException {
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        try {
-            stmt = createPreparedStatement(connection, sql, params);
-            rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getObject(1, returnType);
-            }
-        } finally {
-            closeResultSet(rs);
-            closeStatement(stmt);
-        }
-        return null;
-    }
-
-    private Object queryForOne(String sql, List<Object> params, Class<?> returnType) throws SQLException {
-        Connection connection = getConnection();
+    public <T> T queryForOne(Connection connection, String sql, List<Object> params, Class<T> returnType) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
             stmt = createPreparedStatement(connection, sql, params);
             rs = stmt.executeQuery();
             if (returnType == null || returnType == Map.class) {
-                ResultSetMetaData rsd = rs.getMetaData();
-                int columnCount = rsd.getColumnCount();
                 if (rs.next()) {
-                    return fetchResultSet(rs);
+                    return (T) fetchResultSet(rs);
                 }
             } else if (rs.next()) {
                 return rs.getObject(1, returnType);
@@ -112,9 +86,17 @@ public class SqlExecutor {
         } finally {
             closeResultSet(rs);
             closeStatement(stmt);
-            closeConnection(connection);
         }
         return null;
+    }
+
+    private <T> T queryForOne(String sql, List<Object> params, Class<T> returnType) throws SQLException {
+        Connection connection = getConnection();
+        try {
+            return queryForOne(connection, sql, params, returnType);
+        } finally {
+            closeConnection(connection);
+        }
     }
 
     public List<Object> queryForList(Connection connection, String sql, List<Object> params, Class<?> returnType) throws SQLException {
@@ -140,18 +122,18 @@ public class SqlExecutor {
         }
     }
 
-    private Map<String,Object> fetchResultSet(ResultSet rs) throws SQLException {
+    private Map<String, Object> fetchResultSet(ResultSet rs) throws SQLException {
         ResultSetMetaData rsd = rs.getMetaData();
         int columnCount = rsd.getColumnCount();
-        Map<String,Object> row = new HashMap<>(columnCount);
+        Map<String, Object> row = new HashMap<>(columnCount);
         for (int i = 1; i <= columnCount; i++) {
             row.put(underscoreToCamelCase(rsd.getColumnName(i)), rs.getObject(i));
         }
         return row;
     }
 
-    private String underscoreToCamelCase(String columnName){
-        if(mapUnderscoreToCamelCase){
+    private String underscoreToCamelCase(String columnName) {
+        if (mapUnderscoreToCamelCase) {
             columnName = columnName.toLowerCase();
             boolean upperCase = false;
             StringBuilder sb = new StringBuilder();
@@ -182,14 +164,14 @@ public class SqlExecutor {
 
     private PreparedStatement createPreparedStatement(Connection conn, String sql, List<Object> params) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement(sql);
-        logger.debug("执行SQL:{}",sql);
+        logger.debug("执行SQL:{}", sql);
         setStatementParams(stmt, params);
         return stmt;
     }
 
     private void setStatementParams(PreparedStatement stmt, List<Object> params) throws SQLException {
         if (params != null) {
-            logger.debug("sql参数:{}",params);
+            logger.debug("sql参数:{}", params);
             for (int i = 0; i < params.size(); i++) {
                 Object val = params.get(i);
                 if (val instanceof Date) {
