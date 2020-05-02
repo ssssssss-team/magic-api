@@ -44,6 +44,11 @@ public class Configuration implements InitializingBean {
     private boolean enableRefresh;
 
     /**
+     * 是否打印banner
+     */
+    private boolean banner;
+
+    /**
      * 缓存已加载的SqlStatement
      */
     private Map<String,SqlStatement> statementMap = new ConcurrentHashMap<>();
@@ -111,8 +116,19 @@ public class Configuration implements InitializingBean {
         this.enableRefresh = enableRefresh;
     }
 
+    public void setBanner(boolean banner) {
+        this.banner = banner;
+    }
+
     @Override
     public void afterPropertiesSet() {
+        if(this.banner){
+            System.out.println("  ____    ____    ____    ____    ____    ____    ____    ____  ");
+            System.out.println(" / ___|  / ___|  / ___|  / ___|  / ___|  / ___|  / ___|  / ___| ");
+            System.out.println("\\___ \\  \\___ \\  \\___ \\  \\___ \\  \\___ \\  \\___ \\  \\___ \\  \\___ \\ ");
+            System.out.println("  ___) |  ___) |  ___) |  ___) |  ___) |  ___) |  ___) |  ___) |");
+            System.out.println(" |____/  |____/  |____/  |____/  |____/  |____/  |____/  |____/       " + Configuration.class.getPackage().getImplementationVersion());
+        }
         if(this.xmlLocations == null){
             logger.error("ssssssss.xml-locations不能为空");
         }else{
