@@ -17,6 +17,11 @@ public class S8Properties {
     private boolean enableRefresh = true;
 
     /**
+     * 打印banner
+     */
+    private boolean banner = true;
+
+    /**
      * 驼峰命名转换
      */
     private boolean mapUnderscoreToCamelCase = true;
@@ -46,6 +51,14 @@ public class S8Properties {
 
     public void setMapUnderscoreToCamelCase(boolean mapUnderscoreToCamelCase) {
         this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
+    }
+
+    public boolean isBanner() {
+        return banner;
+    }
+
+    public void setBanner(boolean banner) {
+        this.banner = banner;
     }
 
     public PageConfig getPageConfig() {

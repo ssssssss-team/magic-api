@@ -61,6 +61,7 @@ public class S8AutoConfiguration {
         configuration.setRequestHandler(requestExecutor);
         configuration.setXmlLocations(properties.getXmlLocations());
         configuration.setEnableRefresh(properties.isEnableRefresh());
+        configuration.setBanner(properties.isBanner());
         configuration.setRequestHandleMethod(RequestExecutor.class.getDeclaredMethod("invoke", HttpServletRequest.class));
         requestExecutor.setConfiguration(configuration);
         requestExecutor.setExpressionEngine(expressionEngine);
