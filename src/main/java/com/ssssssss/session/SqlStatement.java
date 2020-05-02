@@ -3,6 +3,9 @@ package com.ssssssss.session;
 import com.ssssssss.enums.SqlMode;
 import com.ssssssss.scripts.SqlNode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class SqlStatement {
 
     /**
@@ -34,6 +37,8 @@ public class SqlStatement {
      * 返回值类型
      */
     private Class<?> returnType;
+
+    private List<String> validates = new ArrayList<>();
 
     /**
      * XMLStatement对象
@@ -94,5 +99,13 @@ public class SqlStatement {
 
     public void setPagination(boolean pagination) {
         this.pagination = pagination;
+    }
+
+    public List<String> getValidates() {
+        return validates;
+    }
+
+    public void addValidate(String id) {
+        this.validates.add(id);
     }
 }

@@ -1,14 +1,15 @@
 package com.ssssssss.utils;
 
 import com.ssssssss.enums.SqlMode;
-import com.ssssssss.exception.S8Exception;
 import com.ssssssss.scripts.ForeachSqlNode;
 import com.ssssssss.scripts.IfSqlNode;
 import com.ssssssss.scripts.SqlNode;
 import com.ssssssss.scripts.TextSqlNode;
 import com.ssssssss.session.SqlStatement;
+import com.ssssssss.session.ValidateStatement;
 import com.ssssssss.session.XMLStatement;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -18,10 +19,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,8 +36,6 @@ public class S8XMLFileParser {
 
     private static final List<String> TAG_NAMES = Arrays.asList("select-list", "select-one", "insert", "update", "delete");
 
-    private static final XPath xpath = XPathFactory.newInstance().newXPath();
-
     /**
      * 解析xml文件
      */
@@ -47,8 +43,10 @@ public class S8XMLFileParser {
         XMLStatement statement = null;
         try {
             Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
-            //解析根节点
+            // 解析根节点
             statement = parseRoot(document);
+            // 解析验证节点
+            parseValidateStatement(document.getElementsByTagName("validate"), statement);
             // 解析select/insert/update/delete节点
             for (String tagName : TAG_NAMES) {
                 statement.addSqlStatement(parseSqlStatement(statement, tagName, document));
@@ -57,6 +55,21 @@ public class S8XMLFileParser {
             logger.error("解析S8XML文件出错", e);
         }
         return statement;
+    }
+
+    /**
+     * 解析Validate节点
+     */
+    private static void parseValidateStatement(NodeList nodeList, XMLStatement xmlStatement) {
+        for (int i = 0, len = nodeList.getLength(); i < len; i++) {
+            Node node = nodeList.item(i);
+            String id = DomUtils.getNodeAttributeValue(node, "id");
+            Assert.isNotBlank(id, "validate节点必须要有id属性");
+            String code = DomUtils.getNodeAttributeValue(node, "code");
+            String message = DomUtils.getNodeAttributeValue(node, "message");
+            message = StringUtils.isBlank(message) ? "参数校验失败" : message;
+            xmlStatement.addValidateStatement(new ValidateStatement(id, NumberUtils.toInt(code, 0), message, (NodeList) DomUtils.evaluate("param", node, XPathConstants.NODESET)));
+        }
     }
 
     /**
@@ -79,16 +92,24 @@ public class S8XMLFileParser {
             Node item = nodeList.item(i);
             SqlStatement sqlStatement = new SqlStatement();
             sqlStatement.setXmlStatement(xmlStatement);
+            String validate = DomUtils.getNodeAttributeValue(item, "validate");
+            if (StringUtils.isNotBlank(validate)) {
+                // 支持多个验证
+                for (String validateId : validate.split(",")) {
+                    Assert.isTrue(xmlStatement.containsValidateStatement(validateId), String.format("找不到验证节点[%s]", validateId));
+                    sqlStatement.addValidate(validateId);
+                }
+            }
             // 设置SqlMode
             sqlStatement.setSqlMode(SqlMode.valueOf(item.getNodeName().toUpperCase().replace("-", "_")));
 
-            String requestMapping = getNodeAttributeValue(item, "request-mapping");
+            String requestMapping = DomUtils.getNodeAttributeValue(item, "request-mapping");
             Assert.isNotBlank(requestMapping, "请求方法不能为空！");
             // 设置请求路径
             sqlStatement.setRequestMapping(StringUtils.defaultString(xmlStatement.getRequestMapping()) + requestMapping);
             // 设置请求方法
-            sqlStatement.setRequestMethod(getNodeAttributeValue(item, "request-method"));
-            String returnType = getNodeAttributeValue(item, "return-type");
+            sqlStatement.setRequestMethod(DomUtils.getNodeAttributeValue(item, "request-method"));
+            String returnType = DomUtils.getNodeAttributeValue(item, "return-type");
             if ("int".equalsIgnoreCase(returnType)) {
                 sqlStatement.setReturnType(Integer.class);
             } else if ("double".equalsIgnoreCase(returnType)) {
@@ -104,7 +125,7 @@ public class S8XMLFileParser {
             }
             if (SqlMode.SELECT_LIST == sqlStatement.getSqlMode()) {
                 //设置是否是分页
-                sqlStatement.setPagination("true".equalsIgnoreCase(getNodeAttributeValue(item, "page")));
+                sqlStatement.setPagination("true".equalsIgnoreCase(DomUtils.getNodeAttributeValue(item, "page")));
             }
             SqlNode root = new TextSqlNode("");
             // 解析sql语句
@@ -131,15 +152,11 @@ public class S8XMLFileParser {
                 } else if ("if".equals(nodeName)) {
                     childNode = parseIfSqlNode(node);
                 } else if ("include".equalsIgnoreCase(nodeName)) {
-                    String refId = getNodeAttributeValue(node, "refid");
+                    String refId = DomUtils.getNodeAttributeValue(node, "refid");
                     Assert.isNotBlank(refId, "refid 不能为空！");
-                    try {
-                        Node refSqlNode = (Node) xpath.compile(String.format("//sql[@id=\"%s\"]", refId)).evaluate(document, XPathConstants.NODE);
-                        Assert.isNotNull(refSqlNode, "找不到sql[" + refId + "]");
-                        childNode = new TextSqlNode(refSqlNode.getTextContent().trim());
-                    } catch (XPathExpressionException e) {
-                        throw new S8Exception("找不到sql[" + refId + "]");
-                    }
+                    Node refSqlNode = (Node) DomUtils.evaluate(String.format("//sql[@id=\"%s\"]", refId), document, XPathConstants.NODE);
+                    Assert.isNotNull(refSqlNode, "找不到sql[" + refId + "]");
+                    childNode = new TextSqlNode(refSqlNode.getTextContent().trim());
                 } else {
                     logger.error("不支持的标签:[{}]", nodeName);
                     return;
@@ -153,27 +170,15 @@ public class S8XMLFileParser {
     }
 
     /**
-     * 获取节点属性
-     *
-     * @param node         节点
-     * @param attributeKey 属性名
-     * @return 节点属性值，未设置时返回null
-     */
-    private static String getNodeAttributeValue(Node node, String attributeKey) {
-        Node item = node.getAttributes().getNamedItem(attributeKey);
-        return item != null ? item.getNodeValue() : null;
-    }
-
-    /**
      * 解析foreach节点
      */
     private static ForeachSqlNode parseForeachSqlNode(Node node) {
         ForeachSqlNode foreachSqlNode = new ForeachSqlNode();
-        foreachSqlNode.setCollection(getNodeAttributeValue(node, "collection"));
-        foreachSqlNode.setSeparator(getNodeAttributeValue(node, "separator"));
-        foreachSqlNode.setClose(getNodeAttributeValue(node, "close"));
-        foreachSqlNode.setOpen(getNodeAttributeValue(node, "open"));
-        foreachSqlNode.setItem(getNodeAttributeValue(node, "item"));
+        foreachSqlNode.setCollection(DomUtils.getNodeAttributeValue(node, "collection"));
+        foreachSqlNode.setSeparator(DomUtils.getNodeAttributeValue(node, "separator"));
+        foreachSqlNode.setClose(DomUtils.getNodeAttributeValue(node, "close"));
+        foreachSqlNode.setOpen(DomUtils.getNodeAttributeValue(node, "open"));
+        foreachSqlNode.setItem(DomUtils.getNodeAttributeValue(node, "item"));
         return foreachSqlNode;
     }
 
@@ -181,6 +186,6 @@ public class S8XMLFileParser {
      * 解析if节点
      */
     private static IfSqlNode parseIfSqlNode(Node node) {
-        return new IfSqlNode(getNodeAttributeValue(node, "test"));
+        return new IfSqlNode(DomUtils.getNodeAttributeValue(node, "test"));
     }
 }
