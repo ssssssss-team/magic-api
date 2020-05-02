@@ -7,6 +7,8 @@ import com.ssssssss.expression.ExpressionEngine;
 import com.ssssssss.provider.PageProvider;
 import com.ssssssss.provider.impl.DefaultPageProvider;
 import com.ssssssss.session.Configuration;
+import com.ssssssss.validator.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -17,6 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
+import java.util.List;
 
 @org.springframework.context.annotation.Configuration
 @ConditionalOnClass({DataSource.class, RequestMappingHandlerMapping.class})
@@ -25,6 +28,9 @@ import javax.sql.DataSource;
 public class S8AutoConfiguration {
 
     private S8Properties properties;
+
+    @Autowired(required = false)
+    private List<IValidator> validators;
 
     public S8AutoConfiguration(S8Properties properties) {
         this.properties = properties;
@@ -39,7 +45,19 @@ public class S8AutoConfiguration {
 
     @Bean
     public RequestExecutor requestExecutor() {
-        return new RequestExecutor();
+        RequestExecutor requestExecutor = new RequestExecutor();
+        // 非空验证
+        requestExecutor.addValidator(new NotNullValidator());
+        // 最大长度验证
+        requestExecutor.addValidator(new MaxLenValidator());
+        // 最小长度验证
+        requestExecutor.addValidator(new MinLenValidator());
+        // 正则验证
+        requestExecutor.addValidator(new RegxValidator());
+        if (this.validators != null) {
+            this.validators.forEach(requestExecutor::addValidator);
+        }
+        return requestExecutor;
     }
 
     @Bean
