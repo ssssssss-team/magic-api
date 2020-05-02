@@ -113,11 +113,15 @@ public class Configuration implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        XmlFileLoader loader = new XmlFileLoader(xmlLocations, this);
-        loader.run();
-        // 如果启动刷新则定时重新加载
-        if(enableRefresh){
-            Executors.newScheduledThreadPool(1).scheduleAtFixedRate(loader,3,3, TimeUnit.SECONDS);
+        if(this.xmlLocations == null){
+            logger.error("ssssssss.xml-locations不能为空");
+        }else{
+            XmlFileLoader loader = new XmlFileLoader(xmlLocations, this);
+            loader.run();
+            // 如果启动刷新则定时重新加载
+            if(enableRefresh){
+                Executors.newScheduledThreadPool(1).scheduleAtFixedRate(loader,3,3, TimeUnit.SECONDS);
+            }
         }
     }
 }
