@@ -10,6 +10,9 @@ import java.sql.*;
 import java.util.Date;
 import java.util.*;
 
+/**
+ * SQL执行器
+ */
 public class SqlExecutor {
 
     private DataSource dataSource;
@@ -29,15 +32,28 @@ public class SqlExecutor {
         this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
     }
 
+    /**
+     * 执行SQL
+     *
+     * @param mode       SQL模式
+     * @param sql        SQL
+     * @param parameters SQL参数
+     * @param returnType 返回值类型
+     * @return
+     * @throws SQLException
+     */
     public Object execute(SqlMode mode, String sql, List<Object> parameters, Class<?> returnType) throws SQLException {
         if (SqlMode.SELECT_LIST == mode) {
             return queryForList(sql, parameters, returnType == null ? Map.class : returnType);
         } else if (SqlMode.UPDATE == mode || SqlMode.INSERT == mode || SqlMode.DELETE == mode) {
-            return update(sql, parameters);
+            int value = update(sql, parameters);
+            // 当设置返回值是boolean类型时,做>0比较
+            if(returnType == Boolean.class){
+                return value > 0;
+            }
+            return value;
         } else if (SqlMode.SELECT_ONE == mode) {
             return queryForOne(sql, parameters, returnType);
-        } else if (SqlMode.SELECT_NUMBER == mode) {
-            return queryForNumber(sql, parameters, returnType);
         } else {
             throw new S8Exception("暂时不支持[" + mode + "]模式");
         }
@@ -47,6 +63,10 @@ public class SqlExecutor {
         return dataSource.getConnection();
     }
 
+    /**
+     * 获取Connection并调用回调函数执行
+     * @param connectionCallback    回调函数
+     */
     public <T> T doInConnection(ConnectionCallback<T> connectionCallback) throws SQLException {
         Connection connection = getConnection();
         try {
@@ -68,55 +88,56 @@ public class SqlExecutor {
         }
     }
 
-    private <T> T queryForNumber(String sql, List<Object> params, Class<T> returnType) throws SQLException {
-        Connection conn = getConnection();
-        try {
-            return queryForNumber(conn, sql, params, returnType);
-        } finally {
-            closeConnection(conn);
-        }
-    }
-
-    public <T> T queryForNumber(Connection connection, String sql, List<Object> params, Class<T> returnType) throws SQLException {
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        try {
-            stmt = createPreparedStatement(connection, sql, params);
-            rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getObject(1, returnType);
-            }
-        } finally {
-            closeResultSet(rs);
-            closeStatement(stmt);
-        }
-        return null;
-    }
-
-    private Object queryForOne(String sql, List<Object> params, Class<?> returnType) throws SQLException {
-        Connection connection = getConnection();
+    /**
+     * 查询一条
+     * @param connection    连接对象
+     * @param sql   SQL
+     * @param params   SQL参数
+     * @param returnType    返回值类型
+     */
+    public <T> T queryForOne(Connection connection, String sql, List<Object> params, Class<T> returnType) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
             stmt = createPreparedStatement(connection, sql, params);
             rs = stmt.executeQuery();
             if (returnType == null || returnType == Map.class) {
-                ResultSetMetaData rsd = rs.getMetaData();
-                int columnCount = rsd.getColumnCount();
                 if (rs.next()) {
-                    return fetchResultSet(rs);
+                    return (T) fetchResultSet(rs);
                 }
             } else if (rs.next()) {
+                // 返回值不是Map时，只取第一行第一列
                 return rs.getObject(1, returnType);
             }
         } finally {
             closeResultSet(rs);
             closeStatement(stmt);
-            closeConnection(connection);
         }
         return null;
     }
 
+    /**
+     * 查询一条
+     * @param sql   SQL
+     * @param params   SQL参数
+     * @param returnType    返回值类型
+     */
+    private <T> T queryForOne(String sql, List<Object> params, Class<T> returnType) throws SQLException {
+        Connection connection = getConnection();
+        try {
+            return queryForOne(connection, sql, params, returnType);
+        } finally {
+            closeConnection(connection);
+        }
+    }
+
+    /**
+     * 查询List
+     * @param connection    连接对象
+     * @param sql   SQL
+     * @param params   SQL参数
+     * @param returnType    返回值类型
+     */
     public List<Object> queryForList(Connection connection, String sql, List<Object> params, Class<?> returnType) throws SQLException {
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -130,6 +151,7 @@ public class SqlExecutor {
                 }
             } else {
                 while (rs.next()) {
+                    // 返回值不是Map时，只取第一列
                     list.add(rs.getObject(1, returnType));
                 }
             }
@@ -140,18 +162,26 @@ public class SqlExecutor {
         }
     }
 
-    private Map<String,Object> fetchResultSet(ResultSet rs) throws SQLException {
+    /**
+     * 从ResultSet中提取map对象
+     */
+    private Map<String, Object> fetchResultSet(ResultSet rs) throws SQLException {
         ResultSetMetaData rsd = rs.getMetaData();
         int columnCount = rsd.getColumnCount();
-        Map<String,Object> row = new HashMap<>(columnCount);
+        Map<String, Object> row = new HashMap<>(columnCount);
         for (int i = 1; i <= columnCount; i++) {
             row.put(underscoreToCamelCase(rsd.getColumnName(i)), rs.getObject(i));
         }
         return row;
     }
 
-    private String underscoreToCamelCase(String columnName){
-        if(mapUnderscoreToCamelCase){
+    /**
+     * 下划线转驼峰命名
+     * @param columnName 列名
+     * @return
+     */
+    private String underscoreToCamelCase(String columnName) {
+        if (mapUnderscoreToCamelCase) {
             columnName = columnName.toLowerCase();
             boolean upperCase = false;
             StringBuilder sb = new StringBuilder();
@@ -171,6 +201,7 @@ public class SqlExecutor {
         return columnName;
     }
 
+
     private List<Object> queryForList(String sql, List<Object> params, Class<?> returnType) throws SQLException {
         Connection connection = getConnection();
         try {
@@ -180,16 +211,25 @@ public class SqlExecutor {
         }
     }
 
+    /**
+     * 统一创建PrepareStatement对象
+     * @param conn  连接对象
+     * @param sql   SQL
+     * @param params SQL参数
+     */
     private PreparedStatement createPreparedStatement(Connection conn, String sql, List<Object> params) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement(sql);
-        logger.debug("执行SQL:{}",sql);
+        logger.debug("执行SQL:{}", sql);
         setStatementParams(stmt, params);
         return stmt;
     }
 
+    /**
+     * 设置SQL参数
+     */
     private void setStatementParams(PreparedStatement stmt, List<Object> params) throws SQLException {
         if (params != null) {
-            logger.debug("sql参数:{}",params);
+            logger.debug("sql参数:{}", params);
             for (int i = 0; i < params.size(); i++) {
                 Object val = params.get(i);
                 if (val instanceof Date) {
@@ -202,6 +242,9 @@ public class SqlExecutor {
     }
 
 
+    /**
+     * 关闭连接
+     */
     private void closeConnection(Connection connection) {
         if (connection != null) {
             try {
@@ -211,6 +254,9 @@ public class SqlExecutor {
         }
     }
 
+    /**
+     * 关闭ResultSet
+     */
     private void closeResultSet(ResultSet resultSet) {
         if (resultSet != null) {
             try {
@@ -220,6 +266,9 @@ public class SqlExecutor {
         }
     }
 
+    /**
+     * 关闭PrepareStatement
+     */
     private void closeStatement(Statement statement) {
         if (statement != null) {
             try {

@@ -10,9 +10,12 @@
         <version>2.1.5.RELEASE</version>
         <relativePath/>
     </parent>
-    <groupId>com.mxd</groupId>
-    <artifactId>sql-mvc</artifactId>
+    <groupId>com.ssssssss</groupId>
+    <artifactId>ssssssss-core</artifactId>
     <version>0.0.1</version>
+    <packaging>jar</packaging>
+    <name>ssssssss</name>
+    <url>https://gitee.com/jmxd/ssssssss</url>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -23,16 +26,6 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-text</artifactId>
             <version>1.6</version>
-        </dependency>
-
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
         <dependency>

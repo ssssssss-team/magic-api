@@ -12,40 +12,53 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * XML文件加载器
+ */
 public class XmlFileLoader implements Runnable{
 
-    private String pattern;
+    /**
+     * 路径表达式
+     */
+    private String[] patterns;
 
     private Configuration configuration;
 
     private static Logger logger = LoggerFactory.getLogger(XmlFileLoader.class);
 
+    /**
+     * 缓存xml文件修改时间
+     */
     private Map<String,Long> fileMap = new HashMap<>();
 
     private ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
 
-    public XmlFileLoader(String pattern, Configuration configuration) {
-        this.pattern = pattern;
+    public XmlFileLoader(String[] patterns, Configuration configuration) {
+        this.patterns = patterns;
         this.configuration = configuration;
     }
 
     @Override
     public void run() {
         try {
-            Resource[] resources = resourceResolver.getResources(this.pattern);
-            for (int i = 0; i < resources.length; i++) {
-                Resource resource = resources[i];
-                File file = resource.getFile();
-                Long lastModified = fileMap.get(resource.getDescription());
-                //判断是否更新
-                if(lastModified == null || lastModified < file.lastModified()){
-                    XMLStatement xmlStatement = S8XMLFileParser.parse(file);
-                    xmlStatement.getSqlStatements().forEach(configuration::addStatement);
+            for (String pattern : this.patterns) {
+                // 提取所有符合表达式的XML文件
+                Resource[] resources = resourceResolver.getResources(pattern);
+                for (Resource resource : resources) {
+                    File file = resource.getFile();
+                    // 获取上次修改时间
+                    Long lastModified = fileMap.get(resource.getDescription());
+                    // 修改缓存
+                    fileMap.put(resource.getDescription(), file.lastModified());
+                    //判断是否更新
+                    if (lastModified == null || lastModified < file.lastModified()) {
+                        XMLStatement xmlStatement = S8XMLFileParser.parse(file);
+                        xmlStatement.getSqlStatements().forEach(configuration::addStatement);
+                    }
                 }
-                fileMap.put(resource.getDescription(),file.lastModified());
             }
         } catch (Exception e) {
-            logger.error("读取失败",e);
+            logger.error("加载XML失败",e);
         }
     }
 }
