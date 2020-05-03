@@ -14,7 +14,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.servlet.HandlerMapping;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -55,14 +60,20 @@ public class RequestExecutor {
      * http请求入口
      */
     @ResponseBody
-    public Object invoke(HttpServletRequest request) {
+    public Object invoke(HttpServletRequest request, @RequestBody(required = false) Object requestBody) {
         try {
+            NativeWebRequest webRequest = new ServletWebRequest(request);
+            // 解析requestMapping
+            String requestMapping = (String) webRequest.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
+            // 解析pathVariable
+            Map<String, String> pathVariables = (Map<String, String>) webRequest.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
             // 创建RequestContex对象，供后续使用
             RequestContext requestContext = new RequestContext(request, expressionEngine);
-            // 解析requestMapping
-            String requestMapping = request.getServletPath();
-            if (requestMapping.endsWith("/")) {
-                requestMapping = requestMapping.substring(0, requestMapping.length() - 1);
+            if (!requestContext.containsKey("body")) {
+                requestContext.put("body", requestBody);
+            }
+            if (pathVariables != null) {
+                requestContext.putAll(pathVariables);
             }
             SqlStatement sqlStatement = configuration.getStatement(requestMapping);
             // 执行校验
