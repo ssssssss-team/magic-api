@@ -179,7 +179,7 @@ public class Parser {
 		Span identifier = stream.expect(tokenType).getSpan();
 		Expression result = tokenType == TokenType.StringLiteral ? new StringLiteral(identifier) :new VariableAccess(identifier);
 
-		while (stream.hasMore() && stream.match(false, TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period)) {
+		while (stream.hasMore() && stream.match(false, TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period, TokenType.Lambda)) {
 
 			// function or method call
 			if (stream.match(TokenType.LeftParantheses, false)) {
@@ -188,7 +188,22 @@ public class Parser {
 				if (result instanceof VariableAccess || result instanceof MapOrArrayAccess) {
 					result = new FunctionCall(new Span(result.getSpan(), closingSpan), result, arguments);
 				} else if (result instanceof MemberAccess) {
-					result = new MethodCall(new Span(result.getSpan(), closingSpan), (MemberAccess)result, arguments);
+					for (Expression expression : arguments) {
+						if (expression instanceof LambdaAccess) {
+							LambdaAccess lambdaAccess = (LambdaAccess) expression;
+							lambdaAccess.setArrayLike((MemberAccess) result);
+						}
+					}
+					MethodCall methodCall = new MethodCall(new Span(result.getSpan(), closingSpan), (MemberAccess) result, arguments);
+					if ("map".equals(((MemberAccess) result).getName().getText())) {
+						try {
+							methodCall.setCachedMethod(ArrayLikeLambdaExecutor.class.getMethod("map", Object.class, Object[].class));
+						} catch (NoSuchMethodException e) {
+							e.printStackTrace();
+						}
+						methodCall.setCachedMethodStatic(true);
+					}
+					result = methodCall;
 				} else {
 					ExpressionError.error("Expected a variable, field or method.", stream);
 				}
@@ -205,6 +220,12 @@ public class Parser {
 			else if (stream.match(TokenType.Period, true)) {
 				identifier = stream.expect(TokenType.Identifier).getSpan();
 				result = new MemberAccess(result, identifier);
+			}
+
+			else if (stream.match(TokenType.Lambda, true)) {
+				Expression key = parseExpression(stream);
+//				Span closingSpan = stream.expect(TokenType.RightParantheses).getSpan();
+				result = new LambdaAccess(new Span(result.getSpan(), key.getSpan()), result, key);
 			}
 		}
 

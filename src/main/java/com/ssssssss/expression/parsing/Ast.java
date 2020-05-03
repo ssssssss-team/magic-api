@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 
 /** Templates are parsed into an abstract syntax tree (AST) nodes by a Parser. This class contains all AST node types. */
@@ -981,6 +984,124 @@ public abstract class Ast {
 		}
 	}
 
+	public static class LambdaAccess extends Expression {
+		private final Expression element;
+		private final Expression function;
+		private MemberAccess arrayLike;
+
+		public LambdaAccess (Span span, Expression element, Expression function) {
+			super(span);
+			this.element = element;
+			this.function = function;
+		}
+
+		/** Returns an expression that must evaluate to a map or array. **/
+		public Expression getElement() {
+			return element;
+		}
+
+		/** Returns an expression that is used as the key or index to fetch a map or array element. **/
+		public Expression getFunction() {
+			return function;
+		}
+		@SuppressWarnings("rawtypes")
+		@Override
+		public Object evaluate (ExpressionTemplate template, ExpressionTemplateContext context) throws IOException {
+			if ("map".equals(arrayLike.getName().getText())) {
+				Expression object = arrayLike.getObject();
+				if (object instanceof VariableAccess) {
+					VariableAccess arrLike = (VariableAccess) object;
+					String parName = arrLike.getVariableName().getText();
+					Object arrLikeObj = context.get(parName);
+					if (arrLikeObj instanceof Collection) {
+						Collection<?> coll = (Collection<?>) arrLikeObj;
+
+						if (function instanceof MethodCall) {
+							List<Object> collect = coll.stream().map(o -> {
+								Object result = null;
+								//TODO need multiple params
+								return ((Supplier) () -> {
+									try {
+										context.push();
+										context.setOnCurrentScope(getElement().getSpan().getText(), o);
+										Object res = function.evaluate(template, context);
+										context.pop();
+										return res;
+									} catch (IOException e) {
+										e.printStackTrace();
+										throw new RuntimeException(e);
+									}
+								});
+
+							}).collect(Collectors.toList());
+							return collect;
+						} else {
+							ExpressionError.error("err : function not instanceof MethodCall.", function.getSpan());
+						}
+						return null;
+					}
+				}
+			} else {
+				ExpressionError.error("只支持 map。不支持的lambda函数： " + arrayLike.getName().getText(), arrayLike.getSpan());
+			}
+			Set<String> variables = context.getVariables();
+
+
+			Object mapOrArray = getElement().evaluate(template, context);
+			if (mapOrArray == null) {
+				return null;
+			}
+			Object keyOrIndex = getFunction().evaluate(template, context);
+			if (keyOrIndex == null) {
+				return null;
+			}
+
+			if (mapOrArray instanceof Map) {
+				return ((Map)mapOrArray).get(keyOrIndex);
+			} else if (mapOrArray instanceof List) {
+				if (!(keyOrIndex instanceof Number)) {
+					ExpressionError.error("List index must be an integer, but was " + keyOrIndex.getClass().getSimpleName(), getFunction().getSpan());
+				}
+				int index = ((Number)keyOrIndex).intValue();
+				return ((List)mapOrArray).get(index);
+			} else {
+				if (!(keyOrIndex instanceof Number)) {
+					ExpressionError.error("Array index must be an integer, but was " + keyOrIndex.getClass().getSimpleName(), getFunction().getSpan());
+				}
+				int index = ((Number)keyOrIndex).intValue();
+				if (mapOrArray instanceof int[]) {
+					return ((int[])mapOrArray)[index];
+				} else if (mapOrArray instanceof float[]) {
+					return ((float[])mapOrArray)[index];
+				} else if (mapOrArray instanceof double[]) {
+					return ((double[])mapOrArray)[index];
+				} else if (mapOrArray instanceof boolean[]) {
+					return ((boolean[])mapOrArray)[index];
+				} else if (mapOrArray instanceof char[]) {
+					return ((char[])mapOrArray)[index];
+				} else if (mapOrArray instanceof short[]) {
+					return ((short[])mapOrArray)[index];
+				} else if (mapOrArray instanceof long[]) {
+					return ((long[])mapOrArray)[index];
+				} else if (mapOrArray instanceof byte[]) {
+					return ((byte[])mapOrArray)[index];
+				} else if (mapOrArray instanceof String) {
+					return Character.toString(((String)mapOrArray).charAt(index));
+				} else {
+					return ((Object[])mapOrArray)[index];
+				}
+			}
+		}
+
+		public void setArrayLike(MemberAccess arrayLike) {
+			this.arrayLike = arrayLike;
+		}
+
+		public MemberAccess getArrayLike() {
+			return arrayLike;
+		}
+	}
+
 	/** Represents a call to a top-level function. A function may either be a {@link FunctionalInterface} stored in a
 	 * {@link ExpressionTemplateContext}, or a {@link Macro} defined in a template. */
 	public static class FunctionCall extends Expression {
@@ -1097,6 +1218,7 @@ public abstract class Ast {
 		private final List<Expression> arguments;
 		private Object cachedMethod;
 		private final ThreadLocal<Object[]> cachedArguments;
+		private boolean cachedMethodStatic;
 
 		public MethodCall (Span span, MemberAccess method, List<Expression> arguments) {
 			super(span);
@@ -1170,12 +1292,16 @@ public abstract class Ast {
 				Object method = getCachedMethod();
 				if (method != null) {
 					try {
+						if (isCachedMethodStatic()) {
+							return AbstractReflection.getInstance().callMethod(null, method, object, argumentValues);
+						}
 						return AbstractReflection.getInstance().callMethod(object, method, argumentValues);
 					} catch (Throwable t) {
+						t.printStackTrace();
 						// fall through
 					}
 				}
-				
+
 				method = AbstractReflection.getInstance().getMethod(object, getMethod().getName().getText(), argumentValues);
 				if (method != null) {
 					// found the method on the object, call it
@@ -1186,7 +1312,7 @@ public abstract class Ast {
 						ExpressionError.error(t.getMessage(), getSpan(), t);
 						return null; // never reached
 					}
-				} 
+				}
 				method = AbstractReflection.getInstance().getExtensionMethod(object, getMethod().getName().getText(), argumentValues);
 				if(method != null){
 					try {
@@ -1223,7 +1349,7 @@ public abstract class Ast {
 					if (method == null){
 						ExpressionError.error("在'" + object.getClass() + "'中找不到方法 " + getMethod().getName().getText() + "("+ StringUtils.join(JavaReflection.getStringTypes(argumentValues),",") +")",
 								getSpan());
-					} 
+					}
 					try {
 						return AbstractReflection.getInstance().callMethod(function, method, argumentValues);
 					} catch (Throwable t) {
@@ -1234,6 +1360,14 @@ public abstract class Ast {
 			} finally {
 				clearCachedArguments();
 			}
+		}
+
+		public void setCachedMethodStatic(boolean cachedMethodStatic) {
+			this.cachedMethodStatic = cachedMethodStatic;
+		}
+
+		public boolean isCachedMethodStatic() {
+			return cachedMethodStatic;
 		}
 	}
 
