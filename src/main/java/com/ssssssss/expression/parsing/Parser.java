@@ -195,12 +195,9 @@ public class Parser {
 						}
 					}
 					MethodCall methodCall = new MethodCall(new Span(result.getSpan(), closingSpan), (MemberAccess) result, arguments);
-					if ("map".equals(((MemberAccess) result).getName().getText())) {
-						try {
-							methodCall.setCachedMethod(ArrayLikeLambdaExecutor.class.getMethod("map", Object.class, Object[].class));
-						} catch (NoSuchMethodException e) {
-							e.printStackTrace();
-						}
+					String name = ((MemberAccess) result).getName().getText();
+					if (ArrayLikeLambdaExecutor.SUPPORT_METHOD.contains(name)) {
+						methodCall.setCachedMethod(ArrayLikeLambdaExecutor.METHODS.get(name));
 						methodCall.setCachedMethodStatic(true);
 					}
 					result = methodCall;

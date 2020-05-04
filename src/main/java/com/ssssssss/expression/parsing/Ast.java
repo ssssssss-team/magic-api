@@ -1015,30 +1015,18 @@ public abstract class Ast {
 					Object arrLikeObj = context.get(parName);
 					if (arrLikeObj instanceof Collection) {
 						Collection<?> coll = (Collection<?>) arrLikeObj;
-
-						if (function instanceof MethodCall) {
-							List<Object> collect = coll.stream().map(o -> {
-								Object result = null;
-								//TODO need multiple params
-								return ((Supplier) () -> {
-									try {
-										context.push();
-										context.setOnCurrentScope(getElement().getSpan().getText(), o);
-										Object res = function.evaluate(template, context);
-										context.pop();
-										return res;
-									} catch (IOException e) {
-										e.printStackTrace();
-										throw new RuntimeException(e);
-									}
-								});
-
-							}).collect(Collectors.toList());
-							return collect;
-						} else {
-							ExpressionError.error("err : function not instanceof MethodCall.", function.getSpan());
-						}
-						return null;
+						return coll.stream().map(o -> ((Supplier) () -> {
+							try {
+								context.push();
+								context.setOnCurrentScope(getElement().getSpan().getText(), o);
+								Object res = function.evaluate(template, context);
+								context.pop();
+								return res;
+							} catch (IOException e) {
+								e.printStackTrace();
+								throw new RuntimeException(e);
+							}
+						})).collect(Collectors.toList());
 					}
 				}
 			} else {

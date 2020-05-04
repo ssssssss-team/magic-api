@@ -18,12 +18,12 @@ public class ExpressionEngine {
 		ExpressionEngine engine = new ExpressionEngine();
 
 		Map<String, Object> params = new HashMap<>();
-		params.put("abc", "xxx");
+		params.put("abc", "876");
 		ArrayList<Object> list = new ArrayList<>();
 		list.add("987654321");
 		list.add("");
-		params.put("arr", list);
-		Object result = engine.execute("${arr.map(e->abc.hashCode())}", params);
+		params.put("e", list);
+		Object result = engine.execute("${e.map(e->123)}", params);
 		System.out.println(result);
 
 
