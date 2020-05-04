@@ -9,7 +9,7 @@
         <version>2.1.5.RELEASE</version>
         <relativePath/>
     </parent>
-    <groupId>com.ssssssss</groupId>
+    <groupId>org.ssssssss</groupId>
     <artifactId>ssssssss-spring-boot-starter</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
@@ -17,7 +17,7 @@
     <url>https://gitee.com/jmxd/ssssssss-spring-boot-starter</url>
     <dependencies>
         <dependency>
-            <groupId>com.ssssssss</groupId>
+            <groupId>org.ssssssss</groupId>
             <artifactId>ssssssss-core</artifactId>
             <version>0.0.1</version>
         </dependency>

@@ -1,13 +1,5 @@
-package com.ssssssss.spring.boot.starter;
+package org.ssssssss.spring.boot.starter;
 
-import com.ssssssss.executor.RequestExecutor;
-import com.ssssssss.executor.SqlExecutor;
-import com.ssssssss.executor.StatementExecutor;
-import com.ssssssss.expression.ExpressionEngine;
-import com.ssssssss.provider.PageProvider;
-import com.ssssssss.provider.impl.DefaultPageProvider;
-import com.ssssssss.session.Configuration;
-import com.ssssssss.validator.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -17,6 +9,14 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.ssssssss.executor.RequestExecutor;
+import org.ssssssss.executor.SqlExecutor;
+import org.ssssssss.executor.StatementExecutor;
+import org.ssssssss.expression.ExpressionEngine;
+import org.ssssssss.provider.PageProvider;
+import org.ssssssss.provider.impl.DefaultPageProvider;
+import org.ssssssss.session.Configuration;
+import org.ssssssss.validator.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;

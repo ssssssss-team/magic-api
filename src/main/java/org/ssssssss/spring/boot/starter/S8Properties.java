@@ -1,4 +1,4 @@
-package com.ssssssss.spring.boot.starter;
+package org.ssssssss.spring.boot.starter;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;

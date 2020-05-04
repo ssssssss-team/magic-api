@@ -1,4 +1,4 @@
-package com.ssssssss.spring.boot.starter;
+package org.ssssssss.spring.boot.starter;
 
 /**
  * 分页配置

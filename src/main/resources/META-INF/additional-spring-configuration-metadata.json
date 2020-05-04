@@ -1,12 +1,12 @@
 {
   "groups" : [{
-    "sourceType": "com.ssssssss.spring.boot.starter.S8Properties",
+    "sourceType": "org.ssssssss.spring.boot.starter.S8Properties",
     "name": "ssssssss",
-    "type": "com.ssssssss.spring.boot.starter.S8Properties"
+    "type": "org.ssssssss.spring.boot.starter.S8Properties"
   },{
-    "sourceType": "com.ssssssss.spring.boot.starter.S8Properties",
+    "sourceType": "org.ssssssss.spring.boot.starter.S8Properties",
     "name": "page-config",
     "sourceMethod": "getPageConfig()",
-    "type": "com.ssssssss.spring.boot.starter.PageConfig"
+    "type": "org.ssssssss.spring.boot.starter.PageConfig"
   }]
 }
