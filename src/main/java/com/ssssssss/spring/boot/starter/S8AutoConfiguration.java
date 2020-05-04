@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -66,10 +67,10 @@ public class S8AutoConfiguration {
     }
 
     @Bean
-    public StatementExecutor statementExecutor(DataSource dataSource, PageProvider pageProvider) {
+    public StatementExecutor statementExecutor(DataSource dataSource, PageProvider pageProvider, ApplicationContext context) {
         SqlExecutor sqlExecutor = new SqlExecutor(dataSource);
         sqlExecutor.setMapUnderscoreToCamelCase(properties.isMapUnderscoreToCamelCase());
-        return new StatementExecutor(sqlExecutor, pageProvider);
+        return new StatementExecutor(sqlExecutor, pageProvider, context);
     }
 
     @Bean
@@ -81,6 +82,7 @@ public class S8AutoConfiguration {
         configuration.setEnableRefresh(properties.isEnableRefresh());
         configuration.setBanner(properties.isBanner());
         configuration.setRequestHandleMethod(RequestExecutor.class.getDeclaredMethod("invoke", HttpServletRequest.class, Object.class));
+        statementExecutor.setConfiguration(configuration);
         requestExecutor.setConfiguration(configuration);
         requestExecutor.setExpressionEngine(expressionEngine);
         requestExecutor.setStatementExecutor(statementExecutor);
