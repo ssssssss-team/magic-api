@@ -4,7 +4,7 @@ import com.ssssssss.context.RequestContext;
 import com.ssssssss.expression.ExpressionEngine;
 import com.ssssssss.model.JsonBean;
 import com.ssssssss.session.Configuration;
-import com.ssssssss.session.SqlStatement;
+import com.ssssssss.session.Statement;
 import com.ssssssss.session.ValidateStatement;
 import com.ssssssss.session.XMLStatement;
 import com.ssssssss.utils.Assert;
@@ -75,14 +75,14 @@ public class RequestExecutor {
             if (pathVariables != null) {
                 requestContext.putAll(pathVariables);
             }
-            SqlStatement sqlStatement = configuration.getStatement(requestMapping);
+            Statement statement = configuration.getStatement(requestMapping);
             // 执行校验
-            Object value = validate(sqlStatement, requestContext);
+            Object value = validate(statement, requestContext);
             if (value != null) {
                 return value;
             }
             // 执行SQL
-            value = statementExecutor.execute(sqlStatement, requestContext);
+            value = statementExecutor.execute(statement, requestContext);
             return new JsonBean<>(value);
         } catch (Exception e) {
             logger.error("系统出现错误", e);
@@ -90,9 +90,16 @@ public class RequestExecutor {
         }
     }
 
-    private JsonBean<Void> validate(SqlStatement sqlStatement, RequestContext requestContext) {
-        List<String> validates = sqlStatement.getValidates();
-        XMLStatement xmlStatement = sqlStatement.getXmlStatement();
+    /**
+     * 验证节点
+     *
+     * @param statement
+     * @param requestContext
+     * @return
+     */
+    private JsonBean<Void> validate(Statement statement, RequestContext requestContext) {
+        List<String> validates = statement.getValidates();
+        XMLStatement xmlStatement = statement.getXmlStatement();
         for (String validateId : validates) {
             ValidateStatement validateStatement = xmlStatement.getValidateStatement(validateId);
             NodeList nodeList = validateStatement.getNodes();

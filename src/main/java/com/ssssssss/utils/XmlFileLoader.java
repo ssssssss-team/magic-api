@@ -53,7 +53,7 @@ public class XmlFileLoader implements Runnable{
                     //判断是否更新
                     if (lastModified == null || lastModified < file.lastModified()) {
                         XMLStatement xmlStatement = S8XMLFileParser.parse(file);
-                        xmlStatement.getSqlStatements().forEach(configuration::addStatement);
+                        xmlStatement.getStatements().forEach(configuration::addStatement);
                     }
                 }
             }

@@ -5,9 +5,7 @@ import com.ssssssss.scripts.ForeachSqlNode;
 import com.ssssssss.scripts.IfSqlNode;
 import com.ssssssss.scripts.SqlNode;
 import com.ssssssss.scripts.TextSqlNode;
-import com.ssssssss.session.SqlStatement;
-import com.ssssssss.session.ValidateStatement;
-import com.ssssssss.session.XMLStatement;
+import com.ssssssss.session.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -49,12 +47,36 @@ public class S8XMLFileParser {
             parseValidateStatement(document.getElementsByTagName("validate"), statement);
             // 解析select/insert/update/delete节点
             for (String tagName : TAG_NAMES) {
-                statement.addSqlStatement(parseSqlStatement(statement, tagName, document));
+                statement.addStatement(parseSqlStatement(statement, tagName, document));
             }
+            // 解析functionStatement
+            statement.addStatement(parseFunctionStatement(statement, document.getElementsByTagName("function")));
         } catch (SAXException | IOException | ParserConfigurationException e) {
             logger.error("解析S8XML文件出错", e);
         }
         return statement;
+    }
+
+    private static List<Statement> parseFunctionStatement(XMLStatement statement, NodeList nodeList) {
+        List<Statement> statements = new ArrayList<>();
+        for (int i = 0, len = nodeList.getLength(); i < len; i++) {
+            Node node = nodeList.item(i);
+            FunctionStatement functionStatement = new FunctionStatement();
+            // 设置请求路径
+            functionStatement.setRequestMapping(DomUtils.getNodeAttributeValue(node, "request-mapping"));
+            // 设置请求方法
+            functionStatement.setRequestMethod(DomUtils.getNodeAttributeValue(node, "request-method"));
+            // 设置ID
+            functionStatement.setId(DomUtils.getNodeAttributeValue(node, "id"));
+
+            // TODO 这里后续需要改进
+            // 设置子节点，不进行深层解析，执行时在解析
+            functionStatement.setNodeList((NodeList) DomUtils.evaluate("*", node, XPathConstants.NODESET));
+
+            functionStatement.setXmlStatement(statement);
+            statements.add(functionStatement);
+        }
+        return statements;
     }
 
     /**
@@ -85,12 +107,13 @@ public class S8XMLFileParser {
     /**
      * 解析节点
      */
-    private static List<SqlStatement> parseSqlStatement(XMLStatement xmlStatement, String tagName, Document document) {
-        List<SqlStatement> sqlStatements = new ArrayList<>();
+    private static List<Statement> parseSqlStatement(XMLStatement xmlStatement, String tagName, Document document) {
+        List<Statement> sqlStatements = new ArrayList<>();
         NodeList nodeList = document.getElementsByTagName(tagName);
         for (int i = 0, len = nodeList.getLength(); i < len; i++) {
             Node item = nodeList.item(i);
             SqlStatement sqlStatement = new SqlStatement();
+            sqlStatement.setId(DomUtils.getNodeAttributeValue(item, "id"));
             sqlStatement.setXmlStatement(xmlStatement);
             String validate = DomUtils.getNodeAttributeValue(item, "validate");
             if (StringUtils.isNotBlank(validate)) {
@@ -104,11 +127,13 @@ public class S8XMLFileParser {
             sqlStatement.setSqlMode(SqlMode.valueOf(item.getNodeName().toUpperCase().replace("-", "_")));
 
             String requestMapping = DomUtils.getNodeAttributeValue(item, "request-mapping");
-            Assert.isNotBlank(requestMapping, "请求方法不能为空！");
-            // 设置请求路径
-            sqlStatement.setRequestMapping(StringUtils.defaultString(xmlStatement.getRequestMapping()) + requestMapping);
-            // 设置请求方法
-            sqlStatement.setRequestMethod(DomUtils.getNodeAttributeValue(item, "request-method"));
+            String id = DomUtils.getNodeAttributeValue(item, "id");
+            if (StringUtils.isNotBlank(requestMapping)) {
+                // 设置请求路径
+                sqlStatement.setRequestMapping(StringUtils.defaultString(xmlStatement.getRequestMapping()) + requestMapping);
+                // 设置请求方法
+                sqlStatement.setRequestMethod(DomUtils.getNodeAttributeValue(item, "request-method"));
+            }
             String returnType = DomUtils.getNodeAttributeValue(item, "return-type");
             if ("int".equalsIgnoreCase(returnType)) {
                 sqlStatement.setReturnType(Integer.class);

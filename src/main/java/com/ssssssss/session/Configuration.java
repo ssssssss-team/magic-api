@@ -49,34 +49,53 @@ public class Configuration implements InitializingBean {
     private boolean banner;
 
     /**
-     * 缓存已加载的SqlStatement
+     * 缓存已加载的statement(request-mapping映射)
      */
-    private Map<String,SqlStatement> statementMap = new ConcurrentHashMap<>();
+    private Map<String, Statement> statementMappingMap = new ConcurrentHashMap<>();
+
+    /**
+     * 缓存已加载的statement（ID映射）
+     */
+    private Map<String, Statement> statementIdMap = new ConcurrentHashMap<>();
 
     private static Logger logger = LoggerFactory.getLogger(Configuration.class);
 
     /**
-     * 根据RequestMapping获取SqlStatement对象
+     * 根据RequestMapping获取statement对象
      */
-    public SqlStatement getStatement(String requestMapping){
-        return statementMap.get(requestMapping);
+    public Statement getStatement(String requestMapping) {
+        return statementMappingMap.get(requestMapping);
     }
 
     /**
-     * 注册sql语句成接口，当已存在时，刷新其配置
+     * 根据RequestMapping获取statement对象
      */
-    public void addStatement(SqlStatement sqlStatement){
-        RequestMappingInfo requestMappingInfo = getRequestMappingInfo(sqlStatement);
+    public Statement getStatementById(String id) {
+        return statementIdMap.get(id);
+    }
+
+    /**
+     * 注册Statement成接口，当已存在时，刷新其配置
+     */
+    public void addStatement(Statement statement) {
+        RequestMappingInfo requestMappingInfo = getRequestMappingInfo(statement);
+        if (StringUtils.isNotBlank(statement.getId())) {
+            // 设置ID与statement的映射
+            statementIdMap.put(statement.getId(), statement);
+        }
+        if (requestMappingInfo == null) {
+            return;
+        }
         // 如果已经注册过，则先取消注册
-        if(statementMap.containsKey(sqlStatement.getRequestMapping())){
-            logger.debug("刷新接口:{}",sqlStatement.getRequestMapping());
+        if (statementMappingMap.containsKey(statement.getRequestMapping())) {
+            logger.debug("刷新接口:{}", statement.getRequestMapping());
             // 取消注册
             requestMappingHandlerMapping.unregisterMapping(requestMappingInfo);
         }else{
-            logger.debug("注册接口:{}",sqlStatement.getRequestMapping());
+            logger.debug("注册接口:{}", statement.getRequestMapping());
         }
         // 添加至缓存
-        statementMap.put(sqlStatement.getRequestMapping(),sqlStatement);
+        statementMappingMap.put(statement.getRequestMapping(), statement);
         // 注册接口
         requestMappingHandlerMapping.registerMapping(requestMappingInfo,requestHandler,requestHandleMethod);
     }
@@ -84,13 +103,15 @@ public class Configuration implements InitializingBean {
     /**
      * 获取RequestMappingInfo对象
      */
-    private RequestMappingInfo getRequestMappingInfo(SqlStatement sqlStatement){
-        String requestMapping = sqlStatement.getRequestMapping();
-        Assert.isNotBlank(requestMapping,"request-mapping 不能为空！");
+    private RequestMappingInfo getRequestMappingInfo(Statement statement) {
+        String requestMapping = statement.getRequestMapping();
+        if (StringUtils.isBlank(requestMapping)) {
+            return null;
+        }
         RequestMappingInfo.Builder builder = RequestMappingInfo.paths(requestMapping);
-        if(StringUtils.isNotBlank(sqlStatement.getRequestMethod())){
-            RequestMethod requestMethod = RequestMethod.valueOf(sqlStatement.getRequestMethod().toUpperCase());
-            Assert.isNotNull(requestMethod,String.format("不支持的请求方法:%s",sqlStatement.getRequestMethod()));
+        if (StringUtils.isNotBlank(statement.getRequestMethod())) {
+            RequestMethod requestMethod = RequestMethod.valueOf(statement.getRequestMethod().toUpperCase());
+            Assert.isNotNull(requestMethod, String.format("不支持的请求方法:%s", statement.getRequestMethod()));
             builder.methods(requestMethod);
         }
         return builder.build();
@@ -136,6 +157,7 @@ public class Configuration implements InitializingBean {
             loader.run();
             // 如果启动刷新则定时重新加载
             if(enableRefresh){
+                logger.info("启动自动刷新ssssssss");
                 Executors.newScheduledThreadPool(1).scheduleAtFixedRate(loader,3,3, TimeUnit.SECONDS);
             }
         }

@@ -21,9 +21,9 @@ public class XMLStatement {
     private Map<String, ValidateStatement> validateStatements = new HashMap<>();
 
     /**
-     * xml文件中sql语句，包括select-list/select-one/insert/update/delete
+     * xml文件中function，以及sql语句包括select-list/select-one/insert/update/delete
      */
-    private List<SqlStatement> sqlStatements = new ArrayList<>();
+    private List<Statement> statements = new ArrayList<>();
 
     public String getRequestMapping() {
         return requestMapping;
@@ -33,17 +33,17 @@ public class XMLStatement {
         this.requestMapping = requestMapping;
     }
 
-    public List<SqlStatement> getSqlStatements() {
-        return sqlStatements;
+    public List<Statement> getStatements() {
+        return statements;
     }
 
     /**
-     * 添加一个SQL节点
+     * 添加statement
      *
-     * @param sqlStatements
+     * @param statements
      */
-    public void addSqlStatement(List<SqlStatement> sqlStatements) {
-        this.sqlStatements.addAll(sqlStatements);
+    public void addStatement(List<Statement> statements) {
+        this.statements.addAll(statements);
     }
 
     /**

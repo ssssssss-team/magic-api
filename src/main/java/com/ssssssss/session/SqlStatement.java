@@ -3,20 +3,7 @@ package com.ssssssss.session;
 import com.ssssssss.enums.SqlMode;
 import com.ssssssss.scripts.SqlNode;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class SqlStatement {
-
-    /**
-     * 请求路径
-     */
-    private String requestMapping;
-
-    /**
-     * 请求方法
-     */
-    private String requestMethod;
+public class SqlStatement extends Statement {
 
     /**
      * SQL模式
@@ -38,29 +25,6 @@ public class SqlStatement {
      */
     private Class<?> returnType;
 
-    private List<String> validates = new ArrayList<>();
-
-    /**
-     * XMLStatement对象
-     */
-    private XMLStatement xmlStatement;
-
-    public String getRequestMapping() {
-        return requestMapping;
-    }
-
-    public void setRequestMapping(String requestMapping) {
-        this.requestMapping = requestMapping;
-    }
-
-    public String getRequestMethod() {
-        return requestMethod;
-    }
-
-    public void setRequestMethod(String requestMethod) {
-        this.requestMethod = requestMethod;
-    }
-
     public SqlMode getSqlMode() {
         return sqlMode;
     }
@@ -75,14 +39,6 @@ public class SqlStatement {
 
     public void setSqlNode(SqlNode sqlNode) {
         this.sqlNode = sqlNode;
-    }
-
-    public XMLStatement getXmlStatement() {
-        return xmlStatement;
-    }
-
-    public void setXmlStatement(XMLStatement xmlStatement) {
-        this.xmlStatement = xmlStatement;
     }
 
     public Class<?> getReturnType() {
@@ -101,11 +57,4 @@ public class SqlStatement {
         this.pagination = pagination;
     }
 
-    public List<String> getValidates() {
-        return validates;
-    }
-
-    public void addValidate(String id) {
-        this.validates.add(id);
-    }
 }

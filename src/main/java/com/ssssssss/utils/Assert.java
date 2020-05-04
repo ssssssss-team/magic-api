@@ -33,4 +33,15 @@ public class Assert {
         }
     }
 
+    /**
+     * 断言值不能为空字符串
+     */
+    public static void isNotBlanks(String message, String... values) {
+        if (values != null) {
+            for (String value : values) {
+                isNotBlank(value, message);
+            }
+        }
+    }
+
 }
