@@ -1,26 +1,26 @@
 package org.ssssssss.expression.parsing;
 
-import org.ssssssss.expression.ExpressionError;
-
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Supplier;
 
 public class ArrayLikeLambdaOneArgumentExecutor {
 
-    public static final Set<String> SUPPORT_METHOD = new HashSet<>();
+    public static final Set<String> SUPPORT_METHOD;
     public static final Map<String, Method> METHODS;
 
 
     static {
         Map<String, Method> temp = new HashMap<>();
-        addSupport(temp, "map");
-        addSupport(temp, "filter");
+        Set<String> set = new HashSet<>();
+        addSupport(temp, set, "map");
+        addSupport(temp, set, "filter");
+        SUPPORT_METHOD = Collections.unmodifiableSet(set);
         METHODS = Collections.unmodifiableMap(temp);
     }
 
-    private static void addSupport(Map<String, Method> temp, String name) {
-        SUPPORT_METHOD.add(name);
+    private static void addSupport(Map<String, Method> temp, Set<String> set, String name) {
+        set.add(name);
         addMethod(temp, name);
     }
 
