@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -1012,12 +1013,34 @@ public abstract class Ast {
 					VariableAccess arrLike = (VariableAccess) object;
 					String parName = arrLike.getVariableName().getText();
 					Object arrLikeObj = context.get(parName);
+					if (arrLikeObj.getClass().isArray()) {
+						try {
+							Integer size = (Integer) arrLikeObj.getClass().getDeclaredField("length").get(arrLikeObj);
+							List<Object> list = new ArrayList<>(size);
+							for (int i = 0; i < size; i++) {
+								list.add(Array.get(arrLikeObj, i));
+							}
+							arrLikeObj = list;
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					} else if (arrLikeObj instanceof Iterator) {
+						Iterator<?> it = (Iterator<?>) arrLikeObj;
+						List<Object> list = new ArrayList<>();
+						it.forEachRemaining(list::add);
+						arrLikeObj = list;
+					} else if (arrLikeObj instanceof Enumeration) {
+						Enumeration<?> en = (Enumeration<?>) arrLikeObj;
+						arrLikeObj = Collections.list(en);
+					}
 					if (arrLikeObj instanceof Collection) {
 						Collection<?> coll = (Collection<?>) arrLikeObj;
+						AtomicInteger ai = new AtomicInteger();
 						return coll.stream().map(o -> ((Supplier) () -> {
 							try {
 								context.push();
 								context.setOnCurrentScope(getElement().getSpan().getText(), o);
+								context.setOnCurrentScope("_i", ai.getAndIncrement());
 								Object res = function.evaluate(template, context);
 								context.pop();
 								return res;

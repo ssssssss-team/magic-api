@@ -1,9 +1,9 @@
-package com.ssssssss.expression.parsing;
+package org.ssssssss.expression.parsing;
 
 
-import com.ssssssss.expression.ExpressionError;
-import com.ssssssss.expression.ExpressionTemplate;
-import com.ssssssss.expression.parsing.Ast.*;
+import org.ssssssss.expression.ExpressionError;
+import org.ssssssss.expression.ExpressionTemplate;
+import org.ssssssss.expression.parsing.Ast.*;
 
 import javax.xml.transform.Source;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ public class Parser {
 
 	/** Parses a {@link Source} into a {@link ExpressionTemplate}. **/
 	public static List<Node> parse (String source) {
-		List<Node> nodes = new ArrayList<Node>();
+		List<Node> nodes = new ArrayList<Ast.Node>();
 		TokenStream stream = new TokenStream(new Tokenizer().tokenize(source));
 		while (stream.hasMore()) {
 			nodes.add(parseStatement(stream));

@@ -18,10 +18,10 @@ public class ArrayLikeLambdaExecutor {
 
     private static void addSupport(Map<String, Method> temp, String name) {
         SUPPORT_METHOD.add(name);
-        init(temp, name);
+        addMethod(temp, name);
     }
 
-    private static void init(Map<String, Method> initialMap, String name) {
+    private static void addMethod(Map<String, Method> initialMap, String name) {
         try {
             initialMap.put(name, ArrayLikeLambdaExecutor.class.getMethod(name, Object.class, Object[].class));
         } catch (NoSuchMethodException e) {
@@ -46,9 +46,9 @@ public class ArrayLikeLambdaExecutor {
         } else if (arrayLike.getClass().isArray()) {
             return results.toArray();
         } else if (arrayLike instanceof Iterator) {
-
+            return results;
         } else if (arrayLike instanceof Enumeration) {
-
+            return results;
         }
         throw new RuntimeException("未实现");
     }
