@@ -196,8 +196,8 @@ public class Parser {
 					}
 					MethodCall methodCall = new MethodCall(new Span(result.getSpan(), closingSpan), (MemberAccess) result, arguments);
 					String name = ((MemberAccess) result).getName().getText();
-					if (ArrayLikeLambdaExecutor.SUPPORT_METHOD.contains(name)) {
-						methodCall.setCachedMethod(ArrayLikeLambdaExecutor.METHODS.get(name));
+					if (ArrayLikeLambdaOneArgumentExecutor.SUPPORT_METHOD.contains(name)) {
+						methodCall.setCachedMethod(ArrayLikeLambdaOneArgumentExecutor.METHODS.get(name));
 						methodCall.setCachedMethodStatic(true);
 					}
 					result = methodCall;

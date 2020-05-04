@@ -12,7 +12,6 @@ public class ExpressionEngine {
 	}
 
 
-	
 	public Object executeWrap(String expression, Map<String, Object> variables) {
 		return execute("${" + expression + "}", variables);
 	}
