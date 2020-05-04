@@ -36,7 +36,7 @@ public class DefaultPageProvider implements PageProvider {
         this.pageSize = pageSize;
     }
 
-    public DefaultPageProvider(String pageName, String pageSize, long defaultPageSize, long defaultPage) {
+    public DefaultPageProvider(String pageName, String pageSize, long defaultPage, long defaultPageSize) {
         this.pageName = pageName;
         this.pageSize = pageSize;
         this.defaultPageSize = defaultPageSize;

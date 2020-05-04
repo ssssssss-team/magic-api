@@ -137,6 +137,7 @@ public class StatementExecutor {
         Object target = null;
         AbstractReflection reflection = AbstractReflection.getInstance();
         Method method = (Method) reflection.getMethod(clazz, methodName, args);
+        Assert.isTrue(method != null,String.format("在%s中找不到方法%s",className,methodName));
         try {
             target = applicationContext.getBean(clazz);
         } catch (BeansException ignored) {
