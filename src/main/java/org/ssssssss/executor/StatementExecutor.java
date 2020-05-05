@@ -163,10 +163,8 @@ public class StatementExecutor {
                 // 当条数>0时，执行查询语句，否则不查询以提高性能
                 if (total > 0) {
                     // 获取分页语句
-                    String pageSql = dialect.getPageSql(sql, page.getOffset(), page.getLimit());
+                    String pageSql = dialect.getPageSql(sql, context, page.getOffset(), page.getLimit());
                     // 设置分页参数
-                    context.addParameter(page.getLimit());
-                    context.addParameter(page.getOffset());
                     // 执行查询
                     pageResult.setList(sqlExecutor.queryForList(connection, pageSql, context.getParameters(), sqlStatement.getReturnType()));
                 }

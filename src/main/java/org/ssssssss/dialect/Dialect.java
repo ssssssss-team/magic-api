@@ -1,5 +1,7 @@
 package org.ssssssss.dialect;
 
+import org.ssssssss.context.RequestContext;
+
 public interface Dialect {
 
     /**
@@ -12,5 +14,5 @@ public interface Dialect {
     /**
      * 获取分页sql
      */
-    String getPageSql(String sql, long offset, long limit);
+    String getPageSql(String sql, RequestContext context, long offset, long limit);
 }
