@@ -87,3 +87,7 @@ spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 	"timestamp": 1588586539249
 }
 ```
+
+# 其他开源项目
+- [ssssssss-spring-boot-starter](https://gitee.com/jmxd/ssssssss-spring-boot-starter)
+- [spider-flow，新一代爬虫平台，以图形化方式定义爬虫流程，不写代码即可完成爬虫](https://gitee.com/jmxd/spider-flow)
