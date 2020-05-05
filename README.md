@@ -7,7 +7,7 @@
         <img alt="maven" src="https://img.shields.io/maven-central/v/org.ssssssss/ssssssss-core.svg?style=flat-square">
     </a>
     <a target="_blank" href="https://www.ssssssss.org"><img src="https://img.shields.io/badge/Docs-latest-blue.svg"/></a>
-    <a target="_blank" href="https://github.com/javamxd/spider-flow/releases"><img src="https://img.shields.io/github/v/release/javamxd/ssssssss?logo=github"></a>
+    <a target="_blank" href="https://github.com/javamxd/ssssssss/releases"><img src="https://img.shields.io/github/v/release/javamxd/ssssssss?logo=github"></a>
     <a target="_blank" href='https://gitee.com/jmxd/ssssssss'><img src="https://gitee.com/jmxd/ssssssss/badge/star.svg?theme=white" /></a>
     <a target="_blank" href='https://github.com/javamxd/ssssssss'><img src="https://img.shields.io/github/stars/javamxd/ssssssss.svg?style=social"/></a>
     <a target="_blank" href="LICENSE"><img src="https://img.shields.io/:license-MIT-blue.svg"></a>
