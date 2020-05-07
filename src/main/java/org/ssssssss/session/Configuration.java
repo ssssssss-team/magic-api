@@ -34,6 +34,11 @@ public class Configuration implements InitializingBean {
     private Method requestHandleMethod;
 
     /**
+     * Http请求(带RequestBody)处理方法
+     */
+    private Method requestWithRequestBodyHandleMethod;
+
+    /**
      * xml位置
      */
     private String[] xmlLocations;
@@ -47,6 +52,11 @@ public class Configuration implements InitializingBean {
      * 是否打印banner
      */
     private boolean banner;
+
+    /**
+     * 执行出错时是否抛异常
+     */
+    private boolean throwException = false;
 
     /**
      * 缓存已加载的statement(request-mapping映射)
@@ -97,7 +107,7 @@ public class Configuration implements InitializingBean {
         // 添加至缓存
         statementMappingMap.put(statement.getRequestMapping(), statement);
         // 注册接口
-        requestMappingHandlerMapping.registerMapping(requestMappingInfo,requestHandler,requestHandleMethod);
+        requestMappingHandlerMapping.registerMapping(requestMappingInfo,requestHandler,statement.isRequestBody() ? requestWithRequestBodyHandleMethod : requestHandleMethod);
     }
 
     /**
@@ -139,6 +149,18 @@ public class Configuration implements InitializingBean {
 
     public void setBanner(boolean banner) {
         this.banner = banner;
+    }
+
+    public boolean isThrowException() {
+        return throwException;
+    }
+
+    public void setRequestWithRequestBodyHandleMethod(Method requestWithRequestBodyHandleMethod) {
+        this.requestWithRequestBodyHandleMethod = requestWithRequestBodyHandleMethod;
+    }
+
+    public void setThrowException(boolean throwException) {
+        this.throwException = throwException;
     }
 
     @Override

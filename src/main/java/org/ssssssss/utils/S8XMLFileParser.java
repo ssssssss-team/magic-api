@@ -62,6 +62,8 @@ public class S8XMLFileParser {
         for (int i = 0, len = nodeList.getLength(); i < len; i++) {
             Node node = nodeList.item(i);
             FunctionStatement functionStatement = new FunctionStatement();
+            // 设置是否支持RequestBody
+            functionStatement.setRequestBody("true".equalsIgnoreCase(DomUtils.getNodeAttributeValue(node,"request-body")));
             // 设置请求路径
             functionStatement.setRequestMapping(DomUtils.getNodeAttributeValue(node, "request-mapping"));
             // 设置请求方法
@@ -115,6 +117,8 @@ public class S8XMLFileParser {
             SqlStatement sqlStatement = new SqlStatement();
             sqlStatement.setId(DomUtils.getNodeAttributeValue(item, "id"));
             sqlStatement.setXmlStatement(xmlStatement);
+            // 设置是否支持RequestBody
+            sqlStatement.setRequestBody("true".equalsIgnoreCase(DomUtils.getNodeAttributeValue(item,"request-body")));
             String validate = DomUtils.getNodeAttributeValue(item, "validate");
             if (StringUtils.isNotBlank(validate)) {
                 // 支持多个验证

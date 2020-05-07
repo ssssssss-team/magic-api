@@ -20,6 +20,11 @@ public class Statement {
      */
     private String requestMethod;
 
+    /**
+     * 是否支持requestBody
+     */
+    private boolean requestBody = false;
+
     private List<String> validates = new ArrayList<>();
 
     /**
@@ -65,5 +70,13 @@ public class Statement {
 
     public void addValidate(String id) {
         this.validates.add(id);
+    }
+
+    public boolean isRequestBody() {
+        return requestBody;
+    }
+
+    public void setRequestBody(boolean requestBody) {
+        this.requestBody = requestBody;
     }
 }
