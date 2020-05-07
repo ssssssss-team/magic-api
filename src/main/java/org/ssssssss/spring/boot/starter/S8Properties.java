@@ -22,6 +22,11 @@ public class S8Properties {
     private boolean banner = true;
 
     /**
+     * 是否抛出异常
+     */
+    private boolean throwException = false;
+
+    /**
      * 驼峰命名转换
      */
     private boolean mapUnderscoreToCamelCase = true;
@@ -67,5 +72,13 @@ public class S8Properties {
 
     public void setPageConfig(PageConfig pageConfig) {
         this.pageConfig = pageConfig;
+    }
+
+    public boolean isThrowException() {
+        return throwException;
+    }
+
+    public void setThrowException(boolean throwException) {
+        this.throwException = throwException;
     }
 }
