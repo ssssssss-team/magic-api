@@ -14,6 +14,8 @@
     <a target="_blank" href="https://shang.qq.com/wpa/qunwpa?idkey=10faa4cf9743e0aa379a72f2ad12a9e576c81462742143c8f3391b52e8c3ed8d"><img src="https://img.shields.io/badge/Join-QQGroup-blue"></a>
 </p>
 
+[特性](#特性) | [快速开始](#快速开始) |  <a target="_blank" href="http://ssssssss.org">文档</a> | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [其它开源](#其它开源项目)
+
 # 特性
 -  以XML为基础，自动映射HTTP接口
 -  支持MySQL、MariaDB、Oracle、DB2、PostgreSQL、SQLServer 等多种数据库
@@ -88,6 +90,6 @@ spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 }
 ```
 
-# 其他开源项目
+# 其它开源项目
 - [ssssssss-spring-boot-starter](https://gitee.com/jmxd/ssssssss-spring-boot-starter)
 - [spider-flow，新一代爬虫平台，以图形化方式定义爬虫流程，不写代码即可完成爬虫](https://gitee.com/jmxd/spider-flow)
