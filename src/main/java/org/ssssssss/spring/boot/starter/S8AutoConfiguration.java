@@ -13,6 +13,7 @@ import org.ssssssss.executor.RequestExecutor;
 import org.ssssssss.executor.SqlExecutor;
 import org.ssssssss.executor.StatementExecutor;
 import org.ssssssss.expression.ExpressionEngine;
+import org.ssssssss.interceptor.RequestInterceptor;
 import org.ssssssss.provider.PageProvider;
 import org.ssssssss.provider.impl.DefaultPageProvider;
 import org.ssssssss.session.Configuration;
@@ -32,6 +33,9 @@ public class S8AutoConfiguration {
 
     @Autowired(required = false)
     private List<IValidator> validators;
+
+    @Autowired(required = false)
+    private List<RequestInterceptor> requestInterceptors;
 
     public S8AutoConfiguration(S8Properties properties) {
         this.properties = properties;
@@ -57,6 +61,9 @@ public class S8AutoConfiguration {
         requestExecutor.addValidator(new RegxValidator());
         if (this.validators != null) {
             this.validators.forEach(requestExecutor::addValidator);
+        }
+        if(this.requestInterceptors != null){
+            this.requestInterceptors.forEach(requestExecutor::addRequestInterceptor);
         }
         return requestExecutor;
     }
