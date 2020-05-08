@@ -42,6 +42,10 @@ public class RequestExecutor {
 
     private List<RequestInterceptor> requestInterceptors = new ArrayList<>();
 
+    public void addRequestInterceptor(RequestInterceptor requestInterceptor){
+        this.requestInterceptors.add(requestInterceptor);
+    }
+
     public void addValidator(IValidator validator) {
         this.validators.put(validator.support(), validator);
     }

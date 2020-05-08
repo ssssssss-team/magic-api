@@ -1,5 +1,8 @@
 package org.ssssssss.session;
 
+import org.ssssssss.utils.DomUtils;
+import org.w3c.dom.Node;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +29,8 @@ public class Statement {
     private boolean requestBody = false;
 
     private List<String> validates = new ArrayList<>();
+
+    private Node node;
 
     /**
      * XMLStatement对象
@@ -78,5 +83,17 @@ public class Statement {
 
     public void setRequestBody(boolean requestBody) {
         this.requestBody = requestBody;
+    }
+
+    public Node getNode() {
+        return node;
+    }
+
+    public void setNode(Node node) {
+        this.node = node;
+    }
+
+    public String getNodeData(String dataName) {
+        return DomUtils.getNodeAttributeValue(node, "data-" + dataName);
     }
 }

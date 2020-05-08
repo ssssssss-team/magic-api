@@ -68,6 +68,9 @@ public class S8XMLFileParser {
             functionStatement.setRequestMapping(DomUtils.getNodeAttributeValue(node, "request-mapping"));
             // 设置请求方法
             functionStatement.setRequestMethod(DomUtils.getNodeAttributeValue(node, "request-method"));
+            // 设置节点
+            functionStatement.setNode(node);
+
             // 设置ID
             functionStatement.setId(DomUtils.getNodeAttributeValue(node, "id"));
 
@@ -115,8 +118,12 @@ public class S8XMLFileParser {
         for (int i = 0, len = nodeList.getLength(); i < len; i++) {
             Node item = nodeList.item(i);
             SqlStatement sqlStatement = new SqlStatement();
+            // 设置ID
             sqlStatement.setId(DomUtils.getNodeAttributeValue(item, "id"));
+            // 设置XmlStatement
             sqlStatement.setXmlStatement(xmlStatement);
+            // 设置节点
+            sqlStatement.setNode(item);
             // 设置是否支持RequestBody
             sqlStatement.setRequestBody("true".equalsIgnoreCase(DomUtils.getNodeAttributeValue(item,"request-body")));
             String validate = DomUtils.getNodeAttributeValue(item, "validate");
