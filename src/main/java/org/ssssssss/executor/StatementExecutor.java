@@ -137,7 +137,7 @@ public class StatementExecutor {
         Object target = null;
         AbstractReflection reflection = AbstractReflection.getInstance();
         Method method = (Method) reflection.getMethod(clazz, methodName, args);
-        Assert.isTrue(method != null,String.format("在%s中找不到方法%s",className,methodName));
+        Assert.isTrue(method != null, String.format("在%s中找不到方法%s", className, methodName));
         try {
             target = applicationContext.getBean(clazz);
         } catch (BeansException ignored) {
@@ -153,7 +153,7 @@ public class StatementExecutor {
             // 从Request中提取Page对象
             Page page = pageProvider.getPage(context.getRequest());
             // 执行分页逻辑
-            return sqlExecutor.doInConnection(connection -> {
+            return sqlExecutor.doInConnection(sqlStatement.getDataSourceName(), connection -> {
                 PageResult<Object> pageResult = new PageResult<>();
                 // 获取数据库方言
                 Dialect dialect = DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
@@ -172,7 +172,7 @@ public class StatementExecutor {
             });
         } else {
             // 普通SQL执行
-            return sqlExecutor.execute(sqlStatement.getSqlMode(), sql, context.getParameters(), sqlStatement.getReturnType());
+            return sqlExecutor.execute(sqlStatement.getDataSourceName(), sqlStatement.getSqlMode(), sql, context.getParameters(), sqlStatement.getReturnType());
         }
     }
 }

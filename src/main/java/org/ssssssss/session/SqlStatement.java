@@ -25,6 +25,8 @@ public class SqlStatement extends Statement {
      */
     private Class<?> returnType;
 
+    private String dataSourceName;
+
     public SqlMode getSqlMode() {
         return sqlMode;
     }
@@ -57,4 +59,11 @@ public class SqlStatement extends Statement {
         this.pagination = pagination;
     }
 
+    public String getDataSourceName() {
+        return dataSourceName;
+    }
+
+    public void setDataSourceName(String dataSourceName) {
+        this.dataSourceName = dataSourceName;
+    }
 }

@@ -57,31 +57,46 @@ public class S8XMLFileParser {
         return statement;
     }
 
-    private static List<Statement> parseFunctionStatement(XMLStatement statement, NodeList nodeList) {
+    private static List<Statement> parseFunctionStatement(XMLStatement xmlStatement, NodeList nodeList) {
         List<Statement> statements = new ArrayList<>();
         for (int i = 0, len = nodeList.getLength(); i < len; i++) {
             Node node = nodeList.item(i);
             FunctionStatement functionStatement = new FunctionStatement();
-            // 设置是否支持RequestBody
-            functionStatement.setRequestBody("true".equalsIgnoreCase(DomUtils.getNodeAttributeValue(node,"request-body")));
-            // 设置请求路径
-            functionStatement.setRequestMapping(DomUtils.getNodeAttributeValue(node, "request-mapping"));
-            // 设置请求方法
-            functionStatement.setRequestMethod(DomUtils.getNodeAttributeValue(node, "request-method"));
-            // 设置节点
-            functionStatement.setNode(node);
-
-            // 设置ID
-            functionStatement.setId(DomUtils.getNodeAttributeValue(node, "id"));
-
+            parseStatement(functionStatement, node, xmlStatement);
             // TODO 这里后续需要改进
             // 设置子节点，不进行深层解析，执行时在解析
             functionStatement.setNodeList((NodeList) DomUtils.evaluate("*", node, XPathConstants.NODESET));
-
-            functionStatement.setXmlStatement(statement);
             statements.add(functionStatement);
         }
         return statements;
+    }
+
+    private static void parseStatement(Statement statement, Node node, XMLStatement xmlStatement) {
+        // 设置是否支持RequestBody
+        statement.setRequestBody("true".equalsIgnoreCase(DomUtils.getNodeAttributeValue(node, "request-body")));
+
+        String requestMapping = DomUtils.getNodeAttributeValue(node, "request-mapping");
+        if (StringUtils.isNotBlank(requestMapping)) {
+            // 设置请求路径
+            statement.setRequestMapping(StringUtils.defaultString(xmlStatement.getRequestMapping()) + requestMapping);
+            // 设置请求方法
+            statement.setRequestMethod(DomUtils.getNodeAttributeValue(node, "request-method"));
+        }
+        // 设置节点
+        statement.setNode(node);
+        // 设置ID
+        statement.setId(DomUtils.getNodeAttributeValue(node, "id"));
+        // 设置XMLStatement
+        statement.setXmlStatement(xmlStatement);
+        // 解析验证
+        String validate = DomUtils.getNodeAttributeValue(node, "validate");
+        if (StringUtils.isNotBlank(validate)) {
+            // 支持多个验证
+            for (String validateId : validate.split(",")) {
+                Assert.isTrue(xmlStatement.containsValidateStatement(validateId), String.format("找不到验证节点[%s]", validateId));
+                statement.addValidate(validateId);
+            }
+        }
     }
 
     /**
@@ -118,33 +133,10 @@ public class S8XMLFileParser {
         for (int i = 0, len = nodeList.getLength(); i < len; i++) {
             Node item = nodeList.item(i);
             SqlStatement sqlStatement = new SqlStatement();
-            // 设置ID
-            sqlStatement.setId(DomUtils.getNodeAttributeValue(item, "id"));
-            // 设置XmlStatement
-            sqlStatement.setXmlStatement(xmlStatement);
-            // 设置节点
-            sqlStatement.setNode(item);
-            // 设置是否支持RequestBody
-            sqlStatement.setRequestBody("true".equalsIgnoreCase(DomUtils.getNodeAttributeValue(item,"request-body")));
-            String validate = DomUtils.getNodeAttributeValue(item, "validate");
-            if (StringUtils.isNotBlank(validate)) {
-                // 支持多个验证
-                for (String validateId : validate.split(",")) {
-                    Assert.isTrue(xmlStatement.containsValidateStatement(validateId), String.format("找不到验证节点[%s]", validateId));
-                    sqlStatement.addValidate(validateId);
-                }
-            }
+            parseStatement(sqlStatement, item, xmlStatement);
+            sqlStatement.setDataSourceName(DomUtils.getNodeAttributeValue(item, "datasource"));
             // 设置SqlMode
             sqlStatement.setSqlMode(SqlMode.valueOf(item.getNodeName().toUpperCase().replace("-", "_")));
-
-            String requestMapping = DomUtils.getNodeAttributeValue(item, "request-mapping");
-            String id = DomUtils.getNodeAttributeValue(item, "id");
-            if (StringUtils.isNotBlank(requestMapping)) {
-                // 设置请求路径
-                sqlStatement.setRequestMapping(StringUtils.defaultString(xmlStatement.getRequestMapping()) + requestMapping);
-                // 设置请求方法
-                sqlStatement.setRequestMethod(DomUtils.getNodeAttributeValue(item, "request-method"));
-            }
             String returnType = DomUtils.getNodeAttributeValue(item, "return-type");
             if ("int".equalsIgnoreCase(returnType)) {
                 sqlStatement.setReturnType(Integer.class);

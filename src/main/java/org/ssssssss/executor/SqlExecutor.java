@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ssssssss.enums.SqlMode;
 import org.ssssssss.exception.S8Exception;
+import org.ssssssss.session.DynamicDataSource;
 
-import javax.sql.DataSource;
 import java.sql.*;
 import java.util.Date;
 import java.util.*;
@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class SqlExecutor {
 
-    private DataSource dataSource;
+    private DynamicDataSource dynamicDataSource;
 
     private Logger logger = LoggerFactory.getLogger(SqlExecutor.class);
 
@@ -24,8 +24,8 @@ public class SqlExecutor {
      */
     private boolean mapUnderscoreToCamelCase;
 
-    public SqlExecutor(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public SqlExecutor(DynamicDataSource dynamicDataSource) {
+        this.dynamicDataSource = dynamicDataSource;
     }
 
     public void setMapUnderscoreToCamelCase(boolean mapUnderscoreToCamelCase) {
@@ -42,33 +42,35 @@ public class SqlExecutor {
      * @return
      * @throws SQLException
      */
-    public Object execute(SqlMode mode, String sql, List<Object> parameters, Class<?> returnType) throws SQLException {
+    public Object execute(String dataSourceName, SqlMode mode, String sql, List<Object> parameters, Class<?> returnType) throws SQLException {
         if (SqlMode.SELECT_LIST == mode) {
-            return queryForList(sql, parameters, returnType == null ? Map.class : returnType);
+            return queryForList(dataSourceName, sql, parameters, returnType == null ? Map.class : returnType);
         } else if (SqlMode.UPDATE == mode || SqlMode.INSERT == mode || SqlMode.DELETE == mode) {
-            int value = update(sql, parameters);
+            int value = update(dataSourceName, sql, parameters);
             // 当设置返回值是boolean类型时,做>0比较
-            if(returnType == Boolean.class){
+            if (returnType == Boolean.class) {
                 return value > 0;
             }
             return value;
         } else if (SqlMode.SELECT_ONE == mode) {
-            return queryForOne(sql, parameters, returnType);
+            return queryForOne(dataSourceName, sql, parameters, returnType);
         } else {
             throw new S8Exception("暂时不支持[" + mode + "]模式");
         }
     }
 
-    private Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
+    private Connection getConnection(String dataSourceName) throws SQLException {
+        return dynamicDataSource.getDataSource(dataSourceName).getConnection();
     }
 
     /**
      * 获取Connection并调用回调函数执行
-     * @param connectionCallback    回调函数
+     *
+     * @param dataSourceName     数据源名称
+     * @param connectionCallback 回调函数
      */
-    public <T> T doInConnection(ConnectionCallback<T> connectionCallback) throws SQLException {
-        Connection connection = getConnection();
+    public <T> T doInConnection(String dataSourceName, ConnectionCallback<T> connectionCallback) throws SQLException {
+        Connection connection = getConnection(dataSourceName);
         try {
             return connectionCallback.execute(connection);
         } finally {
@@ -76,8 +78,8 @@ public class SqlExecutor {
         }
     }
 
-    private int update(String sql, List<Object> params) throws SQLException {
-        Connection connection = getConnection();
+    private int update(String dataSourceName, String sql, List<Object> params) throws SQLException {
+        Connection connection = getConnection(dataSourceName);
         PreparedStatement stmt = null;
         try {
             stmt = createPreparedStatement(connection, sql, params);
@@ -90,10 +92,11 @@ public class SqlExecutor {
 
     /**
      * 查询一条
-     * @param connection    连接对象
-     * @param sql   SQL
-     * @param params   SQL参数
-     * @param returnType    返回值类型
+     *
+     * @param connection 连接对象
+     * @param sql        SQL
+     * @param params     SQL参数
+     * @param returnType 返回值类型
      */
     public <T> T queryForOne(Connection connection, String sql, List<Object> params, Class<T> returnType) throws SQLException {
         PreparedStatement stmt = null;
@@ -118,12 +121,13 @@ public class SqlExecutor {
 
     /**
      * 查询一条
-     * @param sql   SQL
-     * @param params   SQL参数
-     * @param returnType    返回值类型
+     *
+     * @param sql        SQL
+     * @param params     SQL参数
+     * @param returnType 返回值类型
      */
-    private <T> T queryForOne(String sql, List<Object> params, Class<T> returnType) throws SQLException {
-        Connection connection = getConnection();
+    private <T> T queryForOne(String dataSourceName, String sql, List<Object> params, Class<T> returnType) throws SQLException {
+        Connection connection = getConnection(dataSourceName);
         try {
             return queryForOne(connection, sql, params, returnType);
         } finally {
@@ -133,10 +137,11 @@ public class SqlExecutor {
 
     /**
      * 查询List
-     * @param connection    连接对象
-     * @param sql   SQL
-     * @param params   SQL参数
-     * @param returnType    返回值类型
+     *
+     * @param connection 连接对象
+     * @param sql        SQL
+     * @param params     SQL参数
+     * @param returnType 返回值类型
      */
     public List<Object> queryForList(Connection connection, String sql, List<Object> params, Class<?> returnType) throws SQLException {
         PreparedStatement stmt = null;
@@ -177,6 +182,7 @@ public class SqlExecutor {
 
     /**
      * 下划线转驼峰命名
+     *
      * @param columnName 列名
      * @return
      */
@@ -202,8 +208,8 @@ public class SqlExecutor {
     }
 
 
-    private List<Object> queryForList(String sql, List<Object> params, Class<?> returnType) throws SQLException {
-        Connection connection = getConnection();
+    private List<Object> queryForList(String dataSourceName, String sql, List<Object> params, Class<?> returnType) throws SQLException {
+        Connection connection = getConnection(dataSourceName);
         try {
             return queryForList(connection, sql, params, returnType);
         } finally {
@@ -213,8 +219,9 @@ public class SqlExecutor {
 
     /**
      * 统一创建PrepareStatement对象
-     * @param conn  连接对象
-     * @param sql   SQL
+     *
+     * @param conn   连接对象
+     * @param sql    SQL
      * @param params SQL参数
      */
     private PreparedStatement createPreparedStatement(Connection conn, String sql, List<Object> params) throws SQLException {

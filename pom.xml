@@ -11,7 +11,7 @@
     </parent>
     <groupId>org.ssssssss</groupId>
     <artifactId>ssssssss-core</artifactId>
-    <version>0.0.2</version>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
     <name>ssssssss-core</name>
     <description>auto generate http api based on xml</description>
