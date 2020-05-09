@@ -17,6 +17,7 @@ import org.ssssssss.interceptor.RequestInterceptor;
 import org.ssssssss.provider.PageProvider;
 import org.ssssssss.provider.impl.DefaultPageProvider;
 import org.ssssssss.session.Configuration;
+import org.ssssssss.session.DynamicDataSource;
 import org.ssssssss.validator.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -74,8 +75,16 @@ public class S8AutoConfiguration {
     }
 
     @Bean
-    public StatementExecutor statementExecutor(DataSource dataSource, PageProvider pageProvider, ApplicationContext context) {
-        SqlExecutor sqlExecutor = new SqlExecutor(dataSource);
+    @ConditionalOnMissingBean(DynamicDataSource.class)
+    public DynamicDataSource dynamicDataSource(DataSource dataSource){
+        DynamicDataSource dynamicDataSource = new DynamicDataSource();
+        dynamicDataSource.put(null,dataSource);
+        return dynamicDataSource;
+    }
+
+    @Bean
+    public StatementExecutor statementExecutor(DynamicDataSource dynamicDataSource, PageProvider pageProvider, ApplicationContext context) {
+        SqlExecutor sqlExecutor = new SqlExecutor(dynamicDataSource);
         sqlExecutor.setMapUnderscoreToCamelCase(properties.isMapUnderscoreToCamelCase());
         return new StatementExecutor(sqlExecutor, pageProvider, context);
     }
