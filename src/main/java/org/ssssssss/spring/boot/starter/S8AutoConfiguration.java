@@ -14,8 +14,10 @@ import org.ssssssss.executor.SqlExecutor;
 import org.ssssssss.executor.StatementExecutor;
 import org.ssssssss.expression.ExpressionEngine;
 import org.ssssssss.interceptor.RequestInterceptor;
+import org.ssssssss.provider.KeyProvider;
 import org.ssssssss.provider.PageProvider;
 import org.ssssssss.provider.impl.DefaultPageProvider;
+import org.ssssssss.provider.impl.UUIDKeyProvider;
 import org.ssssssss.session.Configuration;
 import org.ssssssss.session.DynamicDataSource;
 import org.ssssssss.validator.*;
@@ -37,6 +39,9 @@ public class S8AutoConfiguration {
 
     @Autowired(required = false)
     private List<RequestInterceptor> requestInterceptors;
+
+    @Autowired(required = false)
+    private List<KeyProvider> keyProviders;
 
     public S8AutoConfiguration(S8Properties properties) {
         this.properties = properties;
@@ -85,6 +90,12 @@ public class S8AutoConfiguration {
     @Bean
     public StatementExecutor statementExecutor(DynamicDataSource dynamicDataSource, PageProvider pageProvider, ApplicationContext context) {
         SqlExecutor sqlExecutor = new SqlExecutor(dynamicDataSource);
+        // 注册UUID生成策略
+        sqlExecutor.addKeyProvider(new UUIDKeyProvider());
+        if(this.keyProviders != null){
+            // 注册自定义的主键生成策略
+            keyProviders.forEach(sqlExecutor::addKeyProvider);
+        }
         sqlExecutor.setMapUnderscoreToCamelCase(properties.isMapUnderscoreToCamelCase());
         return new StatementExecutor(sqlExecutor, pageProvider, context);
     }
