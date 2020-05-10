@@ -148,6 +148,16 @@ public class S8XMLFileParser {
                 sqlStatement.setReturnType(String.class);
             } else if ("boolean".equalsIgnoreCase(returnType)) {
                 sqlStatement.setReturnType(Boolean.class);
+            } else if ("pk".equalsIgnoreCase(returnType)) {
+                sqlStatement.setSqlMode(SqlMode.INSERT_WITH_PK);
+                Node selectKey = (Node) DomUtils.evaluate("select-key", item, XPathConstants.NODE);
+                sqlStatement.setSelectKey(selectKey);
+                if(selectKey != null && selectKey.hasChildNodes()){
+                    SqlNode root = new TextSqlNode("");
+                    parseNodeList(root,document,selectKey.getChildNodes());
+                    sqlStatement.setSelectKeySqlNode(root);
+                }
+                sqlStatement.setReturnType(Long.class);
             } else {
                 sqlStatement.setReturnType(Map.class);
             }
@@ -167,7 +177,7 @@ public class S8XMLFileParser {
     /**
      * 递归解析子节点
      */
-    private static void parseNodeList(SqlNode sqlNode, Document document, NodeList nodeList) {
+    public static void parseNodeList(SqlNode sqlNode, Document document, NodeList nodeList) {
         for (int i = 0, len = nodeList.getLength(); i < len; i++) {
             Node node = nodeList.item(i);
             if (node.getNodeType() == Node.TEXT_NODE) {
@@ -175,9 +185,9 @@ public class S8XMLFileParser {
             } else if (node.getNodeType() != Node.COMMENT_NODE) {
                 String nodeName = node.getNodeName();
                 SqlNode childNode;
-                if ("foreach".equals(nodeName)) {
+                if ("foreach".equalsIgnoreCase(nodeName)) {
                     childNode = parseForeachSqlNode(node);
-                } else if ("if".equals(nodeName)) {
+                } else if ("if".equalsIgnoreCase(nodeName)) {
                     childNode = parseIfSqlNode(node);
                 } else if ("include".equalsIgnoreCase(nodeName)) {
                     String refId = DomUtils.getNodeAttributeValue(node, "refid");
@@ -185,6 +195,8 @@ public class S8XMLFileParser {
                     Node refSqlNode = (Node) DomUtils.evaluate(String.format("//sql[@id=\"%s\"]", refId), document, XPathConstants.NODE);
                     Assert.isNotNull(refSqlNode, "找不到sql[" + refId + "]");
                     childNode = new TextSqlNode(refSqlNode.getTextContent().trim());
+                } else if ("select-key".equalsIgnoreCase(nodeName)) { //跳过selectKey标签
+                    continue;
                 } else {
                     logger.error("不支持的标签:[{}]", nodeName);
                     return;

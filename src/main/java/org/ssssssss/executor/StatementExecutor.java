@@ -7,7 +7,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.ssssssss.context.RequestContext;
 import org.ssssssss.dialect.Dialect;
-import org.ssssssss.dialect.DialectUtils;
+import org.ssssssss.enums.SqlMode;
 import org.ssssssss.expression.interpreter.AbstractReflection;
 import org.ssssssss.model.Page;
 import org.ssssssss.model.PageResult;
@@ -25,6 +25,7 @@ import javax.xml.xpath.XPathConstants;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * SqlStatement执行器
@@ -100,13 +101,15 @@ public class StatementExecutor {
                 Assert.isNotNull(statement, String.format("找不到SQL:%s", sqlId));
                 // 解析参数
                 NodeList params = (NodeList) DomUtils.evaluate("param", node, XPathConstants.NODESET);
-                for (int j = 0, l = params.getLength(); j < l; j++) {
-                    Node param = params.item(j);
-                    String paramName = DomUtils.getNodeAttributeValue(param, "name");
-                    String paramValue = DomUtils.getNodeAttributeValue(param, "value");
-                    Assert.isNotBlanks("execute-sql/param的参数名和值都不能为空", paramName, paramValue);
-                    // 重新覆盖值
-                    context.put(paramName, context.evaluate(paramValue));
+                if (params != null) {
+                    for (int j = 0, l = params.getLength(); j < l; j++) {
+                        Node param = params.item(j);
+                        String paramName = DomUtils.getNodeAttributeValue(param, "name");
+                        String paramValue = DomUtils.getNodeAttributeValue(param, "value");
+                        Assert.isNotBlanks("execute-sql/param的参数名和值都不能为空", paramName, paramValue);
+                        // 重新覆盖值
+                        context.put(paramName, context.evaluate(paramValue));
+                    }
                 }
                 //执行SQL
                 value = executeSqlStatement((SqlStatement) statement, context);
@@ -129,8 +132,6 @@ public class StatementExecutor {
      * @param className  类名
      * @param methodName 方法名
      * @param args       参数
-     * @return
-     * @throws ClassNotFoundException
      */
     private Object executeJava(String className, String methodName, Object... args) throws ClassNotFoundException {
         Class<?> clazz = Class.forName(className);
@@ -147,32 +148,32 @@ public class StatementExecutor {
     }
 
     private Object executeSqlStatement(SqlStatement sqlStatement, RequestContext context) throws SQLException {
-        // 获取要执行的SQL
-        String sql = sqlStatement.getSqlNode().getSql(context).trim();
         if (sqlStatement.isPagination()) {  //判断是否是分页语句
+            // 获取要执行的SQL
+            String sql = sqlStatement.getSqlNode().getSql(context).trim();
             // 从Request中提取Page对象
             Page page = pageProvider.getPage(context.getRequest());
-            // 执行分页逻辑
-            return sqlExecutor.doInConnection(sqlStatement.getDataSourceName(), connection -> {
-                PageResult<Object> pageResult = new PageResult<>();
-                // 获取数据库方言
-                Dialect dialect = DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
-                // 获取总条数
-                long total = sqlExecutor.queryForOne(connection, dialect.getCountSql(sql), context.getParameters(), Long.class);
-                pageResult.setTotal(total);
-                // 当条数>0时，执行查询语句，否则不查询以提高性能
-                if (total > 0) {
-                    // 获取分页语句
-                    String pageSql = dialect.getPageSql(sql, context, page.getOffset(), page.getLimit());
-                    // 设置分页参数
-                    // 执行查询
-                    pageResult.setList(sqlExecutor.queryForList(connection, pageSql, context.getParameters(), sqlStatement.getReturnType()));
-                }
-                return pageResult;
-            });
+            // 获取数据库方言
+            Dialect dialect = sqlExecutor.getDialect(sqlStatement.getDataSourceName());
+            PageResult<Object> pageResult = new PageResult<>();
+            // 获取总条数
+            long total = (long) sqlExecutor.execute(sqlStatement.getDataSourceName(), SqlMode.SELECT_ONE, dialect.getCountSql(sql), context.getParameters().toArray(), Long.class);
+            pageResult.setTotal(total);
+            // 当条数>0时，执行查询语句，否则不查询以提高性能
+            if (total > 0) {
+                // 获取分页语句
+                String pageSql = dialect.getPageSql(sql, context, page.getOffset(), page.getLimit());
+                // 执行查询
+                pageResult.setList((List) sqlExecutor.execute(sqlStatement.getDataSourceName(), SqlMode.SELECT_LIST, pageSql, context.getParameters().toArray(), sqlStatement.getReturnType()));
+            }
+            return pageResult;
+        } else if (SqlMode.INSERT_WITH_PK == sqlStatement.getSqlMode()) {   //插入返回主键
+            return sqlExecutor.executeInsertWithPk(sqlStatement, context);
         } else {
+            // 获取要执行的SQL
+            String sql = sqlStatement.getSqlNode().getSql(context).trim();
             // 普通SQL执行
-            return sqlExecutor.execute(sqlStatement.getDataSourceName(), sqlStatement.getSqlMode(), sql, context.getParameters(), sqlStatement.getReturnType());
+            return sqlExecutor.execute(sqlStatement.getDataSourceName(), sqlStatement.getSqlMode(), sql, context.getParameters().toArray(), sqlStatement.getReturnType());
         }
     }
 }

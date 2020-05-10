@@ -2,12 +2,26 @@ package org.ssssssss.executor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.jdbc.support.KeyHolder;
+import org.ssssssss.context.RequestContext;
+import org.ssssssss.dialect.Dialect;
+import org.ssssssss.dialect.DialectUtils;
 import org.ssssssss.enums.SqlMode;
 import org.ssssssss.exception.S8Exception;
+import org.ssssssss.provider.KeyProvider;
+import org.ssssssss.scripts.SqlNode;
 import org.ssssssss.session.DynamicDataSource;
+import org.ssssssss.session.SqlStatement;
+import org.ssssssss.utils.Assert;
+import org.ssssssss.utils.DomUtils;
+import org.w3c.dom.Node;
 
 import java.sql.*;
-import java.util.Date;
 import java.util.*;
 
 /**
@@ -15,14 +29,18 @@ import java.util.*;
  */
 public class SqlExecutor {
 
-    private DynamicDataSource dynamicDataSource;
-
     private Logger logger = LoggerFactory.getLogger(SqlExecutor.class);
+
+    private Map<String, JdbcTemplate> jdbcTemplates = new HashMap<>();
+
+    private DynamicDataSource dynamicDataSource;
 
     /**
      * 是否启用驼峰命名
      */
     private boolean mapUnderscoreToCamelCase;
+
+    private Map<String, KeyProvider> keyProviders = new HashMap<>();
 
     public SqlExecutor(DynamicDataSource dynamicDataSource) {
         this.dynamicDataSource = dynamicDataSource;
@@ -30,6 +48,10 @@ public class SqlExecutor {
 
     public void setMapUnderscoreToCamelCase(boolean mapUnderscoreToCamelCase) {
         this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
+    }
+
+    public void addKeyProvider(KeyProvider provider) {
+        keyProviders.put(provider.getName(), provider);
     }
 
     /**
@@ -40,248 +62,170 @@ public class SqlExecutor {
      * @param parameters SQL参数
      * @param returnType 返回值类型
      * @return
-     * @throws SQLException
      */
-    public Object execute(String dataSourceName, SqlMode mode, String sql, List<Object> parameters, Class<?> returnType) throws SQLException {
+    public Object execute(String dataSourceName, SqlMode mode, String sql, Object[] parameters, Class<?> returnType) {
+        JdbcTemplate jdbcTemplate = getJdbcTemplate(dataSourceName);
+        printLog(dataSourceName, sql, parameters);
         if (SqlMode.SELECT_LIST == mode) {
-            return queryForList(dataSourceName, sql, parameters, returnType == null ? Map.class : returnType);
+            if (returnType == null || returnType == Map.class) {
+                return jdbcTemplate.queryForList(sql, parameters);
+            }
+            return jdbcTemplate.queryForList(sql, parameters, returnType);
         } else if (SqlMode.UPDATE == mode || SqlMode.INSERT == mode || SqlMode.DELETE == mode) {
-            int value = update(dataSourceName, sql, parameters);
+            int value = jdbcTemplate.update(sql, parameters);
             // 当设置返回值是boolean类型时,做>0比较
             if (returnType == Boolean.class) {
                 return value > 0;
             }
             return value;
         } else if (SqlMode.SELECT_ONE == mode) {
-            return queryForOne(dataSourceName, sql, parameters, returnType);
+            Collection collection;
+            if (returnType == null || returnType == Map.class) {
+                collection = jdbcTemplate.queryForList(sql, parameters);
+            } else {
+                collection = jdbcTemplate.queryForList(sql, returnType, parameters);
+            }
+            return collection != null && collection.size() >= 1 ? collection.iterator().next() : null;
         } else {
             throw new S8Exception("暂时不支持[" + mode + "]模式");
         }
     }
 
-    private Connection getConnection(String dataSourceName) throws SQLException {
-        return dynamicDataSource.getDataSource(dataSourceName).getConnection();
-    }
+    public Object executeInsertWithPk(SqlStatement statement, RequestContext requestContext) throws SQLException {
+        String dataSourceName = statement.getDataSourceName();
+        JdbcTemplate jdbcTemplate = getJdbcTemplate(dataSourceName);
+        Node selectKey = statement.getSelectKey();
+        String selectKeyType;
+        if (selectKey != null && (selectKeyType = DomUtils.getNodeAttributeValue(selectKey, "type")) != null) {
+            Connection connection = jdbcTemplate.getDataSource().getConnection();
+            Object value = null;
+            try {
+                // 获取主键名称
+                String key = DomUtils.getNodeAttributeValue(selectKey, "key");
+                Assert.isNotBlank(key, "select-key标签的key不能为空");
+                if ("select".equalsIgnoreCase(selectKeyType)) {
+                    SqlNode selectKeySqlNode = statement.getSelectKeySqlNode();
+                    // 判断执行时机是否在执行插入之前
+                    boolean before = "before".equalsIgnoreCase(DomUtils.getNodeAttributeValue(selectKey, "order"));
+                    if (before) {
+                        // 查询key
+                        value = executeSelectKey(dataSourceName, connection, selectKeySqlNode.getSql(requestContext), requestContext.getParameters());
+                        // 清空参数
+                        requestContext.getParameters().clear();
+                        // 存入key
+                        requestContext.put(key, value);
+                    }
+                    // 获取插入SQL
+                    String insertSQL = statement.getSqlNode().getSql(requestContext);
+                    // 执行插入
+                    executeUpdate(dataSourceName, connection, insertSQL, requestContext.getParameters());
+                    // 清空参数
+                    requestContext.getParameters().clear();
+                    if (!before) {
+                        value = executeSelectKey(dataSourceName, connection, selectKeySqlNode.getSql(requestContext), requestContext.getParameters());
+                    }
 
-    /**
-     * 获取Connection并调用回调函数执行
-     *
-     * @param dataSourceName     数据源名称
-     * @param connectionCallback 回调函数
-     */
-    public <T> T doInConnection(String dataSourceName, ConnectionCallback<T> connectionCallback) throws SQLException {
-        Connection connection = getConnection(dataSourceName);
-        try {
-            return connectionCallback.execute(connection);
-        } finally {
-            closeConnection(connection);
+                } else {
+                    // 获取主键生成策略
+                    KeyProvider keyProvider = keyProviders.get(selectKeyType);
+                    Assert.isNotNull(keyProvider, String.format("找不到主键生成策略%s", selectKeyType));
+                    // 生成主键
+                    value = keyProvider.getKey();
+                    // 存入RequestContext中
+                    requestContext.put(key, value);
+                    // 获取插入SQL
+                    String insertSQL = statement.getSqlNode().getSql(requestContext);
+                    // 执行插入
+                    executeUpdate(dataSourceName, connection, insertSQL, requestContext.getParameters());
+                }
+                return value;
+            } finally {
+                // 释放连接
+                DataSourceUtils.releaseConnection(connection, jdbcTemplate.getDataSource());
+            }
+        } else {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            String insertSQL = statement.getSqlNode().getSql(requestContext);
+            jdbcTemplate.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS);
+                new ArgumentPreparedStatementSetter(requestContext.getParameters().toArray()).setValues(ps);
+                return ps;
+            }, keyHolder);
+            return keyHolder.getKey().longValue();
         }
     }
 
-    private int update(String dataSourceName, String sql, List<Object> params) throws SQLException {
-        Connection connection = getConnection(dataSourceName);
-        PreparedStatement stmt = null;
+    /**
+     * 执行插入
+     */
+    private int executeUpdate(String dataSourceName, Connection connection, String sql, List<Object> parameters) throws SQLException {
+        PreparedStatement ps = null;
         try {
-            stmt = createPreparedStatement(connection, sql, params);
-            return stmt.executeUpdate();
+            printLog(dataSourceName, sql, parameters);
+            ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            new ArgumentPreparedStatementSetter(parameters.toArray()).setValues(ps);
+            return ps.executeUpdate();
         } finally {
-            closeStatement(stmt);
-            closeConnection(connection);
+            JdbcUtils.closeStatement(ps);
         }
     }
 
     /**
-     * 查询一条
-     *
-     * @param connection 连接对象
-     * @param sql        SQL
-     * @param params     SQL参数
-     * @param returnType 返回值类型
+     * 查询主键值
      */
-    public <T> T queryForOne(Connection connection, String sql, List<Object> params, Class<T> returnType) throws SQLException {
-        PreparedStatement stmt = null;
+    private Object executeSelectKey(String dataSourceName, Connection connection, String sql, List<Object> parameters) throws SQLException {
+        PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-            stmt = createPreparedStatement(connection, sql, params);
-            rs = stmt.executeQuery();
-            if (returnType == null || returnType == Map.class) {
-                if (rs.next()) {
-                    return (T) fetchResultSet(rs);
-                }
-            } else if (rs.next()) {
-                // 返回值不是Map时，只取第一行第一列
-                return rs.getObject(1, returnType);
-            }
+            Object[] params = parameters.toArray();
+            ps = connection.prepareStatement(sql);
+            // 打印SQL语句
+            printLog(dataSourceName, sql, params);
+            // 设置参数
+            setPreparedStatementParameters(ps, params);
+            rs = ps.executeQuery();
+            Assert.isTrue(rs.next(), "查询key出错，结果集至少应有一条");
+            return rs.getObject(1);
         } finally {
-            closeResultSet(rs);
-            closeStatement(stmt);
-        }
-        return null;
-    }
-
-    /**
-     * 查询一条
-     *
-     * @param sql        SQL
-     * @param params     SQL参数
-     * @param returnType 返回值类型
-     */
-    private <T> T queryForOne(String dataSourceName, String sql, List<Object> params, Class<T> returnType) throws SQLException {
-        Connection connection = getConnection(dataSourceName);
-        try {
-            return queryForOne(connection, sql, params, returnType);
-        } finally {
-            closeConnection(connection);
+            JdbcUtils.closeResultSet(rs);
+            JdbcUtils.closeStatement(ps);
         }
     }
 
     /**
-     * 查询List
-     *
-     * @param connection 连接对象
-     * @param sql        SQL
-     * @param params     SQL参数
-     * @param returnType 返回值类型
+     * 设置参数
      */
-    public List<Object> queryForList(Connection connection, String sql, List<Object> params, Class<?> returnType) throws SQLException {
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        try {
-            stmt = createPreparedStatement(connection, sql, params);
-            rs = stmt.executeQuery();
-            List<Object> list = new ArrayList<>();
-            if (returnType == null || returnType == Map.class) {
-                while (rs.next()) {
-                    list.add(fetchResultSet(rs));
-                }
-            } else {
-                while (rs.next()) {
-                    // 返回值不是Map时，只取第一列
-                    list.add(rs.getObject(1, returnType));
-                }
-            }
-            return list;
-        } finally {
-            closeResultSet(rs);
-            closeStatement(stmt);
-        }
+    private void setPreparedStatementParameters(PreparedStatement ps, Object... parameters) throws SQLException {
+        ArgumentPreparedStatementSetter argumentPreparedStatementSetter = new ArgumentPreparedStatementSetter(parameters);
+        argumentPreparedStatementSetter.setValues(ps);
     }
 
     /**
-     * 从ResultSet中提取map对象
+     * 打印日志
      */
-    private Map<String, Object> fetchResultSet(ResultSet rs) throws SQLException {
-        ResultSetMetaData rsd = rs.getMetaData();
-        int columnCount = rsd.getColumnCount();
-        Map<String, Object> row = new HashMap<>(columnCount);
-        for (int i = 1; i <= columnCount; i++) {
-            row.put(underscoreToCamelCase(rsd.getColumnName(i)), rs.getObject(i));
-        }
-        return row;
+    private void printLog(String dataSourceName, String sql, Object... parameters) {
+        logger.debug("执行SQL({}):{}", dataSourceName == null ? "default" : dataSourceName, sql);
+        logger.debug("SQL参数{}", Arrays.toString(parameters));
     }
 
     /**
-     * 下划线转驼峰命名
-     *
-     * @param columnName 列名
-     * @return
+     * 获取JdbcTemplate
      */
-    private String underscoreToCamelCase(String columnName) {
-        if (mapUnderscoreToCamelCase) {
-            columnName = columnName.toLowerCase();
-            boolean upperCase = false;
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < columnName.length(); i++) {
-                char ch = columnName.charAt(i);
-                if (ch == '_') {
-                    upperCase = true;
-                } else if (upperCase) {
-                    sb.append(Character.toUpperCase(ch));
-                    upperCase = false;
-                } else {
-                    sb.append(ch);
-                }
-            }
-            columnName = sb.toString();
+    private JdbcTemplate getJdbcTemplate(String dataSourceName) {
+        if (jdbcTemplates.containsKey(dataSourceName)) {
+            return jdbcTemplates.get(dataSourceName);
         }
-        return columnName;
-    }
-
-
-    private List<Object> queryForList(String dataSourceName, String sql, List<Object> params, Class<?> returnType) throws SQLException {
-        Connection connection = getConnection(dataSourceName);
-        try {
-            return queryForList(connection, sql, params, returnType);
-        } finally {
-            closeConnection(connection);
-        }
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dynamicDataSource.getDataSource(dataSourceName));
+        jdbcTemplates.put(dataSourceName, jdbcTemplate);
+        return jdbcTemplate;
     }
 
     /**
-     * 统一创建PrepareStatement对象
-     *
-     * @param conn   连接对象
-     * @param sql    SQL
-     * @param params SQL参数
+     * 获取数据库方言
      */
-    private PreparedStatement createPreparedStatement(Connection conn, String sql, List<Object> params) throws SQLException {
-        PreparedStatement stmt = conn.prepareStatement(sql);
-        logger.debug("执行SQL:{}", sql);
-        setStatementParams(stmt, params);
-        return stmt;
+    public Dialect getDialect(String dataSourceName) throws SQLException {
+        JdbcTemplate jdbcTemplate = getJdbcTemplate(dataSourceName);
+        return DialectUtils.getDialectFromUrl(jdbcTemplate.getDataSource().getConnection().getMetaData().getURL());
     }
 
-    /**
-     * 设置SQL参数
-     */
-    private void setStatementParams(PreparedStatement stmt, List<Object> params) throws SQLException {
-        if (params != null) {
-            logger.debug("sql参数:{}", params);
-            for (int i = 0; i < params.size(); i++) {
-                Object val = params.get(i);
-                if (val instanceof Date) {
-                    stmt.setTimestamp(i + 1, new java.sql.Timestamp(((Date) val).getTime()));
-                } else {
-                    stmt.setObject(i + 1, val);
-                }
-            }
-        }
-    }
-
-
-    /**
-     * 关闭连接
-     */
-    private void closeConnection(Connection connection) {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException ignored) {
-            }
-        }
-    }
-
-    /**
-     * 关闭ResultSet
-     */
-    private void closeResultSet(ResultSet resultSet) {
-        if (resultSet != null) {
-            try {
-                resultSet.close();
-            } catch (SQLException ignored) {
-            }
-        }
-    }
-
-    /**
-     * 关闭PrepareStatement
-     */
-    private void closeStatement(Statement statement) {
-        if (statement != null) {
-            try {
-                statement.close();
-            } catch (SQLException ignored) {
-            }
-        }
-    }
 }
