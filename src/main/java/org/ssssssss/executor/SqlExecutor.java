@@ -3,6 +3,7 @@ package org.ssssssss.executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -35,10 +36,7 @@ public class SqlExecutor {
 
     private DynamicDataSource dynamicDataSource;
 
-    /**
-     * 是否启用驼峰命名
-     */
-    private boolean mapUnderscoreToCamelCase;
+    private ColumnMapRowMapper columnMapRowMapper = new ColumnMapRowMapper();;
 
     private Map<String, KeyProvider> keyProviders = new HashMap<>();
 
@@ -46,8 +44,35 @@ public class SqlExecutor {
         this.dynamicDataSource = dynamicDataSource;
     }
 
+    /**
+     * 设置是否是驼峰命名
+     * @param mapUnderscoreToCamelCase
+     */
     public void setMapUnderscoreToCamelCase(boolean mapUnderscoreToCamelCase) {
-        this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
+        if (mapUnderscoreToCamelCase) {
+            columnMapRowMapper = new ColumnMapRowMapper() {
+                @Override
+                protected String getColumnKey(String columnName) {
+                    columnName = columnName.toLowerCase();
+                    boolean upperCase = false;
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < columnName.length(); i++) {
+                        char ch = columnName.charAt(i);
+                        if (ch == '_') {
+                            upperCase = true;
+                        } else if (upperCase) {
+                            sb.append(Character.toUpperCase(ch));
+                            upperCase = false;
+                        } else {
+                            sb.append(ch);
+                        }
+                    }
+                    return sb.toString();
+                }
+            };
+        } else {
+            columnMapRowMapper = new ColumnMapRowMapper();
+        }
     }
 
     public void addKeyProvider(KeyProvider provider) {
@@ -68,7 +93,7 @@ public class SqlExecutor {
         printLog(dataSourceName, sql, parameters);
         if (SqlMode.SELECT_LIST == mode) {
             if (returnType == null || returnType == Map.class) {
-                return jdbcTemplate.queryForList(sql, parameters);
+                return jdbcTemplate.query(sql, parameters, columnMapRowMapper);
             }
             return jdbcTemplate.queryForList(sql, parameters, returnType);
         } else if (SqlMode.UPDATE == mode || SqlMode.INSERT == mode || SqlMode.DELETE == mode) {
@@ -81,7 +106,7 @@ public class SqlExecutor {
         } else if (SqlMode.SELECT_ONE == mode) {
             Collection collection;
             if (returnType == null || returnType == Map.class) {
-                collection = jdbcTemplate.queryForList(sql, parameters);
+                collection = jdbcTemplate.query(sql, columnMapRowMapper, parameters);
             } else {
                 collection = jdbcTemplate.queryForList(sql, returnType, parameters);
             }
