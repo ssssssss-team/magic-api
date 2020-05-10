@@ -38,7 +38,7 @@
 <dependency>
 	<groupId>org.ssssssss</groupId>
 	<artifactId>ssssssss-spring-boot-starter</artifactId>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
 </dependency>
 ```
 ## 修改application.properties
