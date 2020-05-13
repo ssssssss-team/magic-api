@@ -46,7 +46,7 @@
 ```properties
 server.port=9999
 #配置ssssssss的xml所在位置
-ssssssss.xml-locations: classpath*:ssssssss/*.xml
+ssssssss.xml-locations: classpath*:ssssssss/**/*.xml
 #以下配置需跟实际情况修改
 spring.datasource.url=jdbc:mysql://localhost/test
 spring.datasource.username=root
