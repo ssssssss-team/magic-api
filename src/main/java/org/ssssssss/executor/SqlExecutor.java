@@ -24,6 +24,7 @@ import org.w3c.dom.Node;
 
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * SQL执行器
@@ -36,9 +37,12 @@ public class SqlExecutor {
 
     private DynamicDataSource dynamicDataSource;
 
-    private ColumnMapRowMapper columnMapRowMapper = new ColumnMapRowMapper();;
+    private ColumnMapRowMapper columnMapRowMapper = new ColumnMapRowMapper();
+    ;
 
     private Map<String, KeyProvider> keyProviders = new HashMap<>();
+
+    private Map<String, Dialect> cachedDialects = new ConcurrentHashMap<>();
 
     public SqlExecutor(DynamicDataSource dynamicDataSource) {
         this.dynamicDataSource = dynamicDataSource;
@@ -46,6 +50,7 @@ public class SqlExecutor {
 
     /**
      * 设置是否是驼峰命名
+     *
      * @param mapUnderscoreToCamelCase
      */
     public void setMapUnderscoreToCamelCase(boolean mapUnderscoreToCamelCase) {
@@ -249,10 +254,15 @@ public class SqlExecutor {
      * 获取数据库方言
      */
     public Dialect getDialect(String dataSourceName) throws SQLException {
+        if (cachedDialects.containsKey(dataSourceName)) {
+            return cachedDialects.get(cachedDialects);
+        }
         JdbcTemplate jdbcTemplate = getJdbcTemplate(dataSourceName);
         Connection connection = jdbcTemplate.getDataSource().getConnection();
         try {
-            return DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
+            Dialect dialect = DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
+            cachedDialects.put(dataSourceName, dialect);
+            return dialect;
         } finally {
             // 释放连接
             DataSourceUtils.releaseConnection(connection, jdbcTemplate.getDataSource());
