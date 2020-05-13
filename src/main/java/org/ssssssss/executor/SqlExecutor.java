@@ -254,19 +254,20 @@ public class SqlExecutor {
      * 获取数据库方言
      */
     public Dialect getDialect(String dataSourceName) throws SQLException {
-        if (cachedDialects.containsKey(dataSourceName)) {
-            return cachedDialects.get(cachedDialects);
+        Dialect dialect = cachedDialects.get(cachedDialects);
+        if (dialect == null && !cachedDialects.containsKey(dataSourceName)) {
+            JdbcTemplate jdbcTemplate = getJdbcTemplate(dataSourceName);
+            Connection connection = jdbcTemplate.getDataSource().getConnection();
+            try {
+                dialect = DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
+                cachedDialects.put(dataSourceName, dialect);
+                return dialect;
+            } finally {
+                // 释放连接
+                DataSourceUtils.releaseConnection(connection, jdbcTemplate.getDataSource());
+            }
         }
-        JdbcTemplate jdbcTemplate = getJdbcTemplate(dataSourceName);
-        Connection connection = jdbcTemplate.getDataSource().getConnection();
-        try {
-            Dialect dialect = DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
-            cachedDialects.put(dataSourceName, dialect);
-            return dialect;
-        } finally {
-            // 释放连接
-            DataSourceUtils.releaseConnection(connection, jdbcTemplate.getDataSource());
-        }
+        return dialect;
     }
 
 }
