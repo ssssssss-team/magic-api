@@ -250,7 +250,13 @@ public class SqlExecutor {
      */
     public Dialect getDialect(String dataSourceName) throws SQLException {
         JdbcTemplate jdbcTemplate = getJdbcTemplate(dataSourceName);
-        return DialectUtils.getDialectFromUrl(jdbcTemplate.getDataSource().getConnection().getMetaData().getURL());
+        Connection connection = jdbcTemplate.getDataSource().getConnection();
+        try {
+            return DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
+        } finally {
+            // 释放连接
+            DataSourceUtils.releaseConnection(connection, jdbcTemplate.getDataSource());
+        }
     }
 
 }
