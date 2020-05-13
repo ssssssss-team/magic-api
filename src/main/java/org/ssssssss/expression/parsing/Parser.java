@@ -130,11 +130,14 @@ public class Parser {
 			return new CharacterLiteral(stream.expect(TokenType.CharacterLiteral).getSpan());
 		} else if (stream.match(TokenType.NullLiteral, false)) {
 			return new NullLiteral(stream.expect(TokenType.NullLiteral).getSpan());
+		} else if (stream.match(TokenType.Lambda, false)) {
+			return parseAccessOrCall(stream,TokenType.Lambda);
 		} else {
 			ExpressionError.error("Expected a variable, field, map, array, function or method call, or literal.", stream);
 			return null; // not reached
 		}
 	}
+
 
 	private static Expression parseMapLiteral (TokenStream stream) {
 		Span openCurly = stream.expect(TokenType.LeftCurly).getSpan();
@@ -179,11 +182,26 @@ public class Parser {
 		Span identifier = stream.expect(tokenType).getSpan();
 		Expression result = tokenType == TokenType.StringLiteral ? new StringLiteral(identifier) :new VariableAccess(identifier);
 
+		Expression function = null;
+		Span lpSpan = null;
+		List<Expression> results = null;
 		while (stream.hasMore() && stream.match(false, TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period, TokenType.Lambda)) {
-
 			// function or method call
 			if (stream.match(TokenType.LeftParantheses, false)) {
-				List<Expression> arguments = parseArguments(stream);
+				Span ls = stream.expect(TokenType.LeftParantheses).getSpan();
+				List<Expression> arguments = parseArgumentsNotExpect(stream);
+				//多参数lambda
+				if (stream.match(TokenType.RightParantheses, false) && stream.hasNext()) {
+					stream.expect(TokenType.RightParantheses);
+					if (stream.match(TokenType.Lambda, true)) {
+						Expression key = parseExpression(stream);
+						function = new LambdaAccess(new Span(ls, new Span(key.getSpan().getSource(), key.getSpan().getStart(), key.getSpan().getEnd() + 1)), key, arguments);
+						arguments.clear();
+						arguments.add(function);
+					} else {
+						stream.prev();
+					}
+				}
 				Span closingSpan = stream.expect(TokenType.RightParantheses).getSpan();
 				if (result instanceof VariableAccess || result instanceof MapOrArrayAccess) {
 					result = new FunctionCall(new Span(result.getSpan(), closingSpan), result, arguments);
@@ -196,8 +214,8 @@ public class Parser {
 					}
 					MethodCall methodCall = new MethodCall(new Span(result.getSpan(), closingSpan), (MemberAccess) result, arguments);
 					String name = ((MemberAccess) result).getName().getText();
-					if (ArrayLikeLambdaOneArgumentExecutor.SUPPORT_METHOD.contains(name)) {
-						methodCall.setCachedMethod(ArrayLikeLambdaOneArgumentExecutor.METHODS.get(name));
+					if (ArrayLikeLambdaExecutor.SUPPORT_METHOD.contains(name)) {
+						methodCall.setCachedMethod(ArrayLikeLambdaExecutor.METHODS.get(name));
 						methodCall.setCachedMethodStatic(true);
 					}
 					result = methodCall;
@@ -221,8 +239,7 @@ public class Parser {
 
 			else if (stream.match(TokenType.Lambda, true)) {
 				Expression key = parseExpression(stream);
-//				Span closingSpan = stream.expect(TokenType.RightParantheses).getSpan();
-				result = new LambdaAccess(new Span(result.getSpan(), key.getSpan()), result, key);
+				result = new LambdaAccess(new Span(result.getSpan(), key.getSpan()), key, result);
 			}
 		}
 
@@ -232,13 +249,54 @@ public class Parser {
 	/** Does not consume the closing parentheses. **/
 	private static List<Expression> parseArguments (TokenStream stream) {
 		stream.expect(TokenType.LeftParantheses);
+		return parseArgumentsNotExpect(stream);
+	}
+	private static List<Expression> parseArgumentsNotExpect (TokenStream stream) {
 		List<Expression> arguments = new ArrayList<Expression>();
 		while (stream.hasMore() && !stream.match(TokenType.RightParantheses, false)) {
+			boolean f1 = false, f2 = false;
+			int c = 0;
+			while (stream.hasNext()) {
+				c++;
+				stream.next();
+				if (f1 && stream.match(TokenType.Lambda, false)) {
+					f2 = true;
+					int count = c;
+					for (int i = 0; i < count - 1; i++) {
+						stream.prev();
+						c--;
+					}
+					break;
+				}
+				if (stream.match(TokenType.RightParantheses, false)) {
+					f1 = true;
+				} else {
+					f1 = false;
+				}
+			}
+			if (!f2) {
+				int count = c;
+				for (int i = 0; i < count; i++) {
+					stream.prev();
+					c--;
+				}
+			}
 			arguments.add(parseExpression(stream));
+			if (f1 && f2) {
+				while (stream.match(TokenType.Comma, true)) {
+					arguments.add(parseExpression(stream));
+				}
+				return arguments;
+			}
 			if (!stream.match(TokenType.RightParantheses, false)) {
-				stream.expect(TokenType.Comma);
+//				if (stream.match(TokenType.Lambda, false)) {
+//					return arguments;
+//				} else {
+					stream.expect(TokenType.Comma);
+//				}
 			}
 		}
 		return arguments;
 	}
+
 }

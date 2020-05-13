@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class ArrayLikeLambdaOneArgumentExecutor {
+public class ArrayLikeLambdaExecutor {
 
     public static final Set<String> SUPPORT_METHOD;
     public static final Map<String, Method> METHODS;
@@ -15,6 +15,7 @@ public class ArrayLikeLambdaOneArgumentExecutor {
         Set<String> set = new HashSet<>();
         addSupport(temp, set, "map");
         addSupport(temp, set, "filter");
+//        addSupport(temp, set, "reduce");
         SUPPORT_METHOD = Collections.unmodifiableSet(set);
         METHODS = Collections.unmodifiableMap(temp);
     }
@@ -26,7 +27,7 @@ public class ArrayLikeLambdaOneArgumentExecutor {
 
     private static void addMethod(Map<String, Method> initialMap, String name) {
         try {
-            initialMap.put(name, ArrayLikeLambdaOneArgumentExecutor.class.getMethod(name, Object.class, Object[].class));
+            initialMap.put(name, ArrayLikeLambdaExecutor.class.getMethod(name, Object.class, Object[].class));
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -52,6 +53,14 @@ public class ArrayLikeLambdaOneArgumentExecutor {
             return results;
         }
         throw new RuntimeException("未实现");
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public static Object reduce(Object arrayLike, Object... arguments) {
+        eachParse(arrayLike, arguments[0], (list, sp) -> list.add(sp.getParsed()));
+        System.out.println();
+        return null;
     }
 
     @SuppressWarnings("unchecked")

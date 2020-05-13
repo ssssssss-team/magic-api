@@ -986,19 +986,23 @@ public abstract class Ast {
     }
 
     public static class LambdaAccess extends Expression {
-        private final Expression element;
+        private final List<Expression> elements = new ArrayList<>();
         private final Expression function;
         private MemberAccess arrayLike;
 
-        public LambdaAccess (Span span, Expression element, Expression function) {
+        public LambdaAccess (Span span, Expression function, List<Expression> elements) {
             super(span);
-            this.element = element;
+            this.elements.addAll(elements);
+            this.function = function;
+        }
+        public LambdaAccess (Span span, Expression function, Expression... elements) {
+            super(span);
+            this.elements.addAll(Arrays.asList(elements));
             this.function = function;
         }
 
-        /** Returns an expression that must evaluate to a map or array. **/
-        public Expression getElement() {
-            return element;
+        public List<Expression> getElements() {
+            return elements;
         }
 
         /** Returns an expression that is used as the key or index to fetch a map or array element. **/
@@ -1008,10 +1012,10 @@ public abstract class Ast {
         @SuppressWarnings("rawtypes")
         @Override
         public Object evaluate (ExpressionTemplate template, ExpressionTemplateContext context) throws IOException {
-            if (ArrayLikeLambdaOneArgumentExecutor.SUPPORT_METHOD.contains(arrayLike.getName().getText())) {
+            if (ArrayLikeLambdaExecutor.SUPPORT_METHOD.contains(arrayLike.getName().getText())) {
                 return oneArgumentParser(template, context);
             } else {
-                ExpressionError.error("只支持 "+ String.join(",", ArrayLikeLambdaOneArgumentExecutor.SUPPORT_METHOD) +"。不支持的lambda函数： " + arrayLike.getName().getText(), arrayLike.getSpan());
+                ExpressionError.error("只支持 "+ String.join(",", ArrayLikeLambdaExecutor.SUPPORT_METHOD) +"。不支持的lambda函数： " + arrayLike.getName().getText(), arrayLike.getSpan());
             }
             return null;
         }
@@ -1024,7 +1028,8 @@ public abstract class Ast {
                 Object arrLikeObj = context.get(parName);
                 if (arrLikeObj.getClass().isArray()) {
                     try {
-                        Integer size = (Integer) arrLikeObj.getClass().getDeclaredField("length").get(arrLikeObj);
+//                        Integer size = (Integer) arrLikeObj.getClass().getDeclaredField("length").get(arrLikeObj);
+                        int size = Array.getLength(arrLikeObj);
                         List<Object> list = new ArrayList<>(size);
                         for (int i = 0; i < size; i++) {
                             list.add(Array.get(arrLikeObj, i));
@@ -1044,15 +1049,21 @@ public abstract class Ast {
                 }
                 if (arrLikeObj instanceof Collection) {
                     Collection<?> coll = (Collection<?>) arrLikeObj;
+                    if (elements.size() > 1) {
+                        return this;
+                    }
                     AtomicInteger ai = new AtomicInteger();
                     return coll.stream().map(o -> ((Supplier) () -> {
                         try {
                             context.push();
-                            context.setOnCurrentScope(getElement().getSpan().getText(), o);
+                            List<Expression> elements = getElements();
+                            for (Expression element : elements) {
+                                context.setOnCurrentScope(element.getSpan().getText(), o);
+                            }
                             context.setOnCurrentScope("_i", ai.getAndIncrement());
                             Object res = function.evaluate(template, context);
                             context.pop();
-                            return new ArrayLikeLambdaOneArgumentExecutor.SourceAndParsed<>(o, res);
+                            return new ArrayLikeLambdaExecutor.SourceAndParsed<>(o, res);
                         } catch (IOException e) {
                             e.printStackTrace();
                             throw new RuntimeException(e);
