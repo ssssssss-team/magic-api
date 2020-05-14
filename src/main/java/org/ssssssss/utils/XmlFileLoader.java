@@ -50,9 +50,10 @@ public class XmlFileLoader implements Runnable{
                     Long lastModified = fileMap.get(resource.getDescription());
                     // 修改缓存
                     fileMap.put(resource.getDescription(), file.lastModified());
-                    //判断是否更新
+                    // 判断是否更新
                     if (lastModified == null || lastModified < file.lastModified()) {
-                        XMLStatement xmlStatement = S8XMLFileParser.parse(file);
+                        XMLStatement xmlStatement = S8XMLFileParser.parse(resource.getFile());
+                        // 注册HTTP接口
                         xmlStatement.getStatements().forEach(configuration::addStatement);
                     }
                 }

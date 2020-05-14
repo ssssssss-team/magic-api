@@ -1,5 +1,6 @@
 package org.ssssssss.executor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
@@ -9,6 +10,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.KeyHolder;
+import org.ssssssss.cache.SqlCache;
 import org.ssssssss.context.RequestContext;
 import org.ssssssss.dialect.Dialect;
 import org.ssssssss.dialect.DialectUtils;
@@ -17,6 +19,7 @@ import org.ssssssss.exception.S8Exception;
 import org.ssssssss.provider.KeyProvider;
 import org.ssssssss.scripts.SqlNode;
 import org.ssssssss.session.DynamicDataSource;
+import org.ssssssss.session.ExecuteSqlStatement;
 import org.ssssssss.session.SqlStatement;
 import org.ssssssss.utils.Assert;
 import org.ssssssss.utils.DomUtils;
@@ -24,6 +27,7 @@ import org.w3c.dom.Node;
 
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * SQL执行器
@@ -36,16 +40,25 @@ public class SqlExecutor {
 
     private DynamicDataSource dynamicDataSource;
 
-    private ColumnMapRowMapper columnMapRowMapper = new ColumnMapRowMapper();;
+    private ColumnMapRowMapper columnMapRowMapper = new ColumnMapRowMapper();
 
     private Map<String, KeyProvider> keyProviders = new HashMap<>();
+
+    private Map<String, Dialect> cachedDialects = new ConcurrentHashMap<>();
+
+    private SqlCache sqlCache;
 
     public SqlExecutor(DynamicDataSource dynamicDataSource) {
         this.dynamicDataSource = dynamicDataSource;
     }
 
+    public void setSqlCache(SqlCache sqlCache) {
+        this.sqlCache = sqlCache;
+    }
+
     /**
      * 设置是否是驼峰命名
+     *
      * @param mapUnderscoreToCamelCase
      */
     public void setMapUnderscoreToCamelCase(boolean mapUnderscoreToCamelCase) {
@@ -81,40 +94,69 @@ public class SqlExecutor {
 
     /**
      * 执行SQL
-     *
-     * @param mode       SQL模式
-     * @param sql        SQL
-     * @param parameters SQL参数
-     * @param returnType 返回值类型
-     * @return
      */
-    public Object execute(String dataSourceName, SqlMode mode, String sql, Object[] parameters, Class<?> returnType) {
-        JdbcTemplate jdbcTemplate = getJdbcTemplate(dataSourceName);
-        printLog(dataSourceName, sql, parameters);
-        if (SqlMode.SELECT_LIST == mode) {
-            if (returnType == null || returnType == Map.class) {
-                return jdbcTemplate.query(sql, parameters, columnMapRowMapper);
+    public Object execute(ExecuteSqlStatement statement) {
+        // 获取SQL
+        String sql = statement.getSql();
+        // 获取参数
+        Object[] parameters = statement.getParameters();
+        // 获取SQL模式
+        SqlMode mode = statement.getSqlMode();
+        // 获取返回值类型
+        Class<?> returnType = statement.getReturnType();
+        // 缓存Key
+        String sqlCacheKey = null;
+        // 返回值
+        Object value;
+        // 判断是否使用缓存
+        if (this.sqlCache != null && StringUtils.isNotBlank(statement.getUseCache())) {
+            // 构建key
+            sqlCacheKey = this.sqlCache.buildSqlCacheKey(sql, parameters);
+            // 查询缓存
+            value = this.sqlCache.get(statement.getUseCache(), sqlCacheKey);
+            if (value != null) {
+                return value;
             }
-            return jdbcTemplate.queryForList(sql, parameters, returnType);
-        } else if (SqlMode.UPDATE == mode || SqlMode.INSERT == mode || SqlMode.DELETE == mode) {
-            int value = jdbcTemplate.update(sql, parameters);
+        }
+        JdbcTemplate jdbcTemplate = getJdbcTemplate(statement.getDataSourceName());
+        // 打印SQL日志
+        printLog(statement.getDataSourceName(), sql, parameters);
+        if (SqlMode.SELECT_LIST == mode) {  //查询List
+            if (returnType == null || returnType == Map.class) {
+                value = jdbcTemplate.query(sql, parameters, columnMapRowMapper);
+            } else {
+                value = jdbcTemplate.queryForList(sql, parameters, returnType);
+            }
+
+        } else if (SqlMode.UPDATE == mode || SqlMode.INSERT == mode || SqlMode.DELETE == mode) {    //增删改
+            int retVal = jdbcTemplate.update(sql, parameters);
+            // 删除缓存
+            if (retVal > 0 && this.sqlCache != null && StringUtils.isNotBlank(statement.getDeleteCache())) {
+                this.sqlCache.delete(statement.getDeleteCache());
+            }
             // 当设置返回值是boolean类型时,做>0比较
             if (returnType == Boolean.class) {
-                return value > 0;
+                return retVal > 0;
             }
-            return value;
-        } else if (SqlMode.SELECT_ONE == mode) {
+            return retVal;
+        } else if (SqlMode.SELECT_ONE == mode) {    //查询一条
             Collection collection;
             if (returnType == null || returnType == Map.class) {
                 collection = jdbcTemplate.query(sql, columnMapRowMapper, parameters);
             } else {
                 collection = jdbcTemplate.queryForList(sql, returnType, parameters);
             }
-            return collection != null && collection.size() >= 1 ? collection.iterator().next() : null;
+            value = collection != null && collection.size() >= 1 ? collection.iterator().next() : null;
         } else {
             throw new S8Exception("暂时不支持[" + mode + "]模式");
         }
+        // 判断是否使用了缓存
+        if (sqlCacheKey != null && value != null) {
+            this.sqlCache.put(statement.getUseCache(), sqlCacheKey, value);
+        }
+        return value;
     }
+
 
     public Object executeInsertWithPk(SqlStatement statement, RequestContext requestContext) throws SQLException {
         String dataSourceName = statement.getDataSourceName();
@@ -143,7 +185,8 @@ public class SqlExecutor {
                     // 获取插入SQL
                     String insertSQL = statement.getSqlNode().getSql(requestContext);
                     // 执行插入
-                    executeUpdate(dataSourceName, connection, insertSQL, requestContext.getParameters());
+                    executeUpdate(dataSourceName, connection, insertSQL, requestContext.getParameters(),statement.getDeleteCache());
+
                     // 清空参数
                     requestContext.getParameters().clear();
                     if (!before) {
@@ -161,7 +204,7 @@ public class SqlExecutor {
                     // 获取插入SQL
                     String insertSQL = statement.getSqlNode().getSql(requestContext);
                     // 执行插入
-                    executeUpdate(dataSourceName, connection, insertSQL, requestContext.getParameters());
+                    executeUpdate(dataSourceName, connection, insertSQL, requestContext.getParameters(),statement.getDeleteCache());
                 }
                 return value;
             } finally {
@@ -183,13 +226,17 @@ public class SqlExecutor {
     /**
      * 执行插入
      */
-    private int executeUpdate(String dataSourceName, Connection connection, String sql, List<Object> parameters) throws SQLException {
+    private int executeUpdate(String dataSourceName, Connection connection, String sql, List<Object> parameters,String deleteCache) throws SQLException {
         PreparedStatement ps = null;
         try {
             printLog(dataSourceName, sql, parameters);
             ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             new ArgumentPreparedStatementSetter(parameters.toArray()).setValues(ps);
-            return ps.executeUpdate();
+            int val = ps.executeUpdate();
+            if (this.sqlCache != null && StringUtils.isNotBlank(deleteCache)) {
+                this.sqlCache.delete(deleteCache);
+            }
+            return val;
         } finally {
             JdbcUtils.closeStatement(ps);
         }
@@ -229,8 +276,8 @@ public class SqlExecutor {
      * 打印日志
      */
     private void printLog(String dataSourceName, String sql, Object... parameters) {
-        logger.debug("执行SQL({}):{}", dataSourceName == null ? "default" : dataSourceName, sql);
-        logger.debug("SQL参数{}", Arrays.toString(parameters));
+        logger.debug("执行SQL({}):{}", StringUtils.isBlank(dataSourceName) ? "default" : dataSourceName, sql);
+        logger.debug("SQL参数:{}", Arrays.toString(parameters));
     }
 
     /**
@@ -249,14 +296,20 @@ public class SqlExecutor {
      * 获取数据库方言
      */
     public Dialect getDialect(String dataSourceName) throws SQLException {
-        JdbcTemplate jdbcTemplate = getJdbcTemplate(dataSourceName);
-        Connection connection = jdbcTemplate.getDataSource().getConnection();
-        try {
-            return DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
-        } finally {
-            // 释放连接
-            DataSourceUtils.releaseConnection(connection, jdbcTemplate.getDataSource());
+        Dialect dialect = cachedDialects.get(dataSourceName);
+        if (dialect == null && !cachedDialects.containsKey(dataSourceName)) {
+            JdbcTemplate jdbcTemplate = getJdbcTemplate(dataSourceName);
+            Connection connection = jdbcTemplate.getDataSource().getConnection();
+            try {
+                dialect = DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
+                cachedDialects.put(dataSourceName, dialect);
+                return dialect;
+            } finally {
+                // 释放连接
+                DataSourceUtils.releaseConnection(connection, jdbcTemplate.getDataSource());
+            }
         }
+        return dialect;
     }
 
 }
