@@ -37,23 +37,4 @@ public class DefaultSqlCache implements SqlCache {
             }
         }
     }
-
-    public static void main(String[] args) {
-        DefaultSqlCache sqlCache = new DefaultSqlCache(10);
-        for (int i = 0; i < 10; i++) {
-            sqlCache.put("test",i+"",i);
-        }
-        for (int i = 0; i < 5; i++) {
-            sqlCache.get("test",i+"");
-        }
-        for (int i = 10; i < 15; i++) {
-            sqlCache.put("test",i+"",i);
-        }
-        for (int i = 10; i < 15; i++) {
-            sqlCache.put("test1",i+"",i);
-        }
-        System.out.println(sqlCache.cached);
-        sqlCache.remove("test");
-        System.out.println(sqlCache.cached);
-    }
 }
