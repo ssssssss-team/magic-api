@@ -76,7 +76,7 @@ public class S8AutoConfiguration {
         if (this.validators != null) {
             this.validators.forEach(requestExecutor::addValidator);
         }
-        if(this.requestInterceptors != null){
+        if (this.requestInterceptors != null) {
             this.requestInterceptors.forEach(requestExecutor::addRequestInterceptor);
         }
         return requestExecutor;
@@ -89,9 +89,9 @@ public class S8AutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(DynamicDataSource.class)
-    public DynamicDataSource dynamicDataSource(DataSource dataSource){
+    public DynamicDataSource dynamicDataSource(DataSource dataSource) {
         DynamicDataSource dynamicDataSource = new DynamicDataSource();
-        dynamicDataSource.put(null,dataSource);
+        dynamicDataSource.put(null, dataSource);
         return dynamicDataSource;
     }
 
@@ -101,7 +101,7 @@ public class S8AutoConfiguration {
         sqlExecutor.setSqlCache(sqlCache);
         // 注册UUID生成策略
         sqlExecutor.addKeyProvider(new UUIDKeyProvider());
-        if(this.keyProviders != null){
+        if (this.keyProviders != null) {
             // 注册自定义的主键生成策略
             keyProviders.forEach(sqlExecutor::addKeyProvider);
         }
