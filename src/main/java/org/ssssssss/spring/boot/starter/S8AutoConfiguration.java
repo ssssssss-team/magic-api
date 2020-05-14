@@ -1,5 +1,7 @@
 package org.ssssssss.spring.boot.starter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -45,6 +47,8 @@ public class S8AutoConfiguration {
     @Autowired(required = false)
     private List<KeyProvider> keyProviders;
 
+    private static Logger logger = LoggerFactory.getLogger(S8AutoConfiguration.class);
+
     public S8AutoConfiguration(S8Properties properties) {
         this.properties = properties;
     }
@@ -53,13 +57,15 @@ public class S8AutoConfiguration {
     @Bean
     public PageProvider pageProvider() {
         PageConfig pageConfig = properties.getPageConfig();
+        logger.info("未找到分页实现,采用默认分页实现,分页配置:(页码={},页大小={},默认首页={},默认页大小={})", pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize());
         return new DefaultPageProvider(pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize());
     }
 
     @ConditionalOnMissingBean(SqlCache.class)
     @Bean
     public SqlCache sqlCache() {
-        return new DefaultSqlCache(properties.getCacheSize());
+        CacheConfig cacheConfig = properties.getCacheConfig();
+        return new DefaultSqlCache(cacheConfig.getCapacity(), cacheConfig.getTtl());
     }
 
     @Bean
@@ -74,17 +80,18 @@ public class S8AutoConfiguration {
         // 正则验证
         requestExecutor.addValidator(new RegxValidator());
         if (this.validators != null) {
-            this.validators.forEach(requestExecutor::addValidator);
+            this.validators.forEach(validator -> {
+                logger.info("注册验证器：{},class:{}", validator.support(), validator.getClass());
+                requestExecutor.addValidator(validator);
+            });
         }
         if (this.requestInterceptors != null) {
-            this.requestInterceptors.forEach(requestExecutor::addRequestInterceptor);
+            this.requestInterceptors.forEach(interceptor -> {
+                logger.info("注册请求拦截器：{}", interceptor.getClass());
+                requestExecutor.addRequestInterceptor(interceptor);
+            });
         }
         return requestExecutor;
-    }
-
-    @Bean
-    public ExpressionEngine expressionEngine() {
-        return new ExpressionEngine();
     }
 
     @Bean
@@ -96,15 +103,31 @@ public class S8AutoConfiguration {
     }
 
     @Bean
+    public ExpressionEngine expressionEngine() {
+        return new ExpressionEngine();
+    }
+
+    @Bean
     public StatementExecutor statementExecutor(DynamicDataSource dynamicDataSource, PageProvider pageProvider, SqlCache sqlCache, ApplicationContext context) {
         SqlExecutor sqlExecutor = new SqlExecutor(dynamicDataSource);
-        sqlExecutor.setSqlCache(sqlCache);
+        CacheConfig cacheConfig = properties.getCacheConfig();
+        logger.info("是否开启SQL缓存:{}", cacheConfig.isEnable());
+        if (cacheConfig.isEnable()) {
+            logger.info("SQL缓存实现:{}", sqlCache.getClass());
+            if(sqlCache instanceof DefaultSqlCache){
+                logger.info("SQL缓存容量:{},过期时间:{}ms",cacheConfig.getCapacity(),cacheConfig.getTtl());
+            }
+            sqlExecutor.setSqlCache(sqlCache);
+        }
         // 注册UUID生成策略
         sqlExecutor.addKeyProvider(new UUIDKeyProvider());
         if (this.keyProviders != null) {
             // 注册自定义的主键生成策略
-            keyProviders.forEach(sqlExecutor::addKeyProvider);
+            keyProviders.forEach(keyProvider -> {
+                logger.info("注册主键生成策略:{},class:{}", keyProvider.getName(), keyProvider.getClass());
+            });
         }
+        logger.info("开启驼峰命名转换:{}", properties.isMapUnderscoreToCamelCase());
         sqlExecutor.setMapUnderscoreToCamelCase(properties.isMapUnderscoreToCamelCase());
         return new StatementExecutor(sqlExecutor, pageProvider, context);
     }
@@ -115,7 +138,9 @@ public class S8AutoConfiguration {
         configuration.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
         configuration.setRequestHandler(requestExecutor);
         configuration.setXmlLocations(properties.getXmlLocations());
+        logger.info("启动XML自动刷新:{}", properties.isEnableRefresh());
         configuration.setEnableRefresh(properties.isEnableRefresh());
+        logger.info("启动是否抛出异常:{}", properties.isThrowException());
         configuration.setThrowException(properties.isThrowException());
         configuration.setBanner(properties.isBanner());
         configuration.setRequestWithRequestBodyHandleMethod(RequestExecutor.class.getDeclaredMethod("invoke", HttpServletRequest.class, Object.class));

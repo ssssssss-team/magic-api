@@ -8,5 +8,10 @@
     "name": "page-config",
     "sourceMethod": "getPageConfig()",
     "type": "org.ssssssss.spring.boot.starter.PageConfig"
+  },{
+    "sourceType": "org.ssssssss.spring.boot.starter.S8Properties",
+    "name": "cache-config",
+    "sourceMethod": "getCacheConfig()",
+    "type": "org.ssssssss.spring.boot.starter.CacheConfig"
   }]
 }

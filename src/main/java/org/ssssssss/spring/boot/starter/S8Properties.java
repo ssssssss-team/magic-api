@@ -31,13 +31,11 @@ public class S8Properties {
      */
     private boolean mapUnderscoreToCamelCase = true;
 
-    /**
-     * 默认SQL缓存大小
-     */
-    private int cacheSize = 10000;
-
     @NestedConfigurationProperty
     private PageConfig pageConfig = new PageConfig();
+
+    @NestedConfigurationProperty
+    private CacheConfig cacheConfig = new CacheConfig();
 
     public String[] getXmlLocations() {
         return xmlLocations;
@@ -87,11 +85,11 @@ public class S8Properties {
         this.throwException = throwException;
     }
 
-    public int getCacheSize() {
-        return cacheSize;
+    public CacheConfig getCacheConfig() {
+        return cacheConfig;
     }
 
-    public void setCacheSize(int cacheSize) {
-        this.cacheSize = cacheSize;
+    public void setCacheConfig(CacheConfig cacheConfig) {
+        this.cacheConfig = cacheConfig;
     }
 }
