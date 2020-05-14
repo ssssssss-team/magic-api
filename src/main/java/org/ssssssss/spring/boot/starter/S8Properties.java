@@ -31,6 +31,11 @@ public class S8Properties {
      */
     private boolean mapUnderscoreToCamelCase = true;
 
+    /**
+     * 默认SQL缓存大小
+     */
+    private int cacheSize = 10000;
+
     @NestedConfigurationProperty
     private PageConfig pageConfig = new PageConfig();
 
@@ -80,5 +85,13 @@ public class S8Properties {
 
     public void setThrowException(boolean throwException) {
         this.throwException = throwException;
+    }
+
+    public int getCacheSize() {
+        return cacheSize;
+    }
+
+    public void setCacheSize(int cacheSize) {
+        this.cacheSize = cacheSize;
     }
 }

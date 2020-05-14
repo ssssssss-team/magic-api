@@ -11,7 +11,7 @@
     </parent>
     <groupId>org.ssssssss</groupId>
     <artifactId>ssssssss-spring-boot-starter</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
     <packaging>jar</packaging>
     <name>ssssssss-spring-boot-starter</name>
     <description>ssssssss spring-boot-starter</description>
@@ -36,7 +36,7 @@
         <dependency>
             <groupId>org.ssssssss</groupId>
             <artifactId>ssssssss-core</artifactId>
-            <version>0.1.0</version>
+            <version>0.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

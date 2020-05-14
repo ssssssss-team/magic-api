@@ -9,6 +9,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.ssssssss.cache.DefaultSqlCache;
+import org.ssssssss.cache.SqlCache;
 import org.ssssssss.executor.RequestExecutor;
 import org.ssssssss.executor.SqlExecutor;
 import org.ssssssss.executor.StatementExecutor;
@@ -54,6 +56,12 @@ public class S8AutoConfiguration {
         return new DefaultPageProvider(pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize());
     }
 
+    @ConditionalOnMissingBean(SqlCache.class)
+    @Bean
+    public SqlCache sqlCache() {
+        return new DefaultSqlCache(properties.getCacheSize());
+    }
+
     @Bean
     public RequestExecutor requestExecutor() {
         RequestExecutor requestExecutor = new RequestExecutor();
@@ -88,8 +96,9 @@ public class S8AutoConfiguration {
     }
 
     @Bean
-    public StatementExecutor statementExecutor(DynamicDataSource dynamicDataSource, PageProvider pageProvider, ApplicationContext context) {
+    public StatementExecutor statementExecutor(DynamicDataSource dynamicDataSource, PageProvider pageProvider, SqlCache sqlCache, ApplicationContext context) {
         SqlExecutor sqlExecutor = new SqlExecutor(dynamicDataSource);
+        sqlExecutor.setSqlCache(sqlCache);
         // 注册UUID生成策略
         sqlExecutor.addKeyProvider(new UUIDKeyProvider());
         if(this.keyProviders != null){
