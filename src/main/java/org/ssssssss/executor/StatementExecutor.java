@@ -12,10 +12,7 @@ import org.ssssssss.expression.interpreter.AbstractReflection;
 import org.ssssssss.model.Page;
 import org.ssssssss.model.PageResult;
 import org.ssssssss.provider.PageProvider;
-import org.ssssssss.session.Configuration;
-import org.ssssssss.session.FunctionStatement;
-import org.ssssssss.session.SqlStatement;
-import org.ssssssss.session.Statement;
+import org.ssssssss.session.*;
 import org.ssssssss.utils.Assert;
 import org.ssssssss.utils.DomUtils;
 import org.w3c.dom.Node;
@@ -156,15 +153,18 @@ public class StatementExecutor {
             // 获取数据库方言
             Dialect dialect = sqlExecutor.getDialect(sqlStatement.getDataSourceName());
             PageResult<Object> pageResult = new PageResult<>();
+            ExecuteSqlStatement statement = sqlStatement.buildExecuteSqlStatement(dialect.getCountSql(sql), context.getParameters());
+            statement.setReturnType(Long.class);
+            statement.setSqlMode(SqlMode.SELECT_ONE);
             // 获取总条数
-            long total = (long) sqlExecutor.execute(sqlStatement.getDataSourceName(), SqlMode.SELECT_ONE, dialect.getCountSql(sql), context.getParameters().toArray(), Long.class);
+            long total = (long) sqlExecutor.execute(statement);
             pageResult.setTotal(total);
             // 当条数>0时，执行查询语句，否则不查询以提高性能
             if (total > 0) {
                 // 获取分页语句
                 String pageSql = dialect.getPageSql(sql, context, page.getOffset(), page.getLimit());
                 // 执行查询
-                pageResult.setList((List) sqlExecutor.execute(sqlStatement.getDataSourceName(), SqlMode.SELECT_LIST, pageSql, context.getParameters().toArray(), sqlStatement.getReturnType()));
+                pageResult.setList((List) sqlExecutor.execute(sqlStatement.buildExecuteSqlStatement(pageSql, context.getParameters())));
             }
             return pageResult;
         } else if (SqlMode.INSERT_WITH_PK == sqlStatement.getSqlMode()) {   //插入返回主键
@@ -173,7 +173,7 @@ public class StatementExecutor {
             // 获取要执行的SQL
             String sql = sqlStatement.getSqlNode().getSql(context).trim();
             // 普通SQL执行
-            return sqlExecutor.execute(sqlStatement.getDataSourceName(), sqlStatement.getSqlMode(), sql, context.getParameters().toArray(), sqlStatement.getReturnType());
+            return sqlExecutor.execute(sqlStatement.buildExecuteSqlStatement(sql, context.getParameters()));
         }
     }
 }

@@ -4,6 +4,8 @@ import org.ssssssss.enums.SqlMode;
 import org.ssssssss.scripts.SqlNode;
 import org.w3c.dom.Node;
 
+import java.util.List;
+
 public class SqlStatement extends Statement {
 
     /**
@@ -40,6 +42,16 @@ public class SqlStatement extends Statement {
      * selectKey转SqlNode
      */
     private SqlNode selectKeySqlNode;
+
+    /**
+     * 使用的缓存名称
+     */
+    private String useCache;
+
+    /**
+     * 删除的缓存名称
+     */
+    private String deleteCache;
 
     public SqlMode getSqlMode() {
         return sqlMode;
@@ -95,5 +107,36 @@ public class SqlStatement extends Statement {
 
     public void setSelectKeySqlNode(SqlNode selectKeySqlNode) {
         this.selectKeySqlNode = selectKeySqlNode;
+    }
+
+    public String getUseCache() {
+        return useCache;
+    }
+
+    public void setUseCache(String useCache) {
+        this.useCache = useCache;
+    }
+
+    public String getDeleteCache() {
+        return deleteCache;
+    }
+
+    public void setDeleteCache(String deleteCache) {
+        this.deleteCache = deleteCache;
+    }
+
+    public ExecuteSqlStatement buildExecuteSqlStatement(String sql, List<Object> parameters){
+        ExecuteSqlStatement executeSqlStatement = new ExecuteSqlStatement();
+        executeSqlStatement.setSql(sql);
+        executeSqlStatement.setParameters(parameters.toArray());
+        executeSqlStatement.setId(this.getId());
+        executeSqlStatement.setDataSourceName(this.dataSourceName);
+        executeSqlStatement.setSqlMode(this.sqlMode);
+        executeSqlStatement.setReturnType(this.returnType);
+        executeSqlStatement.setSelectKey(this.selectKey);
+        executeSqlStatement.setSelectKeySqlNode(this.selectKeySqlNode);
+        executeSqlStatement.setUseCache(this.useCache);
+        executeSqlStatement.setDeleteCache(this.deleteCache);
+        return executeSqlStatement;
     }
 }

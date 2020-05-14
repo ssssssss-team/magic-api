@@ -13,13 +13,14 @@ import org.ssssssss.session.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,7 +41,9 @@ public class S8XMLFileParser {
     static XMLStatement parse(File file) {
         XMLStatement statement = null;
         try {
-            Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file);
+            DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            documentBuilder.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
+            Document document = documentBuilder.parse(file);
             // 解析根节点
             statement = parseRoot(document);
             // 解析验证节点
@@ -134,9 +137,10 @@ public class S8XMLFileParser {
             Node item = nodeList.item(i);
             SqlStatement sqlStatement = new SqlStatement();
             parseStatement(sqlStatement, item, xmlStatement);
-            sqlStatement.setDataSourceName(DomUtils.getNodeAttributeValue(item, "datasource"));
+            sqlStatement.setDataSourceName(StringUtils.defaultString(DomUtils.getNodeAttributeValue(item, "datasource"),""));
+            SqlMode sqlMode = SqlMode.valueOf(item.getNodeName().toUpperCase().replace("-", "_"));
             // 设置SqlMode
-            sqlStatement.setSqlMode(SqlMode.valueOf(item.getNodeName().toUpperCase().replace("-", "_")));
+            sqlStatement.setSqlMode(sqlMode);
             String returnType = DomUtils.getNodeAttributeValue(item, "return-type");
             if ("int".equalsIgnoreCase(returnType)) {
                 sqlStatement.setReturnType(Integer.class);
@@ -161,7 +165,13 @@ public class S8XMLFileParser {
             } else {
                 sqlStatement.setReturnType(Map.class);
             }
-            if (SqlMode.SELECT_LIST == sqlStatement.getSqlMode()) {
+            String cacheName = DomUtils.getNodeAttributeValue(item, "cache-name");
+            if(SqlMode.SELECT_LIST == sqlMode || SqlMode.SELECT_ONE == sqlMode){
+                sqlStatement.setUseCache(cacheName);
+            }else{
+                sqlStatement.setDeleteCache(cacheName);
+            }
+            if (SqlMode.SELECT_LIST == sqlMode) {
                 //设置是否是分页
                 sqlStatement.setPagination("true".equalsIgnoreCase(DomUtils.getNodeAttributeValue(item, "page")));
             }
