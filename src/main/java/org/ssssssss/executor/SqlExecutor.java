@@ -132,7 +132,7 @@ public class SqlExecutor {
             int retVal = jdbcTemplate.update(sql, parameters);
             // 删除缓存
             if (retVal > 0 && this.sqlCache != null && StringUtils.isNotBlank(statement.getDeleteCache())) {
-                this.sqlCache.remove(statement.getDeleteCache());
+                this.sqlCache.delete(statement.getDeleteCache());
             }
             // 当设置返回值是boolean类型时,做>0比较
             if (returnType == Boolean.class) {
@@ -234,7 +234,7 @@ public class SqlExecutor {
             new ArgumentPreparedStatementSetter(parameters.toArray()).setValues(ps);
             int val = ps.executeUpdate();
             if (this.sqlCache != null && StringUtils.isNotBlank(deleteCache)) {
-                this.sqlCache.remove(deleteCache);
+                this.sqlCache.delete(deleteCache);
             }
             return val;
         } finally {
@@ -276,8 +276,8 @@ public class SqlExecutor {
      * 打印日志
      */
     private void printLog(String dataSourceName, String sql, Object... parameters) {
-        logger.debug("执行SQL({}):{}", dataSourceName == null ? "default" : dataSourceName, sql);
-        logger.debug("SQL参数{}", Arrays.toString(parameters));
+        logger.debug("执行SQL({}):{}", StringUtils.isBlank(dataSourceName) ? "default" : dataSourceName, sql);
+        logger.debug("SQL参数:{}", Arrays.toString(parameters));
     }
 
     /**

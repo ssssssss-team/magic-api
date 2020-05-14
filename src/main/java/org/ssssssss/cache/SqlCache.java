@@ -38,6 +38,6 @@ public interface SqlCache {
      * 删除缓存
      * @param name  名字
      */
-    void remove(String name);
+    void delete(String name);
 
 }
