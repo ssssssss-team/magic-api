@@ -38,22 +38,6 @@ public class ArrayLikeLambdaExecutor {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private static Object eachParse(Object arrayLike, Object argument, SPConsumer spConsumer) {
-        List<Object> results = null;
-        List<Object> args = (List<Object>) argument;
-        results = new ArrayList<>(args.size());
-        for (int j = 0; j < args.size(); j++) {
-            SourceAndParsed<Object, Object> result = (SourceAndParsed<Object, Object>) ((Supplier) args.get(j)).get();
-            spConsumer.accept(results, result);
-        }
-        Object result = toOriginType(arrayLike, results);
-        if (result != null) {
-            return result;
-        }
-        throw new RuntimeException("未实现");
-    }
-
     private static Object toOriginType(Object arrayLike, List<Object> results) {
         if (arrayLike instanceof Collection) {
             return results;
@@ -126,20 +110,47 @@ public class ArrayLikeLambdaExecutor {
 
     @SuppressWarnings("unchecked")
     public static Object map(Object arrayLike, Object... arguments) {
-        return eachParse(arrayLike, arguments[0], (list, sp) -> list.add(sp.getParsed()));
+        MultipleArgumentsLambda mal = (MultipleArgumentsLambda) arguments[0];
+        Function<Object[], Object> handler = mal.getHandler();
+        List<Object> coll = arrayLikeToList(arrayLike);
+        List<Object> results = new ArrayList<>(coll.size());
+        List<Object> args = new ArrayList<>(2);
+        for (int i = 0; i < coll.size(); i++) {
+            Object obj = coll.get(i);
+            args.clear();
+            args.add(obj);
+            if (mal.getArgs().size() > 1) {
+                args.add(i);
+            }
+            results.add(handler.apply(args.toArray()));
+        }
+        return toOriginType(arrayLike, results);
     }
 
     @SuppressWarnings("unchecked")
     public static Object filter(Object arrayLike, Object... arguments) {
-        return eachParse(arrayLike, arguments[0], (list, sp) -> {
-            if (sp.getParsed() instanceof Boolean) {
-                if ((Boolean)sp.getParsed()) {
-                    list.add(sp.getSource());
+        MultipleArgumentsLambda mal = (MultipleArgumentsLambda) arguments[0];
+        Function<Object[], Object> handler = mal.getHandler();
+        List<Object> coll = arrayLikeToList(arrayLike);
+        List<Object> results = new ArrayList<>(coll.size());
+        List<Object> args = new ArrayList<>(2);
+        for (int i = 0; i < coll.size(); i++) {
+            Object obj = coll.get(i);
+            args.clear();
+            args.add(obj);
+            if (mal.getArgs().size() > 1) {
+                args.add(i);
+            }
+            Object result = handler.apply(args.toArray());
+            if (result instanceof Boolean) {
+                if ((Boolean) result) {
+                    results.add(obj);
                 }
             } else {
                 throw new RuntimeException("lambda函数filter的结果非布尔类型");
             }
-        });
+        }
+        return toOriginType(arrayLike, results);
     }
 
 
@@ -172,33 +183,4 @@ public class ArrayLikeLambdaExecutor {
         }
     }
 
-    public interface SPConsumer {
-        void accept(List<Object> list, SourceAndParsed<Object, Object> sp);
-    }
-
-    public static class SourceAndParsed<S, P> {
-        private S source;
-        private P parsed;
-
-        public SourceAndParsed(S source, P parsed) {
-            this.source = source;
-            this.parsed = parsed;
-        }
-
-        public P getParsed() {
-            return parsed;
-        }
-
-        public void setParsed(P parsed) {
-            this.parsed = parsed;
-        }
-
-        public S getSource() {
-            return source;
-        }
-
-        public void setSource(S source) {
-            this.source = source;
-        }
-    }
 }

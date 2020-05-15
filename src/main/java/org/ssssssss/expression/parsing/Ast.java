@@ -1049,45 +1049,22 @@ public abstract class Ast {
                 }
                 if (arrLikeObj instanceof Collection) {
                     Collection<?> coll = (Collection<?>) arrLikeObj;
-                    if (elements.size() > 1) {
-                        AtomicInteger ai = new AtomicInteger();
-                        return new ArrayLikeLambdaExecutor.MultipleArgumentsLambda(elements, new Function<Object[], Object>() {
-                            @Override
-                            public Object apply(Object[] arguments) {
-                                try {
-                                    context.push();
-                                    for (int i = 0; i < elements.size() && i < arguments.length; i++) {
-                                        Expression expression = elements.get(i);
-                                        context.setOnCurrentScope(expression.getSpan().getText(), arguments[i]);
-                                    }
-                                    return function.evaluate(template, context);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    throw new RuntimeException(e);
-                                } finally {
-                                    context.pop();
-                                }
-                            }
-                        });
-                    }
                     AtomicInteger ai = new AtomicInteger();
-                    return coll.stream().map(o -> ((Supplier) () -> {
+                    return new ArrayLikeLambdaExecutor.MultipleArgumentsLambda(elements, lambdaArgumentsValues -> {
                         try {
                             context.push();
-                            List<Expression> elements = getElements();
-                            for (Expression element : elements) {
-                                context.setOnCurrentScope(element.getSpan().getText(), o);
+                            for (int i = 0; i < elements.size() && i < lambdaArgumentsValues.length; i++) {
+                                Expression expression = elements.get(i);
+                                context.setOnCurrentScope(expression.getSpan().getText(), lambdaArgumentsValues[i]);
                             }
-                            context.setOnCurrentScope("_i", ai.getAndIncrement());
-                            Object res = function.evaluate(template, context);
-                            return new ArrayLikeLambdaExecutor.SourceAndParsed<>(o, res);
+                            return function.evaluate(template, context);
                         } catch (IOException e) {
                             e.printStackTrace();
                             throw new RuntimeException(e);
                         } finally {
                             context.pop();
                         }
-                    })).collect(Collectors.toList());
+                    });
                 }
             }
             return null;

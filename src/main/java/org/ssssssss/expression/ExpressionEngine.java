@@ -23,7 +23,7 @@ public class ExpressionEngine {
 		list.add("yyy");
 		list.add("");
 		params.put("list", list);
-		Object result = engine.execute("${list.sort((a,b)->a.compareTo(b))}", params);
+		Object result = engine.execute("${list.filter((e,i)->i==1)}", params);
 		System.out.println(result);
 
 	}
