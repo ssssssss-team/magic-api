@@ -8,14 +8,13 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import org.ssssssss.session.Configuration;
 import org.ssssssss.session.XMLStatement;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * XML文件加载器
  */
-public class XmlFileLoader implements Runnable{
+public class XmlFileLoader implements Runnable {
 
     /**
      * 路径表达式
@@ -29,7 +28,7 @@ public class XmlFileLoader implements Runnable{
     /**
      * 缓存xml文件修改时间
      */
-    private Map<String,Long> fileMap = new HashMap<>();
+    private Map<String, Long> fileMap = new HashMap<>();
 
     private ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
 
@@ -45,21 +44,24 @@ public class XmlFileLoader implements Runnable{
                 // 提取所有符合表达式的XML文件
                 Resource[] resources = resourceResolver.getResources(pattern);
                 for (Resource resource : resources) {
-                    File file = resource.getFile();
+                    // 获取修改时间
+                    long modifiedTime = resource.lastModified();
                     // 获取上次修改时间
                     Long lastModified = fileMap.get(resource.getDescription());
                     // 修改缓存
-                    fileMap.put(resource.getDescription(), file.lastModified());
+                    fileMap.put(resource.getDescription(), modifiedTime);
                     // 判断是否更新
-                    if (lastModified == null || lastModified < file.lastModified()) {
-                        XMLStatement xmlStatement = S8XMLFileParser.parse(resource.getFile());
-                        // 注册HTTP接口
-                        xmlStatement.getStatements().forEach(configuration::addStatement);
+                    if (lastModified == null || lastModified < modifiedTime) {
+                        XMLStatement xmlStatement = S8XMLFileParser.parse(resource);
+                        if (xmlStatement != null) {
+                            // 注册HTTP接口
+                            xmlStatement.getStatements().forEach(configuration::addStatement);
+                        }
                     }
                 }
             }
         } catch (Exception e) {
-            logger.error("加载XML失败",e);
+            logger.error("加载XML失败", e);
         }
     }
 }

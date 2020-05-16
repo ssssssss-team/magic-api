@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.ssssssss.enums.SqlMode;
 import org.ssssssss.scripts.ForeachSqlNode;
 import org.ssssssss.scripts.IfSqlNode;
@@ -20,7 +21,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,12 +41,12 @@ public class S8XMLFileParser {
     /**
      * 解析xml文件
      */
-    static XMLStatement parse(File file) {
+    static XMLStatement parse(Resource resource) {
         XMLStatement statement = null;
-        try {
+        try (InputStream inputStream = resource.getInputStream()){
             DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
             documentBuilder.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
-            Document document = documentBuilder.parse(file);
+            Document document = documentBuilder.parse(inputStream);
             // 解析根节点
             statement = parseRoot(document);
             // 解析验证节点
@@ -55,7 +58,7 @@ public class S8XMLFileParser {
             // 解析functionStatement
             statement.addStatement(parseFunctionStatement(statement, document.getElementsByTagName("function")));
         } catch (SAXException | IOException | ParserConfigurationException e) {
-            logger.error("解析S8XML文件出错", e);
+            logger.error("解析S8XML文件[{}]出错", resource.getDescription(), e);
         }
         return statement;
     }
@@ -137,7 +140,7 @@ public class S8XMLFileParser {
             Node item = nodeList.item(i);
             SqlStatement sqlStatement = new SqlStatement();
             parseStatement(sqlStatement, item, xmlStatement);
-            sqlStatement.setDataSourceName(StringUtils.defaultString(DomUtils.getNodeAttributeValue(item, "datasource"),""));
+            sqlStatement.setDataSourceName(StringUtils.defaultString(DomUtils.getNodeAttributeValue(item, "datasource"), ""));
             SqlMode sqlMode = SqlMode.valueOf(item.getNodeName().toUpperCase().replace("-", "_"));
             // 设置SqlMode
             sqlStatement.setSqlMode(sqlMode);
@@ -156,9 +159,9 @@ public class S8XMLFileParser {
                 sqlStatement.setSqlMode(SqlMode.INSERT_WITH_PK);
                 Node selectKey = (Node) DomUtils.evaluate("select-key", item, XPathConstants.NODE);
                 sqlStatement.setSelectKey(selectKey);
-                if(selectKey != null && selectKey.hasChildNodes()){
+                if (selectKey != null && selectKey.hasChildNodes()) {
                     SqlNode root = new TextSqlNode("");
-                    parseNodeList(root,document,selectKey.getChildNodes());
+                    parseNodeList(root, document, selectKey.getChildNodes());
                     sqlStatement.setSelectKeySqlNode(root);
                 }
                 sqlStatement.setReturnType(Long.class);
@@ -166,9 +169,9 @@ public class S8XMLFileParser {
                 sqlStatement.setReturnType(Map.class);
             }
             String cacheName = DomUtils.getNodeAttributeValue(item, "cache-name");
-            if(SqlMode.SELECT_LIST == sqlMode || SqlMode.SELECT_ONE == sqlMode){
+            if (SqlMode.SELECT_LIST == sqlMode || SqlMode.SELECT_ONE == sqlMode) {
                 sqlStatement.setUseCache(cacheName);
-            }else{
+            } else {
                 sqlStatement.setDeleteCache(cacheName);
             }
             if (SqlMode.SELECT_LIST == sqlMode) {
