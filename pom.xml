@@ -10,15 +10,15 @@
         <relativePath/>
     </parent>
     <groupId>org.ssssssss</groupId>
-    <artifactId>ssssssss-core</artifactId>
+    <artifactId>magic-api</artifactId>
     <version>0.1.1</version>
     <packaging>jar</packaging>
-    <name>ssssssss-core</name>
+    <name>magic-api</name>
     <description>auto generate http api based on xml</description>
     <licenses>
         <license>
             <name>The MIT License (MIT)</name>
-            <url>https://github.com/javamxd/ssssssss/blob/master/LICENSE</url>
+            <url>https://github.com/ssssssss-team/magic-api/blob/master/LICENSE</url>
         </license>
     </licenses>
     <developers>
@@ -28,9 +28,9 @@
         </developer>
     </developers>
     <scm>
-        <url>https://gitee.com/jmxd/ssssssss</url>
-        <connection>scm:git:https://gitee.com/jmxd/ssssssss.git</connection>
-        <developerConnection>scm:git:https://gitee.com/jmxd/ssssssss.git</developerConnection>
+        <url>https://gitee.com/ssssssss-team/magic-api</url>
+        <connection>scm:git:https://gitee.com/ssssssss-team/magic-api.git</connection>
+        <developerConnection>scm:git:https://gitee.com/ssssssss-team/magic-api.git</developerConnection>
     </scm>
     <dependencies>
         <dependency>
