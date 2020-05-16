@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.ssssssss.spring.boot.starter.S8AutoConfiguration
+org.ssssssss.magicapi.spring.boot.starter.MagicAPIAutoConfiguration

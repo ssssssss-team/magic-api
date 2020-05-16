@@ -1,4 +1,4 @@
-package org.ssssssss.spring.boot.starter;
+package org.ssssssss.magicapi.spring.boot.starter;
 
 /**
  * 分页配置

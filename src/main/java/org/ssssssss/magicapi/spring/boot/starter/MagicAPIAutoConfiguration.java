@@ -1,4 +1,4 @@
-package org.ssssssss.spring.boot.starter;
+package org.ssssssss.magicapi.spring.boot.starter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,20 +11,20 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.ssssssss.cache.DefaultSqlCache;
-import org.ssssssss.cache.SqlCache;
-import org.ssssssss.executor.RequestExecutor;
-import org.ssssssss.executor.SqlExecutor;
-import org.ssssssss.executor.StatementExecutor;
-import org.ssssssss.expression.ExpressionEngine;
-import org.ssssssss.interceptor.RequestInterceptor;
-import org.ssssssss.provider.KeyProvider;
-import org.ssssssss.provider.PageProvider;
-import org.ssssssss.provider.impl.DefaultPageProvider;
-import org.ssssssss.provider.impl.UUIDKeyProvider;
-import org.ssssssss.session.Configuration;
-import org.ssssssss.session.DynamicDataSource;
-import org.ssssssss.validator.*;
+import org.ssssssss.magicapi.cache.DefaultSqlCache;
+import org.ssssssss.magicapi.cache.SqlCache;
+import org.ssssssss.magicapi.executor.RequestExecutor;
+import org.ssssssss.magicapi.executor.SqlExecutor;
+import org.ssssssss.magicapi.executor.StatementExecutor;
+import org.ssssssss.magicapi.expression.ExpressionEngine;
+import org.ssssssss.magicapi.interceptor.RequestInterceptor;
+import org.ssssssss.magicapi.provider.KeyProvider;
+import org.ssssssss.magicapi.provider.PageProvider;
+import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
+import org.ssssssss.magicapi.provider.impl.UUIDKeyProvider;
+import org.ssssssss.magicapi.session.Configuration;
+import org.ssssssss.magicapi.session.DynamicDataSource;
+import org.ssssssss.magicapi.validator.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
@@ -33,10 +33,10 @@ import java.util.List;
 @org.springframework.context.annotation.Configuration
 @ConditionalOnClass({DataSource.class, RequestMappingHandlerMapping.class})
 @AutoConfigureAfter(DataSourceAutoConfiguration.class)
-@EnableConfigurationProperties(S8Properties.class)
-public class S8AutoConfiguration {
+@EnableConfigurationProperties(MagicAPIProperties.class)
+public class MagicAPIAutoConfiguration {
 
-    private S8Properties properties;
+    private MagicAPIProperties properties;
 
     @Autowired(required = false)
     private List<IValidator> validators;
@@ -47,9 +47,9 @@ public class S8AutoConfiguration {
     @Autowired(required = false)
     private List<KeyProvider> keyProviders;
 
-    private static Logger logger = LoggerFactory.getLogger(S8AutoConfiguration.class);
+    private static Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
 
-    public S8AutoConfiguration(S8Properties properties) {
+    public MagicAPIAutoConfiguration(MagicAPIProperties properties) {
         this.properties = properties;
     }
 

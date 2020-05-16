@@ -1,17 +1,17 @@
 {
   "groups" : [{
-    "sourceType": "org.ssssssss.spring.boot.starter.S8Properties",
-    "name": "ssssssss",
-    "type": "org.ssssssss.spring.boot.starter.S8Properties"
+    "sourceType": "org.ssssssss.magicapi.spring.boot.starter.MagicAPIProperties",
+    "name": "magic-api",
+    "type": "org.ssssssss.magicapi.spring.boot.starter.MagicAPIProperties"
   },{
-    "sourceType": "org.ssssssss.spring.boot.starter.S8Properties",
+    "sourceType": "org.ssssssss.magicapi.spring.boot.starter.MagicAPIProperties",
     "name": "page-config",
     "sourceMethod": "getPageConfig()",
-    "type": "org.ssssssss.spring.boot.starter.PageConfig"
+    "type": "org.ssssssss.magicapi.spring.boot.starter.PageConfig"
   },{
-    "sourceType": "org.ssssssss.spring.boot.starter.S8Properties",
+    "sourceType": "org.ssssssss.magicapi.spring.boot.starter.MagicAPIProperties",
     "name": "cache-config",
     "sourceMethod": "getCacheConfig()",
-    "type": "org.ssssssss.spring.boot.starter.CacheConfig"
+    "type": "org.ssssssss.magicapi.spring.boot.starter.CacheConfig"
   }]
 }

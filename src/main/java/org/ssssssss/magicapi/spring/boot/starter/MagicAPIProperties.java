@@ -1,10 +1,10 @@
-package org.ssssssss.spring.boot.starter;
+package org.ssssssss.magicapi.spring.boot.starter;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
-@ConfigurationProperties(prefix = "ssssssss")
-public class S8Properties {
+@ConfigurationProperties(prefix = "magic-api")
+public class MagicAPIProperties {
 
     /**
      * xml文件位置

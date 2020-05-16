@@ -10,15 +10,15 @@
         <relativePath/>
     </parent>
     <groupId>org.ssssssss</groupId>
-    <artifactId>ssssssss-spring-boot-starter</artifactId>
+    <artifactId>magic-api-spring-boot-starter</artifactId>
     <version>0.1.1</version>
     <packaging>jar</packaging>
-    <name>ssssssss-spring-boot-starter</name>
-    <description>ssssssss spring-boot-starter</description>
+    <name>magic-api-spring-boot-starter</name>
+    <description>magic-api-spring-boot-starter</description>
     <licenses>
         <license>
             <name>The MIT License (MIT)</name>
-            <url>https://github.com/javamxd/ssssssss-spring-boot-starter/blob/master/LICENSE</url>
+            <url>https://github.com/ssssssss-team/magic-api-spring-boot-starter/blob/master/LICENSE</url>
         </license>
     </licenses>
     <developers>
@@ -28,14 +28,14 @@
         </developer>
     </developers>
     <scm>
-        <url>https://gitee.com/jmxd/ssssssss-spring-boot-starter</url>
-        <connection>scm:git:https://gitee.com/jmxd/ssssssss-spring-boot-starter.git</connection>
-        <developerConnection>scm:git:https://gitee.com/jmxd/ssssssss-spring-boot-starter.git</developerConnection>
+        <url>https://gitee.com/ssssssss-team/magic-api-spring-boot-starter</url>
+        <connection>scm:git:https://gitee.com/ssssssss-team/magic-api-spring-boot-starter.git</connection>
+        <developerConnection>scm:git:https://gitee.com/ssssssss-team/magic-api-spring-boot-starter.git</developerConnection>
     </scm>
     <dependencies>
         <dependency>
             <groupId>org.ssssssss</groupId>
-            <artifactId>ssssssss-core</artifactId>
+            <artifactId>magic-api</artifactId>
             <version>0.1.1</version>
         </dependency>
         <dependency>
