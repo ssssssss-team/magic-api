@@ -166,11 +166,13 @@ public class Configuration implements InitializingBean {
     @Override
     public void afterPropertiesSet() {
         if(this.banner){
-            System.out.println("  ____    ____    ____    ____    ____    ____    ____    ____  ");
-            System.out.println(" / ___|  / ___|  / ___|  / ___|  / ___|  / ___|  / ___|  / ___| ");
-            System.out.println("\\___ \\  \\___ \\  \\___ \\  \\___ \\  \\___ \\  \\___ \\  \\___ \\  \\___ \\ ");
-            System.out.println("  ___) |  ___) |  ___) |  ___) |  ___) |  ___) |  ___) |  ___) |");
-            System.out.println(" |____/  |____/  |____/  |____/  |____/  |____/  |____/  |____/       " + Configuration.class.getPackage().getImplementationVersion());
+
+            System.out.println("  __  __                _           _     ____  ___ ");
+            System.out.println(" |  \\/  |  __ _   __ _ (_)  ___    / \\   |  _ \\|_ _|");
+            System.out.println(" | |\\/| | / _` | / _` || | / __|  / _ \\  | |_) || | ");
+            System.out.println(" | |  | || (_| || (_| || || (__  / ___ \\ |  __/ | | ");
+            System.out.println(" |_|  |_| \\__,_| \\__, ||_| \\___|/_/   \\_\\|_|   |___|");
+            System.out.println("                  |___/                        " + Configuration.class.getPackage().getImplementationVersion());
         }
         if(this.xmlLocations == null){
             logger.error("ssssssss.xml-locations不能为空");
