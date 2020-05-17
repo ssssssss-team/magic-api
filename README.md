@@ -3,8 +3,8 @@
 </p>
 <p align="center">
     <a target="_blank" href="https://www.oracle.com/technetwork/java/javase/downloads/index.html"><img src="https://img.shields.io/badge/JDK-1.8+-green.svg" /></a>
-    <a href="https://search.maven.org/search?q=g:org.ssssssss">
-        <img alt="maven" src="https://img.shields.io/maven-central/v/org.ssssssss/magic-api.svg?style=flat-square">
+    <a href="https://search.maven.org/search?q=g:org.ssssssss%20AND%20a:magic-api-spring-boot-starter">
+        <img alt="maven" src="https://img.shields.io/maven-central/v/org.ssssssss/magic-api-spring-boot-starter.svg?style=flat-square">
     </a>
     <a target="_blank" href="https://www.ssssssss.org"><img src="https://img.shields.io/badge/Docs-latest-blue.svg"/></a>
     <a target="_blank" href="https://github.com/ssssssss-team/magic-api-spring-boot-starter/releases"><img src="https://img.shields.io/github/v/release/ssssssss-team/magic-api-spring-boot-starter?logo=github"></a>
