@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.utils;
 
-import org.ssssssss.magicapi.exception.S8Exception;
+import org.ssssssss.magicapi.exception.MagicAPIException;
 
 import java.security.MessageDigest;
 
@@ -29,7 +29,7 @@ public class MD5Utils {
             }
             return new String(chars);
         } catch (Exception e) {
-            throw new S8Exception("md5 encrypt error",e);
+            throw new MagicAPIException("md5 encrypt error",e);
         }
     }
 }

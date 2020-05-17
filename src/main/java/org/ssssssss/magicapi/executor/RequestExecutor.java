@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.context.RequestContext;
-import org.ssssssss.magicapi.exception.S8Exception;
+import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.expression.ExpressionEngine;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.model.JsonBean;
@@ -110,7 +110,7 @@ public class RequestExecutor {
             return value;
         } catch (Exception e) {
             if (configuration.isThrowException()) {
-                throw new S8Exception("ssssssss执行出错", e);
+                throw new MagicAPIException("magic-api执行出错", e);
             }
             logger.error("系统出现错误", e);
             return new JsonBean<>(-1, e.getMessage());

@@ -1,7 +1,7 @@
 package org.ssssssss.magicapi.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.ssssssss.magicapi.exception.S8Exception;
+import org.ssssssss.magicapi.exception.MagicAPIException;
 
 public class Assert {
 
@@ -10,7 +10,7 @@ public class Assert {
      */
     public static void isNotNull(Object value, String message) {
         if (value == null) {
-            throw new S8Exception(message);
+            throw new MagicAPIException(message);
         }
     }
 
@@ -19,7 +19,7 @@ public class Assert {
      */
     public static void isTrue(boolean value, String message) {
         if (!value) {
-            throw new S8Exception(message);
+            throw new MagicAPIException(message);
         }
     }
 
@@ -29,7 +29,7 @@ public class Assert {
      */
     public static void isNotBlank(String value, String message) {
         if (StringUtils.isBlank(value)) {
-            throw new S8Exception(message);
+            throw new MagicAPIException(message);
         }
     }
 

@@ -32,9 +32,9 @@ import java.util.Map;
 /**
  * xml文件解析
  */
-public class S8XMLFileParser {
+public class MagicAPIXMLFileParser {
 
-    private static Logger logger = LoggerFactory.getLogger(S8XMLFileParser.class);
+    private static Logger logger = LoggerFactory.getLogger(MagicAPIXMLFileParser.class);
 
     private static final List<String> TAG_NAMES = Arrays.asList("select-list", "select-one", "insert", "update", "delete");
 
@@ -58,7 +58,7 @@ public class S8XMLFileParser {
             // 解析functionStatement
             statement.addStatement(parseFunctionStatement(statement, document.getElementsByTagName("function")));
         } catch (SAXException | IOException | ParserConfigurationException e) {
-            logger.error("解析S8XML文件[{}]出错", resource.getDescription(), e);
+            logger.error("解析magic-api XML文件[{}]出错", resource.getDescription(), e);
         }
         return statement;
     }

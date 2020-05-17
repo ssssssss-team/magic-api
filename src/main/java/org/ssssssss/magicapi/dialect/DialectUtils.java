@@ -32,7 +32,7 @@ public class DialectUtils {
             } else if (fromUrl.startsWith("jdbc:db2:")) {
                 dialect = new DB2Dialect();
             } else {
-                logger.warn(String.format("ssssssss在%s中无法获取dialect", fromUrl));
+                logger.warn(String.format("magic-api在%s中无法获取dialect", fromUrl));
             }
             dialectMap.put(fromUrl, dialect);
         }

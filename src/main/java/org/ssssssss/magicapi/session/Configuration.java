@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * S8配置类
+ * MagicAPi配置类
  */
 public class Configuration implements InitializingBean {
 

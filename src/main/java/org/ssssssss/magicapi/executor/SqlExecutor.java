@@ -15,7 +15,7 @@ import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.dialect.Dialect;
 import org.ssssssss.magicapi.dialect.DialectUtils;
 import org.ssssssss.magicapi.enums.SqlMode;
-import org.ssssssss.magicapi.exception.S8Exception;
+import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.provider.KeyProvider;
 import org.ssssssss.magicapi.scripts.SqlNode;
 import org.ssssssss.magicapi.session.DynamicDataSource;
@@ -148,7 +148,7 @@ public class SqlExecutor {
             }
             value = collection != null && collection.size() >= 1 ? collection.iterator().next() : null;
         } else {
-            throw new S8Exception("暂时不支持[" + mode + "]模式");
+            throw new MagicAPIException("暂时不支持[" + mode + "]模式");
         }
         // 判断是否使用了缓存
         if (sqlCacheKey != null && value != null) {

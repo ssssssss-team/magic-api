@@ -52,7 +52,7 @@ public class XmlFileLoader implements Runnable {
                     fileMap.put(resource.getDescription(), modifiedTime);
                     // 判断是否更新
                     if (lastModified == null || lastModified < modifiedTime) {
-                        XMLStatement xmlStatement = S8XMLFileParser.parse(resource);
+                        XMLStatement xmlStatement = MagicAPIXMLFileParser.parse(resource);
                         if (xmlStatement != null) {
                             // 注册HTTP接口
                             xmlStatement.getStatements().forEach(configuration::addStatement);
