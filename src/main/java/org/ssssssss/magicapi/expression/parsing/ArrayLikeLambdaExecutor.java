@@ -19,6 +19,8 @@ public class ArrayLikeLambdaExecutor {
         addSupport(temp, set, "filter");
         addSupport(temp, set, "reduce");
         addSupport(temp, set, "sort");
+        addSupport(temp, set, "every");
+        addSupport(temp, set, "some");
         SUPPORT_METHOD = Collections.unmodifiableSet(set);
         METHODS = Collections.unmodifiableMap(temp);
     }
@@ -141,17 +143,64 @@ public class ArrayLikeLambdaExecutor {
                 args.add(i);
             }
             Object result = handler.apply(args.toArray());
-            if (result instanceof Boolean) {
-                if ((Boolean) result) {
-                    results.add(obj);
-                }
-            } else {
-                throw new RuntimeException("lambda函数filter的结果非布尔类型");
+            if (!(result instanceof Boolean)) {
+                throw new RuntimeException("lambda函数 filter 的结果非布尔类型");
+            }
+            if ((Boolean) result) {
+                results.add(obj);
             }
         }
         return toOriginType(arrayLike, results);
     }
 
+
+    @SuppressWarnings("unchecked")
+    public static Object every(Object arrayLike, Object... arguments) {
+        MultipleArgumentsLambda mal = (MultipleArgumentsLambda) arguments[0];
+        Function<Object[], Object> handler = mal.getHandler();
+        List<Object> coll = arrayLikeToList(arrayLike);
+        List<Object> args = new ArrayList<>(2);
+        for (int i = 0; i < coll.size(); i++) {
+            Object obj = coll.get(i);
+            args.clear();
+            args.add(obj);
+            if (mal.getArgs().size() > 1) {
+                args.add(i);
+            }
+            Object result = handler.apply(args.toArray());
+            if (!(result instanceof Boolean)) {
+                throw new RuntimeException("lambda函数 every 的结果非布尔类型");
+            }
+            if ( !(Boolean)result ) {
+                return Boolean.FALSE;
+            }
+        }
+        return Boolean.TRUE;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Object some(Object arrayLike, Object... arguments) {
+        MultipleArgumentsLambda mal = (MultipleArgumentsLambda) arguments[0];
+        Function<Object[], Object> handler = mal.getHandler();
+        List<Object> coll = arrayLikeToList(arrayLike);
+        List<Object> args = new ArrayList<>(2);
+        for (int i = 0; i < coll.size(); i++) {
+            Object obj = coll.get(i);
+            args.clear();
+            args.add(obj);
+            if (mal.getArgs().size() > 1) {
+                args.add(i);
+            }
+            Object result = handler.apply(args.toArray());
+            if (!(result instanceof Boolean)) {
+                throw new RuntimeException("lambda函数some的结果非布尔类型");
+            }
+            if ( (Boolean)result ) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
 
     public static class MultipleArgumentsLambda {
         private List<Ast.Expression> args;
