@@ -1,8 +1,6 @@
 package org.ssssssss.magicapi.expression;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ExpressionEngine {
 
@@ -23,10 +21,29 @@ public class ExpressionEngine {
 		list.add("yyy");
 		list.add("");
 		params.put("list", list);
-		Object result = engine.execute("${list.filter((e,i)->i==1)}", params);
+		params.put("test", new TestClass());
+		params.put("cc", null);
+
+
+		Object result = engine.execute("${test.test(cc)}", params);
 		System.out.println(result);
 
 	}
+	public static class TestClass {
+
+		public String test(String list) {
+			return "String";
+		}
+		public String test(List list) {
+			return "List";
+		}
+		public String test(Object list) {
+			return "Object";
+		}
+
+
+	}
+
 
 	public Object executeWrap(String expression, Map<String, Object> variables) {
 		return execute("${" + expression + "}", variables);

@@ -122,6 +122,9 @@ public class JavaReflection extends AbstractReflection {
 		return null;
 	}
 
+	private static final class Null {
+
+	}
 	@Override
 	public Object getMethod (Object obj, String name, Object... arguments) {
 		Class<?> cls = obj instanceof Class ? (Class<?>)obj : obj.getClass();
@@ -133,7 +136,7 @@ public class JavaReflection extends AbstractReflection {
 
 		Class<?>[] parameterTypes = new Class[arguments.length];
 		for (int i = 0; i < arguments.length; i++) {
-			parameterTypes[i] = arguments[i] == null ? null : arguments[i].getClass();
+			parameterTypes[i] = arguments[i] == null ? Null.class : arguments[i].getClass();
 		}
 
 		JavaReflection.MethodSignature signature = new MethodSignature(name, parameterTypes);
@@ -186,10 +189,40 @@ public class JavaReflection extends AbstractReflection {
 		}
 		return null;
 	}
-
+	private static int calcToObjectDistanceWithInterface(Class<?>[] interfaces, int distance, int score) {
+		if (interfaces == null) {
+			return distance;
+		}
+		return Arrays.stream(interfaces).mapToInt(i -> {
+			int v = calcToObjectDistanceWithInterface(i.getInterfaces(), distance, score + 2);
+			return v + distance + score;
+		}).sum();
+	}
+	private static int calcToObjectDistance(Class<?> clazz) {
+		return calcToObjectDistance(clazz, 0);
+	}
+	private static int calcToObjectDistance(Class<?> clazz, int distance) {
+		if (clazz == null) {
+			return distance + 3;
+		}
+		if (Object.class.equals(clazz)) {
+			return distance;
+		}
+		int interfaceScore = calcToObjectDistanceWithInterface(clazz.getInterfaces(), distance + 2, 0);
+		if (clazz.isInterface()) {
+			return interfaceScore;
+		}
+		int classScore = calcToObjectDistance(clazz.getSuperclass(), distance + 3);
+		return classScore + interfaceScore;
+	}
 	private static Method findMethod (List<Method> methods, Class<?>[] parameterTypes) {
 		Method foundMethod = null;
 		int foundScore = 0;
+		methods.sort((m1, m2) -> {
+			int sum1 = Arrays.stream(m1.getParameterTypes()).mapToInt(JavaReflection::calcToObjectDistance).sum();
+			int sum2 = Arrays.stream(m2.getParameterTypes()).mapToInt(JavaReflection::calcToObjectDistance).sum();
+			return sum2 - sum1;
+		});
 		for (Method method : methods) {
 			// Check if the types match.
 			Class<?>[] otherTypes = method.getParameterTypes();
@@ -202,7 +235,9 @@ public class JavaReflection extends AbstractReflection {
 				Class<?> type = parameterTypes[ii];
 				Class<?> otherType = otherTypes[ii];
 
-				if (!otherType.isAssignableFrom(type)) {
+				if (Null.class.equals(type)) {
+					score++;
+				} else if (!otherType.isAssignableFrom(type)) {
 					score++;
 					if (!isPrimitiveAssignableFrom(type, otherType)) {
 						score++;
