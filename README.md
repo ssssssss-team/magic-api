@@ -3,7 +3,7 @@
 </p>
 <p align="center">
     <a target="_blank" href="https://www.oracle.com/technetwork/java/javase/downloads/index.html"><img src="https://img.shields.io/badge/JDK-1.8+-green.svg" /></a>
-    <a href="https://search.maven.org/search?q=g:org.ssssssss">
+    <a href="https://search.maven.org/search?q=g:org.ssssssss%20AND%20a:magic-api">
         <img alt="maven" src="https://img.shields.io/maven-central/v/org.ssssssss/magic-api.svg?style=flat-square">
     </a>
     <a target="_blank" href="https://www.ssssssss.org"><img src="https://img.shields.io/badge/Docs-latest-blue.svg"/></a>
