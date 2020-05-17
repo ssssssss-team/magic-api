@@ -175,13 +175,13 @@ public class Configuration implements InitializingBean {
             System.out.println("                  |___/                        " + Configuration.class.getPackage().getImplementationVersion());
         }
         if(this.xmlLocations == null){
-            logger.error("ssssssss.xml-locations不能为空");
+            logger.error("magic-api.xml-locations不能为空");
         }else{
             XmlFileLoader loader = new XmlFileLoader(xmlLocations, this);
             loader.run();
             // 如果启动刷新则定时重新加载
             if(enableRefresh){
-                logger.info("启动自动刷新ssssssss");
+                logger.info("启动自动刷新magic-api");
                 Executors.newScheduledThreadPool(1).scheduleAtFixedRate(loader,3,3, TimeUnit.SECONDS);
             }
         }
