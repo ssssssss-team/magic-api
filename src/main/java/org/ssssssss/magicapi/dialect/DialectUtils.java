@@ -21,15 +21,17 @@ public class DialectUtils {
     public static Dialect getDialectFromUrl(String fromUrl) {
         Dialect dialect = dialectMap.get(fromUrl);
         if (dialect == null && !dialectMap.containsKey(fromUrl)) {
-            if (fromUrl.startsWith("jdbc:mysql:") || fromUrl.startsWith("jdbc:cobar:") || fromUrl.startsWith("jdbc:log4jdbc:mysql:") || fromUrl.startsWith("jdbc:mariadb:")) {
+            if (fromUrl.contains(":mysql:") || fromUrl.contains(":cobar:") || fromUrl.contains("jdbc:mariadb:")) {
                 dialect = new MySQLDialect();
-            } else if (fromUrl.startsWith("jdbc:oracle:") || fromUrl.startsWith("jdbc:log4jdbc:oracle:")) {
+            } else if (fromUrl.contains(":oracle:")) {
                 dialect = new OracleDialect();
-            } else if (fromUrl.startsWith("jdbc:sqlserver2012:")) {
+            } else if (fromUrl.contains(":sqlserver:")) {
+                dialect = new SQLServer2005Dialect();
+            } else if (fromUrl.contains(":sqlserver2012:")) {
                 dialect = new SQLServerDialect();
-            } else if (fromUrl.startsWith("jdbc:postgresql:") || fromUrl.startsWith("jdbc:log4jdbc:postgresql:")) {
+            } else if (fromUrl.contains(":postgresql:")) {
                 dialect = new PostgreSQLDialect();
-            } else if (fromUrl.startsWith("jdbc:db2:")) {
+            } else if (fromUrl.contains(":db2:")) {
                 dialect = new DB2Dialect();
             } else {
                 logger.warn(String.format("magic-api在%s中无法获取dialect", fromUrl));
