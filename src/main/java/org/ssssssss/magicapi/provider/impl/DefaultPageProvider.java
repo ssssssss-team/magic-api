@@ -50,7 +50,7 @@ public class DefaultPageProvider implements PageProvider {
         long page = NumberUtils.toLong(request.getParameter(this.pageName), this.defaultPage);
         long pageSize = NumberUtils.toLong(request.getParameter(this.pageSize), this.defaultPageSize);
         // 计算limit以及offset
-        return new Page((page - 1) * pageSize, pageSize);
+        return new Page(pageSize,(page - 1) * pageSize);
 
     }
 }
