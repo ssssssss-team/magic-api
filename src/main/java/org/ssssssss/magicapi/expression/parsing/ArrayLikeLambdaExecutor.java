@@ -21,6 +21,7 @@ public class ArrayLikeLambdaExecutor {
         addSupport(temp, set, "sort");
         addSupport(temp, set, "every");
         addSupport(temp, set, "some");
+        addSupport(temp, set, "distinct");
         SUPPORT_METHOD = Collections.unmodifiableSet(set);
         METHODS = Collections.unmodifiableMap(temp);
     }
@@ -151,6 +152,28 @@ public class ArrayLikeLambdaExecutor {
             }
         }
         return toOriginType(arrayLike, results);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Object distinct(Object arrayLike, Object... arguments) {
+        MultipleArgumentsLambda mal = (MultipleArgumentsLambda) arguments[0];
+        Function<Object[], Object> handler = mal.getHandler();
+        List<Object> coll = arrayLikeToList(arrayLike);
+        List<Object> args = new ArrayList<>(2);
+        Map<Object, Object> map = new LinkedHashMap<>(coll.size());
+        for (int i = 0; i < coll.size(); i++) {
+            Object obj = coll.get(i);
+            args.clear();
+            args.add(obj);
+            if (mal.getArgs().size() > 1) {
+                args.add(i);
+            }
+            Object result = handler.apply(args.toArray());
+            if (!map.containsKey(result)) {
+                map.put(result, obj);
+            }
+        }
+        return toOriginType(arrayLike, new ArrayList<>(map.values()));
     }
 
 

@@ -20,12 +20,12 @@ public class ExpressionEngine {
 		list.add("987654321");
 		list.add("yyy");
 		list.add("");
+		list.add("yyy");
 		params.put("list", list);
 		params.put("test", new TestClass());
 		params.put("cc", null);
 
-
-		Object result = engine.execute("${test.test(cc)}", params);
+		Object result = engine.execute("${list.distinct(cc->cc)}", params);
 		System.out.println(result);
 
 	}
