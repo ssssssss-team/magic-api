@@ -102,7 +102,7 @@ public class JavaReflection extends AbstractReflection {
 				Class<?>[] parameterTypes = new Class[arguments.length + 1];
 				parameterTypes[0] = cls;
 				for (int i = 0; i < arguments.length; i++) {
-					parameterTypes[i + 1] = arguments[i] == null ? null : arguments[i].getClass();
+					parameterTypes[i + 1] = arguments[i] == null ? Null.class : arguments[i].getClass();
 				}
 				return findMethod(methodList, parameterTypes);
 			}
