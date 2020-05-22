@@ -6,8 +6,6 @@ import org.ssssssss.magicapi.context.RequestContext;
 public class SQLServer2005Dialect implements Dialect {
     @Override
     public String getPageSql(String sql, RequestContext context, long offset, long limit) {
-        context.addParameter(offset);
-        context.addParameter(limit);
         StringBuilder pagingBuilder = new StringBuilder();
         String orderby = getOrderByPart(sql);
         String distinctStr = "";
