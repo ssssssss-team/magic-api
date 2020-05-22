@@ -1018,51 +1018,49 @@ public abstract class Ast {
         }
 
         private <T,R> Object oneArgumentParser(ExpressionTemplate template, ExpressionTemplateContext context) {
-            Expression object = arrayLike.getObject();
-            if (object instanceof VariableAccess) {
-                VariableAccess arrLike = (VariableAccess) object;
-                String parName = arrLike.getVariableName().getText();
-                Object arrLikeObj = context.get(parName);
-                if (arrLikeObj.getClass().isArray()) {
-                    try {
+            Object arrLikeObj;
+            try {
+                arrLikeObj = arrayLike.getObject().evaluate(template, context);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            if (arrLikeObj.getClass().isArray()) {
+                try {
 //                        Integer size = (Integer) arrLikeObj.getClass().getDeclaredField("length").get(arrLikeObj);
-                        int size = Array.getLength(arrLikeObj);
-                        List<Object> list = new ArrayList<>(size);
-                        for (int i = 0; i < size; i++) {
-                            list.add(Array.get(arrLikeObj, i));
-                        }
-                        arrLikeObj = list;
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    int size = Array.getLength(arrLikeObj);
+                    List<Object> list = new ArrayList<>(size);
+                    for (int i = 0; i < size; i++) {
+                        list.add(Array.get(arrLikeObj, i));
                     }
-                } else if (arrLikeObj instanceof Iterator) {
-                    Iterator<?> it = (Iterator<?>) arrLikeObj;
-                    List<Object> list = new ArrayList<>();
-                    it.forEachRemaining(list::add);
                     arrLikeObj = list;
-                } else if (arrLikeObj instanceof Enumeration) {
-                    Enumeration<?> en = (Enumeration<?>) arrLikeObj;
-                    arrLikeObj = Collections.list(en);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                if (arrLikeObj instanceof Collection) {
-                    Collection<?> coll = (Collection<?>) arrLikeObj;
-                    AtomicInteger ai = new AtomicInteger();
-                    return new ArrayLikeLambdaExecutor.MultipleArgumentsLambda(elements, lambdaArgumentsValues -> {
-                        try {
-                            context.push();
-                            for (int i = 0; i < elements.size() && i < lambdaArgumentsValues.length; i++) {
-                                Expression expression = elements.get(i);
-                                context.setOnCurrentScope(expression.getSpan().getText(), lambdaArgumentsValues[i]);
-                            }
-                            return function.evaluate(template, context);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            throw new RuntimeException(e);
-                        } finally {
-                            context.pop();
+            } else if (arrLikeObj instanceof Iterator) {
+                Iterator<?> it = (Iterator<?>) arrLikeObj;
+                List<Object> list = new ArrayList<>();
+                it.forEachRemaining(list::add);
+                arrLikeObj = list;
+            } else if (arrLikeObj instanceof Enumeration) {
+                Enumeration<?> en = (Enumeration<?>) arrLikeObj;
+                arrLikeObj = Collections.list(en);
+            }
+            if (arrLikeObj instanceof Collection) {
+                return new ArrayLikeLambdaExecutor.MultipleArgumentsLambda(elements, lambdaArgumentsValues -> {
+                    try {
+                        context.push();
+                        for (int i = 0; i < elements.size() && i < lambdaArgumentsValues.length; i++) {
+                            Expression expression = elements.get(i);
+                            context.setOnCurrentScope(expression.getSpan().getText(), lambdaArgumentsValues[i]);
                         }
-                    });
-                }
+                        return function.evaluate(template, context);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(e);
+                    } finally {
+                        context.pop();
+                    }
+                });
             }
             return null;
         }
