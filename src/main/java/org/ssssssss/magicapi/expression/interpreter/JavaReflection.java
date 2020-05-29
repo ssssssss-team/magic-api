@@ -1,11 +1,14 @@
 
 package org.ssssssss.magicapi.expression.interpreter;
 
+import org.ssssssss.magicapi.expression.parsing.ArrayLikeLambdaExecutor.LambdaExecuteException;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+
 
 public class JavaReflection extends AbstractReflection {
 	private final Map<Class<?>, Map<String, Field>> fieldCache = new ConcurrentHashMap<Class<?>, Map<String, Field>>();
@@ -376,8 +379,12 @@ public class JavaReflection extends AbstractReflection {
 		try {
 			return javaMethod.invoke(obj, arguments);
 		} catch (Throwable t) {
-			throw new RuntimeException("Couldn't call method '" + javaMethod.getName() + "' with arguments '" + Arrays.toString(arguments)
-				+ "' on object of type '" + obj.getClass().getSimpleName() + "'.", t);
+			if (t.getCause() instanceof LambdaExecuteException) {
+				throw new RuntimeException(t.getCause().getMessage(), t);
+			} else {
+				throw new RuntimeException("Couldn't call method '" + javaMethod.getName() + "' with arguments '" + Arrays.toString(arguments)
+						+ "' on object of type '" + obj.getClass().getSimpleName() + "'.", t);
+			}
 		}
 	}
 

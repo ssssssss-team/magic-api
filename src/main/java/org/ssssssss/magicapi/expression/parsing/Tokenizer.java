@@ -219,4 +219,9 @@ public class Tokenizer {
         }
 		return tokens;
 	}
+
+	public static void main(String[] args) {
+		new Tokenizer().tokenize("1212134dscxd${resp.abc().xxx}").forEach(System.out::println);
+
+	}
 }

@@ -10,13 +10,13 @@ import org.ssssssss.magicapi.expression.ExpressionTemplateContext;
 import org.ssssssss.magicapi.expression.interpreter.AbstractReflection;
 import org.ssssssss.magicapi.expression.interpreter.AstInterpreter;
 import org.ssssssss.magicapi.expression.interpreter.JavaReflection;
+import org.ssssssss.magicapi.expression.parsing.ArrayLikeLambdaExecutor.LambdaExecuteException;
 
 import javax.xml.transform.Source;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 /** Templates are parsed into an abstract syntax tree (AST) nodes by a Parser. This class contains all AST node types. */
@@ -1271,6 +1271,12 @@ public abstract class Ast {
                     } catch (Throwable t) {
                         t.printStackTrace();
                         // fall through
+                        if (t.getCause()!=null && t.getCause().getCause() instanceof LambdaExecuteException) {
+                            LambdaExecuteException lee = (LambdaExecuteException)t.getCause().getCause();
+                            List<Expression> args = getArguments();
+                            LambdaAccess lambdaAccess = (LambdaAccess)args.get(lee.getArgumentIndex());
+                            ExpressionError.error(t.getMessage(), lambdaAccess.getFunction().getSpan());
+                        }
                     }
                 }
 
