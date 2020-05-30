@@ -1271,11 +1271,14 @@ public abstract class Ast {
                     } catch (Throwable t) {
                         t.printStackTrace();
                         // fall through
-                        if (t.getCause()!=null && t.getCause().getCause() instanceof LambdaExecuteException) {
-                            LambdaExecuteException lee = (LambdaExecuteException)t.getCause().getCause();
+                        if (t.getCause() != null && t.getCause().getCause() instanceof LambdaExecuteException) {
+                            LambdaExecuteException lee = (LambdaExecuteException) t.getCause().getCause();
                             List<Expression> args = getArguments();
-                            LambdaAccess lambdaAccess = (LambdaAccess)args.get(lee.getArgumentIndex());
+                            LambdaAccess lambdaAccess = (LambdaAccess) args.get(lee.getArgumentIndex());
                             ExpressionError.error(t.getMessage(), lambdaAccess.getFunction().getSpan());
+                        } else if (isCachedMethodStatic() && RuntimeException.class.equals(t.getClass()) && t.getCause() != null) {
+                            throw new TemplateException(t.getMessage(), getSpan(), t.getCause());
+
                         }
                     }
                 }
