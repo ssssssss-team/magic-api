@@ -148,8 +148,10 @@ public class StatementExecutor {
         if (sqlStatement.isPagination()) {  //判断是否是分页语句
             // 获取要执行的SQL
             String sql = sqlStatement.getSqlNode().getSql(context).trim();
-            // 从Request中提取Page对象
-            Page page = pageProvider.getPage(context.getRequest());
+            // 获取Page对象
+            Page page = context.getPage();
+            // 当Page对象为空时,从Request中提取Page对象
+            page = page == null ? pageProvider.getPage(context.getRequest()) : page;
             // 获取数据库方言
             Dialect dialect = sqlExecutor.getDialect(sqlStatement.getDataSourceName());
             PageResult<Object> pageResult = new PageResult<>();

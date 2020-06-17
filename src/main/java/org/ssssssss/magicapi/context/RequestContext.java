@@ -5,6 +5,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.servlet.HandlerMapping;
 import org.ssssssss.magicapi.expression.ExpressionEngine;
+import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.session.Statement;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +28,19 @@ public class RequestContext extends HashMap<String, Object> {
     private Object requestBody;
 
     private Statement statement;
+
+    private Page page;
+
+    public RequestContext(Map<String, Object> params, ExpressionEngine engine) {
+        putAll(params);
+        this.engine = engine;
+    }
+
+    public RequestContext(Map<String, Object> params, Page page, ExpressionEngine engine) {
+        putAll(params);
+        this.page = page;
+        this.engine = engine;
+    }
 
     public RequestContext(HttpServletRequest request, ExpressionEngine engine) {
         this.request = request;
@@ -110,5 +124,9 @@ public class RequestContext extends HashMap<String, Object> {
 
     public void setStatement(Statement statement) {
         this.statement = statement;
+    }
+
+    public Page getPage() {
+        return page;
     }
 }
