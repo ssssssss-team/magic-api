@@ -22,6 +22,8 @@ import org.ssssssss.magicapi.provider.KeyProvider;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
 import org.ssssssss.magicapi.provider.impl.UUIDKeyProvider;
+import org.ssssssss.magicapi.service.DefaultMagicAPIService;
+import org.ssssssss.magicapi.service.MagicAPIService;
 import org.ssssssss.magicapi.session.Configuration;
 import org.ssssssss.magicapi.session.DynamicDataSource;
 import org.ssssssss.magicapi.validator.*;
@@ -66,6 +68,12 @@ public class MagicAPIAutoConfiguration {
     public SqlCache sqlCache() {
         CacheConfig cacheConfig = properties.getCacheConfig();
         return new DefaultSqlCache(cacheConfig.getCapacity(), cacheConfig.getTtl());
+    }
+
+    @ConditionalOnMissingBean(MagicAPIService.class)
+    @Bean
+    public MagicAPIService magicAPIService(Configuration configuration, StatementExecutor statementExecutor, ExpressionEngine expressionEngine){
+        return new DefaultMagicAPIService(configuration, statementExecutor, expressionEngine);
     }
 
     @Bean
