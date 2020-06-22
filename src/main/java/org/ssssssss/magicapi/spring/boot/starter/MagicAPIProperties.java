@@ -7,14 +7,9 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 public class MagicAPIProperties {
 
     /**
-     * xml文件位置
+     * web页面入口
      */
-    private String[] xmlLocations;
-
-    /**
-     * 启动自动刷新
-     */
-    private boolean enableRefresh = true;
+    private String web;
 
     /**
      * 打印banner
@@ -37,20 +32,12 @@ public class MagicAPIProperties {
     @NestedConfigurationProperty
     private CacheConfig cacheConfig = new CacheConfig();
 
-    public String[] getXmlLocations() {
-        return xmlLocations;
+    public String getWeb() {
+        return web;
     }
 
-    public void setXmlLocations(String[] xmlLocations) {
-        this.xmlLocations = xmlLocations;
-    }
-
-    public boolean isEnableRefresh() {
-        return enableRefresh;
-    }
-
-    public void setEnableRefresh(boolean enableRefresh) {
-        this.enableRefresh = enableRefresh;
+    public void setWeb(String web) {
+        this.web = web;
     }
 
     public boolean isMapUnderscoreToCamelCase() {
