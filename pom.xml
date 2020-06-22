@@ -11,10 +11,10 @@
     </parent>
     <groupId>org.ssssssss</groupId>
     <artifactId>magic-api</artifactId>
-    <version>0.1.2</version>
+    <version>0.2.0</version>
     <packaging>jar</packaging>
     <name>magic-api</name>
-    <description>auto generate http api based on xml</description>
+    <description>auto generate http api</description>
     <licenses>
         <license>
             <name>The MIT License (MIT)</name>

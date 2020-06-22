@@ -1,7 +1,7 @@
 package org.ssssssss.magicapi.provider.impl;
 
 import org.apache.commons.lang3.math.NumberUtils;
-import org.ssssssss.magicapi.model.Page;
+import org.ssssssss.magicapi.config.Page;
 import org.ssssssss.magicapi.provider.PageProvider;
 
 import javax.servlet.http.HttpServletRequest;

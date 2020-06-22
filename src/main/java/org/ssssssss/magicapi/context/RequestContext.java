@@ -4,9 +4,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.servlet.HandlerMapping;
-import org.ssssssss.magicapi.expression.ExpressionEngine;
-import org.ssssssss.magicapi.model.Page;
-import org.ssssssss.magicapi.session.Statement;
+import org.ssssssss.magicapi.config.Page;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
@@ -17,8 +15,6 @@ public class RequestContext extends HashMap<String, Object> {
 
     private List<Object> parameters = new ArrayList<>();
 
-    private ExpressionEngine engine;
-
     private Map<String, String> pathVariables;
 
     private String requestMapping;
@@ -27,24 +23,19 @@ public class RequestContext extends HashMap<String, Object> {
 
     private Object requestBody;
 
-    private Statement statement;
-
     private Page page;
 
-    public RequestContext(Map<String, Object> params, ExpressionEngine engine) {
+    public RequestContext(Map<String, Object> params) {
         putAll(params);
-        this.engine = engine;
     }
 
-    public RequestContext(Map<String, Object> params, Page page, ExpressionEngine engine) {
+    public RequestContext(Map<String, Object> params, Page page) {
         putAll(params);
         this.page = page;
-        this.engine = engine;
     }
 
-    public RequestContext(HttpServletRequest request, ExpressionEngine engine) {
+    public RequestContext(HttpServletRequest request) {
         this.request = request;
-        this.engine = engine;
         Enumeration<String> parameterNames = request.getParameterNames();
         while (parameterNames.hasMoreElements()) {
             String key = parameterNames.nextElement();
@@ -88,14 +79,6 @@ public class RequestContext extends HashMap<String, Object> {
         return parameters;
     }
 
-    /**
-     * 执行表达式
-     *
-     * @param expression 表达式
-     */
-    public Object evaluate(String expression) {
-        return engine.executeWrap(expression, this);
-    }
 
     public Object getRequestBody() {
         return requestBody;
@@ -116,14 +99,6 @@ public class RequestContext extends HashMap<String, Object> {
 
     public String getRequestMethod() {
         return requestMethod;
-    }
-
-    public Statement getStatement() {
-        return statement;
-    }
-
-    public void setStatement(Statement statement) {
-        this.statement = statement;
     }
 
     public Page getPage() {
