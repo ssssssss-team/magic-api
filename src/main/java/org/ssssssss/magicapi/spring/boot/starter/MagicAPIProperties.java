@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.spring.boot.starter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
@@ -33,6 +34,18 @@ public class MagicAPIProperties {
     private CacheConfig cacheConfig = new CacheConfig();
 
     public String getWeb() {
+        if(StringUtils.isBlank(web)){
+            return null;
+        }
+        if(web.endsWith("/**")){
+            return web.substring(0,web.length() - 3);
+        }
+        if(web.endsWith("/*")){
+            return web.substring(0,web.length() - 2);
+        }
+        if(web.endsWith("/")){
+            return web.substring(0,web.length() - 1);
+        }
         return web;
     }
 
