@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
@@ -34,12 +33,12 @@ public class MapOrArrayAccess extends Expression implements VariableSetter {
 
     @SuppressWarnings("rawtypes")
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
-        Object mapOrArray = getMapOrArray().evaluate(magicScript, context);
+    public Object evaluate(MagicScriptContext context) {
+        Object mapOrArray = getMapOrArray().evaluate(context);
         if (mapOrArray == null) {
             return null;
         }
-        Object keyOrIndex = getKeyOrIndex().evaluate(magicScript, context);
+        Object keyOrIndex = getKeyOrIndex().evaluate(context);
         if (keyOrIndex == null) {
             return null;
         }
@@ -82,10 +81,10 @@ public class MapOrArrayAccess extends Expression implements VariableSetter {
     }
 
     @Override
-    public void setValue(MagicScript magicScript, MagicScriptContext context, Object value) {
-        Object mapOrArray = getMapOrArray().evaluate(magicScript, context);
+    public void setValue(MagicScriptContext context, Object value) {
+        Object mapOrArray = getMapOrArray().evaluate(context);
         if (mapOrArray != null) {
-            Object keyOrIndex = getKeyOrIndex().evaluate(magicScript, context);
+            Object keyOrIndex = getKeyOrIndex().evaluate(context);
             if (keyOrIndex != null) {
                 if (mapOrArray instanceof Map) {
                     ((Map) mapOrArray).put(keyOrIndex, value);

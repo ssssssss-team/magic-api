@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.interpreter.AbstractReflection;
@@ -59,13 +58,13 @@ public class FunctionCall extends Expression {
     }
 
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
+    public Object evaluate(MagicScriptContext context) {
         try {
             Object[] argumentValues = getCachedArguments();
             List<Expression> arguments = getArguments();
             for (int i = 0, n = argumentValues.length; i < n; i++) {
                 Expression expr = arguments.get(i);
-                argumentValues[i] = expr.evaluate(magicScript, context);
+                argumentValues[i] = expr.evaluate(context);
             }
 
             // This is a special case to handle magicScript level macros. If a call to a macro is
@@ -78,7 +77,7 @@ public class FunctionCall extends Expression {
                 VariableAccess varAccess = (VariableAccess) getFunction();
                 function = context.get(varAccess.getVariableName().getText());
             }  else {
-                function = getFunction().evaluate(magicScript, context);
+                function = getFunction().evaluate(context);
             }
             if (function instanceof Function) {
                 return ((Function<Object[],Object>) function).apply(argumentValues);
@@ -89,7 +88,7 @@ public class FunctionCall extends Expression {
                 for (int i = 0; i < argumentValues.length && i < parameters.size(); i++) {
                     context.setOnCurrentScope(parameters.get(i), argumentValues[i]);
                 }
-                Object retVal = AstInterpreter.interpretNodeList(statement.getChildNodes(), magicScript, context);
+                Object retVal = AstInterpreter.interpretNodeList(statement.getChildNodes(), context);
                 context.pop();
                 if (retVal == Return.RETURN_SENTINEL)
                     return ((Return.ReturnValue) retVal).getValue();

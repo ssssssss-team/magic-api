@@ -14,7 +14,6 @@ public class CharacterStream {
     private int index = 0;
     private int spanStart = 0;
     private List<Integer> newLines = new ArrayList<>();
-    private int newLineIndex = 0;
 
     public CharacterStream(String source) {
         this(source, 0, source.length());
@@ -44,13 +43,8 @@ public class CharacterStream {
         }
     }
 
-    public int getLineNumber() {
-        int number = newLineIndex;
-        while (newLines.get(number) > index) {
-            number++;
-        }
-        this.newLineIndex = number;
-        return number;
+    public String substring(int startIndex,int endIndex){
+        return this.source.substring(startIndex,endIndex);
     }
 
     /**

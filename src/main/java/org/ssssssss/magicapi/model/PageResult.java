@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.config;
+package org.ssssssss.magicapi.model;
 
 import java.util.List;
 

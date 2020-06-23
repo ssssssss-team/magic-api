@@ -11,7 +11,7 @@ import java.util.Comparator;
 public enum TokenType {
     // @off
     Period(".", "."),
-    Lambda1("=>", "=>"),
+    Lambda("=>", "=>"),
     Comma(",", ","),
     Semicolon(";", ";"),
     Colon(":", ":"),

@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
@@ -16,10 +15,10 @@ public class ListLiteral extends Expression {
     }
 
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
+    public Object evaluate(MagicScriptContext context) {
         List<Object> list = new ArrayList<>();
         for (int i = 0, n = values.size(); i < n; i++) {
-            list.add(values.get(i).evaluate(magicScript, context));
+            list.add(values.get(i).evaluate(context));
         }
         return list;
     }

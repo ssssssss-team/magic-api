@@ -32,9 +32,9 @@ public class Span {
         if (start < 0) {
             throw new IndexOutOfBoundsException("Start must be >= 0.");
         }
-        if (start > source.length() - 1) {
-            throw new IndexOutOfBoundsException("Start outside of string.");
-        }
+//        if (start > source.length() - 1) {
+//            throw new IndexOutOfBoundsException("Start outside of string.");
+//        }
         if (end > source.length()) {
             throw new IndexOutOfBoundsException("End outside of string.");
         }

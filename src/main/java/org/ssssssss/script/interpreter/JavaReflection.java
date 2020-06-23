@@ -1,6 +1,5 @@
 package org.ssssssss.script.interpreter;
 
-import org.ssssssss.script.functions.FunctionExtension;
 import org.ssssssss.script.functions.StreamExtension;
 
 import java.lang.reflect.*;
@@ -19,7 +18,6 @@ public class JavaReflection extends AbstractReflection {
         registerExtensionClass(Object[].class, StreamExtension.class);
         registerExtensionClass(Enumeration.class, StreamExtension.class);
         registerExtensionClass(Iterator.class, StreamExtension.class);
-        registerExtensionClass(Function.class, FunctionExtension.class);
     }
 
     /**

@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.Token;
@@ -21,14 +20,14 @@ public class MapLiteral extends Expression {
     }
 
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
+    public Object evaluate(MagicScriptContext context) {
         Map<String, Object> map = new HashMap<>();
         for (int i = 0, n = keys.size(); i < n; i++) {
-            Object value = values.get(i).evaluate(magicScript, context);
+            Object value = values.get(i).evaluate(context);
             Token tokenKey = keys.get(i);
             String key = tokenKey.getSpan().getText();
             if (tokenKey.getType() == TokenType.StringLiteral) {
-                key = (String) new StringLiteral(tokenKey.getSpan()).evaluate(magicScript, context);
+                key = (String) new StringLiteral(tokenKey.getSpan()).evaluate(context);
             } else if (key != null && key.startsWith("$")) {
                 Object objKey = context.get(key.substring(1));
                 if (objKey != null) {

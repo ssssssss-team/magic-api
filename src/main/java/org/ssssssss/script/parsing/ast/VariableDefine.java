@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
@@ -17,8 +16,8 @@ public class VariableDefine extends Node {
     }
 
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
-        context.set(variableName, right.evaluate(magicScript, context));
+    public Object evaluate(MagicScriptContext context) {
+        context.set(variableName, right.evaluate(context));
         return null;
     }
 }

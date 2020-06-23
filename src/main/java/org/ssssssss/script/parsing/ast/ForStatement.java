@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.interpreter.AstInterpreter;
@@ -46,8 +45,8 @@ public class ForStatement extends Node {
 
     @SuppressWarnings("rawtypes")
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
-        Object mapOrArray = getMapOrArray().evaluate(magicScript, context);
+    public Object evaluate(MagicScriptContext context) {
+        Object mapOrArray = getMapOrArray().evaluate(context);
         if (mapOrArray == null) MagicScriptError.error("Expected a map or array, got null.", getMapOrArray().getSpan());
         String valueName = getValueName().getText();
 
@@ -60,7 +59,7 @@ public class ForStatement extends Node {
                     Map.Entry e = (Map.Entry) entry;
                     context.setOnCurrentScope(keyName, e.getKey());
                     context.setOnCurrentScope(valueName, e.getValue());
-                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), magicScript, context);
+                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context);
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
@@ -74,7 +73,7 @@ public class ForStatement extends Node {
                 context.push();
                 for (Object value : map.values()) {
                     context.setOnCurrentScope(valueName, value);
-                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), magicScript, context);
+                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context);
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
@@ -94,7 +93,7 @@ public class ForStatement extends Node {
                 while (iter.hasNext()) {
                     context.setOnCurrentScope(keyName, i++);
                     context.setOnCurrentScope(valueName, iter.next());
-                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), magicScript, context);
+                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context);
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
@@ -109,7 +108,7 @@ public class ForStatement extends Node {
                 context.push();
                 while (iter.hasNext()) {
                     context.setOnCurrentScope(valueName, iter.next());
-                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), magicScript, context);
+                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context);
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
@@ -128,7 +127,7 @@ public class ForStatement extends Node {
                 context.push();
                 while (iter.hasNext()) {
                     context.setOnCurrentScope(valueName, iter.next());
-                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), magicScript, context);
+                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context);
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
@@ -147,7 +146,7 @@ public class ForStatement extends Node {
                 for (int i = 0; i < len; i++) {
                     context.setOnCurrentScope(keyName, i);
                     context.setOnCurrentScope(valueName, Array.get(mapOrArray, i));
-                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), magicScript, context);
+                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context);
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }
@@ -161,7 +160,7 @@ public class ForStatement extends Node {
                 context.push();
                 for (int i = 0; i < len; i++) {
                     context.setOnCurrentScope(valueName, Array.get(mapOrArray, i));
-                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), magicScript, context);
+                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getBody(), context);
                     if (breakOrContinueOrReturn == Break.BREAK_SENTINEL) {
                         break;
                     }

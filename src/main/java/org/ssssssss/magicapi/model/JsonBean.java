@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.config;
+package org.ssssssss.magicapi.model;
 
 /**
  * 统一返回值对象
@@ -28,6 +28,9 @@ public class JsonBean<T> {
     public JsonBean(int code, String message) {
         this.code = code;
         this.message = message;
+    }
+
+    public JsonBean() {
     }
 
     public JsonBean(T data) {

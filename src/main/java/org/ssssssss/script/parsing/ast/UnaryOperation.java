@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Token;
@@ -26,8 +25,8 @@ public class UnaryOperation extends Expression {
     }
 
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
-        Object operand = getOperand().evaluate(magicScript, context);
+    public Object evaluate(MagicScriptContext context) {
+        Object operand = getOperand().evaluate(context);
 
         if (getOperator() == UnaryOperator.Negate) {
             if (operand instanceof Integer) {

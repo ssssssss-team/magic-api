@@ -1,7 +1,6 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.apache.commons.lang3.StringUtils;
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.interpreter.AbstractReflection;
@@ -87,9 +86,9 @@ public class MethodCall extends Expression {
     }
 
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
+    public Object evaluate(MagicScriptContext context) {
         try {
-            Object object = getObject().evaluate(magicScript, context);
+            Object object = getObject().evaluate(context);
             if (object == null) {
                 return null;
             }
@@ -97,7 +96,7 @@ public class MethodCall extends Expression {
             List<Expression> arguments = getArguments();
             for (int i = 0, n = argumentValues.length; i < n; i++) {
                 Expression expr = arguments.get(i);
-                argumentValues[i] = expr.evaluate(magicScript, context);
+                argumentValues[i] = expr.evaluate(context);
             }
             // Otherwise try to find a corresponding method or field pointing to a lambda.
             Object method = getCachedMethod();

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Magic API</title>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" href="layui/css/layui.css" />
+		<script type="text/javascript" src="monaco/loader.js"></script>
+		<script type="text/javascript">require.config({ paths: { 'vs': 'monaco' }});</script>
+		<script type="text/javascript" src="monaco/language/magicscript.js"></script>
+		<script type="text/javascript" src="layui/layui.all.js"></script>
+		<style>
+			*{
+				margin:0;
+				padding:0;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="editor" style="width: 1000px;height: 500px"></div>
+		<div style="width:1000px;text-align: center"><button type="button" class="layui-btn layui-btn-normal" onclick="test()">测试</button></div>
+		<script>
+            var editor;
+			require(['vs/editor/editor.main'], function() {
+                editor = monaco.editor.create(document.getElementById('editor'), {
+                    value: "",
+                    language: 'magicscript',
+                    folding:false,
+                    fixedOverflowWidgets :true,
+                    theme : 'magicscript'
+                });
+			});
+			function test(){
+			    var start = new Date().getTime();
+			    layui.$.ajax({
+					url : 'test',
+					type : 'post',
+					contentType : 'application/json;charset=utf-8',
+					data : JSON.stringify({
+						script : editor.getValue(),
+						name : 'hello'
+					}),
+					success : function(json){
+						if(json.code == 1){
+							console.log(json.data);
+							console.log(new Date().getTime() - start + 'ms');
+						}else{
+						    layui.layer.msg(json.message);
+						}
+					}
+				})
+			}
+		</script>
+	</body>
+</html>

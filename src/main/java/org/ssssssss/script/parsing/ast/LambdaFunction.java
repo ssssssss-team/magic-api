@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Span;
@@ -19,7 +18,7 @@ public class LambdaFunction extends Expression{
     }
 
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
+    public Object evaluate(MagicScriptContext context) {
         return (Function<Object[], Object>) args -> {
             context.push();
             Object value;
@@ -27,7 +26,7 @@ public class LambdaFunction extends Expression{
                 for (int i = 0; i < parameters.size() && i < args.length; i++) {
                     context.setOnCurrentScope(parameters.get(i),args[i]);
                 }
-                value = AstInterpreter.interpretNodeList(childNodes,magicScript,context);
+                value = AstInterpreter.interpretNodeList(childNodes, context);
                 if(value instanceof Return.ReturnValue){
                     value = ((Return.ReturnValue)value).getValue();
                 }

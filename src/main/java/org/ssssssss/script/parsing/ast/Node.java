@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
@@ -21,7 +20,7 @@ public abstract class Node {
         return span.getText();
     }
 
-    public abstract Object evaluate(MagicScript magicScript, MagicScriptContext context);
+    public abstract Object evaluate(MagicScriptContext context);
 
     protected void validate(boolean value, String message, Span location) {
         if (value) {

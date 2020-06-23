@@ -221,11 +221,11 @@ public class Parser {
         return new Return(new Span(returnSpan, returnValue.getSpan()), returnValue);
     }
 
-    private static Expression parseExpression(TokenStream stream) {
+    public static Expression parseExpression(TokenStream stream) {
         return parseTernaryOperator(stream);
     }
 
-    private static Expression parseExpression(TokenStream stream, boolean expectRightCurly) {
+    public static Expression parseExpression(TokenStream stream, boolean expectRightCurly) {
         return parseTernaryOperator(stream, expectRightCurly);
     }
 
@@ -275,7 +275,7 @@ public class Parser {
                         continue;
                     }
                     if(stream.match(TokenType.RightParantheses,true)){  //)
-                        if(stream.match(TokenType.Lambda1,true)){   // =>
+                        if(stream.match(TokenType.Lambda,true)){   // =>
                             if(stream.match(TokenType.LeftCurly,true)){
                                 while (stream.hasMore() && !stream.match(false, "}")) {
                                     childNodes.add(parseStatement(stream, true));
@@ -291,7 +291,7 @@ public class Parser {
                         break;
                     }
                 }
-                if(stream.match(TokenType.RightParantheses,true) && stream.match(TokenType.Lambda1,true)){
+                if(stream.match(TokenType.RightParantheses,true) && stream.match(TokenType.Lambda, true)){
                     if(stream.match(TokenType.LeftCurly,true)){
                         while (stream.hasMore() && !stream.match(false, "}")) {
                             childNodes.add(parseStatement(stream, true));

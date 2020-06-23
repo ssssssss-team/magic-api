@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.provider;
 
-import org.ssssssss.magicapi.config.Page;
+import org.ssssssss.magicapi.model.Page;
 
 import javax.servlet.http.HttpServletRequest;
 

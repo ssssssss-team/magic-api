@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.Span;
 
@@ -15,8 +14,8 @@ public class Return extends Node {
     }
 
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
-        RETURN_SENTINEL.setValue(returnValue != null ? returnValue.evaluate(magicScript, context) : null);
+    public Object evaluate(MagicScriptContext context) {
+        RETURN_SENTINEL.setValue(returnValue != null ? returnValue.evaluate(context) : null);
         return RETURN_SENTINEL;
     }
 

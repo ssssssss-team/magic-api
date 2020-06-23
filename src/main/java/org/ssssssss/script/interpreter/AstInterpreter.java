@@ -26,7 +26,8 @@ import java.util.List;
 public class AstInterpreter {
     public static Object interpret(MagicScript magicScript, MagicScriptContext context) {
         try {
-            Object value = interpretNodeList(magicScript.getNodes(), magicScript, context);
+            MagicScriptContext.set(context);
+            Object value = interpretNodeList(magicScript.getNodes(), context);
             if (value == Return.RETURN_SENTINEL) {
                 return ((Return.ReturnValue) value).getValue();
             }
@@ -40,14 +41,15 @@ public class AstInterpreter {
             }
         } finally {
             Return.RETURN_SENTINEL.setValue(null);
+            MagicScriptContext.remove();
         }
     }
 
-    public static Object interpretNodeList(List<Node> nodes, MagicScript magicScript, MagicScriptContext context) {
+    public static Object interpretNodeList(List<Node> nodes, MagicScriptContext context) {
         if (nodes != null) {
             for (int i = 0, n = nodes.size(); i < n; i++) {
                 Node node = nodes.get(i);
-                Object value = node.evaluate(magicScript, context);
+                Object value = node.evaluate(context);
                 if (value == Break.BREAK_SENTINEL || value == Continue.CONTINUE_SENTINEL || value == Return.RETURN_SENTINEL) {
                     return value;
                 }

@@ -4,7 +4,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.servlet.HandlerMapping;
-import org.ssssssss.magicapi.config.Page;
+import org.ssssssss.magicapi.model.Page;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;

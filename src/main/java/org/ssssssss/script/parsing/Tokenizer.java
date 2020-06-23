@@ -123,10 +123,6 @@ public class Tokenizer {
                     tokens.add(new Token(TokenType.BooleanLiteral, identifierSpan));
                 } else if ("null".equals(identifierSpan.getText())) {
                     tokens.add(new Token(TokenType.NullLiteral, identifierSpan));
-                } else if (identifierSpan.getText().equals("and")) {
-                    tokens.add(new Token(TokenType.And, identifierSpan));
-                } else if (identifierSpan.getText().equals("or")) {
-                    tokens.add(new Token(TokenType.Or, identifierSpan));
                 } else {
                     tokens.add(new Token(TokenType.Identifier, identifierSpan));
                 }

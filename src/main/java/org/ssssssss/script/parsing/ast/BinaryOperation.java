@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Token;
@@ -215,28 +214,28 @@ public class BinaryOperation extends Expression {
         }
     }
 
-    private Object evaluateAnd(Object left, MagicScript magicScript, MagicScriptContext context) {
+    private Object evaluateAnd(Object left, MagicScriptContext context) {
         if (!(left instanceof Boolean)) {
             MagicScriptError.error("Left operand must be a boolean, got " + left + ".", getLeftOperand().getSpan());
         }
         if (!(Boolean) left) {
             return false;
         }
-        Object right = getRightOperand().evaluate(magicScript, context);
+        Object right = getRightOperand().evaluate(context);
         if (!(right instanceof Boolean)) {
             MagicScriptError.error("Right operand must be a boolean, got " + right + ".", getRightOperand().getSpan());
         }
         return (Boolean) left && (Boolean) right;
     }
 
-    private Object evaluateOr(Object left, MagicScript magicScript, MagicScriptContext context) {
+    private Object evaluateOr(Object left, MagicScriptContext context) {
         if (!(left instanceof Boolean)) {
             MagicScriptError.error("Left operand must be a boolean, got " + left + ".", getLeftOperand().getSpan());
         }
         if ((Boolean) left) {
             return true;
         }
-        Object right = getRightOperand().evaluate(magicScript, context);
+        Object right = getRightOperand().evaluate(context);
         if (!(right instanceof Boolean)) {
             MagicScriptError.error("Right operand must be a boolean, got " + right + ".", getRightOperand().getSpan());
         }
@@ -268,29 +267,32 @@ public class BinaryOperation extends Expression {
     }
 
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
+    public Object evaluate(MagicScriptContext context) {
         if (getOperator() == BinaryOperator.Assignment) {
             if (getLeftOperand() instanceof VariableSetter) {
                 VariableSetter variableSetter = (VariableSetter) getLeftOperand();
-                Object value = getRightOperand().evaluate(magicScript, context);
-                variableSetter.setValue(magicScript, context, value);
+                Object value = getRightOperand().evaluate(context);
+                variableSetter.setValue(context, value);
                 return null;
             }
             if (!(getLeftOperand() instanceof VariableAccess)) {
                 MagicScriptError.error("Can only assign to top-level variables in context.", getLeftOperand().getSpan());
             }
-            Object value = getRightOperand().evaluate(magicScript, context);
+            Object value = getRightOperand().evaluate(context);
             context.set(((VariableAccess) getLeftOperand()).getVariableName().getText(), value);
             return null;
         }
 
-        Object left = getLeftOperand().evaluate(magicScript, context);
-        Object right = getOperator() == BinaryOperator.And || getOperator() == BinaryOperator.Or ? null : getRightOperand().evaluate(magicScript, context);
-        if(getOperator() == BinaryOperator.Addition && (left instanceof String || right instanceof String)){
+        Object left = getLeftOperand().evaluate(context);
+        BinaryOperator operator = getOperator();
+        Object right = operator == BinaryOperator.And || getOperator() == BinaryOperator.Or ? null : getRightOperand().evaluate(context);
+        if(operator == BinaryOperator.Addition && (left instanceof String || right instanceof String)){
             return evaluateAddition(left,right);
         }
-        validate(left == null, getLeftOperand().getSpan().getText() + " is null", getLeftOperand().getSpan());
-        validate(right == null, getRightOperand().getSpan().getText() + " is null", getRightOperand().getSpan());
+        if(operator != BinaryOperator.Equal && operator != BinaryOperator.NotEqual){
+            validate(left == null, getLeftOperand().getSpan().getText() + " is null", getLeftOperand().getSpan());
+            validate(right == null, getRightOperand().getSpan().getText() + " is null", getRightOperand().getSpan());
+        }
         switch (getOperator()) {
             case Addition:
                 return evaluateAddition(left, right);
@@ -315,9 +317,9 @@ public class BinaryOperation extends Expression {
             case NotEqual:
                 return evaluateNotEqual(left, right);
             case And:
-                return evaluateAnd(left, magicScript, context);
+                return evaluateAnd(left, context);
             case Or:
-                return evaluateOr(left, magicScript, context);
+                return evaluateOr(left, context);
             case Xor:
                 return evaluateXor(left, right);
             default:

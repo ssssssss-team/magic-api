@@ -1,6 +1,5 @@
 package org.ssssssss.script.parsing.ast;
 
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.interpreter.AstInterpreter;
@@ -39,25 +38,25 @@ public class IfStatement extends Node {
     }
 
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
-        Object condition = getCondition().evaluate(magicScript, context);
+    public Object evaluate(MagicScriptContext context) {
+        Object condition = getCondition().evaluate(context);
         if (!(condition instanceof Boolean))
             MagicScriptError.error("Expected a condition evaluating to a boolean, got " + condition, getCondition().getSpan());
         if ((Boolean) condition) {
             context.push();
-            Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getTrueBlock(), magicScript, context);
+            Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getTrueBlock(), context);
             context.pop();
             return breakOrContinueOrReturn;
         }
 
         if (getElseIfs().size() > 0) {
             for (IfStatement elseIf : getElseIfs()) {
-                condition = elseIf.getCondition().evaluate(magicScript, context);
+                condition = elseIf.getCondition().evaluate(context);
                 if (!(condition instanceof Boolean))
                     MagicScriptError.error("Expected a condition evaluating to a boolean, got " + condition, elseIf.getCondition().getSpan());
                 if ((Boolean) condition) {
                     context.push();
-                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(elseIf.getTrueBlock(), magicScript, context);
+                    Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(elseIf.getTrueBlock(), context);
                     context.pop();
                     return breakOrContinueOrReturn;
                 }
@@ -66,7 +65,7 @@ public class IfStatement extends Node {
 
         if (getFalseBlock().size() > 0) {
             context.push();
-            Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getFalseBlock(), magicScript, context);
+            Object breakOrContinueOrReturn = AstInterpreter.interpretNodeList(getFalseBlock(), context);
             context.pop();
             return breakOrContinueOrReturn;
         }

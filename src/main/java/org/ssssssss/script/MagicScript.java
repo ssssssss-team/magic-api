@@ -25,7 +25,7 @@ public class MagicScript {
     /**
      * Renders the magicScript using the MagicScriptContext to resolve variable values referenced in the magicScript.
      **/
-    public Object evaluate(MagicScriptContext context) {
+    Object execute(MagicScriptContext context) {
         return AstInterpreter.interpret(this, context);
     }
 }

@@ -1,7 +1,6 @@
 package org.ssssssss.script.parsing.ast;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.interpreter.AbstractReflection;
@@ -10,6 +9,7 @@ import org.ssssssss.script.parsing.Span;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -58,8 +58,8 @@ public class MemberAccess extends Expression {
 
     @SuppressWarnings("rawtypes")
     @Override
-    public Object evaluate(MagicScript magicScript, MagicScriptContext context) {
-        Object object = getObject().evaluate(magicScript, context);
+    public Object evaluate(MagicScriptContext context) {
+        Object object = getObject().evaluate(context);
         if (object == null) {
             return null;
         }
@@ -86,7 +86,7 @@ public class MemberAccess extends Expression {
         String text = getName().getText();
         field = AbstractReflection.getInstance().getField(object, text);
         if (field == null) {
-            String methodName = null;
+            String methodName;
             if (text.length() > 1) {
                 methodName = text.substring(0, 1).toUpperCase() + text.substring(1);
             } else {
@@ -95,7 +95,7 @@ public class MemberAccess extends Expression {
             MemberAccess access = new MemberAccess(this.object, new Span("get" + methodName));
             MethodCall methodCall = new MethodCall(getName(), access, Collections.emptyList());
             try {
-                return methodCall.evaluate(magicScript, context);
+                return methodCall.evaluate(context);
             } catch (MagicScriptError.ScriptException e) {
                 if (ExceptionUtils.indexOfThrowable(e, InvocationTargetException.class) > -1) {
                     MagicScriptError.error(String.format("在%s中调用方法get%s发生异常"
@@ -103,22 +103,34 @@ public class MemberAccess extends Expression {
                             , methodName), getSpan(), e);
                     return null;
                 }
-                access = new MemberAccess(this.object, new Span("is" + methodName));
-                methodCall = new MethodCall(getName(), access, Collections.emptyList());
+                access = new MemberAccess(this.object, new Span("get"));
+                methodCall = new MethodCall(getName(), access, Arrays.asList(new StringLiteral(getName())));
                 try {
-                    return methodCall.evaluate(magicScript, context);
-                } catch (MagicScriptError.ScriptException e1) {
-                    if (ExceptionUtils.indexOfThrowable(e1, InvocationTargetException.class) > -1) {
-                        MagicScriptError.error(String.format("在%s中调用方法is%s发生异常"
+                    return methodCall.evaluate(context);
+                } catch (MagicScriptError.ScriptException e3) {
+                    if (ExceptionUtils.indexOfThrowable(e3, InvocationTargetException.class) > -1) {
+                        MagicScriptError.error(String.format("在%s中调用方法get发生异常"
                                 , object.getClass()
                                 , methodName), getSpan(), e);
                         return null;
                     }
-                    MagicScriptError.error(String.format("在%s中找不到属性%s或者方法get%s、方法is%s"
-                            , object.getClass()
-                            , getName().getText()
-                            , methodName
-                            , methodName), getSpan());
+                    access = new MemberAccess(this.object, new Span("is" + methodName));
+                    methodCall = new MethodCall(getName(), access, Collections.emptyList());
+                    try {
+                        return methodCall.evaluate(context);
+                    } catch (MagicScriptError.ScriptException e1) {
+                        if (ExceptionUtils.indexOfThrowable(e1, InvocationTargetException.class) > -1) {
+                            MagicScriptError.error(String.format("在%s中调用方法is%s发生异常"
+                                    , object.getClass()
+                                    , methodName), getSpan(), e);
+                            return null;
+                        }
+                        MagicScriptError.error(String.format("在%s中找不到属性%s或者方法get%s、方法is%s"
+                                , object.getClass()
+                                , getName().getText()
+                                , methodName
+                                , methodName), getSpan());
+                    }
                 }
             }
         }
