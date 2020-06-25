@@ -8,7 +8,9 @@ public class ApiInfo {
 
 	private String path;
 
-	private String text;
+	private String script;
+
+	private String name;
 
 	public String getId() {
 		return id;
@@ -34,11 +36,19 @@ public class ApiInfo {
 		this.path = path;
 	}
 
-	public String getText() {
-		return text;
+	public String getScript() {
+		return script;
 	}
 
-	public void setText(String text) {
-		this.text = text;
+	public void setScript(String script) {
+		this.script = script;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 }

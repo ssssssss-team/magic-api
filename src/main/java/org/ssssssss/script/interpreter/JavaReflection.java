@@ -152,7 +152,8 @@ public class JavaReflection extends AbstractReflection {
             }
             methodList.add(method);
         }
-        return findMethod(methodList, parameterTypes);
+        Method method = findMethod(methodList, parameterTypes);
+        return method;
     }
 
     /**

@@ -81,7 +81,7 @@ public class Tokenizer {
                     MagicScriptError.error("字符串没有结束符\'", stream.endSpan(), new StringLiteralException());
                 }
                 Span stringSpan = stream.endSpan();
-                stringSpan = new Span(stringSpan.getSource(), stringSpan.getStart() - 1, stringSpan.getEnd());
+                stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd());
                 tokens.add(new Token(TokenType.StringLiteral, stringSpan));
                 continue;
             }
@@ -105,7 +105,7 @@ public class Tokenizer {
                     MagicScriptError.error("字符串没有结束符\"", stream.endSpan(), new StringLiteralException());
                 }
                 Span stringSpan = stream.endSpan();
-                stringSpan = new Span(stringSpan.getSource(), stringSpan.getStart() - 1, stringSpan.getEnd());
+                stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd());
                 tokens.add(new Token(TokenType.StringLiteral, stringSpan));
                 continue;
             }
@@ -117,8 +117,7 @@ public class Tokenizer {
                     ;
                 }
                 Span identifierSpan = stream.endSpan();
-                identifierSpan = new Span(identifierSpan.getSource(), identifierSpan.getStart() - 1, identifierSpan.getEnd());
-
+                identifierSpan = stream.getSpan(identifierSpan.getStart() - 1, identifierSpan.getEnd());
                 if ("true".equals(identifierSpan.getText()) || "false".equals(identifierSpan.getText())) {
                     tokens.add(new Token(TokenType.BooleanLiteral, identifierSpan));
                 } else if ("null".equals(identifierSpan.getText())) {
@@ -135,18 +134,18 @@ public class Tokenizer {
                         if (t == TokenType.LeftCurly) {
                             leftCount++;
                         }
-                        tokens.add(new Token(t, new Span(source, stream.getPosition() - t.getLiteral().length(), stream.getPosition())));
+                        tokens.add(new Token(t, stream.getSpan(stream.getPosition() - t.getLiteral().length(), stream.getPosition())));
                         continue outer;
                     }
                 }
             }
             if (leftCount != rightCount && stream.match("}", true)) {
                 rightCount++;
-                tokens.add(new Token(TokenType.RightCurly, new Span(source, stream.getPosition() - 1, stream.getPosition())));
+                tokens.add(new Token(TokenType.RightCurly, stream.getSpan(stream.getPosition() - 1, stream.getPosition())));
                 continue outer;
             }
             if (stream.hasMore()) {
-                MagicScriptError.error("Unknown token", new Span(source, stream.getPosition(), stream.getPosition() + 1));
+                MagicScriptError.error("Unknown token", stream.getSpan( stream.getPosition(), stream.getPosition() + 1));
             }
         }
         return tokens;

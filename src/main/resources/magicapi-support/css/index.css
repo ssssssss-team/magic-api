@@ -1,0 +1,172 @@
+*{
+    margin:0;
+    padding:0;
+}
+html,body{
+    width: 100%;
+    height:100%;
+    overflow: hidden;
+}
+.layui-header{
+    background: #1890FF;
+}
+.layui-logo{
+    background: url("../images/logo.png");
+    background-size: 100% 100%;
+    height : 60px;
+    width : 225px;
+}
+.layui-left,.editor-container,.layui-right{
+    box-shadow: 1px 0 5px 0 #ddd;
+    height : 100%;
+    position: fixed;
+    top : 60px;
+    bottom:0;
+    left : 0;
+    width : 225px;
+}
+.properties-container{
+    height : 58px;
+    position: fixed;
+    top : 60px;
+    left : 225px;
+    right : 0;
+    border-bottom: 1px solid #eee;
+    box-sizing: border-box;
+    padding-top:2px;
+    padding-left : 3px;
+    z-index: 10;
+}
+.properties-container .layui-input-placeholder{
+    height : 16px;
+    font-size: 12px;
+    line-height: 16px;
+    color : #333;
+}
+.editor-container{
+    left : 225px;
+    right : 400px;
+    width : auto;
+    top : 118px;
+    box-shadow: 1px 3px 5px 0 #ddd;
+    z-index: 20;
+}
+.layui-right{
+    left : auto;
+    right : 0;
+    width : 400px;
+    box-shadow: none;
+    top : 118px;
+}
+.request-container{
+    position: relative;
+    height: 400px;
+}
+.layui-right .layui-tab-content{
+    position: absolute;
+    top : 40px;
+    bottom : 0;
+    left : 0;
+    right : 0
+}
+.layui-right .layui-tab-content .layui-tab-item{
+    height: 100%;
+}
+.layui-right .layui-tab-content .layui-tab-item > *{
+    height: 100%;
+    resize: none;
+    margin-top: 1px;
+}
+.output-container{
+    position: absolute;
+    top : 400px;
+    bottom : 0px;
+    width : 100%;
+}
+.layui-side{
+    width : 225px;
+    top : 98px;
+}
+.api-list{
+    height : 100%;
+}
+.api-list li{
+    list-style: none;
+    line-height: 28px;
+    border-bottom: 1px solid #eee;
+    margin : 0 4px;
+    font-weight: bold;
+    color : #666;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.api-list li:last-child{
+    border-bottom: none;
+}
+.api-list li label{
+    color : #000;
+}
+.api-list li.empty{
+    text-align: center;
+    cursor: default;
+}
+.scroller{
+    overflow: auto;
+}
+.scroller::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+    background: #ddd;
+}
+.scroller::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background: #aaa;
+}
+.scroller::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+.scroller::-webkit-scrollbar-corner{
+    background: #ddd;
+}
+.layui-form-select dl dd.layui-this{
+    background-color: #1890FF;
+}
+.layout-resizer-x{
+    position:fixed;
+    right : 400px;
+    top : 118px;
+    bottom : 0px;
+    width : 11px;
+    margin-left: -5px;
+    border-left: 5px solid hsla(0,0%,100%,0);
+    border-right: 5px solid hsla(0,0%,100%,0);
+    cursor: col-resize;
+    z-index: 100;
+}
+
+.layout-resizer-y{
+    position:absolute;
+    right : 0px;
+    left : 0px;
+    top : 400px;
+    height : 11px;
+    margin-top: -5px;
+    border-top: 5px solid hsla(0,0%,100%,0);
+    border-bottom: 5px solid hsla(0,0%,100%,0);
+    cursor: row-resize;
+    z-index: 100;
+}
+.breakpoints{
+    background: #db5860;
+    width: 10px !important;
+    height: 10px !important;
+    right: 0px !important;
+    margin-left: 10px;
+    top: 3px;
+    border-radius: 5px;
+}
+.breakpoint-line{
+    background: #faeae6;
+}

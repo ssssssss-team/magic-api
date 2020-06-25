@@ -2,6 +2,7 @@ package org.ssssssss.script.interpreter;
 
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.MagicScriptError.ScriptException;
 import org.ssssssss.script.parsing.ast.Break;
@@ -49,6 +50,16 @@ public class AstInterpreter {
         if (nodes != null) {
             for (int i = 0, n = nodes.size(); i < n; i++) {
                 Node node = nodes.get(i);
+                if(context instanceof MagicScriptDebugContext){
+                    MagicScriptDebugContext debugContext = (MagicScriptDebugContext) context;
+                    if(debugContext.getBreakpoints().contains(node.getSpan().getLine().getLineNumber())){
+                        try {
+                            debugContext.pause();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
                 Object value = node.evaluate(context);
                 if (value == Break.BREAK_SENTINEL || value == Continue.CONTINUE_SENTINEL || value == Return.RETURN_SENTINEL) {
                     return value;

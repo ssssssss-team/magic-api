@@ -37,11 +37,15 @@ public class TokenStream {
         return index > 0;
     }
 
-    public void makeIndex(){
+    public int makeIndex(){
         this.makeIndex = index;
+        return index;
     }
     public void resetIndex(){
         this.index = this.makeIndex;
+    }
+    public void resetIndex(int index){
+        this.index = index;
     }
 
     /**

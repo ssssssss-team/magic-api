@@ -12,11 +12,16 @@ require(['vs/editor/editor.main'], function() {
         ]
     });
     monaco.languages.setLanguageConfiguration('magicscript',{
+        wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
         brackets: [
             ['{', '}'],
             ['[', ']'],
             ['(', ')'],
         ],
+        comments: {
+            lineComment: '//',
+            blockComment: ['/*', '*/'],
+        },
         operators: ['<=', '>=', '==', '!=', '+', '-','*', '/', '%', '&','|', '!', '&&', '||', '?', ':', ],
         autoClosingPairs: [
             { open: '{', close: '}' },
@@ -30,6 +35,7 @@ require(['vs/editor/editor.main'], function() {
     monaco.languages.setMonarchTokensProvider('magicscript',{
         escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
         keywords : ['var','if','else','for','return','import','break','continue','as'],
+        digits: /\d+(_+\d+)*/,
         tokenizer : {
             root : [
                 [/[a-zA-Z_$][\w$]*/,{
@@ -38,15 +44,17 @@ require(['vs/editor/editor.main'], function() {
                         "@default" : "identifier"
                     }
                 }],
+                [/[{}()\[\]]/, '@brackets'],
+                [/(@digits)[lLbBsS]?/, 'number'],
+                [/(@digits)[dDfF]?/, 'number.float'],
                 [/\/\*\*(?!\/)/, 'comment.mul', '@mulcomment'],
                 [/\/\*/, 'comment', '@comment'],
                 [/\/\/.*$/, 'comment'],
-                [/\./, {token : 'period'}],
+                [/[;,.]/, 'delimiter'],
                 [/"([^"\\]|\\.)*$/, 'string.invalid'],
                 [/'([^'\\]|\\.)*$/, 'string.invalid'],
                 [/"/, 'string', '@string_double'],
                 [/'/, 'string', '@string_single'],
-                [/\}/, { token: 'sf-end', next: '@pop' }],
             ],
             comment: [
                 [/[^\/*]+/, 'comment'],

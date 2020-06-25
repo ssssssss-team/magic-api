@@ -30,6 +30,12 @@ public class JsonBean<T> {
         this.message = message;
     }
 
+    public JsonBean(int code, String message,T data) {
+        this.code = code;
+        this.message = message;
+        this.data = data;
+    }
+
     public JsonBean() {
     }
 

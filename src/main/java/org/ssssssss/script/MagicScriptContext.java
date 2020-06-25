@@ -100,10 +100,10 @@ public class MagicScriptContext {
     /**
      * Internal. Returns all variables currently defined in this context.
      */
-    public Set<String> getVariables() {
-        Set<String> variables = new HashSet<String>();
-        for (int i = 0, n = scopes.size(); i < n; i++) {
-            variables.addAll(scopes.get(i).keySet());
+    public Map<String,Object> getVariables() {
+        Map<String,Object> variables = new HashMap<>();
+        for (Map<String, Object> scope : scopes) {
+            variables.putAll(scope);
         }
         return variables;
     }

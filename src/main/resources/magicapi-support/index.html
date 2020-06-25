@@ -3,52 +3,109 @@
 	<head>
 		<title>Magic API</title>
 		<meta charset="utf-8" />
+		<link rel="icon" href="images/favicon.png" />
 		<link rel="stylesheet" href="layui/css/layui.css" />
+		<link rel="stylesheet" href="css/index.css" />
 		<script type="text/javascript" src="monaco/loader.js"></script>
 		<script type="text/javascript">require.config({ paths: { 'vs': 'monaco' }});</script>
 		<script type="text/javascript" src="monaco/language/magicscript.js"></script>
 		<script type="text/javascript" src="layui/layui.all.js"></script>
-		<style>
-			*{
-				margin:0;
-				padding:0;
-			}
-		</style>
+		<script type="text/javascript" src="js/index.js"></script>
 	</head>
 	<body>
-		<div id="editor" style="width: 1000px;height: 500px"></div>
-		<div style="width:1000px;text-align: center"><button type="button" class="layui-btn layui-btn-normal" onclick="test()">测试</button></div>
-		<script>
-            var editor;
-			require(['vs/editor/editor.main'], function() {
-                editor = monaco.editor.create(document.getElementById('editor'), {
-                    value: "",
-                    language: 'magicscript',
-                    folding:false,
-                    fixedOverflowWidgets :true,
-                    theme : 'magicscript'
-                });
-			});
-			function test(){
-			    var start = new Date().getTime();
-			    layui.$.ajax({
-					url : 'test',
-					type : 'post',
-					contentType : 'application/json;charset=utf-8',
-					data : JSON.stringify({
-						script : editor.getValue(),
-						name : 'hello'
-					}),
-					success : function(json){
-						if(json.code == 1){
-							console.log(json.data);
-							console.log(new Date().getTime() - start + 'ms');
-						}else{
-						    layui.layer.msg(json.message);
-						}
-					}
-				})
-			}
-		</script>
+		<div class="layui-layout">
+			<div class="layui-header">
+				<div class="layui-logo"></div>
+			</div>
+			<div class="layui-left">
+				<div class="api-search">
+					<input class="layui-input" type="text" placeholder="请输入接口名称或地址搜索"/>
+				</div>
+				<div class="layui-side">
+					<div class="layui-side-scroll scroller">
+						<ul class="api-list">
+							<li class="empty">您还没有创建接口..</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="properties-container layui-form">
+				<div class="layui-input-placeholder">
+					<div class="layui-input-inline" style="width: 100px;margin-left: 81px;">请求方法</div>
+					<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">接口名称</div>
+					<div class="layui-input-inline" style="width: 300px;margin-left: 10px;">接口地址</div>
+				</div>
+				<div>
+					<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-create">
+						<i class="layui-icon">&#xe624;</i> 新建
+					</button>
+					<div class="layui-input-inline" style="width: 100px;margin-left: 5px;">
+						<select name="method">
+							<option value="GET">GET</option>
+							<option value="POST">POST</option>
+							<option value="PUT">PUT</option>
+							<option value="DELETE">DELETE</option>
+						</select>
+					</div>
+					<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">
+						<input type="text" name="name" class="layui-input" placeholder="请输入接口名称"/>
+					</div>
+					<div class="layui-input-inline" style="position: absolute;left:390px;right:140px;">
+						<input type="text" name="path" class="layui-input" placeholder="请输入接口地址"/>
+					</div>
+					<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-save" style="float:right;margin-right: 10px;">
+						保存
+					</button>
+					<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-test" style="float:right;margin-right: 10px;">
+						<i class="layui-icon">&#xe652;</i> 测试
+					</button>
+				</div>
+			</div>
+			<div class="editor-container" id="editor"></div>
+			<div class="layout-resizer-x"></div>
+			<div class="layui-right">
+				<div class="request-container">
+					<div class="layui-tab">
+						<ul class="layui-tab-title">
+							<li class="layui-this">请求参数</li>
+						</ul>
+						<div class="layui-tab-content">
+							<div class="layui-tab-item layui-show">
+								<div id="request-parameter"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="layout-resizer-y"></div>
+				<div class="output-container">
+					<div class="layui-tab" lay-filter="output-container">
+						<ul class="layui-tab-title">
+							<li lay-id="output" class="layui-this">请求结果</li>
+							<li lay-id="debug">调试信息</li>
+						</ul>
+						<div class="layui-tab-content">
+							<div class="layui-tab-item layui-show">
+								<div id="output-result"></div>
+							</div>
+							<div class="layui-tab-item scroller">
+								<table class="layui-table" lay-size="sm" style="height: auto">
+									<thead>
+										<tr>
+											<th>变量名</th>
+											<th>变量值</th>
+											<th>变量类型</th>
+										</tr>
+									</thead>
+									<tbody id="debug-tbody">
+
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div style="clear:both;"></div>
 	</body>
 </html>

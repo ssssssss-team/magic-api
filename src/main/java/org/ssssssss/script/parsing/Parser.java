@@ -276,16 +276,24 @@ public class Parser {
                     }
                     if(stream.match(TokenType.RightParantheses,true)){  //)
                         if(stream.match(TokenType.Lambda,true)){   // =>
-                            if(stream.match(TokenType.LeftCurly,true)){
-                                while (stream.hasMore() && !stream.match(false, "}")) {
-                                    childNodes.add(parseStatement(stream, true));
+                            int index = stream.makeIndex();
+                            try {
+                                Expression expression = parseExpression(stream);
+                                childNodes.add(new Return(new Span("return",0,6), expression));
+                                return new LambdaFunction(new Span(openSpan,expression.getSpan()),parameters,childNodes);
+                            } catch (Exception e) {
+                                stream.resetIndex(index);
+                                if(stream.match(TokenType.LeftCurly,true)){
+                                    while (stream.hasMore() && !stream.match(false, "}")) {
+                                        childNodes.add(parseStatement(stream, true));
+                                    }
+                                    Span closeSpan = expectCloseing(stream);
+                                    return new LambdaFunction(new Span(openSpan,closeSpan),parameters,childNodes);
+                                }else{
+                                    Node node = parseStatement(stream);
+                                    childNodes.add(new Return(new Span("return",0,6), node));
+                                    return new LambdaFunction(new Span(openSpan,node.getSpan()),parameters,childNodes);
                                 }
-                                Span closeSpan = expectCloseing(stream);
-                                return new LambdaFunction(new Span(openSpan,closeSpan),parameters,childNodes);
-                            }else{
-                                Node node = parseStatement(stream);
-                                childNodes.add(new Return(new Span("return",0,6), node));
-                                return new LambdaFunction(new Span(openSpan,node.getSpan()),parameters,childNodes);
                             }
                         }
                         break;
