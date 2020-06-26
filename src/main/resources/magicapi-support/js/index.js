@@ -109,7 +109,7 @@ $(function(){
         });
         resetEditor();
         editor.onMouseDown(function(e){
-            if (e.target.detail && e.target.detail.offsetX && e.target.detail.offsetX >= 0 && e.target.detail.offsetX <= 50) {
+            if (e.target.detail && e.target.detail.offsetX && e.target.detail.offsetX >= 0 && e.target.detail.offsetX <= 60) {
                 var line = e.target.position.lineNumber;
                 if (editor.getModel().getLineContent(line).trim() === '') {
                     return
@@ -124,26 +124,33 @@ $(function(){
     });
 
     var $tbody = $('#debug-tbody');
+    var debugDecorations;
     var debugIn = function(id,data){
         debugSessionId = id;
-        for(var i =0,len = data.length;i<len;i++){
-            var item = data[i];
+        for(var i =0,len = data.variables.length;i<len;i++){
+            var item = data.variables[i];
             var $tr = $('<tr/>');
             $tr.append($('<td/>').html(item.name))
             $tr.append($('<td/>').html(JSON.stringify(item.value)))
             $tr.append($('<td/>').html(item.type))
             $tbody.append($tr);
         }
+        debugDecorations = [editor&&editor.deltaDecorations([],[{
+            range :  new monaco.Range(data.range[0],1,data.range[0],1),
+            options: {
+                isWholeLine: true,
+                inlineClassName : 'debug-line',
+                className : 'debug-line',
+            }
+        }])];
     }
 
     var convertResult = function(code,message,json){
         debugSessionId = null;
         $tbody.html('');
-        if(code == 1){
-            layui.element.tabChange('output-container', 'output');
-            outputEditor.setValue(JSON.stringify(json,null,4));
-            return;
-        }else if(code == -1000){
+        debugDecorations&&editor&&editor.deltaDecorations(debugDecorations,[]);
+        debugDecorations = null;
+        if(code === -1000){
             layui.element.tabChange('output-container', 'output');
             if(json.data){
                 var data = json.data;
@@ -159,13 +166,14 @@ $(function(){
                 }])
                 setTimeout(function(){
                     editor&&editor.deltaDecorations(decorations,[])
-                },5000)
+                },10000)
             }
-        }else if(code == 1000){ // debug断点
+        }else if(code === 1000){ // debug断点
             layui.element.tabChange('output-container', 'debug');
             debugIn(message,json.data);
             return;
         }
+        layui.element.tabChange('output-container', 'output');
         outputEditor.setValue(JSON.stringify(json,null,4))
     }
     // 窗口改变大小时，刷新编辑器

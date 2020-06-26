@@ -1,15 +1,18 @@
 package org.ssssssss.script;
 
+import org.ssssssss.script.parsing.Span;
+
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
-public class MagicScriptDebugContext extends MagicScriptContext{
+public class MagicScriptDebugContext extends MagicScriptContext {
 
-	private String id = UUID.randomUUID().toString().replace("-","");
+	private String id = UUID.randomUUID().toString().replace("-", "");
 
-	private static Map<String,MagicScriptDebugContext> contextMap = new ConcurrentHashMap<>();
+	private static Map<String, MagicScriptDebugContext> contextMap = new ConcurrentHashMap<>();
 
 	public List<Integer> breakpoints;
 
@@ -19,11 +22,21 @@ public class MagicScriptDebugContext extends MagicScriptContext{
 
 	private Object returnValue;
 
+	private Span.Line line;
+
 	private boolean running = true;
+
+	private boolean exception = false;
+
+	private int timeout = 60;
 
 	public MagicScriptDebugContext(Map<String, Object> variables) {
 		super(variables);
-		contextMap.put(this.id,this);
+		contextMap.put(this.id, this);
+	}
+
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
 	}
 
 	public List<Integer> getBreakpoints() {
@@ -34,14 +47,16 @@ public class MagicScriptDebugContext extends MagicScriptContext{
 		this.breakpoints = breakpoints;
 	}
 
-	public void pause() throws InterruptedException {
+	public String pause(Span.Line line) throws InterruptedException {
+		this.line = line;
 		consumer.offer(this.id);
-		producer.take();
+		return producer.poll(timeout, TimeUnit.SECONDS);
 	}
 
-	public  void await() throws InterruptedException {
+	public void await() throws InterruptedException {
 		consumer.take();
 	}
+
 	public void singal() throws InterruptedException {
 		producer.offer(this.id);
 		await();
@@ -62,28 +77,42 @@ public class MagicScriptDebugContext extends MagicScriptContext{
 		return running;
 	}
 
-	public List<Map<String,Object>> getDebugInfo(){
-		Map<String, Object> variables = super.getVariables();
-		List<Map<String,Object>> result = new ArrayList<>();
-		Set<Map.Entry<String, Object>> entries = variables.entrySet();
+	public Map<String, Object> getDebugInfo() {
+		List<Map<String, Object>> varList = new ArrayList<>();
+		Set<Map.Entry<String, Object>> entries = super.getVariables().entrySet();
 		for (Map.Entry<String, Object> entry : entries) {
 			Object value = entry.getValue();
-			Map<String,Object> variable = new HashMap<>();
-			variable.put("name",entry.getKey());
-			variable.put("value",value);
-			if(value != null){
-				variable.put("type",value.getClass());
+			Map<String, Object> variable = new HashMap<>();
+			variable.put("name", entry.getKey());
+			variable.put("value", value);
+			if (value != null) {
+				variable.put("type", value.getClass());
 			}
-			result.add(variable);
+			varList.add(variable);
 		}
-		return result;
+		Map<String, Object> info = new HashMap<>();
+		info.put("variables", varList);
+		info.put("range", Arrays.asList(line.getLineNumber(), line.getStartCol(), line.getEndLineNumber(), line.getEndCol()));
+		return info;
+	}
+
+	public Span.Line getLine() {
+		return line;
 	}
 
 	public String getId() {
 		return id;
 	}
 
-	public static MagicScriptDebugContext getDebugContext(String id){
+	public boolean isException() {
+		return exception;
+	}
+
+	public void setException(boolean exception) {
+		this.exception = exception;
+	}
+
+	public static MagicScriptDebugContext getDebugContext(String id) {
 		return contextMap.get(id);
 	}
 }

@@ -82,6 +82,7 @@ html,body{
     top : 400px;
     bottom : 0px;
     width : 100%;
+    border-top: 1px solid #eee;
 }
 .layui-side{
     width : 225px;
@@ -169,4 +170,8 @@ html,body{
 }
 .breakpoint-line{
     background: #faeae6;
+}
+.debug-line{
+    background: #2154A6;
+    color: #fff !important;
 }

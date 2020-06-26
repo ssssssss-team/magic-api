@@ -3,8 +3,7 @@ package org.ssssssss.magicapi.provider.impl;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.provider.PageProvider;
-
-import javax.servlet.http.HttpServletRequest;
+import org.ssssssss.script.MagicScriptContext;
 
 /**
  * 分页对象默认提取接口
@@ -45,10 +44,10 @@ public class DefaultPageProvider implements PageProvider {
 
 
     @Override
-    public Page getPage(HttpServletRequest request) {
+    public Page getPage(MagicScriptContext context) {
         // 从Request中提取page以及pageSize
-        long page = NumberUtils.toLong(request.getParameter(this.pageName), this.defaultPage);
-        long pageSize = NumberUtils.toLong(request.getParameter(this.pageSize), this.defaultPageSize);
+        long page = NumberUtils.toLong(context.getString(this.pageName), this.defaultPage);
+        long pageSize = NumberUtils.toLong(context.getString(this.pageSize), this.defaultPageSize);
         // 计算limit以及offset
         return new Page(pageSize,(page - 1) * pageSize);
 

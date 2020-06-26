@@ -1,11 +1,11 @@
 package org.ssssssss.magicapi.dialect;
 
 import org.apache.commons.lang3.StringUtils;
-import org.ssssssss.magicapi.context.RequestContext;
+import org.ssssssss.script.functions.DatabaseQuery;
 
 public class SQLServer2005Dialect implements Dialect {
     @Override
-    public String getPageSql(String sql, RequestContext context, long offset, long limit) {
+    public String getPageSql(String sql, DatabaseQuery.BoundSql boundSql, long offset, long limit) {
         StringBuilder pagingBuilder = new StringBuilder();
         String orderby = getOrderByPart(sql);
         String distinctStr = "";
@@ -37,8 +37,8 @@ public class SQLServer2005Dialect implements Dialect {
                 .append(pagingBuilder)
                 .append(") SELECT * FROM query WHERE __row_number__ BETWEEN ? AND ?")
                 .append(" ORDER BY __row_number__");
-        context.addParameter(offset + 1);
-        context.addParameter(offset + limit);
+        boundSql.addParameter(offset + 1);
+        boundSql.addParameter(offset + limit);
         return result.toString();
     }
 

@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.dialect;
 
-import org.ssssssss.magicapi.context.RequestContext;
+import org.ssssssss.script.functions.DatabaseQuery;
 
 public interface Dialect {
 
@@ -14,5 +14,5 @@ public interface Dialect {
     /**
      * 获取分页sql
      */
-    String getPageSql(String sql, RequestContext context, long offset, long limit);
+    String getPageSql(String sql, DatabaseQuery.BoundSql boundSql, long offset, long limit);
 }

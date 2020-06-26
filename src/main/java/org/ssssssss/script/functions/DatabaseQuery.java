@@ -3,12 +3,12 @@ package org.ssssssss.script.functions;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.ssssssss.magicapi.config.DynamicDataSource;
-import org.ssssssss.magicapi.context.RequestContextHolder;
 import org.ssssssss.magicapi.dialect.Dialect;
 import org.ssssssss.magicapi.dialect.DialectUtils;
 import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.model.PageResult;
+import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.parsing.GenericTokenParser;
 import org.ssssssss.script.parsing.Parser;
@@ -26,22 +26,27 @@ public class DatabaseQuery extends HashMap<String,DatabaseQuery> {
 
 	private JdbcTemplate template;
 
-	public DatabaseQuery(JdbcTemplate template,DynamicDataSource dataSource) {
+	private PageProvider pageProvider;
+
+	public DatabaseQuery(JdbcTemplate template,DynamicDataSource dataSource,PageProvider pageProvider) {
 		this.template = template;
 		this.dataSource = dataSource;
+		this.pageProvider = pageProvider;
 	}
 
-	public DatabaseQuery(DynamicDataSource dataSource) {
+	public DatabaseQuery(DynamicDataSource dataSource,PageProvider pageProvider) {
 		this.dataSource = dataSource;
+		this.pageProvider = pageProvider;
 		this.template = dataSource.getJdbcTemplate(null);
+
 	}
 
 	@Override
 	public DatabaseQuery get(Object key) {
 		if(key == null){
-			return new DatabaseQuery(dataSource.getJdbcTemplate(null),this.dataSource);
+			return new DatabaseQuery(dataSource.getJdbcTemplate(null),this.dataSource,this.pageProvider);
 		}
-		return new DatabaseQuery(dataSource.getJdbcTemplate(key.toString()),this.dataSource);
+		return new DatabaseQuery(dataSource.getJdbcTemplate(key.toString()),this.dataSource,this.pageProvider);
 	}
 
 
@@ -50,7 +55,7 @@ public class DatabaseQuery extends HashMap<String,DatabaseQuery> {
 		return template.queryForList(boundSql.getSql(),boundSql.getParameters());
 	}
 	public Object page(String sql){
-		Page page = RequestContextHolder.get().getPage();
+		Page page = pageProvider.getPage(MagicScriptContext.get());
 		return page(sql,page.getLimit(),page.getOffset());
 	}
 	public Object page(String sql,long limit,long offset){
@@ -70,7 +75,7 @@ public class DatabaseQuery extends HashMap<String,DatabaseQuery> {
 			DataSourceUtils.releaseConnection(connection,template.getDataSource());
 		}
 		if(count > 0){
-			result.setList(template.queryForList(dialect.getPageSql(boundSql.getSql(), RequestContextHolder.get(),offset,limit)));
+			result.setList(template.queryForList(dialect.getPageSql(boundSql.getSql(), boundSql,offset,limit),boundSql.getParameters()));
 		}
 		return result;
 	}
@@ -100,11 +105,10 @@ public class DatabaseQuery extends HashMap<String,DatabaseQuery> {
 
 	private static GenericTokenParser ifParamTokenParser = new GenericTokenParser("?{",",",true);
 
-	static class BoundSql{
+	public static class BoundSql{
 		private String sql;
-		private Object[] parameters;
+		private List<Object> parameters = new ArrayList<>();
 		BoundSql(String sql){
-			List<Object> paramList = new ArrayList<>();
 			MagicScriptContext context = MagicScriptContext.get();
 			this.sql = ifTokenParser.parse(sql,text->{
 				AtomicBoolean ifTrue = new AtomicBoolean(false);
@@ -120,10 +124,13 @@ public class DatabaseQuery extends HashMap<String,DatabaseQuery> {
 			});
 			this.sql = concatTokenParser.parse(this.sql,text->String.valueOf(Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context)));
 			this.sql = replaceTokenParser.parse(this.sql,text->{
-				paramList.add(Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context));
+				parameters.add(Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context));
 				return "?";
 			});
-			this.parameters = paramList.toArray();
+		}
+
+		public void addParameter(Object value){
+			parameters.add(value);
 		}
 
 		public String getSql() {
@@ -131,7 +138,7 @@ public class DatabaseQuery extends HashMap<String,DatabaseQuery> {
 		}
 
 		public Object[] getParameters() {
-			return parameters;
+			return parameters.toArray();
 		}
 	}
 

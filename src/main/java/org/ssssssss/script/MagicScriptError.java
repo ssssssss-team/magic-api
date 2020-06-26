@@ -59,6 +59,17 @@ public class MagicScriptError {
 		error(message, location, null);
 	}
 
+	public static class DebugTimeoutException extends RuntimeException{
+
+		public DebugTimeoutException() {
+			super("debug超时");
+		}
+
+		public DebugTimeoutException(Throwable cause) {
+			super(cause);
+		}
+	}
+
 	public static class ScriptException extends RuntimeException {
 		private static final long serialVersionUID = 1L;
 		private final String errorMessage;

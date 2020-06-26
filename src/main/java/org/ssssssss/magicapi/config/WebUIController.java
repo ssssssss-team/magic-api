@@ -9,13 +9,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.model.JsonBean;
-import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.parsing.Span;
 
-import java.lang.ref.ReferenceQueue;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +25,20 @@ public class WebUIController {
 
 	private JdbcTemplate template;
 
-	public WebUIController(JdbcTemplate template) {
+	private int debugTimeout;
+
+	public WebUIController(JdbcTemplate template,int debugTimeout) {
 		this.template = template;
+		this.debugTimeout = debugTimeout;
+	}
+
+	public void printBanner(){
+		System.out.println("  __  __                _           _     ____  ___ ");
+		System.out.println(" |  \\/  |  __ _   __ _ (_)  ___    / \\   |  _ \\|_ _|");
+		System.out.println(" | |\\/| | / _` | / _` || | / __|  / _ \\  | |_) || | ");
+		System.out.println(" | |  | || (_| || (_| || || (__  / ___ \\ |  __/ | | ");
+		System.out.println(" |_|  |_| \\__,_| \\__, ||_| \\___|/_/   \\_\\|_|   |___|");
+		System.out.println("                  |___/                        " + WebUIController.class.getPackage().getImplementationVersion());
 	}
 
 	@RequestMapping("/delete")
@@ -61,6 +71,9 @@ public class WebUIController {
 	@ResponseBody
 	public JsonBean<Object> debugContinue(String id){
 		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(id);
+		if(context == null){
+			return new JsonBean<>(0,"debug session not found!");
+		}
 		try {
 			context.singal();
 		} catch (InterruptedException e) {
@@ -68,6 +81,8 @@ public class WebUIController {
 		}
 		if(context.isRunning()){
 			return new JsonBean<>(1000,context.getId(),context.getDebugInfo());
+		}else if(context.isException()){
+			return resolveThrowable((Throwable) context.getReturnValue());
 		}
 		return new JsonBean<>(context.getReturnValue());
 	}
@@ -83,27 +98,35 @@ public class WebUIController {
 			MagicScriptDebugContext context = new MagicScriptDebugContext(request);
 			try {
 				context.setBreakpoints((List<Integer>) breakpoints);
+				context.setTimeout(this.debugTimeout);
 				Object result = MagicScriptEngine.execute(script.toString(), context);
 				if(context.isRunning()){
 					return new JsonBean<>(1000,context.getId(),result);
+				}else if(context.isException()){
+					return resolveThrowable((Throwable) context.getReturnValue());
 				}
 				return new JsonBean<>(result);
-			} catch (MagicScriptError.ScriptException se) {
-				logger.error("测试脚本出错",se);
-				Throwable parent = se;
-				while((parent = parent.getCause()) != null){
-					if(parent instanceof MagicScriptError.ScriptException){
-						se = (MagicScriptError.ScriptException)parent;
-					}
-				}
-				Span.Line line = se.getLine();
-				return new JsonBean<>(-1000, se.getSimpleMessage(), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(),line.getStartCol(), line.getEndCol()));
 			} catch (Exception e) {
-				logger.error("测试脚本出错",e);
-				return new JsonBean<>(-1, e.getMessage());
+				return resolveThrowable(e);
 			}
 		}
 		return new JsonBean<>(0, "脚本不能为空");
+	}
+
+	private JsonBean<Object> resolveThrowable(Throwable root){
+		MagicScriptError.ScriptException se = null;
+		Throwable parent = root;
+		do{
+			if(parent instanceof MagicScriptError.ScriptException){
+				se = (MagicScriptError.ScriptException)parent;
+			}
+		}while((parent = parent.getCause()) != null);
+		logger.error("测试脚本出错",root);
+		if(se != null){
+			Span.Line line = se.getLine();
+			return new JsonBean<>(-1000, se.getSimpleMessage(), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(),line.getStartCol(), line.getEndCol()));
+		}
+		return new JsonBean<>(-1,root.getMessage());
 	}
 
 	@RequestMapping("/get")
