@@ -18,10 +18,7 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.ssssssss.magicapi.cache.DefaultSqlCache;
 import org.ssssssss.magicapi.cache.SqlCache;
-import org.ssssssss.magicapi.config.DynamicDataSource;
-import org.ssssssss.magicapi.config.RequestExecutor;
-import org.ssssssss.magicapi.config.RequestInterceptor;
-import org.ssssssss.magicapi.config.WebUIController;
+import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
 import org.ssssssss.script.MagicScriptEngine;
@@ -96,12 +93,24 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
         return new DefaultSqlCache(cacheConfig.getCapacity(), cacheConfig.getTtl());
     }
 
+    @Bean
+    public MappingHandlerMapping mappingHandlerMapping() throws NoSuchMethodException {
+        return new MappingHandlerMapping();
+    }
 
     @Bean
-    public RequestExecutor requestExecutor(DynamicDataSource dynamicDataSource,PageProvider pageProvider) {
+    public MagicApiService magicApiService(DynamicDataSource dynamicDataSource) {
+        return new MagicApiService(dynamicDataSource.getJdbcTemplate(null));
+    }
+
+    @Bean
+    public RequestHandler requestHandler(MagicApiService magicApiService, DynamicDataSource dynamicDataSource, PageProvider pageProvider, MappingHandlerMapping mappingHandlerMapping) {
         MagicScriptEngine.addDefaultImport("db",new DatabaseQuery(dynamicDataSource,pageProvider));
         Method[] methods = WebUIController.class.getDeclaredMethods();
-        WebUIController controller = new WebUIController(dynamicDataSource.getJdbcTemplate(null),properties.getDebugConfig().getTimeout());
+        WebUIController controller = new WebUIController();
+        controller.setDebugTimeout(properties.getDebugConfig().getTimeout());
+        controller.setMagicApiService(magicApiService);
+        controller.setMappingHandlerMapping(mappingHandlerMapping);
         if(this.properties.isBanner()){
             controller.printBanner();
         }
@@ -113,14 +122,18 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
                 requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(paths).build(),controller,method);
             }
         }
-        RequestExecutor requestExecutor = new RequestExecutor();
+        RequestHandler requestHandler = new RequestHandler();
         if (this.requestInterceptors != null) {
             this.requestInterceptors.forEach(interceptor -> {
                 logger.info("注册请求拦截器：{}", interceptor.getClass());
-                requestExecutor.addRequestInterceptor(interceptor);
+                requestHandler.addRequestInterceptor(interceptor);
             });
         }
-        return requestExecutor;
+        mappingHandlerMapping.setHandler(requestHandler);
+        mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
+        mappingHandlerMapping.setMagicApiService(magicApiService);
+        mappingHandlerMapping.registerAllMapping();
+        return requestHandler;
     }
 
     @Bean
