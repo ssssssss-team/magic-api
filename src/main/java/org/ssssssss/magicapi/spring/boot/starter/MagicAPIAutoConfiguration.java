@@ -98,6 +98,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	public SqlCache sqlCache() {
 		CacheConfig cacheConfig = properties.getCacheConfig();
+		logger.info("未找到SQL缓存实现，采用默认缓存实现(LRU+TTL)，缓存配置:(容量={},TTL={})", cacheConfig.getCapacity(), cacheConfig.getTtl());
 		return new DefaultSqlCache(cacheConfig.getCapacity(), cacheConfig.getTtl());
 	}
 
@@ -108,11 +109,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	public MagicApiService magicApiService(DynamicDataSource dynamicDataSource) {
-		return new MagicApiService(dynamicDataSource.getJdbcTemplate(null));
+		return new MagicApiService(dynamicDataSource.getJdbcTemplate());
 	}
 
 	@Bean
-	public RequestHandler requestHandler(MagicApiService magicApiService, DynamicDataSource dynamicDataSource, PageProvider pageProvider, MappingHandlerMapping mappingHandlerMapping) {
+	public RequestHandler requestHandler(MagicApiService magicApiService, DynamicDataSource dynamicDataSource, PageProvider pageProvider, MappingHandlerMapping mappingHandlerMapping, SqlCache sqlCache) {
 		RowMapper<Map<String, Object>> rowMapper;
 		if (properties.isMapUnderscoreToCamelCase()) {
 			rowMapper = new ColumnMapRowMapper() {
@@ -152,7 +153,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			}
 		});
 		MagicModuleLoader.addModule("log",LoggerFactory.getLogger(MagicScript.class));
-		MagicScriptEngine.addDefaultImport("db", new DatabaseQuery(dynamicDataSource, pageProvider, rowMapper));
+		DatabaseQuery query = new DatabaseQuery(dynamicDataSource);
+		query.setPageProvider(pageProvider);
+		query.setRowMapper(rowMapper);
+		query.setSqlCache(sqlCache);
+		MagicScriptEngine.addDefaultImport("db", query);
 		Method[] methods = WebUIController.class.getDeclaredMethods();
 		WebUIController controller = new WebUIController();
 		controller.setDebugTimeout(properties.getDebugConfig().getTimeout());
