@@ -3,8 +3,6 @@ package org.ssssssss.magicapi.config;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -17,22 +15,30 @@ import org.ssssssss.script.parsing.Span;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public class WebUIController {
 
 	private static Logger logger = LoggerFactory.getLogger(WebUIController.class);
 
-	private JdbcTemplate template;
-
 	private int debugTimeout;
 
-	public WebUIController(JdbcTemplate template,int debugTimeout) {
-		this.template = template;
+	private MappingHandlerMapping mappingHandlerMapping;
+
+	private MagicApiService magicApiService;
+
+	public void setDebugTimeout(int debugTimeout) {
 		this.debugTimeout = debugTimeout;
 	}
 
-	public void printBanner(){
+	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
+		this.mappingHandlerMapping = mappingHandlerMapping;
+	}
+
+	public void setMagicApiService(MagicApiService magicApiService) {
+		this.magicApiService = magicApiService;
+	}
+
+	public void printBanner() {
 		System.out.println("  __  __                _           _     ____  ___ ");
 		System.out.println(" |  \\/  |  __ _   __ _ (_)  ___    / \\   |  _ \\|_ _|");
 		System.out.println(" | |\\/| | / _` | / _` || | / __|  / _ \\  | |_) || | ");
@@ -43,13 +49,9 @@ public class WebUIController {
 
 	@RequestMapping("/delete")
 	@ResponseBody
-	public JsonBean<Void> delete(String id) {
+	public JsonBean<Boolean> delete(String id) {
 		try {
-			Map<String, Object> info = template.queryForMap("select * from magic_api_info where id = ?", id);
-			if (info != null) {
-				template.update("delete from magic_api_info where id = ?", id);
-			}
-			return new JsonBean<>();
+			return new JsonBean<>(this.magicApiService.delete(id));
 		} catch (Exception e) {
 			logger.error("删除接口出错", e);
 			return new JsonBean<>(-1, e.getMessage());
@@ -60,7 +62,7 @@ public class WebUIController {
 	@ResponseBody
 	public JsonBean<List<ApiInfo>> list() {
 		try {
-			return new JsonBean<>(template.query("select id,api_name name,api_path path,api_method method from magic_api_info order by api_update_time desc",new BeanPropertyRowMapper<ApiInfo>(ApiInfo.class)));
+			return new JsonBean<>(magicApiService.list());
 		} catch (Exception e) {
 			logger.error("查询接口列表失败", e);
 			return new JsonBean<>(-1, e.getMessage());
@@ -69,19 +71,19 @@ public class WebUIController {
 
 	@RequestMapping("/continue")
 	@ResponseBody
-	public JsonBean<Object> debugContinue(String id){
+	public JsonBean<Object> debugContinue(String id) {
 		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(id);
-		if(context == null){
-			return new JsonBean<>(0,"debug session not found!");
+		if (context == null) {
+			return new JsonBean<>(0, "debug session not found!");
 		}
 		try {
 			context.singal();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		if(context.isRunning()){
-			return new JsonBean<>(1000,context.getId(),context.getDebugInfo());
-		}else if(context.isException()){
+		if (context.isRunning()) {
+			return new JsonBean<>(1000, context.getId(), context.getDebugInfo());
+		} else if (context.isException()) {
 			return resolveThrowable((Throwable) context.getReturnValue());
 		}
 		return new JsonBean<>(context.getReturnValue());
@@ -100,9 +102,9 @@ public class WebUIController {
 				context.setBreakpoints((List<Integer>) breakpoints);
 				context.setTimeout(this.debugTimeout);
 				Object result = MagicScriptEngine.execute(script.toString(), context);
-				if(context.isRunning()){
-					return new JsonBean<>(1000,context.getId(),result);
-				}else if(context.isException()){
+				if (context.isRunning()) {
+					return new JsonBean<>(1000, context.getId(), result);
+				} else if (context.isException()) {
 					return resolveThrowable((Throwable) context.getReturnValue());
 				}
 				return new JsonBean<>(result);
@@ -113,27 +115,27 @@ public class WebUIController {
 		return new JsonBean<>(0, "脚本不能为空");
 	}
 
-	private JsonBean<Object> resolveThrowable(Throwable root){
+	private JsonBean<Object> resolveThrowable(Throwable root) {
 		MagicScriptError.ScriptException se = null;
 		Throwable parent = root;
-		do{
-			if(parent instanceof MagicScriptError.ScriptException){
-				se = (MagicScriptError.ScriptException)parent;
+		do {
+			if (parent instanceof MagicScriptError.ScriptException) {
+				se = (MagicScriptError.ScriptException) parent;
 			}
-		}while((parent = parent.getCause()) != null);
-		logger.error("测试脚本出错",root);
-		if(se != null){
+		} while ((parent = parent.getCause()) != null);
+		logger.error("测试脚本出错", root);
+		if (se != null) {
 			Span.Line line = se.getLine();
-			return new JsonBean<>(-1000, se.getSimpleMessage(), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(),line.getStartCol(), line.getEndCol()));
+			return new JsonBean<>(-1000, se.getSimpleMessage(), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol()));
 		}
-		return new JsonBean<>(-1,root.getMessage());
+		return new JsonBean<>(-1, root.getMessage());
 	}
 
 	@RequestMapping("/get")
 	@ResponseBody
-	public JsonBean<Map<String, Object>> get(String id) {
+	public JsonBean<ApiInfo> get(String id) {
 		try {
-			return new JsonBean<>(template.queryForMap("select * from magic_api_info where id = ?", id));
+			return new JsonBean<>(this.magicApiService.get(id));
 		} catch (Exception e) {
 			logger.error("查询接口出错");
 			return new JsonBean<>(-1, e.getMessage());
@@ -157,40 +159,17 @@ public class WebUIController {
 				return new JsonBean<>(0, "脚本内容不能为空");
 			}
 			if (StringUtils.isBlank(info.getId())) {
-				info.setId(UUID.randomUUID().toString().replace("-", ""));
-				Integer count = template.queryForObject("select count(*) from magic_api_info where api_method = ? and api_path = ?",
-						Integer.class,
-						info.getMethod(),
-						info.getPath());
-				if (count > 0) {
+				if (magicApiService.exists(info.getMethod(), info.getPath())) {
 					return new JsonBean<>(0, String.format("接口%s:%s已存在", info.getMethod(), info.getPath()));
 				}
-				long time = System.currentTimeMillis();
-				template.update("insert into magic_api_info(id,api_method,api_path,api_script,api_name,api_create_time,api_update_time) values(?,?,?,?,?,?,?)",
-						info.getId(),
-						info.getMethod(),
-						info.getPath(),
-						info.getScript(),
-						info.getName(),
-						time,
-						time);
+				magicApiService.insert(info);
 			} else {
-				Integer count = template.queryForObject("select count(*) from magic_api_info where api_method = ? and api_path = ? and id !=?",
-						Integer.class,
-						info.getMethod(),
-						info.getPath(),
-						info.getId());
-				if (count > 0) {
+				if (magicApiService.existsWithoutId(info.getMethod(), info.getPath(), info.getId())) {
 					return new JsonBean<>(0, String.format("接口%s:%s已存在", info.getMethod(), info.getPath()));
 				}
-				template.update("update magic_api_info set api_method = ?,api_path = ?,api_script = ?,api_name = ?,api_update_time = ? where id = ?",
-						info.getMethod(),
-						info.getPath(),
-						info.getScript(),
-						info.getName(),
-						System.currentTimeMillis(),
-						info.getId());
+				magicApiService.update(info);
 			}
+			mappingHandlerMapping.registerMapping(info);
 			return new JsonBean<>(info.getId());
 		} catch (Exception e) {
 			logger.error("保存接口出错", e);

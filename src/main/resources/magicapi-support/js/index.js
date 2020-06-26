@@ -271,11 +271,12 @@ $(function(){
             },
             success : function(info){
                 apiId = id;
-                $('input[name=name]').val(info.api_name);
-                $('input[name=path]').val(info.api_path);
-                $('select[name=method]').val(info.api_method);
+                $('input[name=name]').val(info.name);
+                $('input[name=path]').val(info.path);
+                $('select[name=method]').val(info.method);
                 layui.form.render();
-                editor.setValue(info.api_script);
+                resetEditor();
+                editor.setValue(info.script);
 
             }
         })
