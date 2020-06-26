@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptEngine;
-import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.exception.ScriptException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -59,11 +59,11 @@ public class RequestHandler {
 			}
 			return new JsonBean<>(value);
 		} catch (Throwable root) {
-			MagicScriptError.ScriptException se = null;
+			ScriptException se = null;
 			Throwable parent = root;
 			do {
-				if (parent instanceof MagicScriptError.ScriptException) {
-					se = (MagicScriptError.ScriptException) parent;
+				if (parent instanceof ScriptException) {
+					se = (ScriptException) parent;
 				}
 			} while ((parent = parent.getCause()) != null);
 			logger.error("执行接口出错", root);

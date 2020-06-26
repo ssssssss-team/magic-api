@@ -2,6 +2,7 @@ package org.ssssssss.script;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.ssssssss.script.exception.DebugTimeoutException;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -56,7 +57,7 @@ public class MagicScriptEngine {
 			try {
 				debugContext.await();
 			} catch (InterruptedException e) {
-				throw new MagicScriptError.DebugTimeoutException(e);
+				throw new DebugTimeoutException(e);
 			}
 			return debugContext.isRunning() ? debugContext.getDebugInfo() : debugContext.getReturnValue();
 		}

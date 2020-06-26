@@ -1,7 +1,7 @@
 package org.ssssssss.script.parsing;
 
 import org.ssssssss.script.MagicScriptError;
-import org.ssssssss.script.MagicScriptError.StringLiteralException;
+import org.ssssssss.script.exception.StringLiteralException;
 
 import java.util.ArrayList;
 import java.util.List;
