@@ -90,6 +90,20 @@ public class MagicScriptDebugContext extends MagicScriptContext {
 			}
 			varList.add(variable);
 		}
+		varList.sort(new Comparator<Map<String, Object>>() {
+			@Override
+			public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+				Object k1 = o1.get("name");
+				Object k2 = o2.get("name");
+				if(k1 == null){
+					return -1;
+				}
+				if(k2 == null){
+					return 1;
+				}
+				return k1.toString().compareTo(k2.toString());
+			}
+		});
 		Map<String, Object> info = new HashMap<>();
 		info.put("variables", varList);
 		info.put("range", Arrays.asList(line.getLineNumber(), line.getStartCol(), line.getEndLineNumber(), line.getEndCol()));
