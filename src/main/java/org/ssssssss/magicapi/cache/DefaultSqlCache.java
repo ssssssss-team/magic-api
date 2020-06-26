@@ -21,9 +21,13 @@ public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.Expir
     }
 
     @Override
-    public void put(String name, String key, Object value) {
+    public void put(String name, String key, Object value, long ttl) {
+        long expireTime = Long.MAX_VALUE;
+        if (ttl >= 0) {
+            expireTime = System.currentTimeMillis() + (ttl == 0 ? this.expire : ttl);
+        }
         // 封装成过期时间节点
-        put(name + separator + key, new ExpireNode<>(System.currentTimeMillis() + this.expire, value));
+        put(name + separator + key, new ExpireNode<>(expireTime, value));
     }
 
     @Override

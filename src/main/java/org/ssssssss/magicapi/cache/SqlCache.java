@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.cache;
 
 import org.ssssssss.magicapi.utils.MD5Utils;
+import org.ssssssss.script.functions.DatabaseQuery;
 
 import java.util.Arrays;
 
@@ -11,11 +12,9 @@ public interface SqlCache {
 
     /**
      * 计算key
-     * @param sql   sql
-     * @param parameters sql参数
      */
-    default String buildSqlCacheKey(String sql, Object[] parameters) {
-        return MD5Utils.encrypt(sql + ":" + Arrays.toString(parameters));
+    default String buildSqlCacheKey(DatabaseQuery.BoundSql boundSql) {
+        return MD5Utils.encrypt(boundSql.getSql() + ":" + Arrays.toString(boundSql.getParameters()));
     }
 
     /**
@@ -24,7 +23,7 @@ public interface SqlCache {
      * @param key   key
      * @param value 值
      */
-    void put(String name, String key, Object value);
+    void put(String name, String key, Object value, long ttl);
 
     /**
      * 获取缓存
@@ -32,7 +31,7 @@ public interface SqlCache {
      * @param key   key
      * @return
      */
-    Object get(String name,String key);
+    <T> T get(String name, String key);
 
     /**
      * 删除缓存

@@ -1,5 +1,6 @@
 package org.ssssssss.script.interpreter;
 
+import org.ssssssss.script.annotation.UnableCall;
 import org.ssssssss.script.functions.StreamExtension;
 
 import java.lang.reflect.*;
@@ -146,8 +147,10 @@ public class JavaReflection extends AbstractReflection {
         List<Method> methodList = new ArrayList<>();
         for (int i = 0, n = methods.length; i < n; i++) {
             Method method = methods[i];
-            // if neither name or parameter list size match, bail on this method
             if (!method.getName().equals(name)) {
+                continue;
+            }
+            if (method.getAnnotation(UnableCall.class) != null) {
                 continue;
             }
             methodList.add(method);
@@ -249,7 +252,7 @@ public class JavaReflection extends AbstractReflection {
         Class cls = obj instanceof Class ? (Class) obj : obj.getClass();
         Map<String, Field> fields = fieldCache.get(cls);
         if (fields == null) {
-            fields = new ConcurrentHashMap<String, Field>();
+            fields = new ConcurrentHashMap<>();
             fieldCache.put(cls, fields);
         }
 
@@ -257,8 +260,12 @@ public class JavaReflection extends AbstractReflection {
         if (field == null) {
             try {
                 field = cls.getDeclaredField(name);
-                field.setAccessible(true);
-                fields.put(name, field);
+                if (field.getAnnotation(UnableCall.class) != null) {
+                    field = null;
+                } else {
+                    field.setAccessible(true);
+                    fields.put(name, field);
+                }
             } catch (Throwable t) {
                 // fall through, try super classes
             }
@@ -268,8 +275,12 @@ public class JavaReflection extends AbstractReflection {
                 while (parentClass != Object.class && parentClass != null) {
                     try {
                         field = parentClass.getDeclaredField(name);
-                        field.setAccessible(true);
-                        fields.put(name, field);
+                        if (field.getAnnotation(UnableCall.class) != null) {
+                            field = null;
+                        } else {
+                            field.setAccessible(true);
+                            fields.put(name, field);
+                        }
                     } catch (NoSuchFieldException e) {
                         // fall through
                     }
@@ -301,7 +312,7 @@ public class JavaReflection extends AbstractReflection {
                 extensionmethodCache.put(target, cachedMethodMap);
             }
             for (Method method : methods) {
-                if (Modifier.isStatic(method.getModifiers()) && method.getParameterCount() > 0) {
+                if (Modifier.isStatic(method.getModifiers()) && method.getParameterCount() > 0 && method.getAnnotation(UnableCall.class) == null) {
                     List<Method> cachedList = cachedMethodMap.get(method.getName());
                     if (cachedList == null) {
                         cachedList = new ArrayList<>();
@@ -366,7 +377,7 @@ public class JavaReflection extends AbstractReflection {
         Class<?> cls = obj instanceof Class ? (Class<?>) obj : (obj instanceof Function ? Function.class : obj.getClass());
         Map<MethodSignature, Method> methods = methodCache.get(cls);
         if (methods == null) {
-            methods = new ConcurrentHashMap<MethodSignature, Method>();
+            methods = new ConcurrentHashMap<>();
             methodCache.put(cls, methods);
         }
 
@@ -384,7 +395,7 @@ public class JavaReflection extends AbstractReflection {
                     method = findApply(cls);
                 } else {
                     method = findMethod(cls, name, parameterTypes);
-                    if (method == null && parameterTypes != null) {
+                    if (method == null) {
                         method = findMethod(cls, name, new Class<?>[]{Object[].class});
                     }
                 }

@@ -28,6 +28,10 @@ public class DynamicDataSource {
         this.dataSourceMap.put(dataSourceName, new JdbcTemplate(dataSource));
     }
 
+    public JdbcTemplate getJdbcTemplate() {
+        return getJdbcTemplate(null);
+    }
+
     public JdbcTemplate getJdbcTemplate(String dataSourceName) {
         if (dataSourceName == null) {
             dataSourceName = "";
