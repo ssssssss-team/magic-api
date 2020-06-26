@@ -19,7 +19,6 @@ import org.ssssssss.script.parsing.TokenStream;
 import org.ssssssss.script.parsing.Tokenizer;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -160,20 +159,22 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	public Object page(String sql, long limit, long offset) {
 		BoundSql boundSql = new BoundSql(sql);
 		Connection connection = null;
-		int count;
 		PageResult<Map<String, Object>> result = new PageResult<>();
 		Dialect dialect;
 		try {
 			connection = template.getDataSource().getConnection();
 			dialect = DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
-			count = (int) boundSql.getCacheValue(this.sqlCache, this.cacheName)
-					.orElseGet(() -> putCacheValue(template.queryForObject(dialect.getCountSql(boundSql.getSql()), Integer.class, boundSql.getParameters()), boundSql));
-			result.setTotal(count);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new MagicAPIException("自动获取数据库方言失败", e);
 		} finally {
 			DataSourceUtils.releaseConnection(connection, template.getDataSource());
 		}
+		if (dialect == null) {
+			throw new MagicAPIException("自动获取数据库方言失败");
+		}
+		int count = (int) boundSql.getCacheValue(this.sqlCache, this.cacheName)
+				.orElseGet(() -> putCacheValue(template.queryForObject(dialect.getCountSql(boundSql.getSql()), Integer.class, boundSql.getParameters()), boundSql));
+		result.setTotal(count);
 		if (count > 0) {
 			String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, offset, limit);
 			result.setList((List<Map<String, Object>>) boundSql.removeCacheKey().getCacheValue(this.sqlCache, this.cacheName)

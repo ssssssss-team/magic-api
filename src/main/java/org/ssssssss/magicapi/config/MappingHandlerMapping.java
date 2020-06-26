@@ -25,8 +25,13 @@ public class MappingHandlerMapping {
 	private RequestHandler handler;
 	private Method method = RequestHandler.class.getDeclaredMethod("invoke", HttpServletRequest.class, HttpServletResponse.class, Map.class, Map.class, Map.class);
 	private MagicApiService magicApiService;
+	private String prefix;
 
 	public MappingHandlerMapping() throws NoSuchMethodException {
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
 	}
 
 	public static ApiInfo getMappingApiInfo(HttpServletRequest request) {
@@ -100,11 +105,18 @@ public class MappingHandlerMapping {
 	}
 
 	private String getMappingKey(ApiInfo info) {
-		return buildMappingKey(info.getMethod(), info.getPath());
+		return buildMappingKey(info.getMethod(), getRequestPath(info.getPath()));
+	}
+
+	private String getRequestPath(String path) {
+		if (prefix != null) {
+			path = prefix + (path.startsWith("/") ? path.substring(1) : path);
+		}
+		return path;
 	}
 
 	private RequestMappingInfo getRequestMapping(ApiInfo info) {
-		return RequestMappingInfo.paths(info.getPath()).methods(RequestMethod.valueOf(info.getMethod().toUpperCase())).build();
+		return RequestMappingInfo.paths(getRequestPath(info.getPath())).methods(RequestMethod.valueOf(info.getMethod().toUpperCase())).build();
 	}
 
 }
