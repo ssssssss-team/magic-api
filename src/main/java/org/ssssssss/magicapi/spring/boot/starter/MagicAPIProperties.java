@@ -13,6 +13,11 @@ public class MagicAPIProperties {
 	private String web;
 
 	/**
+	 * 接口路径前缀
+	 */
+	private String prefix;
+
+	/**
 	 * 打印banner
 	 */
 	private boolean banner = true;
@@ -102,5 +107,13 @@ public class MagicAPIProperties {
 
 	public void setDebugConfig(DebugConfig debugConfig) {
 		this.debugConfig = debugConfig;
+	}
+
+	public String getPrefix() {
+		return prefix;
+	}
+
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
 	}
 }

@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.spring.boot.starter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,7 +105,18 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	public MappingHandlerMapping mappingHandlerMapping() throws NoSuchMethodException {
-		return new MappingHandlerMapping();
+		MappingHandlerMapping handlerMapping = new MappingHandlerMapping();
+		if (StringUtils.isNotBlank(properties.getPrefix())) {
+			String prefix = properties.getPrefix().trim();
+			if (!prefix.startsWith("/")) {
+				prefix = "/" + prefix;
+			}
+			if (!prefix.endsWith("/")) {
+				prefix = prefix + "/";
+			}
+			handlerMapping.setPrefix(prefix);
+		}
+		return handlerMapping;
 	}
 
 	@Bean
