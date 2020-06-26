@@ -1,6 +1,7 @@
 package org.ssssssss.script.functions;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.ssssssss.magicapi.config.DynamicDataSource;
 import org.ssssssss.magicapi.dialect.Dialect;
@@ -20,7 +21,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class DatabaseQuery extends HashMap<String,DatabaseQuery> {
+public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 
 	private DynamicDataSource dataSource;
 
@@ -28,108 +29,117 @@ public class DatabaseQuery extends HashMap<String,DatabaseQuery> {
 
 	private PageProvider pageProvider;
 
-	public DatabaseQuery(JdbcTemplate template,DynamicDataSource dataSource,PageProvider pageProvider) {
+	private RowMapper<Map<String, Object>> rowMapper;
+
+	public DatabaseQuery(JdbcTemplate template, DynamicDataSource dataSource, PageProvider pageProvider, RowMapper<Map<String, Object>> rowMapper) {
 		this.template = template;
 		this.dataSource = dataSource;
 		this.pageProvider = pageProvider;
+		this.rowMapper = rowMapper;
 	}
 
-	public DatabaseQuery(DynamicDataSource dataSource,PageProvider pageProvider) {
+	public DatabaseQuery(DynamicDataSource dataSource, PageProvider pageProvider, RowMapper<Map<String, Object>> rowMapper) {
 		this.dataSource = dataSource;
 		this.pageProvider = pageProvider;
+		this.rowMapper = rowMapper;
 		this.template = dataSource.getJdbcTemplate(null);
 
 	}
 
 	@Override
 	public DatabaseQuery get(Object key) {
-		if(key == null){
-			return new DatabaseQuery(dataSource.getJdbcTemplate(null),this.dataSource,this.pageProvider);
+		if (key == null) {
+			return new DatabaseQuery(dataSource.getJdbcTemplate(null), this.dataSource, this.pageProvider, this.rowMapper);
 		}
-		return new DatabaseQuery(dataSource.getJdbcTemplate(key.toString()),this.dataSource,this.pageProvider);
+		return new DatabaseQuery(dataSource.getJdbcTemplate(key.toString()), this.dataSource, this.pageProvider, this.rowMapper);
 	}
 
 
-	public Object select(String sql){
+	public Object select(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
-		return template.queryForList(boundSql.getSql(),boundSql.getParameters());
+		return template.query(boundSql.getSql(), this.rowMapper, boundSql.getParameters());
 	}
-	public Object page(String sql){
+
+	public Object page(String sql) {
 		Page page = pageProvider.getPage(MagicScriptContext.get());
-		return page(sql,page.getLimit(),page.getOffset());
+		return page(sql, page.getLimit(), page.getOffset());
 	}
-	public Object page(String sql,long limit,long offset){
+
+	public Object page(String sql, long limit, long offset) {
 		BoundSql boundSql = new BoundSql(sql);
 		Connection connection = null;
 		int count;
-		PageResult<Map<String,Object>> result = new PageResult<>();
+		PageResult<Map<String, Object>> result = new PageResult<>();
 		Dialect dialect;
 		try {
 			connection = template.getDataSource().getConnection();
 			dialect = DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
-			count = template.queryForObject(dialect.getCountSql(boundSql.getSql()),Integer.class,boundSql.getParameters());
+			count = template.queryForObject(dialect.getCountSql(boundSql.getSql()), Integer.class, boundSql.getParameters());
 			result.setTotal(count);
 		} catch (SQLException e) {
-			throw new MagicAPIException("自动获取数据库方言失败",e);
-		} finally{
-			DataSourceUtils.releaseConnection(connection,template.getDataSource());
+			throw new MagicAPIException("自动获取数据库方言失败", e);
+		} finally {
+			DataSourceUtils.releaseConnection(connection, template.getDataSource());
 		}
-		if(count > 0){
-			result.setList(template.queryForList(dialect.getPageSql(boundSql.getSql(), boundSql,offset,limit),boundSql.getParameters()));
+		if (count > 0) {
+			String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, offset, limit);
+			result.setList(template.query(pageSql, this.rowMapper, boundSql.getParameters()));
 		}
 		return result;
 	}
-	public Integer selectInt(String sql){
+
+	public Integer selectInt(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
-		return template.queryForObject(boundSql.getSql(),boundSql.getParameters(),Integer.class);
+		return template.queryForObject(boundSql.getSql(), boundSql.getParameters(), Integer.class);
 	}
 
-	public Map<String,Object> selectOne(String sql){
+	public Map<String, Object> selectOne(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
-		List<Map<String, Object>> list = template.queryForList(boundSql.getSql(),boundSql.getParameters());
-		return list!= null && list.size() > 0 ? list.get(0) : null;
+		List<Map<String, Object>> list = template.query(boundSql.getSql(), this.rowMapper, boundSql.getParameters());
+		return list != null && list.size() > 0 ? list.get(0) : null;
 	}
 
-	public Object selectValue(String sql){
+	public Object selectValue(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
-		return template.queryForObject(boundSql.getSql(),boundSql.getParameters(),Object.class);
+		return template.queryForObject(boundSql.getSql(), boundSql.getParameters(), Object.class);
 	}
 
 	private static Tokenizer tokenizer = new Tokenizer();
 
-	private static GenericTokenParser concatTokenParser = new GenericTokenParser("${","}",false);
+	private static GenericTokenParser concatTokenParser = new GenericTokenParser("${", "}", false);
 
-	private static GenericTokenParser replaceTokenParser = new GenericTokenParser("#{","}",true);
+	private static GenericTokenParser replaceTokenParser = new GenericTokenParser("#{", "}", true);
 
-	private static GenericTokenParser ifTokenParser = new GenericTokenParser("?{","}",true);
+	private static GenericTokenParser ifTokenParser = new GenericTokenParser("?{", "}", true);
 
-	private static GenericTokenParser ifParamTokenParser = new GenericTokenParser("?{",",",true);
+	private static GenericTokenParser ifParamTokenParser = new GenericTokenParser("?{", ",", true);
 
-	public static class BoundSql{
+	public static class BoundSql {
 		private String sql;
 		private List<Object> parameters = new ArrayList<>();
-		BoundSql(String sql){
+
+		BoundSql(String sql) {
 			MagicScriptContext context = MagicScriptContext.get();
-			this.sql = ifTokenParser.parse(sql,text->{
+			this.sql = ifTokenParser.parse(sql, text -> {
 				AtomicBoolean ifTrue = new AtomicBoolean(false);
 				String val = ifParamTokenParser.parse("?{" + text, param -> {
 					Object result = Parser.parseExpression(new TokenStream(tokenizer.tokenize(param))).evaluate(context);
 					ifTrue.set(Objects.equals(true, result));
 					return null;
 				});
-				if(ifTrue.get()){
+				if (ifTrue.get()) {
 					return val;
 				}
 				return "";
 			});
-			this.sql = concatTokenParser.parse(this.sql,text->String.valueOf(Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context)));
-			this.sql = replaceTokenParser.parse(this.sql,text->{
+			this.sql = concatTokenParser.parse(this.sql, text -> String.valueOf(Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context)));
+			this.sql = replaceTokenParser.parse(this.sql, text -> {
 				parameters.add(Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context));
 				return "?";
 			});
 		}
 
-		public void addParameter(Object value){
+		public void addParameter(Object value) {
 			parameters.add(value);
 		}
 
