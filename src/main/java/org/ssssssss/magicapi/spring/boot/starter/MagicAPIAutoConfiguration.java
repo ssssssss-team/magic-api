@@ -98,10 +98,13 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 
     @Bean
-    public RequestExecutor requestExecutor(DynamicDataSource dynamicDataSource) {
-        MagicScriptEngine.addDefaultImport("db",new DatabaseQuery(dynamicDataSource));
+    public RequestExecutor requestExecutor(DynamicDataSource dynamicDataSource,PageProvider pageProvider) {
+        MagicScriptEngine.addDefaultImport("db",new DatabaseQuery(dynamicDataSource,pageProvider));
         Method[] methods = WebUIController.class.getDeclaredMethods();
-        WebUIController controller = new WebUIController(dynamicDataSource.getJdbcTemplate(null));
+        WebUIController controller = new WebUIController(dynamicDataSource.getJdbcTemplate(null),properties.getDebugConfig().getTimeout());
+        if(this.properties.isBanner()){
+            controller.printBanner();
+        }
         String base = properties.getWeb();
         for (Method method : methods) {
             RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);

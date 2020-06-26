@@ -33,6 +33,9 @@ public class MagicAPIProperties {
     @NestedConfigurationProperty
     private CacheConfig cacheConfig = new CacheConfig();
 
+    @NestedConfigurationProperty
+    private DebugConfig debugConfig = new DebugConfig();
+
     public String getWeb() {
         if(StringUtils.isBlank(web)){
             return null;
@@ -91,5 +94,13 @@ public class MagicAPIProperties {
 
     public void setCacheConfig(CacheConfig cacheConfig) {
         this.cacheConfig = cacheConfig;
+    }
+
+    public DebugConfig getDebugConfig() {
+        return debugConfig;
+    }
+
+    public void setDebugConfig(DebugConfig debugConfig) {
+        this.debugConfig = debugConfig;
     }
 }
