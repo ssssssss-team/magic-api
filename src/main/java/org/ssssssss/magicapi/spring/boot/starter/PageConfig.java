@@ -5,55 +5,55 @@ package org.ssssssss.magicapi.spring.boot.starter;
  */
 public class PageConfig {
 
-    /**
-     * 默认page参数名
-     */
-    private String page = "page";
+	/**
+	 * 默认page参数名
+	 */
+	private String page = "page";
 
-    /**
-     * 默认size参数名
-     */
-    private String size = "size";
+	/**
+	 * 默认size参数名
+	 */
+	private String size = "size";
 
-    /**
-     * 默认首页
-     */
-    private long defaultPage = 1;
+	/**
+	 * 默认首页
+	 */
+	private long defaultPage = 1;
 
-    /**
-     * 默认页大小
-     */
-    private long defaultSize = 10;
+	/**
+	 * 默认页大小
+	 */
+	private long defaultSize = 10;
 
-    public String getPage() {
-        return page;
-    }
+	public String getPage() {
+		return page;
+	}
 
-    public void setPage(String page) {
-        this.page = page;
-    }
+	public void setPage(String page) {
+		this.page = page;
+	}
 
-    public String getSize() {
-        return size;
-    }
+	public String getSize() {
+		return size;
+	}
 
-    public void setSize(String size) {
-        this.size = size;
-    }
+	public void setSize(String size) {
+		this.size = size;
+	}
 
-    public long getDefaultPage() {
-        return defaultPage;
-    }
+	public long getDefaultPage() {
+		return defaultPage;
+	}
 
-    public void setDefaultPage(long defaultPage) {
-        this.defaultPage = defaultPage;
-    }
+	public void setDefaultPage(long defaultPage) {
+		this.defaultPage = defaultPage;
+	}
 
-    public long getDefaultSize() {
-        return defaultSize;
-    }
+	public long getDefaultSize() {
+		return defaultSize;
+	}
 
-    public void setDefaultSize(long defaultSize) {
-        this.defaultSize = defaultSize;
-    }
+	public void setDefaultSize(long defaultSize) {
+		this.defaultSize = defaultSize;
+	}
 }

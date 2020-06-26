@@ -39,15 +39,12 @@ import java.util.stream.Stream;
 @EnableConfigurationProperties(MagicAPIProperties.class)
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
-	private MagicAPIProperties properties;
-
-	@Autowired(required = false)
-	private List<RequestInterceptor> requestInterceptors;
-
+	private static Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
 	@Autowired
 	RequestMappingHandlerMapping requestMappingHandlerMapping;
-
-	private static Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
+	private MagicAPIProperties properties;
+	@Autowired(required = false)
+	private List<RequestInterceptor> requestInterceptors;
 
 	public MagicAPIAutoConfiguration(MagicAPIProperties properties) {
 		this.properties = properties;
@@ -108,31 +105,31 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	public RequestHandler requestHandler(MagicApiService magicApiService, DynamicDataSource dynamicDataSource, PageProvider pageProvider, MappingHandlerMapping mappingHandlerMapping) {
-        RowMapper<Map<String, Object>> rowMapper;
-        if(properties.isMapUnderscoreToCamelCase()){
-            rowMapper = new ColumnMapRowMapper() {
-                @Override
-                protected String getColumnKey(String columnName) {
-                    columnName = columnName.toLowerCase();
-                    boolean upperCase = false;
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < columnName.length(); i++) {
-                        char ch = columnName.charAt(i);
-                        if (ch == '_') {
-                            upperCase = true;
-                        } else if (upperCase) {
-                            sb.append(Character.toUpperCase(ch));
-                            upperCase = false;
-                        } else {
-                            sb.append(ch);
-                        }
-                    }
-                    return sb.toString();
-                }
-            };
-        }else{
-            rowMapper = new ColumnMapRowMapper();
-        }
+		RowMapper<Map<String, Object>> rowMapper;
+		if (properties.isMapUnderscoreToCamelCase()) {
+			rowMapper = new ColumnMapRowMapper() {
+				@Override
+				protected String getColumnKey(String columnName) {
+					columnName = columnName.toLowerCase();
+					boolean upperCase = false;
+					StringBuilder sb = new StringBuilder();
+					for (int i = 0; i < columnName.length(); i++) {
+						char ch = columnName.charAt(i);
+						if (ch == '_') {
+							upperCase = true;
+						} else if (upperCase) {
+							sb.append(Character.toUpperCase(ch));
+							upperCase = false;
+						} else {
+							sb.append(ch);
+						}
+					}
+					return sb.toString();
+				}
+			};
+		} else {
+			rowMapper = new ColumnMapRowMapper();
+		}
 		MagicScriptEngine.addDefaultImport("db", new DatabaseQuery(dynamicDataSource, pageProvider, rowMapper));
 		Method[] methods = WebUIController.class.getDeclaredMethods();
 		WebUIController controller = new WebUIController();

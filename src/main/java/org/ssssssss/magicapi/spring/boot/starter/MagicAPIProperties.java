@@ -7,100 +7,100 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
 @ConfigurationProperties(prefix = "magic-api")
 public class MagicAPIProperties {
 
-    /**
-     * web页面入口
-     */
-    private String web;
+	/**
+	 * web页面入口
+	 */
+	private String web;
 
-    /**
-     * 打印banner
-     */
-    private boolean banner = true;
+	/**
+	 * 打印banner
+	 */
+	private boolean banner = true;
 
-    /**
-     * 是否抛出异常
-     */
-    private boolean throwException = false;
+	/**
+	 * 是否抛出异常
+	 */
+	private boolean throwException = false;
 
-    /**
-     * 驼峰命名转换
-     */
-    private boolean mapUnderscoreToCamelCase = true;
+	/**
+	 * 驼峰命名转换
+	 */
+	private boolean mapUnderscoreToCamelCase = true;
 
-    @NestedConfigurationProperty
-    private PageConfig pageConfig = new PageConfig();
+	@NestedConfigurationProperty
+	private PageConfig pageConfig = new PageConfig();
 
-    @NestedConfigurationProperty
-    private CacheConfig cacheConfig = new CacheConfig();
+	@NestedConfigurationProperty
+	private CacheConfig cacheConfig = new CacheConfig();
 
-    @NestedConfigurationProperty
-    private DebugConfig debugConfig = new DebugConfig();
+	@NestedConfigurationProperty
+	private DebugConfig debugConfig = new DebugConfig();
 
-    public String getWeb() {
-        if(StringUtils.isBlank(web)){
-            return null;
-        }
-        if(web.endsWith("/**")){
-            return web.substring(0,web.length() - 3);
-        }
-        if(web.endsWith("/*")){
-            return web.substring(0,web.length() - 2);
-        }
-        if(web.endsWith("/")){
-            return web.substring(0,web.length() - 1);
-        }
-        return web;
-    }
+	public String getWeb() {
+		if (StringUtils.isBlank(web)) {
+			return null;
+		}
+		if (web.endsWith("/**")) {
+			return web.substring(0, web.length() - 3);
+		}
+		if (web.endsWith("/*")) {
+			return web.substring(0, web.length() - 2);
+		}
+		if (web.endsWith("/")) {
+			return web.substring(0, web.length() - 1);
+		}
+		return web;
+	}
 
-    public void setWeb(String web) {
-        this.web = web;
-    }
+	public void setWeb(String web) {
+		this.web = web;
+	}
 
-    public boolean isMapUnderscoreToCamelCase() {
-        return mapUnderscoreToCamelCase;
-    }
+	public boolean isMapUnderscoreToCamelCase() {
+		return mapUnderscoreToCamelCase;
+	}
 
-    public void setMapUnderscoreToCamelCase(boolean mapUnderscoreToCamelCase) {
-        this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
-    }
+	public void setMapUnderscoreToCamelCase(boolean mapUnderscoreToCamelCase) {
+		this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
+	}
 
-    public boolean isBanner() {
-        return banner;
-    }
+	public boolean isBanner() {
+		return banner;
+	}
 
-    public void setBanner(boolean banner) {
-        this.banner = banner;
-    }
+	public void setBanner(boolean banner) {
+		this.banner = banner;
+	}
 
-    public PageConfig getPageConfig() {
-        return pageConfig;
-    }
+	public PageConfig getPageConfig() {
+		return pageConfig;
+	}
 
-    public void setPageConfig(PageConfig pageConfig) {
-        this.pageConfig = pageConfig;
-    }
+	public void setPageConfig(PageConfig pageConfig) {
+		this.pageConfig = pageConfig;
+	}
 
-    public boolean isThrowException() {
-        return throwException;
-    }
+	public boolean isThrowException() {
+		return throwException;
+	}
 
-    public void setThrowException(boolean throwException) {
-        this.throwException = throwException;
-    }
+	public void setThrowException(boolean throwException) {
+		this.throwException = throwException;
+	}
 
-    public CacheConfig getCacheConfig() {
-        return cacheConfig;
-    }
+	public CacheConfig getCacheConfig() {
+		return cacheConfig;
+	}
 
-    public void setCacheConfig(CacheConfig cacheConfig) {
-        this.cacheConfig = cacheConfig;
-    }
+	public void setCacheConfig(CacheConfig cacheConfig) {
+		this.cacheConfig = cacheConfig;
+	}
 
-    public DebugConfig getDebugConfig() {
-        return debugConfig;
-    }
+	public DebugConfig getDebugConfig() {
+		return debugConfig;
+	}
 
-    public void setDebugConfig(DebugConfig debugConfig) {
-        this.debugConfig = debugConfig;
-    }
+	public void setDebugConfig(DebugConfig debugConfig) {
+		this.debugConfig = debugConfig;
+	}
 }
