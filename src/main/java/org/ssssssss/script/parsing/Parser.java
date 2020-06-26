@@ -72,23 +72,21 @@ public class Parser {
         if (stream.hasMore()) {
             Token expected = stream.consume();
             String packageName = null;
-            if (expected.getType() == TokenType.StringLiteral) {
+            boolean isStringLiteral = expected.getType() == TokenType.StringLiteral;
+            if (isStringLiteral) {
                 packageName = new StringLiteral(expected.getSpan()).getValue();
             } else if (expected.getType() == TokenType.Identifier) {
                 packageName = expected.getSpan().getText();
             } else {
                 MagicScriptError.error("Expected identifier or string, but got stream is " + expected.getType().getError(), stream.getPrev().getSpan());
             }
-            if (stream.hasMore()) {
+            String varName = packageName;
+            if (isStringLiteral || stream.match("as",false)) {
                 stream.expect("as");
-                if (stream.hasMore()) {
-                    Token token = stream.expect(TokenType.Identifier);
-                    return new Import(new Span(opening, token.getSpan()), packageName, token.getSpan().getText());
-                } else {
-                    MagicScriptError.error("Expected identifier, but got stream is EOF", stream.getPrev().getSpan());
-                }
+                expected = stream.expect(TokenType.Identifier);
+                varName = expected.getSpan().getText();
             }
-            MagicScriptError.error("Expected as, but got stream is EOF", stream.getPrev().getSpan());
+            return new Import(new Span(opening, expected.getSpan()), packageName, varName, !isStringLiteral);
         }
         MagicScriptError.error("Expected identifier or string, but got stream is EOF", stream.getPrev().getSpan());
         return null;

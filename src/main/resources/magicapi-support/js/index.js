@@ -131,7 +131,7 @@ $(function(){
             var item = data.variables[i];
             var $tr = $('<tr/>');
             $tr.append($('<td/>').html(item.name))
-            $tr.append($('<td/>').html(JSON.stringify(item.value)))
+            $tr.append($('<td/>').html(item.value))
             $tr.append($('<td/>').html(item.type))
             $tbody.append($tr);
         }
