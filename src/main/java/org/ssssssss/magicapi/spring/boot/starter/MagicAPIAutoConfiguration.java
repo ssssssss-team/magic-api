@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
@@ -23,6 +24,8 @@ import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
+import org.ssssssss.script.MagicModuleLoader;
+import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.functions.DatabaseQuery;
 
@@ -42,9 +45,14 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	private static Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
 	@Autowired
 	RequestMappingHandlerMapping requestMappingHandlerMapping;
+
 	private MagicAPIProperties properties;
+
 	@Autowired(required = false)
 	private List<RequestInterceptor> requestInterceptors;
+
+	@Autowired
+	private ApplicationContext springContext;
 
 	public MagicAPIAutoConfiguration(MagicAPIProperties properties) {
 		this.properties = properties;
@@ -130,6 +138,20 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		} else {
 			rowMapper = new ColumnMapRowMapper();
 		}
+		MagicModuleLoader.setClassLoader((className)->{
+			try {
+				return springContext.getBean(className);
+			} catch (Exception e) {
+				Class<?> clazz = null;
+				try {
+					clazz = Class.forName(className);
+					return springContext.getBean(clazz);
+				} catch (Exception ex) {
+					return clazz;
+				}
+			}
+		});
+		MagicModuleLoader.addModule("log",LoggerFactory.getLogger(MagicScript.class));
 		MagicScriptEngine.addDefaultImport("db", new DatabaseQuery(dynamicDataSource, pageProvider, rowMapper));
 		Method[] methods = WebUIController.class.getDeclaredMethods();
 		WebUIController controller = new WebUIController();
