@@ -22,8 +22,15 @@ public class StreamExtension {
         return null;
     }
 
-    private static List<Object> arrayLikeToList(Object arrayLike) {
-        if (arrayLike instanceof Collection) {
+    public static List<Object> arrayLikeToList(Object arrayLike) {
+        if (arrayLike != null && arrayLike.getClass().isArray()) {
+            int len = Array.getLength(arrayLike);
+            List<Object> value = new ArrayList<>();
+            for (int i = 0; i < len; i++) {
+                value.add(Array.get(arrayLike, i));
+            }
+            return value;
+        } else if (arrayLike instanceof Collection) {
             return new ArrayList<>((Collection<?>) arrayLike);
         } else if (arrayLike.getClass().isArray()) {
             List<Object> list = new ArrayList<>(Array.getLength(arrayLike));
@@ -44,19 +51,19 @@ public class StreamExtension {
     public static Object map(Object target, Function<Object[], Object> function) {
         List<Object> objects = arrayLikeToList(target);
         List<Object> results = new ArrayList<>(objects.size());
-        for (int i = 0,len = objects.size(); i < len; i++) {
+        for (int i = 0, len = objects.size(); i < len; i++) {
             Object object = objects.get(i);
-            results.add(function.apply(new Object[]{object,i,len}));
+            results.add(function.apply(new Object[]{object, i, len}));
         }
         return toOriginType(target, results);
     }
 
-    public static Object filter(Object target, Function<Object[], Object> function){
+    public static Object filter(Object target, Function<Object[], Object> function) {
         List<Object> objects = arrayLikeToList(target);
         List<Object> results = new ArrayList<>(objects.size());
-        for (int i = 0,len = objects.size(); i < len; i++) {
+        for (int i = 0, len = objects.size(); i < len; i++) {
             Object object = objects.get(i);
-            if(Objects.equals(true,function.apply(new Object[]{object,i,len}))){
+            if (Objects.equals(true, function.apply(new Object[]{object, i, len}))) {
                 results.add(object);
             }
         }

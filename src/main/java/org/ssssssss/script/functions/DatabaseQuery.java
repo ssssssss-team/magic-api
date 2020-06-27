@@ -236,8 +236,22 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 			});
 			this.sql = concatTokenParser.parse(this.sql, text -> String.valueOf(Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context)));
 			this.sql = replaceTokenParser.parse(this.sql, text -> {
-				parameters.add(Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context));
-				return "?";
+				Object value = Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context);
+				try {
+					List<Object> objects = StreamExtension.arrayLikeToList(value);
+					StringBuilder sb = new StringBuilder();
+					for (int i = 0, size = objects.size(); i < size; i++) {
+						sb.append("?");
+						if (i + 1 < size) {
+							sb.append(",");
+						}
+						parameters.add(objects.get(i));
+					}
+					return sb.toString();
+				} catch (Exception e) {
+					parameters.add(value);
+					return "?";
+				}
 			});
 		}
 
