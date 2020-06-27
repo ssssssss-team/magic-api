@@ -113,7 +113,7 @@ public class Span {
 	        return this.line;
         }
 		int lineStart = start;
-		while (true) {
+		while (lineStart < end) {
 			if (lineStart < 0) {
 				break;
 			}
@@ -142,7 +142,7 @@ public class Span {
 
 		int lineNumber = 0;
 		int idx = lineStart;
-		while (idx > 0) {
+		while (idx > 0 && idx < end) {
 			char c = source.charAt(idx);
 			if (c == '\n') {
 				lineNumber++;

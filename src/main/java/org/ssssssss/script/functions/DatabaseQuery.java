@@ -222,7 +222,7 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 
 		BoundSql(String sql) {
 			MagicScriptContext context = MagicScriptContext.get();
-			this.sql = ifTokenParser.parse(sql, text -> {
+			this.sql = ifTokenParser.parse(sql.trim(), text -> {
 				AtomicBoolean ifTrue = new AtomicBoolean(false);
 				String val = ifParamTokenParser.parse("?{" + text, param -> {
 					Object result = Parser.parseExpression(new TokenStream(tokenizer.tokenize(param))).evaluate(context);

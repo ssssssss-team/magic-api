@@ -87,6 +87,30 @@ public class Tokenizer {
             }
 
             // String literal
+            if (stream.match("\"\"\"", true)) {
+                stream.startSpan();
+                boolean matchedEndQuote = false;
+                while (stream.hasMore()) {
+                    // Note: escape sequences like \n are parsed in StringLiteral
+                    if (stream.match("\\", true)) {
+                        stream.consume();
+                    }
+                    if (stream.match("\"\"\"", true)) {
+                        matchedEndQuote = true;
+                        break;
+                    }
+                    stream.consume();
+                }
+                if (!matchedEndQuote) {
+                    MagicScriptError.error("多行字符串没有结束符\"\"\"", stream.endSpan(), new StringLiteralException());
+                }
+                Span stringSpan = stream.endSpan();
+                stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd() - 2);
+                tokens.add(new Token(TokenType.StringLiteral, stringSpan));
+                continue;
+            }
+
+            // String literal
             if (stream.match(TokenType.DoubleQuote.getLiteral(), true)) {
                 stream.startSpan();
                 boolean matchedEndQuote = false;
