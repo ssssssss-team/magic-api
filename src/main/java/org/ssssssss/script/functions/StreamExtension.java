@@ -1,6 +1,6 @@
 package org.ssssssss.script.functions;
 
-import org.ssssssss.script.exception.ScriptException;
+import org.ssssssss.script.exception.MagicScriptException;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -38,7 +38,7 @@ public class StreamExtension {
             Enumeration<Object> en = (Enumeration<Object>) arrayLike;
             return Collections.list(en);
         }
-        throw new ScriptException("不支持的类型:" + arrayLike.getClass());
+		throw new MagicScriptException("不支持的类型:" + arrayLike.getClass());
     }
 
     public static Object map(Object target, Function<Object[], Object> function) {

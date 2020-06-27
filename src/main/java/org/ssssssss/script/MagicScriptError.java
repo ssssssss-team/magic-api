@@ -1,6 +1,6 @@
 package org.ssssssss.script;
 
-import org.ssssssss.script.exception.ScriptException;
+import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.TokenStream;
 
@@ -30,7 +30,7 @@ public class MagicScriptError {
 
 	/**
 	 * Create an error message based on the provided message and location, highlighting the location in the line on which the
-	 * error happened. Throws a {@link ScriptException}
+	 * error happened. Throws a {@link MagicScriptException}
 	 **/
 	public static void error(String message, Span location, Throwable cause) {
 
@@ -46,15 +46,15 @@ public class MagicScriptError {
 		}
 
 		if (cause == null) {
-			throw new ScriptException(errorMessage, message, line);
+			throw new MagicScriptException(errorMessage, message, line);
 		} else {
-			throw new ScriptException(errorMessage, message, cause, line);
+			throw new MagicScriptException(errorMessage, message, cause, line);
 		}
 	}
 
 	/**
 	 * Create an error message based on the provided message and location, highlighting the location in the line on which the
-	 * error happened. Throws a {@link ScriptException}
+	 * error happened. Throws a {@link MagicScriptException}
 	 **/
 	public static void error(String message, Span location) {
 		error(message, location, null);

@@ -2,28 +2,31 @@ package org.ssssssss.script.exception;
 
 import org.ssssssss.script.parsing.Span;
 
-public class ScriptException extends RuntimeException {
+public class MagicScriptException extends RuntimeException {
 	private static final long serialVersionUID = 1L;
-	private final String errorMessage;
-	private final String simpleMessage;
-	private final Span.Line line;
+	private String errorMessage;
+	private String simpleMessage;
+	private Span.Line line;
 
-	public ScriptException(String errorMessage, String simpleMessage, Span.Line line) {
+	public MagicScriptException() {
+	}
+
+	public MagicScriptException(String errorMessage, String simpleMessage, Span.Line line) {
 		super(errorMessage);
 		this.errorMessage = errorMessage;
 		this.simpleMessage = simpleMessage;
 		this.line = line;
 	}
 
-	public ScriptException(String errorMessage, Span.Line line) {
+	public MagicScriptException(String errorMessage, Span.Line line) {
 		this(errorMessage, errorMessage, line);
 	}
 
-	public ScriptException(String errorMessage) {
+	public MagicScriptException(String errorMessage) {
 		this(errorMessage, errorMessage, null);
 	}
 
-	public ScriptException(String message, String simpleMessage, Throwable cause, Span.Line line) {
+	public MagicScriptException(String message, String simpleMessage, Throwable cause, Span.Line line) {
 		super(message, cause);
 		this.simpleMessage = simpleMessage;
 		this.errorMessage = message;
@@ -51,8 +54,8 @@ public class ScriptException extends RuntimeException {
 
 		Throwable cause = getCause();
 		while (cause != null && cause != this) {
-			if (cause instanceof ScriptException) {
-				ScriptException ex = (ScriptException) cause;
+			if (cause instanceof MagicScriptException) {
+				MagicScriptException ex = (MagicScriptException) cause;
 				if (ex.getCause() == null || ex.getCause() == ex) {
 					builder.append(ex.errorMessage);
 				} else {

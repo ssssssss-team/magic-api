@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptEngine;
-import org.ssssssss.script.exception.ScriptException;
+import org.ssssssss.script.exception.MagicScriptAssertException;
+import org.ssssssss.script.exception.MagicScriptException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,15 +25,21 @@ public class RequestHandler {
 
 	private List<RequestInterceptor> requestInterceptors = new ArrayList<>();
 
+	private boolean throwException = false;
+
 	public void addRequestInterceptor(RequestInterceptor requestInterceptor) {
 		requestInterceptors.add(requestInterceptor);
+	}
+
+	public void setThrowException(boolean throwException) {
+		this.throwException = throwException;
 	}
 
 	@ResponseBody
 	public Object invoke(HttpServletRequest request, HttpServletResponse response,
 						 @PathVariable(required = false) Map<String, Object> pathVariables,
 						 @RequestParam(required = false) Map<String, Object> parameters,
-						 @RequestBody(required = false) Map<String, Object> requestBody) {
+						 @RequestBody(required = false) Map<String, Object> requestBody) throws Throwable {
 		ApiInfo info;
 		try {
 			info = MappingHandlerMapping.getMappingApiInfo(request);
@@ -59,11 +66,18 @@ public class RequestHandler {
 			}
 			return new JsonBean<>(value);
 		} catch (Throwable root) {
-			ScriptException se = null;
+			if (throwException) {
+				throw root;
+			}
+			MagicScriptException se = null;
 			Throwable parent = root;
 			do {
-				if (parent instanceof ScriptException) {
-					se = (ScriptException) parent;
+				if (parent instanceof MagicScriptAssertException) {
+					MagicScriptAssertException sae = (MagicScriptAssertException) parent;
+					return new JsonBean<>(sae.getCode(), sae.getMessage());
+				}
+				if (parent instanceof MagicScriptException) {
+					se = (MagicScriptException) parent;
 				}
 			} while ((parent = parent.getCause()) != null);
 			logger.error("执行接口出错", root);

@@ -5,7 +5,7 @@ import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.MagicScriptError;
 import org.ssssssss.script.exception.DebugTimeoutException;
-import org.ssssssss.script.exception.ScriptException;
+import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Break;
 import org.ssssssss.script.parsing.ast.Continue;
@@ -36,7 +36,7 @@ public class AstInterpreter {
             }
             return null;
         } catch (Throwable t) {
-            if (t instanceof ScriptException || t instanceof DebugTimeoutException) {
+            if (t instanceof MagicScriptException || t instanceof DebugTimeoutException) {
                 throw t;
             } else {
                 MagicScriptError.error("执行表达式出错 " + t.getMessage(), magicScript.getNodes().get(0).getSpan(), t);

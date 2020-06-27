@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.MagicScriptEngine;
-import org.ssssssss.script.exception.ScriptException;
+import org.ssssssss.script.exception.MagicScriptAssertException;
+import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.Span;
 
 import java.util.Arrays;
@@ -116,11 +117,15 @@ public class WebUIController {
 	}
 
 	private JsonBean<Object> resolveThrowable(Throwable root) {
-		ScriptException se = null;
+		MagicScriptException se = null;
 		Throwable parent = root;
 		do {
-			if (parent instanceof ScriptException) {
-				se = (ScriptException) parent;
+			if (parent instanceof MagicScriptAssertException) {
+				MagicScriptAssertException sae = (MagicScriptAssertException) parent;
+				return new JsonBean<>(sae.getCode(), sae.getMessage());
+			}
+			if (parent instanceof MagicScriptException) {
+				se = (MagicScriptException) parent;
 			}
 		} while ((parent = parent.getCause()) != null);
 		logger.error("测试脚本出错", root);

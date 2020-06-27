@@ -2,11 +2,16 @@ package org.ssssssss.script.parsing;
 
 
 import org.ssssssss.script.MagicScript;
+import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
+import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.ast.*;
+import org.ssssssss.script.parsing.ast.binary.BinaryOperation;
 
 import javax.xml.transform.Source;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -251,11 +256,12 @@ public class Parser {
         while (stream.hasMore() && stream.match(false, operators)) {
             Token operator = stream.consume();
             Expression right = nextLevel == binaryOperatorPrecedence.length ? parseUnaryOperator(stream, expectRightCurly) : parseBinaryOperator(stream, nextLevel, expectRightCurly);
-            left = new BinaryOperation(left, operator, right);
+            left = BinaryOperation.create(left, operator, right);
         }
 
         return left;
     }
+
 
     private static Expression parseUnaryOperator(TokenStream stream, boolean expectRightCurly) {
         if (stream.match(false, unaryOperators)) {
@@ -263,9 +269,8 @@ public class Parser {
         } else {
             if (stream.match(TokenType.LeftParantheses, false)) {    //(
                 Span openSpan = stream.expect(TokenType.LeftParantheses).getSpan();
-                stream.makeIndex();
+                int index = stream.makeIndex();
                 List<String> parameters = new ArrayList<>();
-                List<Node> childNodes = new ArrayList<>();
                 while(stream.match(TokenType.Identifier,false)){
                     Token identifier = stream.expect(TokenType.Identifier);
                     parameters.add(identifier.getSpan().getText());
@@ -274,43 +279,15 @@ public class Parser {
                     }
                     if(stream.match(TokenType.RightParantheses,true)){  //)
                         if(stream.match(TokenType.Lambda,true)){   // =>
-                            int index = stream.makeIndex();
-                            try {
-                                Expression expression = parseExpression(stream);
-                                childNodes.add(new Return(new Span("return",0,6), expression));
-                                return new LambdaFunction(new Span(openSpan,expression.getSpan()),parameters,childNodes);
-                            } catch (Exception e) {
-                                stream.resetIndex(index);
-                                if(stream.match(TokenType.LeftCurly,true)){
-                                    while (stream.hasMore() && !stream.match(false, "}")) {
-                                        childNodes.add(parseStatement(stream, true));
-                                    }
-                                    Span closeSpan = expectCloseing(stream);
-                                    return new LambdaFunction(new Span(openSpan,closeSpan),parameters,childNodes);
-                                }else{
-                                    Node node = parseStatement(stream);
-                                    childNodes.add(new Return(new Span("return",0,6), node));
-                                    return new LambdaFunction(new Span(openSpan,node.getSpan()),parameters,childNodes);
-                                }
-                            }
+                            return parseLambdaBody(stream, openSpan, parameters);
                         }
                         break;
                     }
                 }
                 if(stream.match(TokenType.RightParantheses,true) && stream.match(TokenType.Lambda, true)){
-                    if(stream.match(TokenType.LeftCurly,true)){
-                        while (stream.hasMore() && !stream.match(false, "}")) {
-                            childNodes.add(parseStatement(stream, true));
-                        }
-                        Span closeSpan = expectCloseing(stream);
-                        return new LambdaFunction(new Span(openSpan,closeSpan),parameters,childNodes);
-                    } else{
-                        Node node = parseStatement(stream);
-                        childNodes.add(new Return(new Span("return",0,6), node));
-                        return new LambdaFunction(new Span(openSpan,node.getSpan()),parameters,childNodes);
-                    }
+                    return parseLambdaBody(stream, openSpan, parameters);
                 }
-                stream.resetIndex();
+                stream.resetIndex(index);
                 Expression expression = parseExpression(stream);
                 stream.expect(TokenType.RightParantheses);
                 return expression;
@@ -320,8 +297,27 @@ public class Parser {
         }
     }
 
-    private static Expression parseLambda(TokenStream stream){
-        return null;
+    private static Expression parseLambdaBody(TokenStream stream, Span openSpan, List<String> parameters) {
+        int index = stream.makeIndex();
+        List<Node> childNodes = new ArrayList<>();
+        try {
+            Expression expression = parseExpression(stream);
+            childNodes.add(new Return(new Span("return", 0, 6), expression));
+            return new LambdaFunction(new Span(openSpan, expression.getSpan()), parameters, childNodes);
+        } catch (Exception e) {
+            stream.resetIndex(index);
+            if (stream.match(TokenType.LeftCurly, true)) {
+                while (stream.hasMore() && !stream.match(false, "}")) {
+                    childNodes.add(parseStatement(stream, true));
+                }
+                Span closeSpan = expectCloseing(stream);
+                return new LambdaFunction(new Span(openSpan, closeSpan), parameters, childNodes);
+            } else {
+                Node node = parseStatement(stream);
+                childNodes.add(new Return(new Span("return", 0, 6), node));
+                return new LambdaFunction(new Span(openSpan, node.getSpan()), parameters, childNodes);
+            }
+        }
     }
 
     private static Expression parseAccessOrCallOrLiteral(TokenStream stream, boolean expectRightCurly) {
@@ -335,8 +331,6 @@ public class Parser {
             return parseMapLiteral(stream);
         } else if (stream.match(TokenType.LeftBracket, false)) {
             return parseListLiteral(stream);
-        } else if (stream.match(TokenType.LeftParantheses, false)) {
-            return parseLambda(stream);
         } else if (stream.match(TokenType.StringLiteral, false)) {
             if (stream.hasNext()) {
                 if (stream.next().getType() == TokenType.Period) {
@@ -413,6 +407,9 @@ public class Parser {
         //Span identifier = stream.expect(TokenType.Identifier);
         //Expression result = new VariableAccess(identifier);
         Span identifier = stream.expect(tokenType).getSpan();
+        if (tokenType == TokenType.Identifier && stream.match(TokenType.Lambda, true)) {
+            return parseLambdaBody(stream, identifier, Arrays.asList(identifier.getText()));
+        }
         Expression result = tokenType == TokenType.StringLiteral ? new StringLiteral(identifier) : new VariableAccess(identifier);
 
         while (stream.hasMore() && stream.match(false, TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period)) {
@@ -458,5 +455,10 @@ public class Parser {
             if (!stream.match(TokenType.RightParantheses, false)) stream.expect(TokenType.Comma);
         }
         return arguments;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(AstInterpreter.interpret(MagicScript.create("return message!=null&&message.length()>=3"), new MagicScriptContext(new HashMap<>())));
+        ;
     }
 }

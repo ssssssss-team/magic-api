@@ -3,7 +3,7 @@ package org.ssssssss.script.parsing.ast;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptError;
-import org.ssssssss.script.exception.ScriptException;
+import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.interpreter.AstInterpreter;
 import org.ssssssss.script.parsing.Span;
@@ -97,7 +97,7 @@ public class MemberAccess extends Expression {
 			MethodCall methodCall = new MethodCall(getName(), access, Collections.emptyList());
 			try {
 				return methodCall.evaluate(context);
-			} catch (ScriptException e) {
+			} catch (MagicScriptException e) {
 				if (ExceptionUtils.indexOfThrowable(e, InvocationTargetException.class) > -1) {
 					MagicScriptError.error(String.format("在%s中调用方法get%s发生异常"
 							, object.getClass()
@@ -108,7 +108,7 @@ public class MemberAccess extends Expression {
 				methodCall = new MethodCall(getName(), access, Arrays.asList(new StringLiteral(getName())));
 				try {
 					return methodCall.evaluate(context);
-				} catch (ScriptException e3) {
+				} catch (MagicScriptException e3) {
 					if (ExceptionUtils.indexOfThrowable(e3, InvocationTargetException.class) > -1) {
 						MagicScriptError.error(String.format("在%s中调用方法get发生异常"
 								, object.getClass()
@@ -119,7 +119,7 @@ public class MemberAccess extends Expression {
 					methodCall = new MethodCall(getName(), access, Collections.emptyList());
 					try {
 						return methodCall.evaluate(context);
-					} catch (ScriptException e1) {
+					} catch (MagicScriptException e1) {
 						if (ExceptionUtils.indexOfThrowable(e1, InvocationTargetException.class) > -1) {
 							MagicScriptError.error(String.format("在%s中调用方法is%s发生异常"
 									, object.getClass()
