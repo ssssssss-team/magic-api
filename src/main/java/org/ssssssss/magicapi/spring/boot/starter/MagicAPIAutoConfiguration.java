@@ -28,6 +28,7 @@ import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
 import org.ssssssss.script.MagicModuleLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
+import org.ssssssss.script.functions.AssertFunctions;
 import org.ssssssss.script.functions.DatabaseQuery;
 
 import javax.servlet.http.HttpServletRequest;
@@ -165,6 +166,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			}
 		});
 		MagicModuleLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
+		MagicModuleLoader.addModule("assert", AssertFunctions.class);
 		DatabaseQuery query = new DatabaseQuery(dynamicDataSource);
 		query.setPageProvider(pageProvider);
 		query.setRowMapper(rowMapper);
@@ -187,6 +189,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			}
 		}
 		RequestHandler requestHandler = new RequestHandler();
+		requestHandler.setThrowException(properties.isThrowException());
 		if (this.requestInterceptors != null) {
 			this.requestInterceptors.forEach(interceptor -> {
 				logger.info("注册请求拦截器：{}", interceptor.getClass());
