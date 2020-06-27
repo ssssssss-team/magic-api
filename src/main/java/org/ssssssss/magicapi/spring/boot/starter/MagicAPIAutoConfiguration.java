@@ -151,7 +151,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		} else {
 			rowMapper = new ColumnMapRowMapper();
 		}
-		MagicModuleLoader.setClassLoader((className)->{
+		MagicModuleLoader.setClassLoader((className) -> {
 			try {
 				return springContext.getBean(className);
 			} catch (Exception e) {
@@ -164,7 +164,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 				}
 			}
 		});
-		MagicModuleLoader.addModule("log",LoggerFactory.getLogger(MagicScript.class));
+		MagicModuleLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
 		DatabaseQuery query = new DatabaseQuery(dynamicDataSource);
 		query.setPageProvider(pageProvider);
 		query.setRowMapper(rowMapper);
