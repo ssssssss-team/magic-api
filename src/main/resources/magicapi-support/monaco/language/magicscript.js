@@ -27,6 +27,7 @@ require(['vs/editor/editor.main'], function() {
             { open: '{', close: '}' },
             { open: '[', close: ']' },
             { open: '(', close: ')' },
+            {open: '"""', close: '"""', notIn: ['string.multi']},
             { open: '"', close: '"', notIn: ['string'] },
             { open: '\'', close: '\'', notIn: ['string'] },
         ],
@@ -53,6 +54,7 @@ require(['vs/editor/editor.main'], function() {
                 [/[;,.]/, 'delimiter'],
                 [/"([^"\\]|\\.)*$/, 'string.invalid'],
                 [/'([^'\\]|\\.)*$/, 'string.invalid'],
+                [/""/, 'string.multi', '@string_multi'],
                 [/"/, 'string', '@string_double'],
                 [/'/, 'string', '@string_single'],
             ],
@@ -69,6 +71,14 @@ require(['vs/editor/editor.main'], function() {
                 [/\/\*/, 'comment.mul.invalid'],
                 [/\*\//, 'comment.mul', '@pop'],
                 [/[\/*]/, 'comment.mul']
+            ],
+            string_multi: [
+                [/"""/, {token: 'string.multi', next: '@pop'}],
+                [/"/, {token: 'string.multi', next: '@string_multi_embedded', nextEmbedded: 'sql'}]
+            ],
+            string_multi_embedded: [
+                [/"""/, {token: '@rematch', next: '@pop', nextEmbedded: '@pop'}],
+                [/[^"""]+/, '']
             ],
             string_double: [
                 [/[^\\"]+/, 'string'],
