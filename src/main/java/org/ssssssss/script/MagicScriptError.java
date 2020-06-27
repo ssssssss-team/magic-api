@@ -4,6 +4,8 @@ import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.TokenStream;
 
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * All errors reported by the library go through the static functions of this class.
  */
@@ -35,6 +37,17 @@ public class MagicScriptError {
 	public static void error(String message, Span location, Throwable cause) {
 
 		Span.Line line = location.getLine();
+		Throwable parent = cause == null ? null : cause.getCause();
+		while (parent != null) {
+			if (parent instanceof InvocationTargetException) {
+				cause = parent.getCause();
+				if (cause != null) {
+					message += ";" + cause.getMessage();
+				}
+				break;
+			}
+			parent = parent.getCause();
+		}
 		String errorMessage = "Script Error : " + message + "\n\n";
 		errorMessage += line.getText();
 		errorMessage += "\n";
@@ -44,7 +57,6 @@ public class MagicScriptError {
 			boolean useTab = line.getText().charAt(i) == '\t';
 			errorMessage += i >= errorStart && i <= errorEnd ? "^" : useTab ? "\t" : " ";
 		}
-
 		if (cause == null) {
 			throw new MagicScriptException(errorMessage, message, line);
 		} else {
