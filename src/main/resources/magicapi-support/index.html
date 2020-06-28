@@ -17,99 +17,102 @@
 			<div class="layui-header">
 				<div class="layui-logo"></div>
 			</div>
-			<div class="layui-left">
-				<div class="api-search">
-					<input class="layui-input" type="text" placeholder="请输入接口名称或地址搜索"/>
-				</div>
-				<div class="layui-side">
-					<div class="layui-side-scroll scroller">
-						<ul class="api-list">
-							<li class="empty">您还没有创建接口..</li>
-						</ul>
+			<div class="layui-bottom">
+				<div class="layui-left">
+					<div class="api-search">
+						<input class="layui-input" type="text" placeholder="请输入接口名称或地址搜索"/>
 					</div>
-				</div>
-			</div>
-			<div class="properties-container layui-form">
-				<div class="layui-input-placeholder">
-					<div class="layui-input-inline" style="width: 100px;margin-left: 81px;">请求方法</div>
-					<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">接口名称</div>
-					<div class="layui-input-inline" style="width: 300px;margin-left: 10px;">接口地址</div>
-				</div>
-				<div>
-					<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-create">
-						<i class="layui-icon">&#xe624;</i> 新建
-					</button>
-					<div class="layui-input-inline" style="width: 100px;margin-left: 5px;">
-						<select name="method">
-							<option value="GET">GET</option>
-							<option value="POST">POST</option>
-							<option value="PUT">PUT</option>
-							<option value="DELETE">DELETE</option>
-						</select>
-					</div>
-					<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">
-						<input type="text" name="name" class="layui-input" placeholder="请输入接口名称"/>
-					</div>
-					<div class="layui-input-inline" style="position: absolute;left:390px;right:140px;">
-						<input type="text" name="path" class="layui-input" placeholder="请输入接口地址"/>
-					</div>
-					<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-save" style="float:right;margin-right: 10px;">
-						保存
-					</button>
-					<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-test" style="float:right;margin-right: 10px;">
-						<i class="layui-icon">&#xe652;</i> 测试
-					</button>
-				</div>
-			</div>
-			<div class="editor-container" id="editor"></div>
-			<div class="layout-resizer-x"></div>
-			<div class="layui-right">
-				<div class="request-container">
-					<div class="layui-tab" lay-filter="request">
-						<ul class="layui-tab-title">
-							<li class="layui-this">请求参数</li>
-							<li>接口选项</li>
-						</ul>
-						<div class="layui-tab-content">
-							<div class="layui-tab-item layui-show">
-								<div id="request-parameter"></div>
-							</div>
-							<div class="layui-tab-item">
-								<div id="option-parameter"></div>
-							</div>
+					<div class="layui-side">
+						<div class="layui-side-scroll scroller">
+							<ul class="api-list">
+								<li class="empty">您还没有创建接口..</li>
+							</ul>
 						</div>
 					</div>
 				</div>
-				<div class="layout-resizer-y"></div>
-				<div class="output-container">
-					<div class="layui-tab" lay-filter="output-container">
-						<ul class="layui-tab-title">
-							<li lay-id="output" class="layui-this">请求结果</li>
-							<li lay-id="debug">调试信息</li>
-						</ul>
-						<div class="layui-tab-content">
-							<div class="layui-tab-item layui-show">
-								<div id="output-result"></div>
+				<div class="layui-right-container">
+					<div class="properties-container layui-form">
+						<div class="layui-input-placeholder">
+							<div class="layui-input-inline" style="width: 100px;margin-left: 81px;">请求方法</div>
+							<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">接口名称</div>
+							<div class="layui-input-inline" style="width: 300px;margin-left: 10px;">接口地址</div>
+						</div>
+						<div>
+							<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-create">
+								<i class="layui-icon">&#xe624;</i> 新建
+							</button>
+							<div class="layui-input-inline" style="width: 100px;margin-left: 5px;">
+								<select name="method">
+									<option value="GET">GET</option>
+									<option value="POST">POST</option>
+									<option value="PUT">PUT</option>
+									<option value="DELETE">DELETE</option>
+								</select>
 							</div>
-							<div class="layui-tab-item scroller">
-								<table class="layui-table" lay-size="sm" style="height: auto">
-									<thead>
-										<tr>
-											<th>变量名</th>
-											<th>变量值</th>
-											<th>变量类型</th>
-										</tr>
-									</thead>
-									<tbody id="debug-tbody">
+							<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">
+								<input type="text" name="name" class="layui-input" placeholder="请输入接口名称"/>
+							</div>
+							<div class="layui-input-inline" style="position: absolute;left:390px;right:140px;">
+								<input type="text" name="path" class="layui-input" placeholder="请输入接口地址"/>
+							</div>
+							<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-save" style="float:right;margin-right: 10px;">
+								保存
+							</button>
+							<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-test" style="float:right;margin-right: 10px;">
+								<i class="layui-icon">&#xe652;</i> 测试
+							</button>
+						</div>
+					</div>
+					<div class="editor-container" id="editor"></div>
+					<div class="layout-resizer-x"></div>
+					<div class="layui-right">
+						<div class="request-container">
+							<div class="layui-tab" lay-filter="request">
+								<ul class="layui-tab-title">
+									<li class="layui-this">请求参数</li>
+									<li>接口选项</li>
+								</ul>
+								<div class="layui-tab-content">
+									<div class="layui-tab-item layui-show">
+										<div id="request-parameter"></div>
+									</div>
+									<div class="layui-tab-item">
+										<div id="option-parameter"></div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="layout-resizer-y"></div>
+						<div class="output-container">
+							<div class="layui-tab" lay-filter="output-container">
+								<ul class="layui-tab-title">
+									<li lay-id="output" class="layui-this">请求结果</li>
+									<li lay-id="debug">调试信息</li>
+								</ul>
+								<div class="layui-tab-content">
+									<div class="layui-tab-item layui-show">
+										<div id="output-result"></div>
+									</div>
+									<div class="layui-tab-item scroller">
+										<table class="layui-table" lay-size="sm" style="height: auto">
+											<thead>
+											<tr>
+												<th>变量名</th>
+												<th>变量值</th>
+												<th>变量类型</th>
+											</tr>
+											</thead>
+											<tbody id="debug-tbody">
 
-									</tbody>
-								</table>
+											</tbody>
+										</table>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		<div style="clear:both;"></div>
 	</body>
 </html>

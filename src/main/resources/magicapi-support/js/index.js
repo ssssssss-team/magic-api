@@ -217,9 +217,11 @@ $(function(){
     }
     var resizeX = $(".layout-resizer-x")[0];
     resizeX.onmousedown = function(e){
-        var box = $("body")[0];
+        var box = $(".layui-right-container")[0];
+        var body = $('body')[0];
+        var mx = body.clientWidth - box.clientWidth;
         document.onmousemove = function(e){
-            var move = (e.clientX / box.clientWidth);
+            var move = ((e.clientX - mx) / box.clientWidth);
             if((1 - move) * box.clientWidth < 300 || move * box.clientWidth  < 500){
                 return;
             }
