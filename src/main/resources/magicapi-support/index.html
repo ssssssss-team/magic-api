@@ -65,13 +65,17 @@
 			<div class="layout-resizer-x"></div>
 			<div class="layui-right">
 				<div class="request-container">
-					<div class="layui-tab">
+					<div class="layui-tab" lay-filter="request">
 						<ul class="layui-tab-title">
 							<li class="layui-this">请求参数</li>
+							<li>接口选项</li>
 						</ul>
 						<div class="layui-tab-content">
 							<div class="layui-tab-item layui-show">
 								<div id="request-parameter"></div>
+							</div>
+							<div class="layui-tab-item">
+								<div id="option-parameter"></div>
 							</div>
 						</div>
 					</div>

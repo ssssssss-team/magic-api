@@ -1,5 +1,9 @@
 package org.ssssssss.magicapi.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Map;
+
 public class ApiInfo {
 
 	private String id;
@@ -11,6 +15,12 @@ public class ApiInfo {
 	private String script;
 
 	private String name;
+
+	private String parameter;
+
+	private String option;
+
+	private Map optionMap;
 
 	public String getId() {
 		return id;
@@ -50,5 +60,29 @@ public class ApiInfo {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getParameter() {
+		return parameter;
+	}
+
+	public void setParameter(String parameter) {
+		this.parameter = parameter;
+	}
+
+	public String getOption() {
+		return option;
+	}
+
+	public void setOption(String option) {
+		this.option = option;
+		try {
+			this.optionMap = new ObjectMapper().readValue(option, Map.class);
+		} catch (Throwable ignored) {
+		}
+	}
+
+	public Object getOptionValue(String key) {
+		return this.optionMap != null ? this.optionMap.get(key) : null;
 	}
 }

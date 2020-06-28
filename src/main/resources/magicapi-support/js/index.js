@@ -29,15 +29,19 @@ $(function(){
     var editor;
     var requestEditor;
     var outputEditor;
+    var optionEditor;
     var editorLayout = function(){
         editor&&editor.layout();
         requestEditor&&requestEditor.layout();
+        optionEditor && optionEditor.layout();
         outputEditor&&outputEditor.layout();
     }
+    var defaultRequestValue = '{\r\n\t"request" : {\r\n\t\t"message" : "Hello MagicAPI!"\r\n\t},\r\n\t"path" : {\r\n\t\t"id" : "123456"\r\n\t},\r\n\t"header" : {\r\n\t\t"token" : "tokenValue"\r\n\t},\r\n\t"cookie" : {\r\n\t\t"cookieName" : "cookieValue"\r\n\t},\r\n\t"session" : {\r\n\t\t"userId" : "123"\r\n\t}\r\n}';
     var resetEditor = function(){
         editor&&editor.setValue('return message;');
-        requestEditor&&requestEditor.setValue('{\r\n\t"request" : {\r\n\t\t"message" : "Hello MagicAPI!"\r\n\t},\r\n\t"path" : {\r\n\t\t"id" : "123456"\r\n\t},\r\n\t"header" : {\r\n\t\t"token" : "tokenValue"\r\n\t},\r\n\t"cookie" : {\r\n\t\t"cookieName" : "cookieValue"\r\n\t},\r\n\t"session" : {\r\n\t\t"userId" : "123"\r\n\t}\r\n}');
+        requestEditor && requestEditor.setValue(defaultRequestValue);
         outputEditor&&outputEditor.setValue('');
+        optionEditor && optionEditor.setValue('{\r\n}');
     }
     var addBreakPoint = function(line){
         if(editor){
@@ -89,6 +93,15 @@ $(function(){
             fixedOverflowWidgets :true,
             theme : 'json'
         });
+        optionEditor = monaco.editor.create(document.getElementById('option-parameter'), {
+            minimap: {
+                enabled: false
+            },
+            language: 'json',
+            folding: false,
+            fixedOverflowWidgets: true,
+            theme: 'json'
+        });
         outputEditor = monaco.editor.create(document.getElementById('output-result'), {
             minimap : {
                 enabled : false
@@ -122,6 +135,10 @@ $(function(){
             }
         });
     });
+
+    var formatJson = function (val, defaultVal) {
+        return (val ? JSON.stringify(val, null, 4) : defaultVal) || '';
+    }
 
     var $tbody = $('#debug-tbody');
     var debugDecorations;
@@ -174,7 +191,7 @@ $(function(){
             return;
         }
         layui.element.tabChange('output-container', 'output');
-        outputEditor.setValue(JSON.stringify(json,null,4))
+        outputEditor.setValue(formatJson(json))
     }
     // 窗口改变大小时，刷新编辑器
     $(window).resize(editorLayout);
@@ -242,6 +259,9 @@ $(function(){
         resizeY.setCapture && resizeY.setCapture();
         return false;
     }
+    layui.element.on('tab', function () {
+        editorLayout();
+    });
     $('body').on('keydown',function(e){
         if(e.keyCode == 119){ //F8
             if(debugSessionId){
@@ -260,8 +280,6 @@ $(function(){
             }
             e.preventDefault();
         }
-    }).on('blur','#request-parameter',function(){
-        var value = this.value;
     }).on('click','.api-list li[data-id]',function(){
         var id = $(this).data('id');
         _ajax({
@@ -276,7 +294,9 @@ $(function(){
                 $('select[name=method]').val(info.method);
                 layui.form.render();
                 resetEditor();
-                editor.setValue(info.script);
+                editor && editor.setValue(info.script);
+                requestEditor && requestEditor.setValue(info.parameter || defaultRequestValue);
+                optionEditor && optionEditor.setValue(info.option || '{\r\n}');
 
             }
         })
@@ -335,6 +355,8 @@ $(function(){
                 path : path,
                 method : method,
                 id : apiId,
+                parameter: requestEditor.getValue(),
+                option: optionEditor.getValue(),
                 name : name
             },
             async : false,
