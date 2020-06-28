@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.model.JsonBean;
+import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.exception.MagicScriptAssertException;
@@ -16,6 +17,7 @@ import org.ssssssss.script.parsing.Span;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class WebUIController {
 
@@ -98,7 +100,16 @@ public class WebUIController {
 			request.remove("script");
 			Object breakpoints = request.get("breakpoints");
 			request.remove("breakpoints");
-			MagicScriptDebugContext context = new MagicScriptDebugContext(request);
+			MagicScriptDebugContext context = new MagicScriptDebugContext();
+			try {
+				putMapIntoContext((Map<String, Object>) request.get("request"), context);
+				putMapIntoContext((Map<String, Object>) request.get("path"), context);
+				context.set("cookie",request.get("cookie"));
+				context.set("session",request.get("session"));
+				context.set("header",request.get("header"));
+			} catch (Exception e) {
+				return new JsonBean<>(0, "请求参数填写错误");
+			}
 			try {
 				context.setBreakpoints((List<Integer>) breakpoints);
 				context.setTimeout(this.debugTimeout);
@@ -179,6 +190,15 @@ public class WebUIController {
 		} catch (Exception e) {
 			logger.error("保存接口出错", e);
 			return new JsonBean<>(-1, e.getMessage());
+		}
+	}
+
+	private void putMapIntoContext(Map<String, Object> map, MagicScriptContext context) {
+		if (map != null && !map.isEmpty()) {
+			Set<Map.Entry<String, Object>> entries = map.entrySet();
+			for (Map.Entry<String, Object> entry : entries) {
+				context.set(entry.getKey(), entry.getValue());
+			}
 		}
 	}
 }

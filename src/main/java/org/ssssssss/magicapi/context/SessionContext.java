@@ -13,6 +13,6 @@ public class SessionContext extends HashMap<String,Object> {
 
     @Override
     public Object get(Object key) {
-        return session.getAttribute(key.toString());
+        return session != null ? session.getAttribute(key.toString()) : null;
     }
 }

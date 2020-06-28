@@ -36,7 +36,7 @@ $(function(){
     }
     var resetEditor = function(){
         editor&&editor.setValue('return message;');
-        requestEditor&&requestEditor.setValue('{\r\n\t"message" : "Hello MagicAPI!"\r\n}');
+        requestEditor&&requestEditor.setValue('{\r\n\t"request" : {\r\n\t\t"message" : "Hello MagicAPI!"\r\n\t},\r\n\t"path" : {\r\n\t\t"id" : "123456"\r\n\t},\r\n\t"header" : {\r\n\t\t"token" : "tokenValue"\r\n\t},\r\n\t"cookie" : {\r\n\t\t"cookieName" : "cookieValue"\r\n\t},\r\n\t"session" : {\r\n\t\t"userId" : "123"\r\n\t}\r\n}');
         outputEditor&&outputEditor.setValue('');
     }
     var addBreakPoint = function(line){

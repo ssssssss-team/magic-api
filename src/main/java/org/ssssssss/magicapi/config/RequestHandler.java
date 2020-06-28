@@ -6,6 +6,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.ssssssss.magicapi.context.CookieContext;
+import org.ssssssss.magicapi.context.HeaderContext;
+import org.ssssssss.magicapi.context.SessionContext;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptEngine;
@@ -46,6 +49,10 @@ public class RequestHandler {
 			MagicScriptContext context = new MagicScriptContext();
 			putMapIntoContext(parameters, context);
 			putMapIntoContext(pathVariables, context);
+			context.set("cookie", new CookieContext(request));
+			context.set("header", new HeaderContext(request));
+			context.set("session", new SessionContext(request.getSession()));
+			context.set("path", pathVariables);
 			if (requestBody != null) {
 				context.set("body", requestBody);
 			}
