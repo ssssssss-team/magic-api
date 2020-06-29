@@ -17,8 +17,6 @@ public class MagicScriptEngine {
 
 	private static ExecutorService service = Executors.newCachedThreadPool();
 
-	private static Logger logger = LoggerFactory.getLogger(MagicScriptEngine.class);
-
 	static {
 		addDefaultImport("range", (BiFunction<Integer, Integer, Iterator<Integer>>) (from, to) -> new Iterator<Integer>() {
 			int idx = from;

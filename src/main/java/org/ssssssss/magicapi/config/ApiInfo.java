@@ -16,6 +16,8 @@ public class ApiInfo {
 
 	private String name;
 
+	private String groupName;
+
 	private String parameter;
 
 	private String option;
@@ -60,6 +62,14 @@ public class ApiInfo {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
+	}
+
+	public String getGroupName() {
+		return groupName;
 	}
 
 	public String getParameter() {

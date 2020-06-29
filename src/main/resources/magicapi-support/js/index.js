@@ -38,6 +38,7 @@ $(function(){
     }
     var defaultRequestValue = '{\r\n\t"request" : {\r\n\t\t"message" : "Hello MagicAPI!"\r\n\t},\r\n\t"path" : {\r\n\t\t"id" : "123456"\r\n\t},\r\n\t"header" : {\r\n\t\t"token" : "tokenValue"\r\n\t},\r\n\t"cookie" : {\r\n\t\t"cookieName" : "cookieValue"\r\n\t},\r\n\t"session" : {\r\n\t\t"userId" : "123"\r\n\t}\r\n}';
     var resetEditor = function(){
+        resetGroup('未分组')
         editor&&editor.setValue('return message;');
         requestEditor && requestEditor.setValue(defaultRequestValue);
         outputEditor&&outputEditor.setValue('');
@@ -82,6 +83,32 @@ $(function(){
             }
         }
     }
+
+    var resetGroup = function(selValue){
+        var $dom = $("select[name='group']").next().find("input");
+        $dom.unbind("blur");
+        if(!$dom.attr('bind-event')){
+            $dom.attr('bind-event','true');
+            $dom.css({
+                "cursor" : "default"
+            })
+            $dom.focus(function () {
+                window.setTimeout(function(){
+                    var sourceSelect =  $dom.next();
+                    var selectText = $(sourceSelect).find(".layui-anim-upbit .layui-this");
+                    var selectVal = $(sourceSelect).find("input").val();
+                    if (selectVal !== selectText.text()) {
+                        $(selectText).removeClass("layui-this");
+                    }
+                },100)
+            })
+        }
+        if(selValue !== undefined){
+            $dom.val(selValue);
+        }
+        return $dom;
+    }
+    resetGroup();
     // 初始化编辑器
     require(['vs/editor/editor.main'], function() {
         requestEditor = monaco.editor.create(document.getElementById('request-parameter'), {
@@ -195,25 +222,85 @@ $(function(){
     }
     // 窗口改变大小时，刷新编辑器
     $(window).resize(editorLayout);
+    var $tree;
     // 渲染接口列表
     var renderApiList = function(emptyString){
         var $ul = $(".layui-left .api-list").html('');
         var empty = true;
+        var root = [];
+        var groups = {
+            "未分组" : {
+                id : '未分组',
+                children : [],
+                spread : true,
+                title : '未分组'
+            }
+        };
         if(apiList&&apiList.length > 0){
             for(var i=0,len = apiList.length;i<len;i++){
                 var info = apiList[i];
+                info.groupName = info.groupName || '未分组';
+                if(!groups[info.groupName]){
+                    groups[info.groupName] = {
+                        id : info.groupName,
+                        children : [],
+                        spread : true,
+                        title : info.groupName
+                    }
+                }
                 if(info.show!==false){
-                    var $li = $('<li/>').attr('data-id',info.id);
-                    $li.append($('<label/>').html(info.name));
-                    $li.append('(' + info.path + ')');
-                    $ul.append($li);
-                    empty = false;
+                    groups[info.groupName].children.push({
+                        id : info.id,
+                        groupName : info.groupName,
+                        name : info.name,
+                        title : '<label>' + info.name + "</label>" + info.path,
+                        path : info.path
+                    });
                 }
             }
         }
-        if(empty){
-            $ul.html($('<li/>').addClass('empty').html(emptyString));
+        for(var key in groups){
+            root.push(groups[key]);
         }
+        if($tree){
+            layui.tree.reload('api-list',{
+                data : root
+            })
+        }else{
+            $tree = layui.tree.render({
+                elem : '#api-list',
+                id : 'api-list',
+                data : root,
+                click : function(obj){
+                    if(!obj.data.children){
+                        var id = obj.data.id;
+                        _ajax({
+                            url : 'get',
+                            data : {
+                                id : id
+                            },
+                            success : function(info){
+                                apiId = id;
+                                $('input[name=name]').val(info.name);
+                                $('input[name=path]').val(info.path);
+                                $('select[name=method]').val(info.method);
+                                layui.form.render();
+                                resetEditor();
+                                resetGroup().val(info.groupName || '未分组');
+                                editor && editor.setValue(info.script);
+                                requestEditor && requestEditor.setValue(info.parameter || defaultRequestValue);
+                                optionEditor && optionEditor.setValue(info.option || '{\r\n}');
+
+                            }
+                        })
+                    }
+                }
+            })
+        }
+
+        // if(empty){
+        //     $ul.html($('<li/>').addClass('empty').html(emptyString));
+        // }
     }
     var resizeX = $(".layout-resizer-x")[0];
     resizeX.onmousedown = function(e){
@@ -282,26 +369,6 @@ $(function(){
             }
             e.preventDefault();
         }
-    }).on('click','.api-list li[data-id]',function(){
-        var id = $(this).data('id');
-        _ajax({
-            url : 'get',
-            data : {
-                id : id
-            },
-            success : function(info){
-                apiId = id;
-                $('input[name=name]').val(info.name);
-                $('input[name=path]').val(info.path);
-                $('select[name=method]').val(info.method);
-                layui.form.render();
-                resetEditor();
-                editor && editor.setValue(info.script);
-                requestEditor && requestEditor.setValue(info.parameter || defaultRequestValue);
-                optionEditor && optionEditor.setValue(info.option || '{\r\n}');
-
-            }
-        })
     }).on('click','.btn-create',function(){
         layui.layer.confirm('新建接口会清空当前编辑器，是否继续？',{
             title : "创建接口"
@@ -350,6 +417,7 @@ $(function(){
         var name = $('input[name=name]').val();
         var path = $('input[name=path]').val();
         var method = $('select[name=method]').val();
+        var groupName = resetGroup().val() || '未分组';
         _ajax({
             url : 'save',
             data : {
@@ -357,6 +425,7 @@ $(function(){
                 path : path,
                 method : method,
                 id : apiId,
+                groupName : groupName,
                 parameter: requestEditor.getValue(),
                 option: optionEditor.getValue(),
                 name : name
@@ -369,6 +438,7 @@ $(function(){
                             apiList[i].name = name;
                             apiList[i].path = path;
                             apiList[i].method = method;
+                            apiList[i].groupName = groupName;
                             break;
                         }
                     }
@@ -379,6 +449,7 @@ $(function(){
                         name : name,
                         path : path,
                         method : method,
+                        groupName : groupName || '未分组',
                         show : true
                     })
                 }

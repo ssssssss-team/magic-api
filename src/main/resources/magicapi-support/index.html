@@ -24,23 +24,31 @@
 					</div>
 					<div class="layui-side">
 						<div class="layui-side-scroll scroller">
-							<ul class="api-list">
-								<li class="empty">您还没有创建接口..</li>
-							</ul>
+							<div class="api-list" id="api-list" >
+
+							</div>
 						</div>
 					</div>
 				</div>
 				<div class="layui-right-container">
 					<div class="properties-container layui-form">
 						<div class="layui-input-placeholder">
-							<div class="layui-input-inline" style="width: 100px;margin-left: 81px;">请求方法</div>
+							<div class="layui-input-inline" style="width: 150px;margin-left: 81px;">接口分组</div>
+							<div class="layui-input-inline" style="width: 100px;margin-left: 5px;">请求方法</div>
 							<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">接口名称</div>
-							<div class="layui-input-inline" style="width: 300px;margin-left: 10px;">接口地址</div>
+							<div class="layui-input-inline" style="width: 300px;margin-left: 5px;">接口地址</div>
 						</div>
 						<div>
 							<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-create">
 								<i class="layui-icon">&#xe624;</i> 新建
 							</button>
+							<div class="layui-input-inline" style="width: 150px;margin-left: 5px;">
+								<select name="group" lay-search>
+									<option value="">请输入组名</option>
+									<option value="未分组">未分组</option>
+									<option value="23">123</option>
+								</select>
+							</div>
 							<div class="layui-input-inline" style="width: 100px;margin-left: 5px;">
 								<select name="method">
 									<option value="GET">GET</option>
@@ -52,7 +60,7 @@
 							<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">
 								<input type="text" name="name" class="layui-input" placeholder="请输入接口名称"/>
 							</div>
-							<div class="layui-input-inline" style="position: absolute;left:390px;right:140px;">
+							<div class="layui-input-inline" style="position: absolute;left:550px;right:140px;">
 								<input type="text" name="path" class="layui-input" placeholder="请输入接口地址"/>
 							</div>
 							<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-save" style="float:right;margin-right: 10px;">

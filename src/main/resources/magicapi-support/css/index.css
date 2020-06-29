@@ -97,27 +97,9 @@ html,body{
 .api-list{
     height : 100%;
 }
-.api-list li{
-    list-style: none;
-    line-height: 28px;
-    border-bottom: 1px solid #eee;
-    margin : 0 4px;
-    font-weight: bold;
-    color : #666;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    cursor: pointer;
-}
-.api-list li:last-child{
-    border-bottom: none;
-}
-.api-list li label{
+.api-list .layui-tree-entry label{
     color : #000;
-}
-.api-list li.empty{
-    text-align: center;
-    cursor: default;
+    padding-right: 4px;
 }
 .scroller{
     overflow: auto;
