@@ -28,8 +28,8 @@ import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
 import org.ssssssss.script.MagicModuleLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
-import org.ssssssss.script.functions.AssertFunctions;
-import org.ssssssss.script.functions.DatabaseQuery;
+import org.ssssssss.magicapi.functions.AssertFunctions;
+import org.ssssssss.magicapi.functions.DatabaseQuery;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
