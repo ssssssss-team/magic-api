@@ -1,7 +1,7 @@
 package org.ssssssss.magicapi.cache;
 
 import org.ssssssss.magicapi.utils.MD5Utils;
-import org.ssssssss.script.functions.DatabaseQuery;
+import org.ssssssss.magicapi.functions.DatabaseQuery;
 
 import java.util.Arrays;
 

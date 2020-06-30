@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.dialect;
 
-import org.ssssssss.script.functions.DatabaseQuery;
+import org.ssssssss.magicapi.functions.DatabaseQuery;
 
 public class MySQLDialect implements Dialect {
 

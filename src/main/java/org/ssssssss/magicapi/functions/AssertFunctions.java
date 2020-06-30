@@ -1,4 +1,4 @@
-package org.ssssssss.script.functions;
+package org.ssssssss.magicapi.functions;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.script.exception.MagicScriptAssertException;

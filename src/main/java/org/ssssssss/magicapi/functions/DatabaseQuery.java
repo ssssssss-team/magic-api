@@ -1,4 +1,4 @@
-package org.ssssssss.script.functions;
+package org.ssssssss.magicapi.functions;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,6 +13,7 @@ import org.ssssssss.magicapi.model.PageResult;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.annotation.UnableCall;
+import org.ssssssss.script.functions.StreamExtension;
 import org.ssssssss.script.parsing.GenericTokenParser;
 import org.ssssssss.script.parsing.Parser;
 import org.ssssssss.script.parsing.TokenStream;
