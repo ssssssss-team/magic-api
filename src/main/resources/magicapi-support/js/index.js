@@ -84,6 +84,40 @@ $(function(){
         }
     }
 
+    var loadAPI = function () {
+        _ajax({
+            url : 'list',
+            success : function(list){
+                apiList = list;
+                renderApiList();
+            }
+        })
+    }
+    var deleteAPIGroup = function(groupName,ids){
+        _ajax({
+            url : 'group/delete',
+            data : {
+                apiIds : ids.join(','),
+                groupName : groupName
+            },
+            success : function(){
+                loadAPI();
+            }
+        })
+    }
+
+    var deleteAPI = function(id){
+        _ajax({
+            url : 'delete',
+            data : {
+                id : id
+            },
+            success : function(){
+                loadAPI();
+            }
+        })
+    }
+
     var resetGroup = function(selValue){
         var $dom = $("select[name='group']").next().find("input");
         $dom.unbind("blur");
@@ -224,7 +258,7 @@ $(function(){
     $(window).resize(editorLayout);
     var $tree;
     // 渲染接口列表
-    var renderApiList = function(emptyString){
+    var renderApiList = function(){
         var $ul = $(".layui-left .api-list").html('');
         var empty = true;
         var root = [];
@@ -253,7 +287,7 @@ $(function(){
                         id : info.id,
                         groupName : info.groupName,
                         name : info.name,
-                        title : '<label>' + info.name + "</label>" + info.path,
+                        title : '<label style="padding-right: 4px;color:#000">' + info.name + "</label>" + info.path,
                         path : info.path
                     });
                 }
@@ -271,6 +305,28 @@ $(function(){
                 elem : '#api-list',
                 id : 'api-list',
                 data : root,
+                edit : ['del'],
+                onlyIconControl : true,
+                operate : function(obj){
+                    var data = obj.data;
+                    if(data.children){
+                        var ids = [];
+                        for(var i=0,len=data.children.length;i<len;i++){
+                            ids.push(data.children[i].id);
+                            if(data.children[i].id == apiId){
+                                apiId = null;
+                                resetEditor();
+                            }
+                        }
+                        deleteAPIGroup(data.id,ids);
+                    }else{
+                        deleteAPI(data.id)
+                    }
+                    if(data.id == apiId){
+                        apiId = null;
+                        resetEditor();
+                    }
+                },
                 click : function(obj){
                     if(!obj.data.children){
                         var id = obj.data.id;
@@ -297,10 +353,6 @@ $(function(){
                 }
             })
         }
-
-        // if(empty){
-        //     $ul.html($('<li/>').addClass('empty').html(emptyString));
-        // }
     }
     var resizeX = $(".layout-resizer-x")[0];
     resizeX.onmousedown = function(e){
@@ -463,17 +515,7 @@ $(function(){
             var info = apiList[i];
             info.show = value ? info.path.indexOf(value) > -1 || info.name.indexOf(value) > -1 : true;
         }
-        if(value){
-            renderApiList('搜不到相关API...')
-        }else{
-            renderApiList('您还没有创建接口..');
-        }
+        renderApiList()
     })
-    _ajax({
-        url : 'list',
-        success : function(list){
-            apiList = list;
-            renderApiList('您还没有创建接口..');
-        }
-    })
+    loadAPI();
 });

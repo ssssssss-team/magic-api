@@ -97,10 +97,6 @@ html,body{
 .api-list{
     height : 100%;
 }
-.api-list .layui-tree-entry label{
-    color : #000;
-    padding-right: 4px;
-}
 .scroller{
     overflow: auto;
 }

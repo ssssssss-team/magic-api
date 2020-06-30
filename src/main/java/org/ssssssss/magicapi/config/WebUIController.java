@@ -54,7 +54,27 @@ public class WebUIController {
 	@ResponseBody
 	public JsonBean<Boolean> delete(String id) {
 		try {
+			mappingHandlerMapping.unregisterMapping(id);
 			return new JsonBean<>(this.magicApiService.delete(id));
+		} catch (Exception e) {
+			logger.error("删除接口出错", e);
+			return new JsonBean<>(-1, e.getMessage());
+		}
+	}
+
+	@RequestMapping("/group/delete")
+	@ResponseBody
+	public JsonBean<Boolean> deleteGroup(String apiIds, String groupName) {
+		try {
+			if (StringUtils.isNotBlank(apiIds)) {
+				String[] ids = apiIds.split(",");
+				if (ids != null && ids.length > 0) {
+					for (String id : ids) {
+						mappingHandlerMapping.unregisterMapping(id);
+					}
+				}
+			}
+			return new JsonBean<>(this.magicApiService.deleteGroup(groupName));
 		} catch (Exception e) {
 			logger.error("删除接口出错", e);
 			return new JsonBean<>(-1, e.getMessage());
@@ -104,9 +124,9 @@ public class WebUIController {
 			try {
 				putMapIntoContext((Map<String, Object>) request.get("request"), context);
 				putMapIntoContext((Map<String, Object>) request.get("path"), context);
-				context.set("cookie",request.get("cookie"));
-				context.set("session",request.get("session"));
-				context.set("header",request.get("header"));
+				context.set("cookie", request.get("cookie"));
+				context.set("session", request.get("session"));
+				context.set("header", request.get("header"));
 			} catch (Exception e) {
 				return new JsonBean<>(0, "请求参数填写错误");
 			}

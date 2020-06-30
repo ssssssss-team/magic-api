@@ -5,12 +5,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 public class MagicApiService {
 
 	private final String deleteById = "delete from magic_api_info where id = ?";
+	private final String deleteByGroupName = "delete from magic_api_info where api_group_name = ?";
 	private final String selectList = "select id,api_name name,api_group_name group_name,api_path path,api_method method from magic_api_info order by api_update_time desc";
 	private final String selectListWithScript = "select id,api_name name,api_group_name group_name,api_path path,api_method method,api_script script,api_parameter parameter,api_option `option` from magic_api_info";
 	private final String selectOne = "select api_method method,api_script script,api_path path,api_name name,api_group_name group_name,api_parameter parameter,api_option `option` from magic_api_info where id = ?";
@@ -26,11 +26,11 @@ public class MagicApiService {
 	}
 
 	protected boolean delete(String id) {
-		Map<String, Object> info = template.queryForMap("select * from magic_api_info where id = ?", id);
-		if (info != null) {
-			return template.update(deleteById, id) > 0;
-		}
-		return false;
+		return template.update(deleteById, id) > 0;
+	}
+
+	protected boolean deleteGroup(String groupName) {
+		return template.update(deleteByGroupName, groupName) > 0;
 	}
 
 	protected List<ApiInfo> list() {
