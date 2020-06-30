@@ -35,7 +35,7 @@ require(['vs/editor/editor.main'], function() {
 
     monaco.languages.setMonarchTokensProvider('magicscript',{
         escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
-        keywords : ['var','if','else','for','return','import','break','continue','as'],
+        keywords : ['new','var','if','else','for','return','import','break','continue','as'],
         digits: /\d+(_+\d+)*/,
         tokenizer : {
             root : [
