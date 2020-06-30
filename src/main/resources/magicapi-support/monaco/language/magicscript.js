@@ -32,7 +32,43 @@ require(['vs/editor/editor.main'], function() {
             { open: '\'', close: '\'', notIn: ['string'] },
         ],
     })
-
+    monaco.languages.registerCompletionItemProvider('magicscript',{
+        provideCompletionItems : function(){
+            var suggestions  = [{
+                label : 'if',
+                kind: monaco.languages.CompletionItemKind.Snippet,
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                insertText : [
+                    'if (${1:condition}) {',
+                    '\t$0',
+                    '}'
+                ].join('\n')
+            },{
+                label : 'ifelse',
+                kind: monaco.languages.CompletionItemKind.Snippet,
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                insertText : [
+                    'if (${1:condition}) {',
+                    '\t$2',
+                    '} else {',
+                    '\t$3',
+                    '}'
+                ].join('\n')
+            },{
+                label : 'for',
+                kind: monaco.languages.CompletionItemKind.Snippet,
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                insertText : [
+                    'for (${1:item} in ${2:range(${3:0},${4:100})}}) {',
+                    '\t$0',
+                    '}'
+                ].join('\n')
+            }]
+            return {
+                suggestions : suggestions
+            }
+        }
+    })
     monaco.languages.setMonarchTokensProvider('magicscript',{
         escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
         keywords : ['new','var','if','else','for','return','import','break','continue','as'],
