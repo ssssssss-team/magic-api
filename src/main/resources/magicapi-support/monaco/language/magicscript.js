@@ -4,8 +4,11 @@ require(['vs/editor/editor.main'], function() {
         base: 'vs',
         inherit: true,
         rules: [
-            { token: 'object.null', foreground: 'ff0001' },
+            { token: 'keywords.null', foreground: 'ff0001' },
             { token: 'keywords', foreground: '0000ff' },
+            { token: 'keywords.true', foreground: '0000ff' },
+            { token: 'keywords.false', foreground: '0000ff' },
+            { token: 'number', foreground: '0000ff' },
             { token: 'comment', foreground: '008000' },
             { token: 'comment.mul', foreground: '008000' },
             { token: 'method.call.empty', foreground: 'ff0000', fontStyle: 'bold' },
@@ -71,7 +74,7 @@ require(['vs/editor/editor.main'], function() {
     })
     monaco.languages.setMonarchTokensProvider('magicscript',{
         escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
-        keywords : ['new','var','if','else','for','return','import','break','continue','as'],
+        keywords : ['new','var','if','else','for','return','import','break','continue','as','null','true','false'],
         digits: /\d+(_+\d+)*/,
         tokenizer : {
             root : [
@@ -82,8 +85,7 @@ require(['vs/editor/editor.main'], function() {
                     }
                 }],
                 [/[{}()\[\]]/, '@brackets'],
-                [/(@digits)[lLbBsS]?/, 'number'],
-                [/(@digits)[dDfF]?/, 'number.float'],
+                [/(@digits)[lLbBsSdDfF]?/, 'number'],
                 [/\/\*\*(?!\/)/, 'comment.mul', '@mulcomment'],
                 [/\/\*/, 'comment', '@comment'],
                 [/\/\/.*$/, 'comment'],
