@@ -6,10 +6,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.ssssssss.magicapi.functions.DatabaseQuery;
 import org.ssssssss.magicapi.model.JsonBean;
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.MagicScriptDebugContext;
-import org.ssssssss.script.MagicScriptEngine;
+import org.ssssssss.script.*;
 import org.ssssssss.script.exception.MagicScriptAssertException;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.Span;
@@ -28,6 +27,10 @@ public class WebUIController {
 	private MappingHandlerMapping mappingHandlerMapping;
 
 	private MagicApiService magicApiService;
+
+	public WebUIController() {
+		MagicScriptEngine.addScriptClass(DatabaseQuery.class);
+	}
 
 	public void setDebugTimeout(int debugTimeout) {
 		this.debugTimeout = debugTimeout;
@@ -110,6 +113,20 @@ public class WebUIController {
 			return resolveThrowable((Throwable) context.getReturnValue());
 		}
 		return new JsonBean<>(context.getReturnValue());
+	}
+
+	@RequestMapping("/classes")
+	@ResponseBody
+	public JsonBean<Map<String, ScriptClass>> classes() {
+		Map<String, ScriptClass> classMap = MagicScriptEngine.getScriptClassMap();
+		classMap.putAll(MagicModuleLoader.getModules());
+		return new JsonBean<>(classMap);
+	}
+
+	@RequestMapping("/class")
+	@ResponseBody
+	public JsonBean<List<ScriptClass>> clazz(String className) {
+		return new JsonBean<>(MagicScriptEngine.getScriptClass(className));
 	}
 
 	@RequestMapping("/test")

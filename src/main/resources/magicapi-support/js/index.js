@@ -142,6 +142,12 @@ $(function(){
         }
         return $dom;
     }
+    _ajax({
+        url: 'classes',
+        success: function (data) {
+            Parser.scriptClass = data || {};
+        }
+    })
     resetGroup();
     // 初始化编辑器
     require(['vs/editor/editor.main'], function() {
