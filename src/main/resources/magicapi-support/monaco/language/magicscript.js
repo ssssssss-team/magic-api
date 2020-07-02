@@ -389,12 +389,16 @@ var Parser = {
                     // Note: escape sequences like \n are parsed in StringLiteral
                     if (stream.match("\\", true)) {
                         stream.consume();
+                        continue;
                     }
                     if (stream.match(TokenType.SingleQuote.literal, true)) {
                         matchedEndQuote = true;
                         break;
                     }
-                    stream.consume();
+                    var ch = stream.consume();
+                    if(ch == '\r' || ch == '\n'){
+                       throwError("''定义的字符串不能换行", stream.endSpan());
+                    }
                 }
                 if (!matchedEndQuote) {
                     throwError("字符串没有结束符\'", stream.endSpan());
@@ -413,6 +417,7 @@ var Parser = {
                     // Note: escape sequences like \n are parsed in StringLiteral
                     if (stream.match("\\", true)) {
                         stream.consume();
+                        continue;
                     }
                     if (stream.match('"""', true)) {
                         matchedEndQuote = true;
@@ -437,12 +442,16 @@ var Parser = {
                     // Note: escape sequences like \n are parsed in StringLiteral
                     if (stream.match("\\", true)) {
                         stream.consume();
+                        continue;
                     }
                     if (stream.match(TokenType.DoubleQuote.literal, true)) {
                         matchedEndQuote = true;
                         break;
                     }
-                    stream.consume();
+                    var ch = stream.consume();
+                    if(ch == '\r' || ch == '\n'){
+                        throwError('"定义的字符串不能换行', stream.endSpan());
+                    }
                 }
                 if (!matchedEndQuote) {
                     throwError("字符串没有结束符\"", stream.endSpan());
