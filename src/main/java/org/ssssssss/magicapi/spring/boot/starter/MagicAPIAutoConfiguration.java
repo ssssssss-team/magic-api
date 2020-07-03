@@ -23,13 +23,15 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import org.ssssssss.magicapi.cache.DefaultSqlCache;
 import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
+import org.ssssssss.magicapi.functions.AssertFunctions;
+import org.ssssssss.magicapi.functions.DatabaseQuery;
 import org.ssssssss.magicapi.provider.PageProvider;
+import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
+import org.ssssssss.magicapi.provider.impl.DefaultResultProvider;
 import org.ssssssss.script.MagicModuleLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
-import org.ssssssss.magicapi.functions.AssertFunctions;
-import org.ssssssss.magicapi.functions.DatabaseQuery;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
@@ -96,6 +98,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return new DefaultPageProvider(pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize());
 	}
 
+	@ConditionalOnMissingBean(ResultProvider.class)
+	@Bean
+	public ResultProvider resultProvider() {
+		return new DefaultResultProvider();
+	}
+
 	@ConditionalOnMissingBean(SqlCache.class)
 	@Bean
 	public SqlCache sqlCache() {
@@ -126,7 +134,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
-	public RequestHandler requestHandler(MagicApiService magicApiService, DynamicDataSource dynamicDataSource, PageProvider pageProvider, MappingHandlerMapping mappingHandlerMapping, SqlCache sqlCache) {
+	public RequestHandler requestHandler(MagicApiService magicApiService, DynamicDataSource dynamicDataSource, PageProvider pageProvider, MappingHandlerMapping mappingHandlerMapping, SqlCache sqlCache, ResultProvider resultProvider) {
 		RowMapper<Map<String, Object>> rowMapper;
 		if (properties.isMapUnderscoreToCamelCase()) {
 			rowMapper = new ColumnMapRowMapper() {
@@ -168,12 +176,14 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		MagicModuleLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
 		MagicModuleLoader.addModule("assert", AssertFunctions.class);
 		DatabaseQuery query = new DatabaseQuery(dynamicDataSource);
+		query.setResultProvider(resultProvider);
 		query.setPageProvider(pageProvider);
 		query.setRowMapper(rowMapper);
 		query.setSqlCache(sqlCache);
 		MagicScriptEngine.addDefaultImport("db", query);
 		Method[] methods = WebUIController.class.getDeclaredMethods();
 		WebUIController controller = new WebUIController();
+		controller.setResultProvider(resultProvider);
 		controller.setDebugTimeout(properties.getDebugConfig().getTimeout());
 		controller.setMagicApiService(magicApiService);
 		controller.setMappingHandlerMapping(mappingHandlerMapping);
@@ -189,6 +199,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			}
 		}
 		RequestHandler requestHandler = new RequestHandler();
+		requestHandler.setResultProvider(resultProvider);
 		requestHandler.setThrowException(properties.isThrowException());
 		if (this.requestInterceptors != null) {
 			this.requestInterceptors.forEach(interceptor -> {
