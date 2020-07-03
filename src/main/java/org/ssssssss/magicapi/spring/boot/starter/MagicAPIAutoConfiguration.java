@@ -134,12 +134,27 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
-	public RequestHandler requestHandler(MagicApiService magicApiService, DynamicDataSource dynamicDataSource, PageProvider pageProvider, MappingHandlerMapping mappingHandlerMapping, SqlCache sqlCache, ResultProvider resultProvider) {
+	public RequestHandler requestHandler(@Autowired(required = false) List<MagicModule> magicModules, //定义的模块集合
+										 MagicApiService magicApiService,
+										 // 动态数据源
+										 DynamicDataSource dynamicDataSource,
+										 // 分页信息获取
+										 PageProvider pageProvider,
+										 // url 映射
+										 MappingHandlerMapping mappingHandlerMapping,
+										 // Sql缓存
+										 SqlCache sqlCache,
+										 // JSON结果转换
+										 ResultProvider resultProvider) {
 		RowMapper<Map<String, Object>> rowMapper;
 		if (properties.isMapUnderscoreToCamelCase()) {
+			logger.info("开启下划线转驼峰命名");
 			rowMapper = new ColumnMapRowMapper() {
 				@Override
 				protected String getColumnKey(String columnName) {
+					if (columnName == null || !columnName.contains("_")) {
+						return columnName;
+					}
 					columnName = columnName.toLowerCase();
 					boolean upperCase = false;
 					StringBuilder sb = new StringBuilder();
@@ -173,14 +188,22 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 				}
 			}
 		});
+		logger.info("注册模块:{} -> {}", "log", Logger.class);
 		MagicModuleLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
+		logger.info("注册模块:{} -> {}", "assert", AssertFunctions.class);
 		MagicModuleLoader.addModule("assert", AssertFunctions.class);
+		if (magicModules != null) {
+			for (MagicModule module : magicModules) {
+				logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
+				MagicModuleLoader.addModule(module.getModuleName(), module);
+			}
+		}
 		DatabaseQuery query = new DatabaseQuery(dynamicDataSource);
 		query.setResultProvider(resultProvider);
 		query.setPageProvider(pageProvider);
 		query.setRowMapper(rowMapper);
 		query.setSqlCache(sqlCache);
-		MagicScriptEngine.addDefaultImport("db", query);
+		MagicScriptEngine.addDefaultImport("db", query);    //默认导入
 		Method[] methods = WebUIController.class.getDeclaredMethods();
 		WebUIController controller = new WebUIController();
 		controller.setResultProvider(resultProvider);
