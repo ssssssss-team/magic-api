@@ -210,9 +210,7 @@ var TokenType = {
     NullLiteral: {error: 'null'},
     Identifier: {error: '标识符'}
 };
-var tokenTypeValues = Object.getOwnPropertyNames(TokenType).map(e = > TokenType[e]
-)
-;
+var tokenTypeValues = Object.getOwnPropertyNames(TokenType).map(e => TokenType[e]);
 TokenType.getSortedValues = function () {
     if (this.values) {
         return this.values;

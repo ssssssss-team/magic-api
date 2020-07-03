@@ -1,11 +1,12 @@
 package org.ssssssss.magicapi.functions;
 
 import org.apache.commons.lang3.StringUtils;
+import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.script.exception.MagicScriptAssertException;
 
 import java.util.regex.Pattern;
 
-public class AssertFunctions {
+public class AssertFunctions implements MagicModule {
 
 	public static void notNull(Object value, int code, String message) {
 		if (value == null) {
@@ -38,4 +39,8 @@ public class AssertFunctions {
 	}
 
 
+	@Override
+	public String getModuleName() {
+		return "assert";
+	}
 }
