@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.context.CookieContext;
 import org.ssssssss.magicapi.context.HeaderContext;
 import org.ssssssss.magicapi.context.SessionContext;
-import org.ssssssss.magicapi.model.JsonBean;
+import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.exception.MagicScriptAssertException;
@@ -29,6 +29,12 @@ public class RequestHandler {
 	private List<RequestInterceptor> requestInterceptors = new ArrayList<>();
 
 	private boolean throwException = false;
+
+	private ResultProvider resultProvider;
+
+	public void setResultProvider(ResultProvider resultProvider) {
+		this.resultProvider = resultProvider;
+	}
 
 	public void addRequestInterceptor(RequestInterceptor requestInterceptor) {
 		requestInterceptors.add(requestInterceptor);
@@ -71,7 +77,7 @@ public class RequestHandler {
 					return target;
 				}
 			}
-			return new JsonBean<>(value);
+			return resultProvider.buildResult(value);
 		} catch (Throwable root) {
 			if (throwException) {
 				throw root;
@@ -81,7 +87,7 @@ public class RequestHandler {
 			do {
 				if (parent instanceof MagicScriptAssertException) {
 					MagicScriptAssertException sae = (MagicScriptAssertException) parent;
-					return new JsonBean<>(sae.getCode(), sae.getMessage());
+					return resultProvider.buildResult(sae.getCode(), sae.getMessage());
 				}
 				if (parent instanceof MagicScriptException) {
 					se = (MagicScriptException) parent;
@@ -89,9 +95,9 @@ public class RequestHandler {
 			} while ((parent = parent.getCause()) != null);
 			logger.error("执行接口出错", root);
 			if (se != null) {
-				return new JsonBean<>(-1, se.getSimpleMessage());
+				return resultProvider.buildResult(-1, se.getSimpleMessage());
 			}
-			return new JsonBean<>(-1, root.getMessage());
+			return resultProvider.buildResult(-1, root.getMessage());
 		}
 
 	}

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
 import org.ssssssss.magicapi.model.JsonBean;
+import org.ssssssss.magicapi.model.JsonBodyBean;
+import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.*;
 import org.ssssssss.script.exception.MagicScriptAssertException;
 import org.ssssssss.script.exception.MagicScriptException;
@@ -28,8 +30,14 @@ public class WebUIController {
 
 	private MagicApiService magicApiService;
 
+	private ResultProvider resultProvider;
+
 	public WebUIController() {
 		MagicScriptEngine.addScriptClass(DatabaseQuery.class);
+	}
+
+	public void setResultProvider(ResultProvider resultProvider) {
+		this.resultProvider = resultProvider;
 	}
 
 	public void setDebugTimeout(int debugTimeout) {
@@ -100,7 +108,7 @@ public class WebUIController {
 	public JsonBean<Object> debugContinue(String id) {
 		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(id);
 		if (context == null) {
-			return new JsonBean<>(0, "debug session not found!");
+			return new JsonBean<>(0, "debug session not found!", resultProvider.buildResult(0, "debug session not found!"));
 		}
 		try {
 			context.singal();
@@ -108,11 +116,11 @@ public class WebUIController {
 			e.printStackTrace();
 		}
 		if (context.isRunning()) {
-			return new JsonBean<>(1000, context.getId(), context.getDebugInfo());
+			return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId()), context.getDebugInfo());
 		} else if (context.isException()) {
 			return resolveThrowable((Throwable) context.getReturnValue());
 		}
-		return new JsonBean<>(context.getReturnValue());
+		return new JsonBodyBean<>(resultProvider.buildResult(context.getReturnValue()), context.getReturnValue());
 	}
 
 	@RequestMapping("/classes")
@@ -145,23 +153,23 @@ public class WebUIController {
 				context.set("session", request.get("session"));
 				context.set("header", request.get("header"));
 			} catch (Exception e) {
-				return new JsonBean<>(0, "请求参数填写错误");
+				return new JsonBean<>(0, "请求参数填写错误", resultProvider.buildResult(0, "请求参数填写错误"));
 			}
 			try {
 				context.setBreakpoints((List<Integer>) breakpoints);
 				context.setTimeout(this.debugTimeout);
 				Object result = MagicScriptEngine.execute(script.toString(), context);
 				if (context.isRunning()) {
-					return new JsonBean<>(1000, context.getId(), result);
+					return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result), result);
 				} else if (context.isException()) {
 					return resolveThrowable((Throwable) context.getReturnValue());
 				}
-				return new JsonBean<>(result);
+				return new JsonBean<>(resultProvider.buildResult(result));
 			} catch (Exception e) {
 				return resolveThrowable(e);
 			}
 		}
-		return new JsonBean<>(0, "脚本不能为空");
+		return new JsonBean<>(resultProvider.buildResult(0, "脚本不能为空"));
 	}
 
 	private JsonBean<Object> resolveThrowable(Throwable root) {
@@ -179,9 +187,9 @@ public class WebUIController {
 		logger.error("测试脚本出错", root);
 		if (se != null) {
 			Span.Line line = se.getLine();
-			return new JsonBean<>(-1000, se.getSimpleMessage(), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol()));
+			return new JsonBodyBean<>(-1000, se.getSimpleMessage(), resultProvider.buildResult(-1000, se.getSimpleMessage()), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol()));
 		}
-		return new JsonBean<>(-1, root.getMessage());
+		return new JsonBean<>(-1, root.getMessage(), resultProvider.buildResult(-1, root.getMessage()));
 	}
 
 	@RequestMapping("/get")

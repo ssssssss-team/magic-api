@@ -11,6 +11,7 @@ import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.model.PageResult;
 import org.ssssssss.magicapi.provider.PageProvider;
+import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.annotation.UnableCall;
 import org.ssssssss.script.functions.StreamExtension;
@@ -33,6 +34,9 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 
 	@UnableCall
 	private PageProvider pageProvider;
+
+	@UnableCall
+	private ResultProvider resultProvider;
 
 	@UnableCall
 	private RowMapper<Map<String, Object>> rowMapper;
@@ -58,6 +62,11 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	@UnableCall
 	public void setPageProvider(PageProvider pageProvider) {
 		this.pageProvider = pageProvider;
+	}
+
+	@UnableCall
+	public void setResultProvider(ResultProvider resultProvider) {
+		this.resultProvider = resultProvider;
 	}
 
 	@UnableCall
@@ -99,6 +108,7 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 		query.setRowMapper(this.rowMapper);
 		query.setSqlCache(this.sqlCache);
 		query.setTtl(this.ttl);
+		query.setResultProvider(this.resultProvider);
 		return query;
 	}
 
@@ -175,13 +185,13 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 		}
 		int count = (int) boundSql.getCacheValue(this.sqlCache, this.cacheName)
 				.orElseGet(() -> putCacheValue(template.queryForObject(dialect.getCountSql(boundSql.getSql()), Integer.class, boundSql.getParameters()), boundSql));
-		result.setTotal(count);
+		List<Object> list = null;
 		if (count > 0) {
 			String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, offset, limit);
-			result.setList((List<Map<String, Object>>) boundSql.removeCacheKey().getCacheValue(this.sqlCache, this.cacheName)
-					.orElseGet(() -> putCacheValue(template.query(pageSql, this.rowMapper, boundSql.getParameters()), boundSql)));
+			list = (List<Object>) boundSql.removeCacheKey().getCacheValue(this.sqlCache, this.cacheName)
+					.orElseGet(() -> putCacheValue(template.query(pageSql, this.rowMapper, boundSql.getParameters()), boundSql));
 		}
-		return result;
+		return resultProvider.buildPageResult(count, list);
 	}
 
 	public Integer selectInt(String sql) {

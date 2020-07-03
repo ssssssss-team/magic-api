@@ -16,7 +16,7 @@ public class JsonBean<T> {
     private String message = "success";
 
     /**
-     * 实际逻辑
+     * 实际数据
      */
     private T data;
 

@@ -236,11 +236,10 @@ $(function(){
         debugDecorations = null;
         if(code === -1000){
             layui.element.tabChange('output-container', 'output');
-            if(json.data){
-                var data = json.data;
-                delete json.data;
+            if (json.body) {
+                var line = json.body;
                 var decorations = editor&&editor.deltaDecorations([],[{
-                    range :  new monaco.Range(data[0],data[2],data[1],data[3] + 1),
+                    range: new monaco.Range(line[0], line[2], line[1], line[3] + 1),
                     options : {
                         hoverMessage : {
                             value : message
@@ -254,11 +253,11 @@ $(function(){
             }
         }else if(code === 1000){ // debug断点
             layui.element.tabChange('output-container', 'debug');
-            debugIn(message,json.data);
+            debugIn(message, json.body);
             return;
         }
         layui.element.tabChange('output-container', 'output');
-        outputEditor.setValue(formatJson(json))
+        outputEditor.setValue(formatJson(json.data))
     }
     // 窗口改变大小时，刷新编辑器
     $(window).resize(editorLayout);
