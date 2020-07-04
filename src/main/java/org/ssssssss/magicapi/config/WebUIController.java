@@ -158,7 +158,7 @@ public class WebUIController {
 			try {
 				context.setBreakpoints((List<Integer>) breakpoints);
 				context.setTimeout(this.debugTimeout);
-				Object result = MagicScriptEngine.execute(script.toString(), context);
+				Object result = MagicScriptEngine.execute(MagicScriptCompiler.compile(script.toString()), context);
 				if (context.isRunning()) {
 					return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result), result);
 				} else if (context.isException()) {

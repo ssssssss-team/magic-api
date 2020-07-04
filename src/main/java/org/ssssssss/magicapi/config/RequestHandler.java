@@ -69,7 +69,7 @@ public class RequestHandler {
 					return value;
 				}
 			}
-			Object value = MagicScriptEngine.execute(info.getScript(), context);
+			Object value = MagicScriptEngine.execute(MagicScriptCompiler.compile(info.getScript()), context);
 			// 执行后置拦截器
 			for (RequestInterceptor requestInterceptor : requestInterceptors) {
 				Object target = requestInterceptor.postHandle(info, context, value);
