@@ -26,6 +26,22 @@ var _ajax = function(options){
 }
 $(function(){
     layui.form.render();
+    //更新检测
+    $.ajax({
+        url : 'https://img.shields.io/maven-central/v/org.ssssssss/magic-api.json',
+        dataType : 'json',
+        success : function(data){
+            if(data.value != 'v0.2.0'){
+                layui.layer.alert('检测到已有新版本'+data.value+'，是否更新？',{
+                    title : '更新提示',
+                    btn : ['更新日志','残忍拒绝']
+                },function(index){
+                    layui.layer.close(index);
+                    window.open('http://www.ssssssss.org/changelog.html')
+                })
+            }
+        }
+    })
     var editor;
     var requestEditor;
     var outputEditor;
@@ -228,6 +244,108 @@ $(function(){
             }
         }])];
     }
+    var doSave = function(){
+        var name = $('input[name=name]').val();
+        var path = $('input[name=path]').val();
+        var method = $('select[name=method]').val();
+        var groupName = resetGroup().val() || '未分组';
+        _ajax({
+            url : 'save',
+            data : {
+                script : editor.getValue(),
+                path : path,
+                method : method,
+                id : apiId,
+                groupName : groupName,
+                parameter: requestEditor.getValue(),
+                option: optionEditor.getValue(),
+                name : name
+            },
+            async : false,
+            success : function(id){
+                if(apiId){
+                    for(var i=0,len = apiList.length;i<len;i++){
+                        if(apiList[i].id == apiId){
+                            apiList[i].name = name;
+                            apiList[i].path = path;
+                            apiList[i].method = method;
+                            apiList[i].groupName = groupName;
+                            break;
+                        }
+                    }
+                }else{
+                    apiId = id;
+                    apiList.unshift({
+                        id : id,
+                        name : name,
+                        path : path,
+                        method : method,
+                        groupName : groupName || '未分组',
+                        show : true
+                    })
+                }
+                renderApiList();
+                layui.layer.msg('保存成功');
+            }
+        })
+    }
+    var doContinue = function(){
+        if($('.btn-continue').hasClass('disabled')){
+            return;
+        }
+        $('.btn-continue').addClass('disabled');
+        if(debugSessionId){
+            _ajax({
+                url : 'continue',
+                data : {
+                    id : debugSessionId
+                },
+                success : function(data,json){
+                    convertResult(json.code,json.message,json);
+                },
+                exception : function(code,message,json){
+                    convertResult(code,message,json);
+                }
+            })
+        }
+    }
+    var doTest = function(){
+        if($('.btn-test').hasClass('disabled')){
+            return;
+        }
+        var request = requestEditor.getValue();
+        try{
+            request = JSON.parse(request);
+            if(typeof request != 'object'){
+                layui.layer.alert('请求参数有误！');
+                return;
+            }
+        }catch(e){
+            layui.layer.alert('请求参数有误！');
+            return;
+        }
+        $('.btn-test').addClass('disabled');
+        request.script = editor.getValue();
+        var decorations = editor.getModel().getAllDecorations();
+        var breakpoints = [];
+        for (var i=0,len =decorations.length;i<len;i++) {
+            if (decorations[i].options.linesDecorationsClassName === 'breakpoints') {
+                breakpoints.push(decorations[i].range.startLineNumber);
+            }
+        }
+        request.breakpoints = breakpoints;
+        _ajax({
+            url : 'test',
+            data : JSON.stringify(request),
+            contentType : 'application/json;charset=utf-8',
+            success : function(data,json){
+                convertResult(json.code,json.message,json);
+            },
+            exception : function(code,message,json){
+                convertResult(code,message,json);
+            }
+        })
+    }
 
     var convertResult = function(code,message,json){
         debugSessionId = null;
@@ -235,6 +353,7 @@ $(function(){
         debugDecorations&&editor&&editor.deltaDecorations(debugDecorations,[]);
         debugDecorations = null;
         if(code === -1000){
+            $(".btn-continue,.btn-test").addClass('btn-test').removeClass('.btn-continue');
             layui.element.tabChange('output-container', 'output');
             if (json.body) {
                 var line = json.body;
@@ -252,10 +371,12 @@ $(function(){
                 },10000)
             }
         }else if(code === 1000){ // debug断点
+            $(".btn-test,.btn-continue").addClass('btn-continue').removeClass('btn-test').removeClass('disabled').find('.layui-icon-triangle-r').removeClass('layui-icon-triangle-r').addClass('layui-icon-next').parent('li').attr('title','继续(F8)');
             layui.element.tabChange('output-container', 'debug');
             debugIn(message, json.body);
             return;
         }
+        $(".btn-test,.btn-continue").addClass('btn-test').removeClass('btn-continue').removeClass('disabled').find('.layui-icon-next').removeClass('layui-icon-next').addClass('layui-icon-triangle-r').parent('li').attr('title','测试(Ctrl+Q)');
         layui.element.tabChange('output-container', 'output');
         outputEditor.setValue(formatJson(json.data))
     }
@@ -410,20 +531,13 @@ $(function(){
     });
     $('body').on('keydown',function(e){
         if(e.keyCode == 119){ //F8
-            if(debugSessionId){
-                _ajax({
-                    url : 'continue',
-                    data : {
-                        id : debugSessionId
-                    },
-                    success : function(data,json){
-                        convertResult(json.code,json.message,json);
-                    },
-                    exception : function(code,message,json){
-                        convertResult(code,message,json);
-                    }
-                })
-            }
+            doContinue();
+            e.preventDefault();
+        }else if(e.keyCode == 81 && (e.metaKey || e.ctrlKey)){  //Ctrl + Q
+            doTest();
+            e.preventDefault();
+        }else if(e.keyCode == 83 && (e.metaKey || e.ctrlKey)){  //Ctrl + S
+            doSave();
             e.preventDefault();
         }
     }).on('click','.btn-create',function(){
@@ -439,81 +553,23 @@ $(function(){
             resetEditor();
         })
     }).on('click','.btn-test',function(){
-        var request = requestEditor.getValue();
-        try{
-            request = JSON.parse(request);
-            if(typeof request != 'object'){
-                layui.layer.alert('请求参数有误！');
-                return;
-            }
-        }catch(e){
-            layui.layer.alert('请求参数有误！');
-            return;
-        }
-        request.script = editor.getValue();
-        var decorations = editor.getModel().getAllDecorations();
-        var breakpoints = [];
-        for (var i=0,len =decorations.length;i<len;i++) {
-            if (decorations[i].options.linesDecorationsClassName === 'breakpoints') {
-                breakpoints.push(decorations[i].range.startLineNumber);
-            }
-        }
-        request.breakpoints = breakpoints;
-        _ajax({
-            url : 'test',
-            data : JSON.stringify(request),
-            contentType : 'application/json;charset=utf-8',
-            success : function(data,json){
-                convertResult(json.code,json.message,json);
-            },
-            exception : function(code,message,json){
-                convertResult(code,message,json);
-            }
-        })
-    }).on('click','.btn-save',function(){
-        var name = $('input[name=name]').val();
-        var path = $('input[name=path]').val();
-        var method = $('select[name=method]').val();
-        var groupName = resetGroup().val() || '未分组';
-        _ajax({
-            url : 'save',
-            data : {
-                script : editor.getValue(),
-                path : path,
-                method : method,
-                id : apiId,
-                groupName : groupName,
-                parameter: requestEditor.getValue(),
-                option: optionEditor.getValue(),
-                name : name
-            },
-            async : false,
-            success : function(id){
-                if(apiId){
-                    for(var i=0,len = apiList.length;i<len;i++){
-                        if(apiList[i].id == apiId){
-                            apiList[i].name = name;
-                            apiList[i].path = path;
-                            apiList[i].method = method;
-                            apiList[i].groupName = groupName;
-                            break;
-                        }
-                    }
-                }else{
-                    apiId = id;
-                    apiList.unshift({
-                        id : id,
-                        name : name,
-                        path : path,
-                        method : method,
-                        groupName : groupName || '未分组',
-                        show : true
-                    })
+        doTest();
+    }).on('click','.btn-continue',function(){
+        doContinue();
+    }).on('click','.btn-delete',function(){
+        //确认删除该节点 "test/{id}/{id2}" 吗？
+        if(apiId){
+            layui.layer.confirm('确定要删除当前接口吗？',function(index){
+                layui.layer.close(index);
+                deleteAPI(apiId);
+                if(data.id == apiId){
+                    apiId = null;
+                    resetEditor();
                 }
-                renderApiList();
-                layui.layer.msg('保存成功');
-            }
-        })
+            })
+        }
+    }).on('click','.btn-save',function(){
+        doSave();
     }).on('keyup','.layui-left .api-search input',function(){
         var value = this.value;
         for(var i=0,len = apiList.length;i<len;i++){

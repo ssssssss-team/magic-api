@@ -237,7 +237,13 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 				AtomicBoolean ifTrue = new AtomicBoolean(false);
 				String val = ifParamTokenParser.parse("?{" + text, param -> {
 					Object result = Parser.parseExpression(new TokenStream(tokenizer.tokenize(param))).evaluate(context);
-					ifTrue.set(Objects.equals(true, result));
+					if(result != null){
+						if(result instanceof String){
+							 ifTrue.set(!result.toString().isEmpty());
+						}else{
+							ifTrue.set(Objects.equals(false, result));
+						}
+					}
 					return null;
 				});
 				if (ifTrue.get()) {

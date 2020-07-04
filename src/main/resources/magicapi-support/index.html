@@ -17,6 +17,23 @@
 			<div class="layui-header">
 				<div class="layui-logo"></div>
 			</div>
+			<ul class="layui-nav layui-layout-right">
+				<li class="layui-nav-item"><a target="_blank" href="http://www.ssssssss.org">帮助文档</a></li>
+				<li class="layui-nav-item">
+					<a target="_blank" href="https://shang.qq.com/wpa/qunwpa?idkey=10faa4cf9743e0aa379a72f2ad12a9e576c81462742143c8f3391b52e8c3ed8d">加入QQ群</a>
+				</li>
+				<li class="layui-nav-item">
+					<a target="_blank" href="https://gitee.com/ssssssss-team/magic-api">
+						<img src="https://gitee.com/ssssssss-team/magic-api/badge/star.svg?theme=white" alt="gitee star">
+					</a>
+				</li>
+				<li class="layui-nav-item">
+					<a target="_blank" href="https://github.com/ssssssss-team/magic-api">
+						<img src="https://img.shields.io/github/stars/ssssssss-team/magic-api.svg?style=social" alt="github star" style="background: none">
+					</a>
+				</li>
+				<span class="layui-nav-bar" style="width: 0px; left: 0px; opacity: 0; top: 55px;"></span>
+			</ul>
 			<div class="layui-bottom">
 				<div class="layui-left">
 					<div class="api-search">
@@ -33,15 +50,18 @@
 				<div class="layui-right-container">
 					<div class="properties-container layui-form">
 						<div class="layui-input-placeholder">
-							<div class="layui-input-inline" style="width: 150px;margin-left: 81px;">接口分组</div>
+							<div class="layui-input-inline" style="width: 150px;margin-left: 145px;">接口分组</div>
 							<div class="layui-input-inline" style="width: 100px;margin-left: 5px;">请求方法</div>
 							<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">接口名称</div>
 							<div class="layui-input-inline" style="width: 300px;margin-left: 5px;">接口地址</div>
 						</div>
 						<div>
-							<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-create">
-								<i class="layui-icon">&#xe624;</i> 新建
-							</button>
+							<ul class="layui-btn-group">
+								<li title="新增" class="btn-create"><i class="layui-icon layui-icon-add-1"></i></li>
+								<li title="测试(Ctrl+Q)" class="btn-test"><i class="layui-icon layui-icon-triangle-r"></i></li>
+								<li title="保存(Ctrl+S)" class="btn-save"><i class="layui-icon layui-icon-release"></i></li>
+								<li title="删除" class="btn-delete"><i class="layui-icon layui-icon-delete"></i></li>
+							</ul>
 							<div class="layui-input-inline" style="width: 150px;margin-left: 5px;">
 								<select name="group" lay-search>
 									<option value="">请输入组名</option>
@@ -59,15 +79,15 @@
 							<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">
 								<input type="text" name="name" class="layui-input" placeholder="请输入接口名称"/>
 							</div>
-							<div class="layui-input-inline" style="position: absolute;left:550px;right:140px;">
+							<div class="layui-input-inline" style="position: absolute;left:615px;right:10px;">
 								<input type="text" name="path" class="layui-input" placeholder="请输入接口地址"/>
 							</div>
-							<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-save" style="float:right;margin-right: 10px;">
-								保存
-							</button>
-							<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-test" style="float:right;margin-right: 10px;">
-								<i class="layui-icon">&#xe652;</i> 测试
-							</button>
+<!--							<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-save" style="float:right;margin-right: 10px;">-->
+<!--								保存-->
+<!--							</button>-->
+<!--							<button type="button" class="layui-btn layui-btn-normal layui-btn-sm btn-test" style="float:right;margin-right: 10px;">-->
+<!--								<i class="layui-icon">&#xe652;</i> 测试-->
+<!--							</button>-->
 						</div>
 					</div>
 					<div class="editor-container" id="editor"></div>

@@ -16,6 +16,20 @@ html,body{
     height : 60px;
     width : 225px;
 }
+.layui-nav{
+    background-color : transparent;
+}
+.layui-nav .layui-nav-item a{
+    color : #fff;
+    padding : 0 10px;
+}
+.layui-layout-right{
+    z-index: 1024;
+}
+.layui-layout-right .layui-nav-item a img{
+    background: #fff;
+    border-radius: 4px;
+}
 .layui-bottom{
     position: absolute;
     top : 60px;
@@ -48,6 +62,35 @@ html,body{
     font-size: 12px;
     line-height: 16px;
     color : #333;
+}
+.properties-container .layui-btn-group{
+    padding : 2px 10px;
+    color : #1890ff;
+    border: 1px solid #D2D2D2;
+    border-radius: 20px;
+}
+.properties-container .layui-btn-group li {
+    float : left;
+    cursor: pointer;
+}
+.properties-container .layui-btn-group li.disabled{
+    color : #ccc;
+}
+.properties-container .layui-btn-group li i{
+    font-size: 20px;
+}
+.properties-container .layui-btn-group li:not(:last-child){
+    border-right: 1px solid #d2d2d2;
+    padding-right: 4px;
+}
+.properties-container .layui-btn-group li:not(:first-child){
+    padding-left: 4px;
+}
+.properties-container .layui-btn-group li:hover:not(.disabled) i{
+    background : #ddd;
+}
+.properties-container .layui-btn-group li:active:not(.disabled) i{
+    background : #ccc;
 }
 .editor-container{
     left : 0px;
