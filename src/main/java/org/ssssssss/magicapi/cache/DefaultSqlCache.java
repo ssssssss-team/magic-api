@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.cache;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.ExpireNode<Object>> implements SqlCache {
 
@@ -11,6 +12,8 @@ public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.Expir
     private int capacity;
 
     private long expire;
+
+    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     public DefaultSqlCache(int capacity, long expire) {
         super((int) Math.ceil(capacity / 0.75) + 1, 0.75f, true);
@@ -26,20 +29,36 @@ public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.Expir
         if (ttl >= 0) {
             expireTime = System.currentTimeMillis() + (ttl == 0 ? this.expire : ttl);
         }
-        // 封装成过期时间节点
-        put(name + separator + key, new ExpireNode<>(expireTime, value));
+        lock.writeLock().lock();
+        try {
+            // 封装成过期时间节点
+            put(name + separator + key, new ExpireNode<>(expireTime, value));
+        } finally {
+            lock.writeLock().unlock();
+        }
     }
 
     @Override
     public Object get(String name, String key) {
         key = name + separator + key;
-        ExpireNode<Object> expireNode = super.get(key);
+        lock.readLock().lock();
+        ExpireNode<Object> expireNode;
+        try {
+            expireNode = super.get(key);
+        } finally {
+            lock.readLock().unlock();
+        }
         if (expireNode == null) {
             return null;
         }
         // 惰性删除过期的
         if (this.expire > -1L && expireNode.expire < System.currentTimeMillis()) {
-            super.remove(key);
+            try {
+                lock.writeLock().lock();
+                super.remove(key);
+            } finally {
+                lock.writeLock().unlock();
+            }
             return null;
         }
         return expireNode.value;
@@ -47,14 +66,19 @@ public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.Expir
 
     @Override
     public void delete(String name) {
-        Iterator<Map.Entry<String, ExpireNode<Object>>> iterator = super.entrySet().iterator();
-        String prefix = name + separator;
-        // 清除所有key前缀为name + separator的缓存
-        while (iterator.hasNext()) {
-            Map.Entry<String, ExpireNode<Object>> entry = iterator.next();
-            if (entry.getKey().startsWith(prefix)) {
-                iterator.remove();
+        try {
+            lock.writeLock().lock();
+            Iterator<Map.Entry<String, ExpireNode<Object>>> iterator = super.entrySet().iterator();
+            String prefix = name + separator;
+            // 清除所有key前缀为name + separator的缓存
+            while (iterator.hasNext()) {
+                Map.Entry<String, ExpireNode<Object>> entry = iterator.next();
+                if (entry.getKey().startsWith(prefix)) {
+                    iterator.remove();
+                }
             }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -72,14 +96,19 @@ public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.Expir
      * 清理已过期的数据
      */
     private void clean() {
-        Iterator<Map.Entry<String, ExpireNode<Object>>> iterator = super.entrySet().iterator();
-        long now = System.currentTimeMillis();
-        while (iterator.hasNext()) {
-            Map.Entry<String, ExpireNode<Object>> next = iterator.next();
-            // 判断是否过期
-            if (next.getValue().expire < now) {
-                iterator.remove();
+        try {
+            lock.writeLock().lock();
+            Iterator<Map.Entry<String, ExpireNode<Object>>> iterator = super.entrySet().iterator();
+            long now = System.currentTimeMillis();
+            while (iterator.hasNext()) {
+                Map.Entry<String, ExpireNode<Object>> next = iterator.next();
+                // 判断是否过期
+                if (next.getValue().expire < now) {
+                    iterator.remove();
+                }
             }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
