@@ -544,71 +544,75 @@ var Parser = {
         return 'java.lang.Object';
     },
     parse: function (stream) {
-        var vars = {
-            db: 'org.ssssssss.magicapi.functions.DatabaseQuery'
-        };
-        var expression;
-        while (stream.hasMore()) {
-            var token = stream.consume();
-            if (token.type == TokenType.Identifier && token.getText() == 'var') {
-                var varName = stream.consume().getText();
-                if (stream.match(TokenType.Assignment, true)) {
+        try{
+            var vars = {
+                db: 'org.ssssssss.magicapi.functions.DatabaseQuery'
+            };
+            var expression;
+            while (stream.hasMore()) {
+                var token = stream.consume();
+                if (token.type == TokenType.Identifier && token.getText() == 'var') {
+                    var varName = stream.consume().getText();
+                    if (stream.match(TokenType.Assignment, true)) {
+                        var value = this.parseStatement(stream);
+                        vars[varName] = value.getJavaType(vars);
+                        if (!stream.hasMore()) {
+                            expression = value;
+                        }
+                    }
+                } else if (token.type == TokenType.Identifier && token.getText() == 'import') {
+                    var varName;
+                    var value;
+                    if (stream.match(TokenType.Identifier, false)) {
+                        varName = stream.consume().getText();
+                        value = varName;
+                    } else if (stream.match(TokenType.StringLiteral, false)) {
+                        value = stream.consume().getText();
+                        value = value.substring(1, value.length - 1);
+                    }
+                    if (stream.match('as', true)) {
+                        varName = stream.consume().getText();
+                    }
+                    if (Parser.scriptClass[value] === undefined) {
+                        _ajax({
+                            url: 'class',
+                            data: {
+                                className: value
+                            },
+                            success: function (list) {
+                                Parser.scriptClass[value] = null;
+                                for (var i = 0, len = list.length; i < len; i++) {
+                                    var item = list[i];
+                                    Parser.scriptClass[item.className] = item;
+                                }
+                            }
+                        })
+                    }
+                    if (varName) {
+                        vars[varName] = value;
+                    }
+                } else if (token.type == TokenType.Assignment) {
+                    var varName = stream.getPrev().getText()
                     var value = this.parseStatement(stream);
                     vars[varName] = value.getJavaType(vars);
                     if (!stream.hasMore()) {
                         expression = value;
                     }
-                }
-            } else if (token.type == TokenType.Identifier && token.getText() == 'import') {
-                var varName;
-                var value;
-                if (stream.match(TokenType.Identifier, false)) {
-                    varName = stream.consume().getText();
-                    value = varName;
-                } else if (stream.match(TokenType.StringLiteral, false)) {
-                    value = stream.consume().getText();
-                    value = value.substring(1, value.length - 1);
-                }
-                if (stream.match('as', true)) {
-                    varName = stream.consume().getText();
-                }
-                if (Parser.scriptClass[value] === undefined) {
-                    _ajax({
-                        url: 'class',
-                        data: {
-                            className: value
-                        },
-                        success: function (list) {
-                            Parser.scriptClass[value] = null;
-                            for (var i = 0, len = list.length; i < len; i++) {
-                                var item = list[i];
-                                Parser.scriptClass[item.className] = item;
-                            }
-                        }
-                    })
-                }
-                if (varName) {
-                    vars[varName] = value;
-                }
-            } else if (token.type == TokenType.Assignment) {
-                var varName = stream.getPrev().getText()
-                var value = this.parseStatement(stream);
-                vars[varName] = value.getJavaType(vars);
-                if (!stream.hasMore()) {
-                    expression = value;
-                }
-            } else if (token.type == TokenType.Identifier) {
-                var index = stream.makeIndex();
-                stream.prev();
-                try {
-                    expression = this.parseAccessOrCall(stream, token.type);
-                } catch (e) {
-                    expression = null;
-                    stream.resetIndex(index);
+                } else if (token.type == TokenType.Identifier) {
+                    var index = stream.makeIndex();
+                    stream.prev();
+                    try {
+                        expression = this.parseAccessOrCall(stream, token.type);
+                    } catch (e) {
+                        expression = null;
+                        stream.resetIndex(index);
+                    }
                 }
             }
+            return expression && expression.getJavaType(vars);
+        }catch(e){
+            return '';
         }
-        return expression && expression.getJavaType(vars);
     },
     parseStatement: function (tokens, expectRightCurly) {
         var result = null;
@@ -1122,7 +1126,14 @@ require(['vs/editor/editor.main'], function() {
             '}'
         ].join('\n')
     }, {
-        label: 'ifelse',
+        label: 'ret',
+        detail : 'return',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        insertText: 'return $1;'
+    }, {
+        label: 'ife',
+        detail : 'if else',
         kind: monaco.languages.CompletionItemKind.Snippet,
         insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
         insertText: [
@@ -1139,6 +1150,64 @@ require(['vs/editor/editor.main'], function() {
         insertText: [
             'for (${1:item} in ${2:range(${3:0},${4:100})}}) {',
             '\t$0',
+            '}'
+        ].join('\n')
+    }, {
+        label: 'br',
+        detail : 'break',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        insertText: 'break;'
+    }, {
+        label: 'co',
+        detail : 'continue',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        insertText: 'continue;'
+    }, {
+        label: 'try',
+        detail : 'try catch',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        insertText: [
+            'try {',
+            '\t$1',
+            '} catch(e) {',
+            '\t$2',
+            '}'
+        ].join('\n')
+    }, {
+        label: 'tryf',
+        detail : 'try catch finally',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        insertText: [
+            'try {',
+            '\t$1',
+            '} catch(e) {',
+            '\t$2',
+            '} finally {',
+            '\t$3',
+            '}'
+        ].join('\n')
+    }, {
+        label: 'cat',
+        detail : 'catch',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        insertText: [
+            'catch(e) {',
+            '\t$1',
+            '}'
+        ].join('\n')
+    }, {
+        label: 'fin',
+        detail : 'finally',
+        kind: monaco.languages.CompletionItemKind.Snippet,
+        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+        insertText: [
+            'finally {',
+            '\t$1',
             '}'
         ].join('\n')
     }];
@@ -1218,7 +1287,7 @@ require(['vs/editor/editor.main'], function() {
     })
     monaco.languages.setMonarchTokensProvider('magicscript',{
         escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
-        keywords : ['new','var','if','else','for','return','import','break','continue','as','null','true','false'],
+        keywords : ['new','var','if','else','for','in','return','import','break','continue','as','null','true','false','try','catch','finally'],
         digits: /\d+(_+\d+)*/,
         tokenizer : {
             root : [
