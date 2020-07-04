@@ -32,6 +32,8 @@ import org.ssssssss.magicapi.provider.impl.DefaultResultProvider;
 import org.ssssssss.script.MagicModuleLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
+import org.ssssssss.script.functions.ExtensionMethod;
+import org.ssssssss.script.interpreter.AbstractReflection;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
@@ -135,6 +137,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	public RequestHandler requestHandler(@Autowired(required = false) List<MagicModule> magicModules, //定义的模块集合
+										 @Autowired(required = false) List<ExtensionMethod> extensionMethods, //自定义的类型扩展
 										 MagicApiService magicApiService,
 										 // 动态数据源
 										 DynamicDataSource dynamicDataSource,
@@ -196,6 +199,15 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			for (MagicModule module : magicModules) {
 				logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
 				MagicModuleLoader.addModule(module.getModuleName(), module);
+			}
+		}
+		if (extensionMethods != null) {
+			for (ExtensionMethod extension : extensionMethods) {
+				List<Class<?>> supports = extension.supports();
+				for (Class<?> support : supports) {
+					logger.info("注册扩展:{} -> {}", support, extension.getClass());
+					AbstractReflection.getInstance().registerExtensionClass(support, extension.getClass());
+				}
 			}
 		}
 		DatabaseQuery query = new DatabaseQuery(dynamicDataSource);
