@@ -178,7 +178,7 @@ public class WebUIController {
 		do {
 			if (parent instanceof MagicScriptAssertException) {
 				MagicScriptAssertException sae = (MagicScriptAssertException) parent;
-				return new JsonBean<>(sae.getCode(), sae.getMessage());
+				return new JsonBean<>(sae.getCode(), sae.getMessage(),resultProvider.buildResult(sae.getCode(),sae.getMessage()));
 			}
 			if (parent instanceof MagicScriptException) {
 				se = (MagicScriptException) parent;

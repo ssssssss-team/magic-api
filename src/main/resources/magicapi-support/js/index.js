@@ -21,6 +21,7 @@ var _ajax = function(options){
         },
         error : function(){
             layui.layer.alert('ajax请求失败');
+            options.error&&options.error();
         }
     })
 }
@@ -305,6 +306,9 @@ $(function(){
                 },
                 exception : function(code,message,json){
                     convertResult(code,message,json);
+                },
+                error : function(){
+                    $(".btn-test,.btn-continue").addClass('btn-test').removeClass('btn-continue').removeClass('disabled').find('.layui-icon-next').removeClass('layui-icon-next').addClass('layui-icon-triangle-r').parent('li').attr('title','测试(Ctrl+Q)');
                 }
             })
         }
