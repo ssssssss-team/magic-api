@@ -15,6 +15,8 @@
     <packaging>jar</packaging>
     <name>magic-api</name>
     <description>auto generate http api</description>
+    <url>https://ssssssss.org/</url>
+    <inceptionYear>2020</inceptionYear>
     <licenses>
         <license>
             <name>The MIT License (MIT)</name>
