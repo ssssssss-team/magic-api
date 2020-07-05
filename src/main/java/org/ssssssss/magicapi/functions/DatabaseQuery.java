@@ -147,9 +147,9 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	}
 
 
-	public Object select(String sql) {
+	public List<Map<String, Object>> select(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
-		return boundSql.getCacheValue(this.sqlCache, this.cacheName)
+		return (List<Map<String, Object>>) boundSql.getCacheValue(this.sqlCache, this.cacheName)
 				.orElseGet(() -> putCacheValue(template.query(boundSql.getSql(), this.rowMapper, boundSql.getParameters()), boundSql));
 	}
 
@@ -200,9 +200,9 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 				.orElseGet(() -> putCacheValue(template.queryForObject(boundSql.getSql(), boundSql.getParameters(), Integer.class), boundSql));
 	}
 
-	public Object selectOne(String sql) {
+	public Map<String, Object> selectOne(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
-		return boundSql.getCacheValue(this.sqlCache, this.cacheName)
+		return (Map<String, Object>) boundSql.getCacheValue(this.sqlCache, this.cacheName)
 				.orElseGet(() -> {
 					List<Map<String, Object>> list = template.query(boundSql.getSql(), this.rowMapper, boundSql.getParameters());
 					return list != null && list.size() > 0 ? list.get(0) : null;
@@ -237,11 +237,11 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 				AtomicBoolean ifTrue = new AtomicBoolean(false);
 				String val = ifParamTokenParser.parse("?{" + text, param -> {
 					Object result = Parser.parseExpression(new TokenStream(tokenizer.tokenize(param))).evaluate(context);
-					if(result != null){
-						if(result instanceof String){
-							 ifTrue.set(!result.toString().isEmpty());
-						}else{
-							ifTrue.set(Objects.equals(false, result));
+					if (result != null) {
+						if (result instanceof String) {
+							ifTrue.set(!result.toString().isEmpty());
+						} else {
+							ifTrue.set(!Objects.equals(false, result));
 						}
 					}
 					return null;
