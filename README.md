@@ -62,6 +62,13 @@ spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 
 # 项目截图
 
+## 整体截图
+![整体截图](https://images.gitee.com/uploads/images/2020/0704/222426_953f813c_297689.png "full.png")
+## 代码提示
+![代码提示](https://images.gitee.com/uploads/images/2020/0704/222708_97f1e1bb_297689.gif "completion.gif")
+## DEBUG
+![DEBUG](https://images.gitee.com/uploads/images/2020/0704/222725_524c2027_297689.gif "debug.gif")
+
 # 其它开源项目
 - [magic-api-spring-boot-starter](https://gitee.com/ssssssss-team/magic-api-spring-boot-starter)
 - [spider-flow，新一代爬虫平台，以图形化方式定义爬虫流程，不写代码即可完成爬虫](https://gitee.com/ssssssss-team/spider-flow)
