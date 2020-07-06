@@ -541,7 +541,7 @@ var Parser = {
         if (target.indexOf('[]') > -1) {
             return 'Object[]';
         }
-        return 'java.lang.Object';
+        return target || 'java.lang.Object';'java.lang.Object';
     },
     parse: function (stream) {
         try{
@@ -622,8 +622,6 @@ var Parser = {
             result = this.parseVarDefine(tokens);
         } else if (tokens.match("if", false)) {
             result = this.parseIfStatement(tokens);
-        } else if (tokens.match("new", false)) {
-            result = this.parseNewStatement(tokens);
         } else if (tokens.match("return", false)) {
             result = this.parseReturn(tokens);
         } else if (tokens.match("for", false)) {
@@ -640,6 +638,11 @@ var Parser = {
             ;
         }
         return result;
+    },
+    parseReturn : function(stream){
+        stream.expect("return");
+        if (stream.match(";", false)) return new AST.Return(null);
+        return new AST.Return(this.parseExpression(stream));
     },
     parseImport: function (stream) {
         var opening = stream.expect("import").getSpan();
@@ -674,8 +677,7 @@ var Parser = {
             expected = TokenType.Assignment;
             if (stream.hasMore()) {
                 stream.expect(expected);
-                var right = stream.match("new", false) ? this.parseNewStatement(stream) : this.parseExpression(stream);
-                return new AST.VariableDefine(new Span(opening, stream.getPrev().getSpan()), variableName, right);
+                return new AST.VariableDefine(new Span(opening, stream.getPrev().getSpan()), variableName, this.parseExpression(stream));
             }
         }
         throwError("Expected " + expected.getError() + ", but got stream is EOF", stream.getPrev().getSpan());
@@ -727,8 +729,7 @@ var Parser = {
         var closingEnd = stream.getPrev().getSpan();
         return new AST.IfStatement(new Span(openingIf, closingEnd), condition, trueBlock, elseIfs, falseBlock);
     },
-    parseNewStatement: function (stream) {
-        var opening = stream.expect("new").getSpan();
+    parseNewExpression: function (stream) {
         var identifier = stream.expect(TokenType.Identifier);
         var args = this.parseArguments(stream);
         var closing = stream.expect(")").getSpan();
@@ -770,7 +771,7 @@ var Parser = {
         return left;
     },
     parseUnaryOperator: function (stream, expectRightCurly) {
-        if (stream.match(false, this.unaryOperators)) {
+        if (stream.match(this.unaryOperators,false)) {
             return new AST.UnaryOperation(stream.consume(), this.parseUnaryOperator(stream, expectRightCurly));
         } else {
             if (stream.match(TokenType.LeftParantheses, false)) {    //(
@@ -886,6 +887,9 @@ var Parser = {
     },
     parseAccessOrCall: function (stream, tokenType) {
         var identifier = stream.expect(tokenType).getSpan();
+        if(tokenType == TokenType.Identifier && "new" == identifier.getText()){
+            return this.parseNewExpression(stream);
+        }
         if (tokenType == TokenType.Identifier && stream.match(TokenType.Lambda, true)) {
             return this.parseLambdaBody(stream, identifier, [identifier.getText()]);
         }
@@ -929,11 +933,11 @@ var Parser = {
         } catch (e) {
             stream.resetIndex(index);
             if (stream.match(TokenType.LeftCurly, true)) {
-                while (stream.hasMore() && !stream.match(false, "}")) {
+                while (stream.hasMore() && !stream.match("}",false)) {
                     childNodes.push(this.parseStatement(stream, true));
                 }
                 var closeSpan = this.expectCloseing(stream);
-                return new AST.LambdaFunction(null);
+                return new AST.LambdaFunction(childNodes);
             } else {
                 var node = this.parseStatement(stream);
                 childNodes.push(new AST.Return(new Span("return", 0, 6), node));
@@ -991,6 +995,11 @@ var AST = {
     UnaryOperation: function () {
 
     },
+    Return : function(result){
+        this.getJavaType = function(env){
+            return result == null ? '' : result.getJavaType(env);
+        }
+    },
     NewStatement: function (identifier) {
         this.getJavaType = function (env) {
             return env[identifier] || 'java.lang.Object';
@@ -1024,12 +1033,21 @@ var AST = {
             return 'java.lang.Object';
         }
     },
-    Return: function () {
-
-    },
     LambdaFunction: function (returnValue) {
         this.getJavaType = function (env) {
-            return returnValue.getJavaType(env);
+            if(returnValue == null){
+                return 'java.lang.Object';
+            }else if(Array.isArray(returnValue)){
+                for(var i=0,len = returnValue.length;i<len;i++){
+                    var node = returnValue[i];
+                    if(node instanceof AST.Return){
+                        return node.getJavaType(env);
+                    }
+                }
+                return 'java.lang.Object';
+            }else{
+                returnValue.getJavaType(env);
+            }
         }
     },
     matchTypes: function (parameters, args) {
@@ -1056,8 +1074,10 @@ var AST = {
             return 'java.lang.Object';
         }
     },
-    FunctionCall: function () {
-
+    FunctionCall: function (result) {
+        this.getJavaType = function(env){
+            return result.getJavaType(env);
+        }
     },
     MemberAccess: function (node, member) {
         this.node = node;
