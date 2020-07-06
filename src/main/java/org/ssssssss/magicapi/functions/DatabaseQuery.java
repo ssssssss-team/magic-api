@@ -1,15 +1,14 @@
 package org.ssssssss.magicapi.functions;
 
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.DynamicDataSource;
+import org.ssssssss.magicapi.config.DynamicDataSource.DataSourceNode;
 import org.ssssssss.magicapi.dialect.Dialect;
 import org.ssssssss.magicapi.dialect.DialectUtils;
 import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.model.Page;
-import org.ssssssss.magicapi.model.PageResult;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.MagicScriptContext;
@@ -23,14 +22,15 @@ import org.ssssssss.script.parsing.Tokenizer;
 import java.sql.Connection;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 
 	@UnableCall
-	private DynamicDataSource dataSource;
+	private DynamicDataSource dynamicDataSource;
 
 	@UnableCall
-	private JdbcTemplate template;
+	private DataSourceNode dataSourceNode;
 
 	@UnableCall
 	private PageProvider pageProvider;
@@ -54,9 +54,9 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 
 	}
 
-	public DatabaseQuery(DynamicDataSource dataSource) {
-		this.dataSource = dataSource;
-		this.template = dataSource.getJdbcTemplate();
+	public DatabaseQuery(DynamicDataSource dynamicDataSource) {
+		this.dynamicDataSource = dynamicDataSource;
+		this.dataSourceNode = dynamicDataSource.getDataSource();
 	}
 
 	@UnableCall
@@ -75,8 +75,8 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	}
 
 	@UnableCall
-	public void setDataSource(DynamicDataSource dataSource) {
-		this.dataSource = dataSource;
+	public void setDynamicDataSource(DynamicDataSource dynamicDataSource) {
+		this.dynamicDataSource = dynamicDataSource;
 	}
 
 	@UnableCall
@@ -85,8 +85,8 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	}
 
 	@UnableCall
-	public void setTemplate(JdbcTemplate template) {
-		this.template = template;
+	public void setDataSourceNode(DataSourceNode dataSourceNode) {
+		this.dataSourceNode = dataSourceNode;
 	}
 
 	@UnableCall
@@ -102,14 +102,30 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	@UnableCall
 	public DatabaseQuery cloneQuery() {
 		DatabaseQuery query = new DatabaseQuery();
-		query.setDataSource(this.dataSource);
-		query.setTemplate(this.template);
+		query.setDynamicDataSource(this.dynamicDataSource);
+		query.setDataSourceNode(this.dataSourceNode);
 		query.setPageProvider(this.pageProvider);
 		query.setRowMapper(this.rowMapper);
 		query.setSqlCache(this.sqlCache);
 		query.setTtl(this.ttl);
 		query.setResultProvider(this.resultProvider);
 		return query;
+	}
+
+	public Object transaction(Function<?, ?> function) {
+		Transaction transaction = transaction();    //创建事务
+		try {
+			Object val = function.apply(null);
+			transaction.commit();    //提交事务
+			return val;
+		} catch (Throwable throwable) {
+			transaction.rollback();    //回滚事务
+			throw throwable;
+		}
+	}
+
+	public Transaction transaction() {
+		return new Transaction(this.dataSourceNode.getDataSourceTransactionManager());
 	}
 
 	@UnableCall
@@ -119,7 +135,6 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 		}
 		return value;
 	}
-
 
 	public DatabaseQuery cache(String cacheName, long ttl) {
 		if (cacheName == null) {
@@ -139,9 +154,9 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	public DatabaseQuery get(Object key) {
 		DatabaseQuery query = cloneQuery();
 		if (key == null) {
-			query.setTemplate(dataSource.getJdbcTemplate());
+			query.setDataSourceNode(dynamicDataSource.getDataSource());
 		} else {
-			query.setTemplate(dataSource.getJdbcTemplate(key.toString()));
+			query.setDataSourceNode(dynamicDataSource.getDataSource(key.toString()));
 		}
 		return query;
 	}
@@ -150,12 +165,12 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	public List<Map<String, Object>> select(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return (List<Map<String, Object>>) boundSql.getCacheValue(this.sqlCache, this.cacheName)
-				.orElseGet(() -> putCacheValue(template.query(boundSql.getSql(), this.rowMapper, boundSql.getParameters()), boundSql));
+				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.rowMapper, boundSql.getParameters()), boundSql));
 	}
 
 	public int update(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
-		int value = template.update(boundSql.getSql(), boundSql.getParameters());
+		int value = dataSourceNode.getJdbcTemplate().update(boundSql.getSql(), boundSql.getParameters());
 		if (this.cacheName != null) {
 			this.sqlCache.delete(this.cacheName);
 		}
@@ -170,26 +185,25 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	public Object page(String sql, long limit, long offset) {
 		BoundSql boundSql = new BoundSql(sql);
 		Connection connection = null;
-		PageResult<Map<String, Object>> result = new PageResult<>();
 		Dialect dialect;
 		try {
-			connection = template.getDataSource().getConnection();
+			connection = dataSourceNode.getJdbcTemplate().getDataSource().getConnection();
 			dialect = DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
 		} catch (Exception e) {
 			throw new MagicAPIException("自动获取数据库方言失败", e);
 		} finally {
-			DataSourceUtils.releaseConnection(connection, template.getDataSource());
+			DataSourceUtils.releaseConnection(connection, dataSourceNode.getJdbcTemplate().getDataSource());
 		}
 		if (dialect == null) {
 			throw new MagicAPIException("自动获取数据库方言失败");
 		}
 		int count = (int) boundSql.getCacheValue(this.sqlCache, this.cacheName)
-				.orElseGet(() -> putCacheValue(template.queryForObject(dialect.getCountSql(boundSql.getSql()), Integer.class, boundSql.getParameters()), boundSql));
+				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().queryForObject(dialect.getCountSql(boundSql.getSql()), Integer.class, boundSql.getParameters()), boundSql));
 		List<Object> list = null;
 		if (count > 0) {
 			String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, offset, limit);
 			list = (List<Object>) boundSql.removeCacheKey().getCacheValue(this.sqlCache, this.cacheName)
-					.orElseGet(() -> putCacheValue(template.query(pageSql, this.rowMapper, boundSql.getParameters()), boundSql));
+					.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().query(pageSql, this.rowMapper, boundSql.getParameters()), boundSql));
 		}
 		return resultProvider.buildPageResult(count, list);
 	}
@@ -197,14 +211,14 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	public Integer selectInt(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return (Integer) boundSql.getCacheValue(this.sqlCache, this.cacheName)
-				.orElseGet(() -> putCacheValue(template.queryForObject(boundSql.getSql(), boundSql.getParameters(), Integer.class), boundSql));
+				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().queryForObject(boundSql.getSql(), boundSql.getParameters(), Integer.class), boundSql));
 	}
 
 	public Map<String, Object> selectOne(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return (Map<String, Object>) boundSql.getCacheValue(this.sqlCache, this.cacheName)
 				.orElseGet(() -> {
-					List<Map<String, Object>> list = template.query(boundSql.getSql(), this.rowMapper, boundSql.getParameters());
+					List<Map<String, Object>> list = dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.rowMapper, boundSql.getParameters());
 					return list != null && list.size() > 0 ? list.get(0) : null;
 				});
 	}
@@ -212,7 +226,7 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	public Object selectValue(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return boundSql.getCacheValue(this.sqlCache, this.cacheName)
-				.orElseGet(() -> putCacheValue(template.queryForObject(boundSql.getSql(), boundSql.getParameters(), Object.class), boundSql));
+				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().queryForObject(boundSql.getSql(), boundSql.getParameters(), Object.class), boundSql));
 	}
 
 	private static Tokenizer tokenizer = new Tokenizer();
