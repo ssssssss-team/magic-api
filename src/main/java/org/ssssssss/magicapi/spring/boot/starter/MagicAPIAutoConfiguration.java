@@ -133,7 +133,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	public MagicApiService magicApiService(DynamicDataSource dynamicDataSource) {
 		logger.info("接口使用数据源：{}", StringUtils.isNotBlank(properties.getDatasource()) ? properties.getDatasource() : "default");
-		return new MagicApiService(dynamicDataSource.getJdbcTemplate(properties.getDatasource()));
+		return new MagicApiService(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
 	}
 
 	@Bean
