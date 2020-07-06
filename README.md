@@ -45,7 +45,7 @@
 ```properties
 server.port=9999
 #配置web页面入口
-magic.web=/magic/web
+magic-api.web=/magic/web
 #以下配置需跟实际情况修改
 spring.datasource.url=jdbc:mysql://localhost/test
 spring.datasource.username=root
