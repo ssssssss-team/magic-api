@@ -541,7 +541,7 @@ var Parser = {
         if (target.indexOf('[]') > -1) {
             return 'Object[]';
         }
-        return target || 'java.lang.Object';'java.lang.Object';
+        return target || 'java.lang.Object';
     },
     parse: function (stream) {
         try{
@@ -1083,6 +1083,19 @@ var AST = {
         this.node = node;
         this.member = member.getText();
         this.getJavaType = function (env, args) {
+            var target = node.getJavaType(env);
+            target = Parser.scriptClass[target];
+            if(target.superClass == 'java.util.HashMap'){
+                var methods = target && target.methods;
+                if (methods) {
+                    for (var i = 0, len = methods.length; i < len; i++) {
+                        var method = methods[i];
+                        if (method.name == 'get' && method.parameters.length == 1) {
+                            return Parser.getWrapperClass(method.returnType);
+                        }
+                    }
+                }
+            }
             return 'java.lang.Object';
         }
     },
