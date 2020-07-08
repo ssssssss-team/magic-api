@@ -9,6 +9,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.ssssssss.magicapi.provider.ApiServiceProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,7 +25,7 @@ public class MappingHandlerMapping {
 	private RequestMappingHandlerMapping requestMappingHandlerMapping;
 	private RequestHandler handler;
 	private Method method = RequestHandler.class.getDeclaredMethod("invoke", HttpServletRequest.class, HttpServletResponse.class, Map.class, Map.class, Map.class);
-	private MagicApiService magicApiService;
+	private ApiServiceProvider magicApiService;
 	private String prefix;
 
 	public MappingHandlerMapping() throws NoSuchMethodException {
@@ -56,7 +57,7 @@ public class MappingHandlerMapping {
 		this.handler = handler;
 	}
 
-	public void setMagicApiService(MagicApiService magicApiService) {
+	public void setMagicApiService(ApiServiceProvider magicApiService) {
 		this.magicApiService = magicApiService;
 	}
 

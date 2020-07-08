@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.model.JsonBodyBean;
+import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.*;
 import org.ssssssss.script.exception.MagicScriptAssertException;
@@ -28,7 +29,7 @@ public class WebUIController {
 
 	private MappingHandlerMapping mappingHandlerMapping;
 
-	private MagicApiService magicApiService;
+	private ApiServiceProvider magicApiService;
 
 	private ResultProvider resultProvider;
 
@@ -48,7 +49,7 @@ public class WebUIController {
 		this.mappingHandlerMapping = mappingHandlerMapping;
 	}
 
-	public void setMagicApiService(MagicApiService magicApiService) {
+	public void setMagicApiService(ApiServiceProvider magicApiService) {
 		this.magicApiService = magicApiService;
 	}
 
@@ -178,7 +179,7 @@ public class WebUIController {
 		do {
 			if (parent instanceof MagicScriptAssertException) {
 				MagicScriptAssertException sae = (MagicScriptAssertException) parent;
-				return new JsonBean<>(sae.getCode(), sae.getMessage(),resultProvider.buildResult(sae.getCode(),sae.getMessage()));
+				return new JsonBean<>(sae.getCode(), sae.getMessage(), resultProvider.buildResult(sae.getCode(), sae.getMessage()));
 			}
 			if (parent instanceof MagicScriptException) {
 				se = (MagicScriptException) parent;
