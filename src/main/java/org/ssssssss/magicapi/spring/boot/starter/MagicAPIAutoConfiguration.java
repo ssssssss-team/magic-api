@@ -26,9 +26,11 @@ import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.functions.AssertFunctions;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
+import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultApiServiceProvider;
+import org.ssssssss.magicapi.provider.impl.DefaultMagicAPIService;
 import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultResultProvider;
 import org.ssssssss.script.MagicModuleLoader;
@@ -137,6 +139,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	public ApiServiceProvider apiServiceProvider(DynamicDataSource dynamicDataSource) {
 		logger.info("接口使用数据源：{}", StringUtils.isNotBlank(properties.getDatasource()) ? properties.getDatasource() : "default");
 		return new DefaultApiServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
+	}
+
+	@ConditionalOnMissingBean(MagicAPIService.class)
+	@Bean
+	public MagicAPIService magicAPIService(MappingHandlerMapping mappingHandlerMapping, ResultProvider resultProvider) {
+		return new DefaultMagicAPIService(mappingHandlerMapping, resultProvider, properties.isThrowException());
 	}
 
 	@Bean
