@@ -10,6 +10,7 @@ import org.ssssssss.magicapi.functions.DatabaseQuery;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.model.JsonBodyBean;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
+import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.*;
 import org.ssssssss.script.exception.MagicScriptAssertException;
@@ -35,6 +36,7 @@ public class WebUIController {
 
 	public WebUIController() {
 		MagicScriptEngine.addScriptClass(DatabaseQuery.class);
+		MagicScriptEngine.addScriptClass(MagicAPIService.class);
 	}
 
 	public void setResultProvider(ResultProvider resultProvider) {

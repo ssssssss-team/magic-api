@@ -70,6 +70,10 @@ public class MappingHandlerMapping {
 		}
 	}
 
+	public ApiInfo getApiInfo(String method, String requestMapping) {
+		return mappings.get(buildMappingKey(method, requestMapping));
+	}
+
 	/**
 	 * 注册请求映射
 	 *

@@ -12,15 +12,12 @@ import org.ssssssss.magicapi.context.SessionContext;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptEngine;
-import org.ssssssss.script.exception.MagicScriptAssertException;
-import org.ssssssss.script.exception.MagicScriptException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class RequestHandler {
 
@@ -53,8 +50,8 @@ public class RequestHandler {
 		try {
 			info = MappingHandlerMapping.getMappingApiInfo(request);
 			MagicScriptContext context = new MagicScriptContext();
-			putMapIntoContext(parameters, context);
-			putMapIntoContext(pathVariables, context);
+			context.putMapIntoContext(parameters);
+			context.putMapIntoContext(pathVariables);
 			context.set("cookie", new CookieContext(request));
 			context.set("header", new HeaderContext(request));
 			context.set("session", new SessionContext(request.getSession()));
@@ -82,32 +79,8 @@ public class RequestHandler {
 			if (throwException) {
 				throw root;
 			}
-			MagicScriptException se = null;
-			Throwable parent = root;
-			do {
-				if (parent instanceof MagicScriptAssertException) {
-					MagicScriptAssertException sae = (MagicScriptAssertException) parent;
-					return resultProvider.buildResult(sae.getCode(), sae.getMessage());
-				}
-				if (parent instanceof MagicScriptException) {
-					se = (MagicScriptException) parent;
-				}
-			} while ((parent = parent.getCause()) != null);
-			logger.error("执行接口出错", root);
-			if (se != null) {
-				return resultProvider.buildResult(-1, se.getSimpleMessage());
-			}
-			return resultProvider.buildResult(-1, root.getMessage());
+			return resultProvider.buildResult(root);
 		}
 
-	}
-
-	private void putMapIntoContext(Map<String, Object> map, MagicScriptContext context) {
-		if (map != null && !map.isEmpty()) {
-			Set<Map.Entry<String, Object>> entries = map.entrySet();
-			for (Map.Entry<String, Object> entry : entries) {
-				context.set(entry.getKey(), entry.getValue());
-			}
-		}
 	}
 }
