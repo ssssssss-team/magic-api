@@ -252,6 +252,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			this.requestInterceptors.forEach(interceptor -> {
 				logger.info("注册请求拦截器：{}", interceptor.getClass());
 				requestHandler.addRequestInterceptor(interceptor);
+				controller.addRequestInterceptor(interceptor);
 			});
 		}
 		mappingHandlerMapping.setHandler(requestHandler);
