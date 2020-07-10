@@ -843,7 +843,7 @@ var MagicEditor = {
         var $parent = $('.bottom-container');
         var $dom = $parent.find('.bottom-content-container').show();
         $parent.find('.bottom-tab li').eq(index).addClass('selected').siblings().removeClass('selected');
-        $dom.find('.bottom-content-item').eq(index).show().siblings().hide();
+        $dom.find('.bottom-content-item').eq(index).show().siblings('.bottom-content-item').hide();
         this.layout();
     },
     createDialog : function(options){
