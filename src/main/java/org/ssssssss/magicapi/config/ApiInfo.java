@@ -6,22 +6,49 @@ import java.util.Map;
 
 public class ApiInfo {
 
+	/**
+	 * 接口ID
+	 */
 	private String id;
 
+	/**
+	 * 请求方法
+	 */
 	private String method;
 
+	/**
+	 * 请求路径
+	 */
 	private String path;
 
+	/**
+	 * 脚本内容
+	 */
 	private String script;
 
+	/**
+	 * 接口名称
+	 */
 	private String name;
 
+	/**
+	 * 接口分组名称
+	 */
 	private String groupName;
 
+	/**
+	 * 设置的请求参数
+	 */
 	private String parameter;
 
+	/**
+	 * 设置的接口选项
+	 */
 	private String option;
 
+	/**
+	 * 接口选项json->map
+	 */
 	private Map optionMap;
 
 	public String getId() {
