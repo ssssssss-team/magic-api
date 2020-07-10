@@ -849,7 +849,7 @@ var MagicEditor = {
     createDialog : function(options){
         options = options || {};
         var $dialog = $('<div/>').addClass('dialog');
-        var $header = $('<div/>').addClass('dialog-header').append(options.title || '');
+        var $header = $('<div/>').addClass('dialog-header').addClass('not-select').append(options.title || '');
         var $close = $('<span/>').append('<i class="iconfont icon-close"></i>');
         $header.append($close);
         $close.on('click',function(){
@@ -859,7 +859,7 @@ var MagicEditor = {
         $dialog.append($header);
         $dialog.append('<div class="dialog-content">' + options.content.replace(/\n/g,'<br>').replace(/ /g,'&nbsp;').replace(/\t/g,'&nbsp;&nbsp;&nbsp;&nbsp;') + '</div>');
         var buttons = options.buttons || [];
-        var $buttons = $('<div/>').addClass('dialog-buttons');
+        var $buttons = $('<div/>').addClass('dialog-buttons').addClass('not-select');
         if(buttons.length > 1){
             $buttons.addClass('button-align-right');
         }
@@ -943,6 +943,17 @@ var MagicEditor = {
             }
             resizer.setCapture && resizer.setCapture();
         }
+
+        $('body').on('click','.group-header',function(){
+            var $parent = $(this).parent();
+            if($parent.hasClass('opened')){
+                $parent.removeClass('opened');
+                $(this).find('.icon-arrow-bottom').removeClass('icon-arrow-bottom').addClass('icon-arrow-right');
+            }else{
+                $parent.addClass('opened');
+                $(this).find('.icon-arrow-right').removeClass('icon-arrow-right').addClass('icon-arrow-bottom');
+            }
+        })
     },
     formatJson : function (val, defaultVal) {
         return (val ? JSON.stringify(val, null, 4) : defaultVal) || '';
