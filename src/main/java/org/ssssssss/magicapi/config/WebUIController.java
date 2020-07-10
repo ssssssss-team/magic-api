@@ -68,8 +68,11 @@ public class WebUIController {
 	@ResponseBody
 	public JsonBean<Boolean> delete(String id) {
 		try {
-			mappingHandlerMapping.unregisterMapping(id);
-			return new JsonBean<>(this.magicApiService.delete(id));
+			boolean success = this.magicApiService.delete(id);
+			if(success){
+				mappingHandlerMapping.unregisterMapping(id);
+			}
+			return new JsonBean<>(success);
 		} catch (Exception e) {
 			logger.error("删除接口出错", e);
 			return new JsonBean<>(-1, e.getMessage());
@@ -80,15 +83,18 @@ public class WebUIController {
 	@ResponseBody
 	public JsonBean<Boolean> deleteGroup(String apiIds, String groupName) {
 		try {
-			if (StringUtils.isNotBlank(apiIds)) {
-				String[] ids = apiIds.split(",");
-				if (ids != null && ids.length > 0) {
-					for (String id : ids) {
-						mappingHandlerMapping.unregisterMapping(id);
+			boolean success = this.magicApiService.deleteGroup(groupName);
+			if(success){
+				if (StringUtils.isNotBlank(apiIds)) {
+					String[] ids = apiIds.split(",");
+					if (ids != null && ids.length > 0) {
+						for (String id : ids) {
+							mappingHandlerMapping.unregisterMapping(id);
+						}
 					}
 				}
 			}
-			return new JsonBean<>(this.magicApiService.deleteGroup(groupName));
+			return new JsonBean<>(success);
 		} catch (Exception e) {
 			logger.error("删除接口出错", e);
 			return new JsonBean<>(-1, e.getMessage());
@@ -150,8 +156,8 @@ public class WebUIController {
 			request.remove("breakpoints");
 			MagicScriptDebugContext context = new MagicScriptDebugContext();
 			try {
-				putMapIntoContext((Map<String, Object>) request.get("request"), context);
-				putMapIntoContext((Map<String, Object>) request.get("path"), context);
+				context.putMapIntoContext((Map<String, Object>) request.get("request"));
+				context.putMapIntoContext((Map<String, Object>) request.get("path"));
 				context.set("cookie", request.get("cookie"));
 				context.set("session", request.get("session"));
 				context.set("header", request.get("header"));
@@ -238,15 +244,6 @@ public class WebUIController {
 		} catch (Exception e) {
 			logger.error("保存接口出错", e);
 			return new JsonBean<>(-1, e.getMessage());
-		}
-	}
-
-	private void putMapIntoContext(Map<String, Object> map, MagicScriptContext context) {
-		if (map != null && !map.isEmpty()) {
-			Set<Map.Entry<String, Object>> entries = map.entrySet();
-			for (Map.Entry<String, Object> entry : entries) {
-				context.set(entry.getKey(), entry.getValue());
-			}
 		}
 	}
 }
