@@ -248,15 +248,15 @@ var MagicEditor = {
                     MagicEditor.setStatusBar('准备删除接口');
                     MagicEditor.report('script_delete')
                     var apiId = $li.data('id');
-                    if(MagicEditor.apiId == apiId){
-                        MagicEditor.apiId = null;
-                    }
                     MagicEditor.ajax({
                         url : 'delete',
                         data : {
                             id : apiId
                         },
                         success : function(){
+                            if(MagicEditor.apiId == apiId){
+                                MagicEditor.apiId = null;
+                            }
                             MagicEditor.setStatusBar('接口「'+text + '」已删除');
                             MagicEditor.loadAPI();  //重新加载
                         }

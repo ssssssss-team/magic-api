@@ -775,17 +775,3 @@ ul li {
 .skin-dark .top-toolbar-container .header label.version{
     color: #999;
 }
-.monaco-editor .view-line,
-.monaco-editor .view-overlays > div{
-    padding-left: 5px;
-}
-.monaco-editor .cursor,
-.monaco-editor .selectionHighlight,
-.monaco-editor .bracket-match,
-.monaco-editor .cslr.selected-text,
-.monaco-editor .bottom-left-radius,
-.monaco-editor .top-left-radius,
-.monaco-editor .view-overlays .cigr,
-.monaco-editor .editor-widget{
-    margin-left: 5px;
-}
