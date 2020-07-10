@@ -857,7 +857,7 @@ var MagicEditor = {
             $wrapper.remove();
         })
         $dialog.append($header);
-        $dialog.append('<div class="dialog-content">' + options.content + '</div>');
+        $dialog.append('<div class="dialog-content">' + options.content.replace(/\n/g,'<br>').replace(/ /g,'&nbsp;').replace(/\t/g,'&nbsp;&nbsp;&nbsp;&nbsp;') + '</div>');
         var buttons = options.buttons || [];
         var $buttons = $('<div/>').addClass('dialog-buttons');
         if(buttons.length > 1){
