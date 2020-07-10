@@ -1114,20 +1114,6 @@ var AST = {
 }
 require(['vs/editor/editor.main'], function() {
     monaco.languages.register({ id :'magicscript'});
-    monaco.editor.defineTheme('magicscript', {
-        base: 'vs',
-        inherit: true,
-        rules: [
-            { token: 'keywords.null', foreground: 'ff0001' },
-            { token: 'keywords', foreground: '0000ff' },
-            { token: 'keywords.true', foreground: '0000ff' },
-            { token: 'keywords.false', foreground: '0000ff' },
-            { token: 'number', foreground: '0000ff' },
-            { token: 'comment', foreground: '008000' },
-            { token: 'comment.mul', foreground: '008000' },
-            { token: 'method.call.empty', foreground: 'ff0000', fontStyle: 'bold' },
-        ]
-    });
     monaco.languages.setLanguageConfiguration('magicscript',{
         wordPattern: /(-?\d*\.\d\w*)|([^\`\~\!\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g,
         brackets: [
@@ -1332,7 +1318,7 @@ require(['vs/editor/editor.main'], function() {
                 }],
                 [/[{}()\[\]]/, '@brackets'],
                 [/(@digits)[lLbBsSdDfF]?/, 'number'],
-                [/\/\*\*(?!\/)/, 'comment.mul', '@mulcomment'],
+                [/\/\*\*(?!\/)/, 'comment.doc', '@mulcomment'],
                 [/\/\*/, 'comment', '@comment'],
                 [/\/\/.*$/, 'comment'],
                 [/[;,.]/, 'delimiter'],
@@ -1350,15 +1336,15 @@ require(['vs/editor/editor.main'], function() {
                 [/[\/*]/, 'comment']
             ],
             mulcomment: [
-                [/[^\/*]+/, 'comment.mul'],
+                [/[^\/*]+/, 'comment.doc'],
                 // [/\/\*/, 'comment.doc', '@push' ],    // nested comment not allowed :-(
-                [/\/\*/, 'comment.mul.invalid'],
-                [/\*\//, 'comment.mul', '@pop'],
-                [/[\/*]/, 'comment.mul']
+                [/\/\*/, 'comment.doc.invalid'],
+                [/\*\//, 'comment.doc', '@pop'],
+                [/[\/*]/, 'comment.doc']
             ],
             string_multi: [
-                [/"""/, {token: 'string.multi', next: '@pop'}],
-                [/"/, {token: 'string.multi', next: '@string_multi_embedded', nextEmbedded: 'sql'}]
+                [/"""/, {token: 'string', next: '@pop'}],
+                [/"/, {token: 'string', next: '@string_multi_embedded', nextEmbedded: 'sql'}]
             ],
             string_multi_embedded: [
                 [/"""/, {token: '@rematch', next: '@pop', nextEmbedded: '@pop'}],
@@ -1366,7 +1352,7 @@ require(['vs/editor/editor.main'], function() {
             ],
             string_double: [
                 [/[^\\"]+/, 'string'],
-                // [/@escapes/, 'string.escape'],
+                [/@escapes/, 'string.escape'],
                 [/\\./, 'string.escape.invalid'],
                 [/"/, 'string', '@pop']
             ],

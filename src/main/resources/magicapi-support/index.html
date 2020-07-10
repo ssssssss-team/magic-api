@@ -1,139 +1,154 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>Magic API</title>
-		<meta charset="utf-8" />
-		<link rel="icon" href="images/favicon.png" />
-		<link rel="stylesheet" href="layui/css/layui.css" />
-		<link rel="stylesheet" href="css/index.css" />
-		<script type="text/javascript" src="monaco/loader.js"></script>
-		<script type="text/javascript">require.config({ paths: { 'vs': 'monaco' }});</script>
-		<script type="text/javascript" src="monaco/language/magicscript.js"></script>
-		<script type="text/javascript" src="layui/layui.all.js"></script>
-		<script type="text/javascript" src="js/index.js"></script>
-	</head>
-	<body>
-		<div class="layui-layout">
-			<div class="layui-header">
-				<div class="layui-logo"></div>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>MagicAPIv0.2.1 - Powered by ssssssss-team</title>
+	<link rel="icon" href="images/favicon.png" />
+	<style type="text/css">.loading-wrapper{position:fixed;top:0;bottom:0;left:0;right:0;z-index:2147483647;text-align:center;background:#fff}.loading{position:absolute;top:50%;left:50%;width:500px;height:100px;margin-left:-250px;margin-top:-50px;text-align:center}.loading .title{font-size:0;color:#0075ff;letter-spacing:0}.loading .title label{font-size:36px;display:inline-block;margin-top:5px;vertical-align:top}.loading .title span{font-size:72px;display:inline-block;padding:0 3px;animation:stretch 1s infinite}.loading .title span:nth-child(1){animation-delay:calc(1s / 8 * 0 / 2)}.loading .title span:nth-child(2){animation-delay:calc(1s / 8 * 1 / 2)}.loading .title span:nth-child(3){animation-delay:calc(1s / 8 * 2 / 2)}.loading .title span:nth-child(4){animation-delay:calc(1s / 8 * 3 / 2)}.loading .title span:nth-child(5){animation-delay:calc(1s / 8 * 4 / 2)}.loading .title span:nth-child(6){animation-delay:calc(1s / 8 * 5 / 2)}.loading .title span:nth-child(7){animation-delay:calc(1s / 8 * 6 / 2)}.loading .title span:nth-child(8){animation-delay:calc(1s / 8 * 7 / 2)}.loading .loading-text{text-align:center;font-weight:bolder;font-style:italic;color:#889aa4;font-size:32px;animation:blink-loading 2s ease-in infinite}@keyframes stretch{0%{transform:scale(1)}25%{transform:scale(1.2)}50%{transform:scale(1)}100%{transform:scale(1)}}@keyframes blink-loading{0%{opacity:100%}50%{opacity:50%}100%{opacity:100%}}</style>
+	<link rel="stylesheet" href="css/index.css" />
+	<link rel="stylesheet" href="//at.alicdn.com/t/font_1928593_lje7zmyxv7.css">
+	<script type="text/javascript" src="monaco/loader.js"></script>
+	<script type="text/javascript">require.config({ paths: { 'vs': 'monaco' }});</script>
+	<script type="text/javascript" src="monaco/language/magicscript.js"></script>
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/index.js"></script>
+</head>
+<body>
+<div class="loading-wrapper">
+	<div class="loading">
+		<div class="title">
+			<span>M</span>
+			<span>A</span>
+			<span>G</span>
+			<span>I</span>
+			<span>C</span>
+			<span>A</span>
+			<span>P</span>
+			<span>I</span>
+			<label>v0.2.1</label>
+		</div>
+		<div class="loading-text">Loading...</div>
+	</div>
+</div>
+<div class="top-toolbar-container not-select">
+	<div class="header">
+		<img src="images/logo.png"/>
+		<label>magic-api</label>
+		<label class="version">v0.2.1</label>
+	</div>
+	<span class="button-run" title="运行（Ctrl+Q）"><i class="iconfont icon-run"></i></span>
+	<span class="button-save" title="保存（Ctrl+S）"><i class="iconfont icon-save"></i></span>
+	<span class="button-delete" title="删除"><i class="iconfont icon-delete"></i></span>
+	<span class="button-skin" title="换肤"><i class="iconfont icon-skin"></i></span>
+	<span class="button-gitee" title="Gitee"><i class="iconfont icon-gitee"></i></span>
+	<span class="button-github" title="Github"><i class="iconfont icon-git"></i></span>
+	<span class="button-qq" title="加入QQ群"><i class="iconfont icon-qq"></i></span>
+	<span class="button-help" title="帮助文档"><i class="iconfont icon-help"></i></span>
+</div>
+<div class="skin-selector">
+	<ul>
+		<li>default</li>
+		<li class="selected">dark</li>
+	</ul>
+</div>
+<ul class="left-toolbar-container not-select">
+	<li class="selected">接口列表<i class="iconfont icon-list"></i></li>
+</ul>
+<div class="main-container">
+	<div class="middle-container">
+		<div class="api-list-container not-select">
+			<div class="group-item opened">
+				<div class="group-header"><i class="iconfont icon-arrow-bottom"></i><i class="iconfont icon-list"></i>未分组</div>
 			</div>
-			<ul class="layui-nav layui-layout-right">
-				<li class="layui-nav-item"><a target="_blank" href="http://www.ssssssss.org">帮助文档</a></li>
-				<li class="layui-nav-item">
-					<a target="_blank" href="https://shang.qq.com/wpa/qunwpa?idkey=10faa4cf9743e0aa379a72f2ad12a9e576c81462742143c8f3391b52e8c3ed8d">加入QQ群</a>
-				</li>
-				<li class="layui-nav-item">
-					<a target="_blank" href="https://gitee.com/ssssssss-team/magic-api">
-						<img src="https://gitee.com/ssssssss-team/magic-api/badge/star.svg?theme=white" alt="gitee star">
-					</a>
-				</li>
-				<li class="layui-nav-item">
-					<a target="_blank" href="https://github.com/ssssssss-team/magic-api">
-						<img src="https://img.shields.io/github/stars/ssssssss-team/magic-api.svg?style=social" alt="github star" style="background: none">
-					</a>
-				</li>
-				<span class="layui-nav-bar" style="width: 0px; left: 0px; opacity: 0; top: 55px;"></span>
-			</ul>
-			<div class="layui-bottom">
-				<div class="layui-left">
-					<div class="api-search">
-						<input class="layui-input" type="text" placeholder="请输入接口名称或地址搜索"/>
-					</div>
-					<div class="layui-side">
-						<div class="layui-side-scroll scroller">
-							<div class="api-list" id="api-list" >
-
-							</div>
-						</div>
-					</div>
+		</div>
+		<div class="resizer-x"></div>
+		<div class="editor-container-wrapper">
+			<div class="properties-container">
+				<label>接口分组：</label>
+				<div class="select input" style="width:120px">
+					<input type="text" value="未分组" name="group"/>
+					<ul class="not-select">
+						<li>未分组</li>
+						<li>组1</li>
+						<li>组2</li>
+					</ul>
 				</div>
-				<div class="layui-right-container">
-					<div class="properties-container layui-form">
-						<div class="layui-input-placeholder">
-							<div class="layui-input-inline" style="width: 150px;margin-left: 145px;">接口分组</div>
-							<div class="layui-input-inline" style="width: 100px;margin-left: 5px;">请求方法</div>
-							<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">接口名称</div>
-							<div class="layui-input-inline" style="width: 300px;margin-left: 5px;">接口地址</div>
-						</div>
-						<div>
-							<ul class="layui-btn-group">
-								<li title="新增" class="btn-create"><i class="layui-icon layui-icon-add-1"></i></li>
-								<li title="测试(Ctrl+Q)" class="btn-test"><i class="layui-icon layui-icon-triangle-r"></i></li>
-								<li title="保存(Ctrl+S)" class="btn-save"><i class="layui-icon layui-icon-release"></i></li>
-								<li title="删除" class="btn-delete"><i class="layui-icon layui-icon-delete"></i></li>
-							</ul>
-							<div class="layui-input-inline" style="width: 150px;margin-left: 5px;">
-								<select name="group" lay-search>
-									<option value="">请输入组名</option>
-									<option value="未分组">未分组</option>
-								</select>
-							</div>
-							<div class="layui-input-inline" style="width: 100px;margin-left: 5px;">
-								<select name="method">
-									<option value="GET">GET</option>
-									<option value="POST">POST</option>
-									<option value="PUT">PUT</option>
-									<option value="DELETE">DELETE</option>
-								</select>
-							</div>
-							<div class="layui-input-inline" style="width: 200px;margin-left: 5px;">
-								<input type="text" name="name" class="layui-input" placeholder="请输入接口名称"/>
-							</div>
-							<div class="layui-input-inline" style="position: absolute;left:615px;right:10px;">
-								<input type="text" name="path" class="layui-input" placeholder="请输入接口地址"/>
-							</div>
-						</div>
-					</div>
-					<div class="editor-container" id="editor"></div>
-					<div class="layout-resizer-x"></div>
-					<div class="layui-right">
-						<div class="request-container">
-							<div class="layui-tab" lay-filter="request">
-								<ul class="layui-tab-title">
-									<li class="layui-this">请求参数</li>
-									<li>接口选项</li>
-								</ul>
-								<div class="layui-tab-content">
-									<div class="layui-tab-item layui-show">
-										<div id="request-parameter"></div>
-									</div>
-									<div class="layui-tab-item">
-										<div id="option-parameter"></div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="layout-resizer-y"></div>
-						<div class="output-container">
-							<div class="layui-tab" lay-filter="output-container">
-								<ul class="layui-tab-title">
-									<li lay-id="output" class="layui-this">请求结果</li>
-									<li lay-id="debug">调试信息</li>
-								</ul>
-								<div class="layui-tab-content">
-									<div class="layui-tab-item layui-show">
-										<div id="output-result"></div>
-									</div>
-									<div class="layui-tab-item scroller">
-										<table class="layui-table" lay-size="sm" style="height: auto">
-											<thead>
-											<tr>
-												<th>变量名</th>
-												<th>变量值</th>
-												<th>变量类型</th>
-											</tr>
-											</thead>
-											<tbody id="debug-tbody">
-
-											</tbody>
-										</table>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
+				<label>请求方法：</label>
+				<div class="select not-select">
+					<input type="text" value="GET" readonly="readonly" name="method"/>
+					<ul>
+						<li>GET</li>
+						<li>POST</li>
+						<li>PUT</li>
+						<li>DELETE</li>
+					</ul>
+				</div>
+				<label>接口名称：</label>
+				<input type="text" style="width : 160px" name="name"/>
+				<label>接口地址：</label>
+				<input type="text" name="path"/>
+			</div>
+			<div class="editor-container"></div>
+		</div>
+	</div>
+	<div class="bottom-container">
+		<div class="bottom-content-container" style="display: block;">
+			<div class="resizer-y"></div>
+			<div class="bottom-content-item" style="display: block;">
+				<div class="bottom-item-toolbar">
+					<label>请求参数</label>
+					<span title="清空参数" class="button-clear"><i class="iconfont icon-clear"></i></span>
+					<span title="格式化参数" class="button-format"><i class="iconfont icon-format"></i></span>
+				</div>
+				<div class="bottom-item-body request-editor"></div>
+			</div>
+			<div class="bottom-content-item">
+				<div class="bottom-item-toolbar">
+					<label>接口选项</label>
+					<span title="清空参数" class="button-clear"><i class="iconfont icon-clear"></i></span>
+					<span title="格式化参数" class="button-format"><i class="iconfont icon-format"></i></span>
+				</div>
+				<div class="bottom-item-body options-editor"></div>
+			</div>
+			<div class="bottom-content-item">
+				<div class="bottom-item-toolbar">
+					<label>执行结果</label>
+					<span title="清空参数" class="button-clear"><i class="iconfont icon-clear"></i></span>
+					<span title="格式化参数" class="button-format"><i class="iconfont icon-format"></i></span>
+				</div>
+				<div class="bottom-item-body result-editor"></div>
+			</div>
+			<div class="bottom-content-item">
+				<div class="bottom-item-toolbar">
+					<label>调试信息</label>
+					<span class="button-continue disabled" title="继续(F8)"><i class="iconfont icon-continue"></i></span>
+				</div>
+				<div class="bottom-item-body">
+					<table>
+						<thead>
+						<tr>
+							<th>变量名称</th>
+							<th>变量值</th>
+							<th>变量类型</th>
+						</tr>
+						</thead>
+						<tbody>
+						<tr>
+							<td colspan="3" align="center">no message.</td>
+						</tr>
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>
-	</body>
+		<ul class="bottom-tab not-select">
+			<li class="selected"><i class="iconfont icon-parameter"></i>请求参数</li>
+			<li><i class="iconfont icon-options"></i>接口选项</li>
+			<li><i class="iconfont icon-run"></i>执行结果</li>
+			<li><i class="iconfont icon-debug-info"></i>调试信息</li>
+		</ul>
+	</div>
+</div>
+<div class="footer-container"></div>
+</body>
 </html>
