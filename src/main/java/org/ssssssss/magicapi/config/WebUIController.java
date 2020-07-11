@@ -26,6 +26,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 页面UI对应的Controller
+ */
 public class WebUIController {
 
 	private static Logger logger = LoggerFactory.getLogger(WebUIController.class);
@@ -104,7 +107,7 @@ public class WebUIController {
 		}
 		try {
 			boolean success = this.magicApiService.delete(id);
-			if (success) {
+			if (success) {	//删除成功时在取消注册
 				mappingHandlerMapping.unregisterMapping(id);
 			}
 			return new JsonBean<>(success);
@@ -130,7 +133,7 @@ public class WebUIController {
 		}
 		try {
 			boolean success = this.magicApiService.deleteGroup(groupName);
-			if (success) {
+			if (success) {	//删除成功时取消注册
 				if (StringUtils.isNotBlank(apiIds)) {
 					String[] ids = apiIds.split(",");
 					if (ids != null && ids.length > 0) {

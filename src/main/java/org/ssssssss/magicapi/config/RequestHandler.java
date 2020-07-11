@@ -23,10 +23,19 @@ public class RequestHandler {
 
 	private static Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 
+	/**
+	 * 请求拦截器
+	 */
 	private List<RequestInterceptor> requestInterceptors = new ArrayList<>();
 
+	/**
+	 * 请求出错时，是否抛出异常
+	 */
 	private boolean throwException = false;
 
+	/**
+	 * 结果处理器
+	 */
 	private ResultProvider resultProvider;
 
 	public void setResultProvider(ResultProvider resultProvider) {
@@ -48,7 +57,9 @@ public class RequestHandler {
 						 @RequestBody(required = false) Map<String, Object> requestBody) throws Throwable {
 		ApiInfo info;
 		try {
+			//	找到对应的接口信息
 			info = MappingHandlerMapping.getMappingApiInfo(request);
+			// 构建脚本上下文
 			MagicScriptContext context = new MagicScriptContext();
 			context.putMapIntoContext(parameters);
 			context.putMapIntoContext(pathVariables);
@@ -66,6 +77,7 @@ public class RequestHandler {
 					return value;
 				}
 			}
+			// 执行脚本
 			Object value = MagicScriptEngine.execute(MagicScriptCompiler.compile(info.getScript()), context);
 			// 执行后置拦截器
 			for (RequestInterceptor requestInterceptor : requestInterceptors) {
@@ -79,6 +91,7 @@ public class RequestHandler {
 			if (throwException) {
 				throw root;
 			}
+			logger.error("接口请求出错", root);
 			return resultProvider.buildResult(root);
 		}
 

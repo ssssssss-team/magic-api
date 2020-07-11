@@ -112,6 +112,11 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 		return query;
 	}
 
+	/**
+	 * 开启事务，在一个回调中进行操作
+	 * @param function	回调函数
+	 * @return
+	 */
 	public Object transaction(Function<?, ?> function) {
 		Transaction transaction = transaction();    //创建事务
 		try {
@@ -124,10 +129,18 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 		}
 	}
 
+	/**
+	 * 开启事务，手动提交和回滚
+	 * @return
+	 */
 	public Transaction transaction() {
 		return new Transaction(this.dataSourceNode.getDataSourceTransactionManager());
 	}
 
+	/**
+	 * 添加至缓存
+	 * @param value	缓存名
+	 */
 	@UnableCall
 	private <T> T putCacheValue(T value, BoundSql boundSql) {
 		if (this.cacheName != null) {
@@ -136,6 +149,12 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 		return value;
 	}
 
+	/**
+	 * 使用缓存
+	 * @param cacheName	缓存名
+	 * @param ttl 过期时间
+	 * @return
+	 */
 	public DatabaseQuery cache(String cacheName, long ttl) {
 		if (cacheName == null) {
 			return this;
@@ -146,10 +165,18 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 		return query;
 	}
 
+	/**
+	 * 使用缓存（采用默认缓存时间）
+	 * @param cacheName	缓冲名
+	 * @return
+	 */
 	public DatabaseQuery cache(String cacheName) {
 		return cache(cacheName, 0);
 	}
 
+	/**
+	 * 数据源切换
+	 */
 	@Override
 	public DatabaseQuery get(Object key) {
 		DatabaseQuery query = cloneQuery();
@@ -162,12 +189,18 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	}
 
 
+	/**
+	 * 查询List
+	 */
 	public List<Map<String, Object>> select(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return (List<Map<String, Object>>) boundSql.getCacheValue(this.sqlCache, this.cacheName)
 				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.rowMapper, boundSql.getParameters()), boundSql));
 	}
 
+	/**
+	 * 执行update
+	 */
 	public int update(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		int value = dataSourceNode.getJdbcTemplate().update(boundSql.getSql(), boundSql.getParameters());
@@ -177,11 +210,17 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 		return value;
 	}
 
+	/**
+	 * 分页查询
+	 */
 	public Object page(String sql) {
 		Page page = pageProvider.getPage(MagicScriptContext.get());
 		return page(sql, page.getLimit(), page.getOffset());
 	}
 
+	/**
+	 * 分页查询（手动传入limit和offset参数）
+	 */
 	public Object page(String sql, long limit, long offset) {
 		BoundSql boundSql = new BoundSql(sql);
 		Connection connection = null;
@@ -208,12 +247,18 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 		return resultProvider.buildPageResult(count, list);
 	}
 
+	/**
+	 * 查询int值
+	 */
 	public Integer selectInt(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return (Integer) boundSql.getCacheValue(this.sqlCache, this.cacheName)
 				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().queryForObject(boundSql.getSql(), boundSql.getParameters(), Integer.class), boundSql));
 	}
 
+	/**
+	 * 查询Map
+	 */
 	public Map<String, Object> selectOne(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return (Map<String, Object>) boundSql.getCacheValue(this.sqlCache, this.cacheName)
@@ -223,6 +268,9 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 				});
 	}
 
+	/**
+	 * 查询单行单列的值
+	 */
 	public Object selectValue(String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return boundSql.getCacheValue(this.sqlCache, this.cacheName)
@@ -247,10 +295,12 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 
 		BoundSql(String sql) {
 			MagicScriptContext context = MagicScriptContext.get();
+			// 处理?{}参数
 			this.sql = ifTokenParser.parse(sql.trim(), text -> {
 				AtomicBoolean ifTrue = new AtomicBoolean(false);
 				String val = ifParamTokenParser.parse("?{" + text, param -> {
 					Object result = Parser.parseExpression(new TokenStream(tokenizer.tokenize(param))).evaluate(context);
+					//如果是String则判断是否是空,否则和判断值是否为true
 					if (result != null) {
 						if (result instanceof String) {
 							ifTrue.set(!result.toString().isEmpty());
@@ -265,10 +315,13 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 				}
 				return "";
 			});
+			// 处理${}参数
 			this.sql = concatTokenParser.parse(this.sql, text -> String.valueOf(Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context)));
+			// 处理#{}参数
 			this.sql = replaceTokenParser.parse(this.sql, text -> {
 				Object value = Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context);
 				try {
+					//对集合自动展开
 					List<Object> objects = StreamExtension.arrayLikeToList(value);
 					StringBuilder sb = new StringBuilder();
 					for (int i = 0, size = objects.size(); i < size; i++) {
@@ -286,23 +339,38 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 			});
 		}
 
+		/**
+		 * 添加SQL参数
+		 */
 		public void addParameter(Object value) {
 			parameters.add(value);
 		}
 
+		/**
+		 * 获取要执行的SQL
+		 */
 		public String getSql() {
 			return sql;
 		}
 
+		/**
+		 * 获取要执行的参数
+		 */
 		public Object[] getParameters() {
 			return parameters.toArray();
 		}
 
+		/**
+		 * 清空缓存key
+		 */
 		public BoundSql removeCacheKey() {
 			this.cacheKey = null;
 			return this;
 		}
 
+		/**
+		 * 获取缓存key
+		 */
 		public String getCacheKey(SqlCache sqlCache) {
 			if (cacheKey == null) {
 				cacheKey = sqlCache.buildSqlCacheKey(this);
@@ -310,6 +378,9 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 			return cacheKey;
 		}
 
+		/**
+		 * 获取缓存值
+		 */
 		public <T> Optional<T> getCacheValue(SqlCache sqlCache, String cacheName) {
 			return Optional.ofNullable(cacheName == null ? null : sqlCache.get(cacheName, getCacheKey(sqlCache)));
 		}

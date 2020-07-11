@@ -11,16 +11,27 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 动态数据源
+ */
 public class DynamicDataSource {
 
     private static Logger logger = LoggerFactory.getLogger(DynamicDataSource.class);
 
     private Map<String, DataSourceNode> dataSourceMap = new HashMap<>();
 
+    /**
+     * 注册默认数据源
+     */
     public void put(DataSource dataSource) {
         put(null, dataSource);
     }
 
+    /**
+     * 注册数据源（可以运行时注册）
+     *
+     * @param dataSourceName 数据源名称
+     */
     public void put(String dataSourceName, DataSource dataSource) {
         if (dataSourceName == null) {
             dataSourceName = "";
@@ -29,10 +40,19 @@ public class DynamicDataSource {
         this.dataSourceMap.put(dataSourceName, new DataSourceNode(dataSource));
     }
 
+    /**
+     * 获取默认数据源
+     * @return
+     */
     public DataSourceNode getDataSource() {
         return getDataSource(null);
     }
 
+    /**
+     * 获取数据源
+     * @param dataSourceName    数据源名称
+     * @return
+     */
     public DataSourceNode getDataSource(String dataSourceName) {
         if (dataSourceName == null) {
             dataSourceName = "";
@@ -42,8 +62,11 @@ public class DynamicDataSource {
         return dataSourceNode;
     }
 
-    public static class DataSourceNode{
+    public static class DataSourceNode {
 
+        /**
+         * 事务管理器
+         */
         private DataSourceTransactionManager dataSourceTransactionManager;
 
         private JdbcTemplate jdbcTemplate;

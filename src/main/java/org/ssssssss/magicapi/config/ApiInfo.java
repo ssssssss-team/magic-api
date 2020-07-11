@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 
+/**
+ * 接口信息
+ */
 public class ApiInfo {
 
 	/**

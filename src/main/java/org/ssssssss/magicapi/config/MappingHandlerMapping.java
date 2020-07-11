@@ -18,14 +18,40 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 请求映射
+ */
 public class MappingHandlerMapping {
 
+	/**
+	 * 已缓存的映射信息
+	 */
 	private static Map<String, ApiInfo> mappings = new ConcurrentHashMap<>();
+
 	private static Logger logger = LoggerFactory.getLogger(MappingHandlerMapping.class);
+
+	/**
+	 * spring中的请求映射处理器
+	 */
 	private RequestMappingHandlerMapping requestMappingHandlerMapping;
+
+	/**
+	 * 请求处理器
+	 */
 	private RequestHandler handler;
+
+	/**
+	 * 请求到达时处理的方法
+	 */
 	private Method method = RequestHandler.class.getDeclaredMethod("invoke", HttpServletRequest.class, HttpServletResponse.class, Map.class, Map.class, Map.class);
+
+	/**
+	 * 接口信息读取
+	 */
 	private ApiServiceProvider magicApiService;
+	/**
+	 * 统一接口前缀
+	 */
 	private String prefix;
 
 	public MappingHandlerMapping() throws NoSuchMethodException {
@@ -35,16 +61,30 @@ public class MappingHandlerMapping {
 		this.prefix = prefix;
 	}
 
+	/**
+	 * 根据request获取对应的接口信息
+	 */
 	public static ApiInfo getMappingApiInfo(HttpServletRequest request) {
 		NativeWebRequest webRequest = new ServletWebRequest(request);
+		// 找到注册的路径
 		String requestMapping = (String) webRequest.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
+		// 根据请求方法和路径获取接口信息
 		return getMappingApiInfo(buildMappingKey(request.getMethod(), requestMapping));
 	}
 
+	/**
+	 * 根据绑定的key获取接口信息
+	 */
 	public static ApiInfo getMappingApiInfo(String key) {
 		return mappings.get(key);
 	}
 
+	/**
+	 * 构建缓存map的key
+	 * @param requestMethod	请求方法
+	 * @param requestMapping	请求路径
+	 * @return
+	 */
 	public static String buildMappingKey(String requestMethod, String requestMapping) {
 		return requestMethod.toUpperCase() + ":" + requestMapping;
 	}
@@ -61,6 +101,9 @@ public class MappingHandlerMapping {
 		this.magicApiService = magicApiService;
 	}
 
+	/**
+	 * 注册请求
+	 */
 	public void registerAllMapping() {
 		List<ApiInfo> list = magicApiService.listWithScript();
 		if (list != null) {
@@ -70,6 +113,11 @@ public class MappingHandlerMapping {
 		}
 	}
 
+	/**
+	 * 根据请求方法和路径获取接口信息
+	 * @param method	请求方法
+	 * @param requestMapping	请求路径
+	 */
 	public ApiInfo getApiInfo(String method, String requestMapping) {
 		return mappings.get(buildMappingKey(method, requestMapping));
 	}
@@ -80,6 +128,7 @@ public class MappingHandlerMapping {
 	 * @param info
 	 */
 	public void registerMapping(ApiInfo info) {
+		// 先判断是否已注册，如果已注册，则先取消注册在进行注册。
 		if (mappings.containsKey(info.getId())) {
 			ApiInfo oldInfo = mappings.get(info.getId());
 			logger.info("取消注册接口:{}", oldInfo.getName());
@@ -97,8 +146,6 @@ public class MappingHandlerMapping {
 
 	/**
 	 * 取消注册请求映射
-	 *
-	 * @param id
 	 */
 	public void unregisterMapping(String id) {
 		ApiInfo info = mappings.remove(id);
@@ -109,10 +156,17 @@ public class MappingHandlerMapping {
 		}
 	}
 
+	/**
+	 * 根据接口信息获取绑定map的key
+	 */
 	private String getMappingKey(ApiInfo info) {
 		return buildMappingKey(info.getMethod(), getRequestPath(info.getPath()));
 	}
 
+	/**
+	 * 处理前缀
+	 * @param path	请求路径
+	 */
 	private String getRequestPath(String path) {
 		if (prefix != null) {
 			path = prefix + (path.startsWith("/") ? path.substring(1) : path);
@@ -120,6 +174,9 @@ public class MappingHandlerMapping {
 		return path;
 	}
 
+	/**
+	 * 根据接口信息构建 RequestMappingInfo
+	 */
 	private RequestMappingInfo getRequestMapping(ApiInfo info) {
 		return RequestMappingInfo.paths(getRequestPath(info.getPath())).methods(RequestMethod.valueOf(info.getMethod().toUpperCase())).build();
 	}
