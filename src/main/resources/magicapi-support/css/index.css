@@ -437,6 +437,10 @@ ul li {
     height: 24px;
     line-height: 24px;
 }
+.bottom-container .bottom-item-toolbar span.button-minimize{
+    float: right;
+    margin-right: 12px;
+}
 .top-toolbar-container span.disabled,
 .bottom-container .bottom-item-toolbar span.disabled{
     color: #BDBDBD;

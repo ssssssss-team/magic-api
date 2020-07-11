@@ -397,6 +397,9 @@ var MagicEditor = {
             },
             exception : function(code,message,json){
                 return _this.convertResult(code,message,json);
+            },
+            error : function(){
+                $('.button-run').removeClass('disabled');
             }
         })
     },
@@ -547,21 +550,26 @@ var MagicEditor = {
     //检测更新
     checkUpdate : function(){
         var _this = this;
+        var ignoreVersion = this.getValue('ignore-version');
         $.ajax({
             url : 'https://img.shields.io/maven-central/v/org.ssssssss/magic-api.json',
             dataType : 'json',
             success : function(data){
-                if(data.value != 'v0.2.1'){
+                if(data.value != 'v0.2.1' && ignoreVersion != data.value){
                     _this.createDialog({
                         title : '更新提示',
                         content : '检测到已有新版本'+data.value+'，是否更新？',
                         buttons : [{
                             name : '更新日志',
                             click : function(){
+                                _this.setValue('ignore-version',data.value)
                                 window.open('http://www.ssssssss.org/changelog.html')
                             }
                         },{
-                            name : '残忍拒绝'
+                            name : '残忍拒绝',
+                            click : function(){
+                                _this.setValue('ignore-version',data.value)
+                            }
                         }]
                     })
                     MagicEditor.setStatusBar('版本检测完毕，最新版本为：' + data.value+',建议更新！！');
@@ -989,6 +997,10 @@ var MagicEditor = {
                 $contentContainer.show().find('.bottom-content-item').hide().eq(index).show();
             }
             _this.layout();
+        }).on('click','.button-minimize',function(){
+            _this.setValue('bottom-tab-show',false);
+            $contentContainer.hide();	//隐藏全部
+            $('.bottom-tab li').removeClass('selected')
         });
         // 调整底部高度
         var resizer = $contentContainer.find('.resizer-y')[0];
