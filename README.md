@@ -14,7 +14,7 @@
     <a target="_blank" href="https://shang.qq.com/wpa/qunwpa?idkey=10faa4cf9743e0aa379a72f2ad12a9e576c81462742143c8f3391b52e8c3ed8d"><img src="https://img.shields.io/badge/Join-QQGroup-blue"></a>
 </p>
 
-[特性](#特性) | [快速开始](#快速开始) |  <a target="_blank" href="http://ssssssss.org">文档</a> | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图) | [其它开源](#其它开源项目)
+[特性](#特性) | [快速开始](#快速开始) | [文档/演示](#文档/演示) | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图) | [其它开源](#其它开源项目)
 
 # 特性
 - 支持MySQL、MariaDB、Oracle、DB2、PostgreSQL、SQLServer 等多种数据库
@@ -59,6 +59,11 @@ spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 
 ## 在线编辑
 访问`http://localhost:9999/magic/web`进行操作
+
+# 文档/演示
+
+- 文档地址：[https://ssssssss.org](https://ssssssss.org)
+- 在线演示：[http://140.143.210.90:9999/magic/web](http://140.143.210.90:9999/magic/web)
 
 # 项目截图
 
