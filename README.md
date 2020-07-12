@@ -14,7 +14,7 @@
     <a target="_blank" href="https://shang.qq.com/wpa/qunwpa?idkey=10faa4cf9743e0aa379a72f2ad12a9e576c81462742143c8f3391b52e8c3ed8d"><img src="https://img.shields.io/badge/Join-QQGroup-blue"></a>
 </p>
 
-[特性](#特性) | [快速开始](#快速开始) | [文档/演示](#文档/演示) | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图) | [其它开源](#其它开源项目)
+[特性](#特性) | [快速开始](#快速开始) | [文档/演示](#文档演示) | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图) | [其它开源](#其它开源项目)
 
 # 特性
 - 支持MySQL、MariaDB、Oracle、DB2、PostgreSQL、SQLServer 等多种数据库
