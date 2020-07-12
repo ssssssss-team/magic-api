@@ -25,8 +25,12 @@ import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.functions.AssertFunctions;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
+import org.ssssssss.magicapi.provider.ApiServiceProvider;
+import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
+import org.ssssssss.magicapi.provider.impl.DefaultApiServiceProvider;
+import org.ssssssss.magicapi.provider.impl.DefaultMagicAPIService;
 import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultResultProvider;
 import org.ssssssss.script.MagicModuleLoader;
@@ -130,15 +134,23 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return handlerMapping;
 	}
 
+	@ConditionalOnMissingBean(ApiServiceProvider.class)
 	@Bean
-	public MagicApiService magicApiService(DynamicDataSource dynamicDataSource) {
-		return new MagicApiService(dynamicDataSource.getJdbcTemplate());
+	public ApiServiceProvider apiServiceProvider(DynamicDataSource dynamicDataSource) {
+		logger.info("接口使用数据源：{}", StringUtils.isNotBlank(properties.getDatasource()) ? properties.getDatasource() : "default");
+		return new DefaultApiServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
+	}
+
+	@ConditionalOnMissingBean(MagicAPIService.class)
+	@Bean
+	public MagicAPIService magicAPIService(MappingHandlerMapping mappingHandlerMapping, ResultProvider resultProvider) {
+		return new DefaultMagicAPIService(mappingHandlerMapping, resultProvider, properties.isThrowException());
 	}
 
 	@Bean
 	public RequestHandler requestHandler(@Autowired(required = false) List<MagicModule> magicModules, //定义的模块集合
 										 @Autowired(required = false) List<ExtensionMethod> extensionMethods, //自定义的类型扩展
-										 MagicApiService magicApiService,
+										 ApiServiceProvider apiServiceProvider,
 										 // 动态数据源
 										 DynamicDataSource dynamicDataSource,
 										 // 分页信息获取
@@ -220,7 +232,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		WebUIController controller = new WebUIController();
 		controller.setResultProvider(resultProvider);
 		controller.setDebugTimeout(properties.getDebugConfig().getTimeout());
-		controller.setMagicApiService(magicApiService);
+		controller.setMagicApiService(apiServiceProvider);
 		controller.setMappingHandlerMapping(mappingHandlerMapping);
 		if (this.properties.isBanner()) {
 			controller.printBanner();
@@ -240,11 +252,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			this.requestInterceptors.forEach(interceptor -> {
 				logger.info("注册请求拦截器：{}", interceptor.getClass());
 				requestHandler.addRequestInterceptor(interceptor);
+				controller.addRequestInterceptor(interceptor);
 			});
 		}
 		mappingHandlerMapping.setHandler(requestHandler);
 		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
-		mappingHandlerMapping.setMagicApiService(magicApiService);
+		mappingHandlerMapping.setMagicApiService(apiServiceProvider);
 		mappingHandlerMapping.registerAllMapping();
 		return requestHandler;
 	}

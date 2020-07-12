@@ -28,6 +28,11 @@ public class MagicAPIProperties {
 	private boolean throwException = false;
 
 	/**
+	 * 接口保存的数据源
+	 */
+	private String datasource;
+
+	/**
 	 * 驼峰命名转换
 	 */
 	private boolean mapUnderscoreToCamelCase = true;
@@ -115,5 +120,13 @@ public class MagicAPIProperties {
 
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
+	}
+
+	public String getDatasource() {
+		return datasource;
+	}
+
+	public void setDatasource(String datasource) {
+		this.datasource = datasource;
 	}
 }
