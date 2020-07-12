@@ -45,7 +45,7 @@
 ```properties
 server.port=9999
 #配置web页面入口
-magic.web=/magic/web
+magic-api.web=/magic/web
 #以下配置需跟实际情况修改
 spring.datasource.url=jdbc:mysql://localhost/test
 spring.datasource.username=root
@@ -68,11 +68,13 @@ spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 # 项目截图
 
 ## 整体截图
-![整体截图](https://images.gitee.com/uploads/images/2020/0704/222426_953f813c_297689.png "full.png")
+![整体截图](https://images.gitee.com/uploads/images/2020/0712/100237_961e4f06_297689.png "full.png")
+## 切换主题
+![切换皮肤](https://images.gitee.com/uploads/images/2020/0712/100518_d2dab01b_297689.png "skin.png")
 ## 代码提示
-![代码提示](https://images.gitee.com/uploads/images/2020/0704/222708_97f1e1bb_297689.gif "completion.gif")
+![代码提示](https://images.gitee.com/uploads/images/2020/0712/100307_e6f161f2_297689.gif "completion.gif")
 ## DEBUG
-![DEBUG](https://images.gitee.com/uploads/images/2020/0704/222725_524c2027_297689.gif "debug.gif")
+![DEBUG](https://images.gitee.com/uploads/images/2020/0712/100339_f049bf43_297689.gif "debug.gif")
 
 # 其它开源项目
 - [magic-api](https://gitee.com/ssssssss-team/magic-api)
