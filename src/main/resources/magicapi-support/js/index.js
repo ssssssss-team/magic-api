@@ -555,23 +555,25 @@ var MagicEditor = {
             url : 'https://img.shields.io/maven-central/v/org.ssssssss/magic-api.json',
             dataType : 'json',
             success : function(data){
-                if(data.value != 'v0.2.1' && ignoreVersion != data.value){
-                    _this.createDialog({
-                        title : '更新提示',
-                        content : '检测到已有新版本'+data.value+'，是否更新？',
-                        buttons : [{
-                            name : '更新日志',
-                            click : function(){
-                                _this.setValue('ignore-version',data.value)
-                                window.open('http://www.ssssssss.org/changelog.html')
-                            }
-                        },{
-                            name : '残忍拒绝',
-                            click : function(){
-                                _this.setValue('ignore-version',data.value)
-                            }
-                        }]
-                    })
+                if(data.value != 'v0.2.1'){
+                    if(ignoreVersion != data.value){
+                        _this.createDialog({
+                            title : '更新提示',
+                            content : '检测到已有新版本'+data.value+'，是否更新？',
+                            buttons : [{
+                                name : '更新日志',
+                                click : function(){
+                                    _this.setValue('ignore-version',data.value)
+                                    window.open('http://www.ssssssss.org/changelog.html')
+                                }
+                            },{
+                                name : '残忍拒绝',
+                                click : function(){
+                                    _this.setValue('ignore-version',data.value)
+                                }
+                            }]
+                        })
+                    }
                     MagicEditor.setStatusBar('版本检测完毕，最新版本为：' + data.value+',建议更新！！');
                 }else{
                     MagicEditor.setStatusBar('版本检测完毕，当前已是最新版');
