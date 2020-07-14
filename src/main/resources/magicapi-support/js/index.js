@@ -1002,7 +1002,8 @@ var MagicEditor = {
         }).on('click','.button-minimize',function(){
             _this.setValue('bottom-tab-show',false);
             $contentContainer.hide();	//隐藏全部
-            $('.bottom-tab li').removeClass('selected')
+            $('.bottom-tab li').removeClass('selected');
+            _this.layout();
         });
         // 调整底部高度
         var resizer = $contentContainer.find('.resizer-y')[0];
