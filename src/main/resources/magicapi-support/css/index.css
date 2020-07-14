@@ -18,8 +18,8 @@ body {
     position: relative;
     width: 100%;
     height: 100%;
-    min-width: 1280px;
-    min-height: 768px;
+    min-width: 1200px;
+    min-height: 500px;
 }
 ul li {
     list-style: none;
@@ -166,6 +166,9 @@ ul li {
 .group-item .group-header i{
     color : #b3b3b3
 }
+.group-item .group-header span{
+    color : #999;
+}
 .group-item .group-header .icon-list{
     color : #aeb9c0;
     padding-left : 8px;
@@ -193,11 +196,11 @@ ul li {
     padding-right: 15px;
     font-size: 0;
 }
-.middle-container .editor-container-wrapper .properties-container label{
+.middle-container .editor-container-wrapper .properties-container label,.dialog label{
     font-size : 12px;
     margin:0 3px;
 }
-.properties-container input{
+.properties-container input,.dialog input{
     height: 22px;
     line-height: 22px;
     border-radius: 0;
@@ -354,13 +357,16 @@ ul li {
     border-top: 1px solid #919191;
     padding-left: 20px;
 }
-
 .main-container .bottom-container .bottom-content-container {
     border-bottom: 1px solid #c9c9c9;
     display: none;
     height: 300px;
 }
-
+@media screen and (max-height: 600px) {
+    .main-container .bottom-container .bottom-content-container {
+        height: 180px;
+    }
+}
 .main-container .bottom-container .bottom-content-container .bottom-content-item {
     display: none;
     background: #fff;
@@ -655,7 +661,7 @@ ul li {
 .skin-dark .main-container .bottom-container ul li i{
     color : #AFB1B3;
 }
-.skin-dark .group-item .group-list li span{
+.skin-dark .group-item .group-list li span,.skin-dark .group-item span{
     color : #787878
 }
 .skin-dark .main-container .bottom-container ul li.selected{
@@ -685,7 +691,7 @@ ul li {
 .skin-dark .main-container .middle-container{
     background: #313335;
 }
-.skin-dark .properties-container input{
+.skin-dark .properties-container input,.skin-dark .dialog input{
     border: 1px solid #646464;
     background: #45494A;
     color : #bbb;

@@ -95,6 +95,7 @@ public class WebUIController {
 
 	/**
 	 * 删除接口
+	 *
 	 * @param request
 	 * @param id      接口ID
 	 * @return
@@ -107,8 +108,8 @@ public class WebUIController {
 		}
 		try {
 			boolean success = this.magicApiService.delete(id);
-			if (success) {	//删除成功时在取消注册
-				mappingHandlerMapping.unregisterMapping(id);
+			if (success) {    //删除成功时在取消注册
+				mappingHandlerMapping.unregisterMapping(id, true);
 			}
 			return new JsonBean<>(success);
 		} catch (Exception e) {
@@ -133,12 +134,12 @@ public class WebUIController {
 		}
 		try {
 			boolean success = this.magicApiService.deleteGroup(groupName);
-			if (success) {	//删除成功时取消注册
+			if (success) {    //删除成功时取消注册
 				if (StringUtils.isNotBlank(apiIds)) {
 					String[] ids = apiIds.split(",");
 					if (ids != null && ids.length > 0) {
 						for (String id : ids) {
-							mappingHandlerMapping.unregisterMapping(id);
+							mappingHandlerMapping.unregisterMapping(id, true);
 						}
 					}
 				}
@@ -146,6 +147,31 @@ public class WebUIController {
 			return new JsonBean<>(success);
 		} catch (Exception e) {
 			logger.error("删除接口出错", e);
+			return new JsonBean<>(-1, e.getMessage());
+		}
+	}
+
+	/**
+	 * 修改分组
+	 *
+	 * @param groupName    分组名称
+	 * @param oldGroupName 原分组名称
+	 * @param prefix       分组前缀
+	 */
+	@RequestMapping("/group/update")
+	@ResponseBody
+	public JsonBean<Boolean> groupUpdate(String groupName, String oldGroupName, String prefix, HttpServletRequest request) {
+		if (!allowVisit(request, RequestInterceptor.Authorization.SAVE)) {
+			return new JsonBean<>(-10, "无权限执行删除方法");
+		}
+		try {
+			boolean success = magicApiService.updateGroup(oldGroupName, groupName, prefix);
+			if (success) {
+				mappingHandlerMapping.updateGroupPrefix(oldGroupName, groupName, prefix);
+			}
+			return new JsonBean<>(success);
+		} catch (Exception e) {
+			logger.error("修改分组出错", e);
 			return new JsonBean<>(-1, e.getMessage());
 		}
 	}
@@ -345,7 +371,7 @@ public class WebUIController {
 				magicApiService.update(info);
 			}
 			// 注册接口
-			mappingHandlerMapping.registerMapping(info);
+			mappingHandlerMapping.registerMapping(info, true);
 			return new JsonBean<>(info.getId());
 		} catch (Exception e) {
 			logger.error("保存接口出错", e);

@@ -9,29 +9,25 @@ public interface ApiServiceProvider {
 	 * 删除接口
 	 *
 	 * @param id
-	 * @return
 	 */
 	boolean delete(String id);
 
 	/**
 	 * 根据组名删除接口
 	 *
-	 * @param groupName
-	 * @return
+	 * @param groupName 	分组名称
 	 */
 	boolean deleteGroup(String groupName);
 
 	/**
 	 * 查询所有接口（提供给页面,无需带script）
 	 *
-	 * @return
 	 */
 	List<ApiInfo> list();
 
 	/**
 	 * 查询所有接口（内部使用，需要带Script）
 	 *
-	 * @return
 	 */
 	List<ApiInfo> listWithScript();
 
@@ -39,7 +35,6 @@ public interface ApiServiceProvider {
 	 * 查询接口详情（主要给页面使用）
 	 *
 	 * @param id
-	 * @return
 	 */
 	ApiInfo get(String id);
 
@@ -48,9 +43,16 @@ public interface ApiServiceProvider {
 	 *
 	 * @param method 请求方法
 	 * @param path   请求路径
-	 * @return
 	 */
 	boolean exists(String method, String path);
+
+	/**
+	 * 修改分组信息
+	 * @param oldGroupName	旧分组名称
+	 * @param groupName	新分组名称
+	 * @param groupPrefix	分组前缀
+	 */
+	boolean updateGroup(String oldGroupName,String groupName, String groupPrefix);
 
 	/**
 	 * 判断接口是否存在

@@ -14,6 +14,8 @@ import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,6 +56,8 @@ public class MappingHandlerMapping {
 	 */
 	private String prefix;
 
+	private List<ApiInfo> apiInfos = Collections.synchronizedList(new ArrayList<>());
+
 	public MappingHandlerMapping() throws NoSuchMethodException {
 	}
 
@@ -81,8 +85,9 @@ public class MappingHandlerMapping {
 
 	/**
 	 * 构建缓存map的key
-	 * @param requestMethod	请求方法
-	 * @param requestMapping	请求路径
+	 *
+	 * @param requestMethod  请求方法
+	 * @param requestMapping 请求路径
 	 * @return
 	 */
 	public static String buildMappingKey(String requestMethod, String requestMapping) {
@@ -107,19 +112,32 @@ public class MappingHandlerMapping {
 	public void registerAllMapping() {
 		List<ApiInfo> list = magicApiService.listWithScript();
 		if (list != null) {
+			apiInfos.addAll(list);
 			for (ApiInfo info : list) {
-				registerMapping(info);
+				registerMapping(info, false);
 			}
 		}
 	}
 
 	/**
 	 * 根据请求方法和路径获取接口信息
-	 * @param method	请求方法
-	 * @param requestMapping	请求路径
+	 *
+	 * @param method         请求方法
+	 * @param requestMapping 请求路径
 	 */
 	public ApiInfo getApiInfo(String method, String requestMapping) {
 		return mappings.get(buildMappingKey(method, requestMapping));
+	}
+
+	public void updateGroupPrefix(String oldGroupName, String newGroupName, String prefix) {
+		for (ApiInfo info : apiInfos) {
+			if (oldGroupName.equals(info.getGroupName())) {
+				unregisterMapping(info.getId(), false);
+				info.setGroupName(newGroupName);
+				info.setGroupPrefix(prefix);
+				registerMapping(info, false);
+			}
+		}
 	}
 
 	/**
@@ -127,7 +145,7 @@ public class MappingHandlerMapping {
 	 *
 	 * @param info
 	 */
-	public void registerMapping(ApiInfo info) {
+	public void registerMapping(ApiInfo info, boolean delete) {
 		// 先判断是否已注册，如果已注册，则先取消注册在进行注册。
 		if (mappings.containsKey(info.getId())) {
 			ApiInfo oldInfo = mappings.get(info.getId());
@@ -142,17 +160,24 @@ public class MappingHandlerMapping {
 		mappings.put(info.getId(), info);
 		mappings.put(getMappingKey(info), info);
 		requestMappingHandlerMapping.registerMapping(requestMapping, handler, method);
+		if (delete) {
+			apiInfos.add(info);
+			apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
+		}
 	}
 
 	/**
 	 * 取消注册请求映射
 	 */
-	public void unregisterMapping(String id) {
+	public void unregisterMapping(String id, boolean delete) {
 		ApiInfo info = mappings.remove(id);
 		if (info != null) {
 			logger.info("取消注册接口:{}", info.getName());
 			mappings.remove(getMappingKey(info));
 			requestMappingHandlerMapping.unregisterMapping(getRequestMapping(info));
+			if (delete) {
+				apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
+			}
 		}
 	}
 
@@ -160,14 +185,23 @@ public class MappingHandlerMapping {
 	 * 根据接口信息获取绑定map的key
 	 */
 	private String getMappingKey(ApiInfo info) {
-		return buildMappingKey(info.getMethod(), getRequestPath(info.getPath()));
+		return buildMappingKey(info.getMethod(), getRequestPath(info.getGroupPrefix(), info.getPath()));
 	}
 
 	/**
 	 * 处理前缀
-	 * @param path	请求路径
+	 *
+	 * @param path 请求路径
 	 */
-	private String getRequestPath(String path) {
+	private String getRequestPath(String groupPrefix, String path) {
+		groupPrefix = groupPrefix == null ? "" : groupPrefix;
+		while (groupPrefix.endsWith("/")) {
+			groupPrefix = groupPrefix.substring(0, groupPrefix.length() - 1);
+		}
+		while (path.startsWith("/")) {
+			path = path.substring(1);
+		}
+		path = groupPrefix + "/" + path;
 		if (prefix != null) {
 			path = prefix + (path.startsWith("/") ? path.substring(1) : path);
 		}
@@ -178,7 +212,7 @@ public class MappingHandlerMapping {
 	 * 根据接口信息构建 RequestMappingInfo
 	 */
 	private RequestMappingInfo getRequestMapping(ApiInfo info) {
-		return RequestMappingInfo.paths(getRequestPath(info.getPath())).methods(RequestMethod.valueOf(info.getMethod().toUpperCase())).build();
+		return RequestMappingInfo.paths(getRequestPath(info.getGroupPrefix(), info.getPath())).methods(RequestMethod.valueOf(info.getMethod().toUpperCase())).build();
 	}
 
 }

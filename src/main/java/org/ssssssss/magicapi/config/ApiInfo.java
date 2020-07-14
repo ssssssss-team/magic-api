@@ -40,6 +40,11 @@ public class ApiInfo {
 	private String groupName;
 
 	/**
+	 * 分组前缀
+	 */
+	private String groupPrefix;
+
+	/**
 	 * 设置的请求参数
 	 */
 	private String parameter;
@@ -48,6 +53,11 @@ public class ApiInfo {
 	 * 设置的接口选项
 	 */
 	private String option;
+
+	/**
+	 * 输出结果
+	 */
+	private String output;
 
 	/**
 	 * 接口选项json->map
@@ -110,8 +120,37 @@ public class ApiInfo {
 		this.parameter = parameter;
 	}
 
+	public String getOutput() {
+		return output;
+	}
+
+	public void setOutput(String output) {
+		this.output = output;
+	}
+
+	public String getGroupPrefix() {
+		return groupPrefix;
+	}
+
+	public void setGroupPrefix(String groupPrefix) {
+		this.groupPrefix = groupPrefix;
+	}
+
+
+	public Map getOptionMap() {
+		return optionMap;
+	}
+
+	public void setOptionMap(Map optionMap) {
+		this.optionMap = optionMap;
+	}
+
 	public String getOption() {
 		return option;
+	}
+
+	public void setOptionValue(String optionValue){
+		this.setOption(optionValue);
 	}
 
 	public void setOption(String option) {

@@ -4,6 +4,7 @@ var MagicEditor = {
         if(skin){
             $('body').addClass('skin-' + skin);
         }
+        this.addedGroups = {};
         this.apiId = null;
         this.apiList = [];
         this.debugSessionId = null;
@@ -88,16 +89,10 @@ var MagicEditor = {
     renderApiList : function(){
         var empty = true;
         var root = [];
-        var groups = {
-            "未分组" : {
-                id : '未分组',
-                children : [],
-                spread : true,
-                title : '未分组'
-            }
-        };
+        var groups = {};
         var apiList = this.apiList;
         if(apiList&&apiList.length > 0){
+            var $groupUL = $('input[name=group]').next();
             for(var i=0,len = apiList.length;i<len;i++){
                 var info = apiList[i];
                 info.groupName = info.groupName || '未分组';
@@ -106,13 +101,18 @@ var MagicEditor = {
                         id : info.groupName,
                         children : [],
                         spread : true,
+                        groupPrefix : info.groupPrefix,
                         title : info.groupName
+                    }
+                    if($groupUL.find('[data-name='+info.groupName+']').length == 0){
+                        $groupUL.append($('<li data-name="'+info.groupName+'" data-prefix="'+(info.groupPrefix || '')+'"/>').append(info.groupName))
                     }
                 }
                 if(info.show!==false){
                     groups[info.groupName].children.push({
                         id : info.id,
                         groupName : info.groupName,
+                        groupPrefix : info.groupPrefix,
                         name : info.name,
                         title : '<label style="padding-right: 4px;color:#000">' + info.name + "</label>" + info.path,
                         path : info.path
@@ -120,19 +120,31 @@ var MagicEditor = {
                 }
             }
         }
+        for(var key in this.addedGroups){
+            if(!groups[key]){
+                groups[key] = this.addedGroups[key];
+            }
+        }
         var $dom = $('.api-list-container').html('');
         for(var key in groups){
+            var group = groups[key];
             var $item = $('<div/>').addClass('group-item')
                 .addClass('opened')
-                .append($('<div/>').addClass('group-header').append('<i class="iconfont icon-arrow-bottom"></i><i class="iconfont icon-list"></i>').append(key));
-            var $ul = $('<ul/>').addClass('group-list');
-            for(var i =0,len = groups[key].children.length;i<len;i++){
-                var info = groups[key].children[i];
-                $ul.append($('<li/>').attr('data-id',info.id).append('<i class="iconfont icon-script"></i>')
-                    .append('<label>'+info.name+'</label>')
-                    .append('<span>('+info.path+')</span>'));
+                .append($('<div/>').addClass('group-header')
+                    .append('<i class="iconfont icon-arrow-bottom"></i><i class="iconfont icon-list"></i>')
+                    .append($('<label/>').append(key))
+                    .append(group.groupPrefix ? '<span>('+group.groupPrefix+')</span>': '')
+                );
+            if(group.children){
+                var $ul = $('<ul/>').addClass('group-list');
+                for(var i =0,len = group.children.length;i<len;i++){
+                    var info = group.children[i];
+                    $ul.append($('<li/>').attr('data-id',info.id).append('<i class="iconfont icon-script"></i>')
+                        .append('<label>'+info.name+'</label>')
+                        .append('<span>('+info.path+')</span>'));
+                }
+                $item.append($ul);
             }
-            $item.append($ul);
             $dom.append($item);
         }
     },
@@ -151,8 +163,9 @@ var MagicEditor = {
                     $('input[name=name]').val(info.name);
                     $('input[name=path]').val(info.path);
                     MagicEditor.setStatusBar('编辑接口：' + info.name + '(' + info.path + ')')
-                    $('select[name=method]').val(info.method);
-                    $('select[name=group]').val(info.groupName || '未分组');
+                    $('input[name=method]').val(info.method);
+                    $('input[name=group]').val(info.groupName || '未分组');
+                    $('input[name=prefix]').val(info.groupPrefix || '');
                     $('.button-run,.button-delete').removeClass('disabled');
                     _this.scriptEditor && _this.scriptEditor.setValue(info.script);
                     _this.requestEditor && _this.requestEditor.setValue(info.parameter || _this.defaultRequestValue);
@@ -201,29 +214,157 @@ var MagicEditor = {
         s.parentNode.insertBefore(mta, s);
         this.report('visit');
     },
-    deleteGroup : function($header){
-        var groupName = $header.text();
+    // 修改分组
+    updateGroup : function($header){
+        var _this = MagicEditor;
+        var oldGroupName = $header.find('label').text();
+        var oldPrefix = $header.find('span').text();
+        oldPrefix = oldPrefix ? oldPrefix.substring(1,oldPrefix.length - 1) : '';
+        _this.createDialog({
+            title : '修改分组:' + oldGroupName,
+            content : '<label>分组名称：</label><input type="text" name="name" value="'+oldGroupName+'" autocomplete="off"/><div style="height:2px;"></div><label>分组前缀：</label><input type="text" value="'+oldPrefix+'" name="prefix" autocomplete="off"/>',
+            replace : false,
+            buttons : [{
+                name : '修改',
+                click : function($dom){
+                    var groupName = $dom.find('input[name=name]').val();
+                    var groupPrefix = $dom.find('input[name=prefix]').val();
+                    if(!groupName){
+                        $dom.find('input[name=path]').focus();
+                        return false;
+                    }
+                    var exists = false;
+                    $('.group-header').each(function(){
+                        if(this !== $header[0]){
+                            var name = $(this).find('label').text();
+                            if(name == groupName){
+                                exists = true;
+                                return false;
+                            }
+                        }
+                    });
+                    if(exists){
+                        _this.createDialog({
+                            title : '创建分组',
+                            content : '分组已存在！',
+                            buttons : [{name : 'OK'}]
+                        })
+                        return false;
+                    }
+                    _this.ajax({
+                        url : 'group/update',
+                        data : {
+                            oldGroupName : oldGroupName,
+                            groupName : groupName,
+                            prefix : groupPrefix
+                        },
+                        success : function(){
+                            if(_this.addedGroups[oldGroupName]){
+                                delete _this.addedGroups[oldGroupName]
+                            }
+                            _this.addedGroups[groupName] = {
+                                groupName : groupName,
+                                groupPrefix : groupPrefix
+                            }
+                            var apiList = _this.apiList;
+                            if(apiList&&apiList.length > 0){
+                                for(var i=0,len = apiList.length;i<len;i++){
+                                    if(apiList[i].groupName == oldGroupName){
+                                        apiList[i].groupName = groupName;
+                                        apiList[i].groupPrefix = groupPrefix || '';
+                                    }
+                                }
+                            }
+                            var $group = $('input[name=group]');
+                            $group.next().find('li[data-name='+oldGroupName+']').attr('data-prefix',(groupPrefix || '')).attr('data-name',groupName).html(groupName);
+                            if($group.val() == oldGroupName){
+                                $group.val(groupName);
+                                $('input[name=prefix]').val(groupPrefix);
+                            }
+                            $header.find('label').html(groupName).next().html(groupPrefix ? '('+groupPrefix+')' : '');
+                            _this.renderApiList();
+                        }
+                    })
+                }
+            },{
+                name : '取消'
+            }]
+        })
+    },
+    // 创建分组
+    createGroup : function(){
+        var _this = MagicEditor;
+        _this.setStatusBar('创建分组..');
         MagicEditor.createDialog({
+            title : '创建分组',
+            content : '<label>分组名称：</label><input type="text" name="name" autocomplete="off"/><div style="height:2px;"></div><label>分组前缀：</label><input type="text" name="prefix" autocomplete="off"/>',
+            replace : false,
+            buttons : [{
+                name : '创建',
+                click : function($dom){
+                    var groupName = $dom.find('input[name=name]').val();
+                    var groupPrefix = $dom.find('input[name=prefix]').val();
+                    if(!groupName){
+                        $dom.find('input[name=path]').focus();
+                        return false;
+                    }
+                    var exists = false;
+                    $('.group-header').each(function(){
+                        var name = $(this).find('label').text();
+                        if(name == groupName){
+                            exists = true;
+                            return false;
+                        }
+                    });
+                    if(exists){
+                        _this.setStatusBar('分组「'+groupName + '」');
+                        MagicEditor.createDialog({
+                            title : '创建分组',
+                            content : '分组已存在！',
+                            buttons : [{name : 'OK'}]
+                        })
+                        return false;
+                    }
+                    _this.addedGroups[groupName] = {
+                        groupName : groupName,
+                        groupPrefix : groupPrefix
+                    }
+                    _this.setStatusBar('分组「'+groupName + '」创建成功');
+                    $('input[name=group]').next().append($('<li data-name="'+groupName+'" data-prefix="'+(groupPrefix || '')+'"/>').append(groupName));
+                    _this.renderApiList();
+                }
+            },{
+                name : '取消'
+            }]
+        })
+    },
+    // 删除分组
+    deleteGroup : function($header){
+        var groupName = $header.find('label').text();
+        _this.setStatusBar('准备删除分组「'+groupName + '」');
+        var _this = MagicEditor;
+        _this.createDialog({
             title : '删除接口分组',
             content : '是否要删除接口分组「'+groupName + '」',
             buttons : [{
                 name : '删除',
                 click : function(){
-                    MagicEditor.report('group_delete');
+                    _this.report('group_delete');
                     var ids = [];
                     $header.next().find('li').each(function(){
                         ids.push($(this).data('id'));
                     });
-                    MagicEditor.setStatusBar('准备删除接口分组「'+groupName + '」');
-                    MagicEditor.ajax({
+                    _this.setStatusBar('准备删除接口分组「'+groupName + '」');
+                    delete _this.addedGroups[groupName];
+                    _this.ajax({
                         url : 'group/delete',
                         data : {
                             apiIds : ids.join(','),
                             groupName : groupName
                         },
                         success : function(){
-                            MagicEditor.setStatusBar('接口分组「'+groupName + '」已删除');
-                            MagicEditor.loadAPI();  //重新加载
+                            _this.setStatusBar('接口分组「'+groupName + '」已删除');
+                            _this.loadAPI();  //重新加载
                         }
                     })
                 }
@@ -412,6 +553,7 @@ var MagicEditor = {
         var path = $('input[name=path]').val();
         var method = $('input[name=method]').val();
         var groupName = $('input[name=group]').val();
+        var groupPrefix = $('input[name=prefix]').val();
         this.setStatusBar('准备保存接口：' + name + "(" + path + ")");
         var _this = this;
         this.ajax({
@@ -422,6 +564,7 @@ var MagicEditor = {
                 method : method,
                 id : this.apiId,
                 groupName : groupName,
+                groupPrefix : groupPrefix,
                 parameter: this.requestEditor.getValue(),
                 option: this.optionsEditor.getValue(),
                 name : name
@@ -541,8 +684,11 @@ var MagicEditor = {
             }else if(e.keyCode == 83 && (e.metaKey || e.ctrlKey)){  //Ctrl + S
                 _this.doSave();
                 e.preventDefault();
-            }else if(e.keyCode == 78 && e.altKey){  //Ctrl + O
+            }else if(e.keyCode == 78 && e.altKey){  //Alt + N
                 _this.createNew();
+                e.preventDefault();
+            }else if(e.keyCode == 71 && e.altKey){  //Alt + G
+                _this.createGroup();
                 e.preventDefault();
             }
         })
@@ -596,6 +742,14 @@ var MagicEditor = {
                 name : '删除组',
                 shortKey : '',
                 click : _this.deleteGroup
+            },{
+                name : '新建分组',
+                shortKey : 'Alt+G',
+                click : _this.createGroup
+            },{
+                name : '修改分组',
+                shortKey : '',
+                click : _this.updateGroup
             }],e.pageX,e.pageY,$(this));
             return false;
         }).on('contextmenu','.group-list li',function(e){
@@ -622,9 +776,18 @@ var MagicEditor = {
                 name : '删除接口',
                 shortKey : '',
                 click : _this.deleteApi
+            },{
+                name : '新建分组',
+                shortKey : 'Alt+G',
+                click : _this.createGroup
             }],e.pageX,e.pageY,$li)
             return false;
-        }).on('contextmenu',function(){
+        }).on('contextmenu',function(e){
+            _this.createContextMenu([{
+                name : '新建分组',
+                shortKey : 'Alt+G',
+                click : _this.createGroup
+            }],e.pageX,e.pageY,$(this));
             return false;
         })
     },
@@ -636,6 +799,10 @@ var MagicEditor = {
             return false;
         }).on('click','.select ul li',function(){
             var $this = $(this);
+            var prefix = $this.data('prefix');
+            if(prefix !== undefined){
+                $('input[name=prefix]').val(prefix || '');
+            }
             $this.parent().hide().parent().find('input').val($this.text());
             $this.addClass('selected').siblings().removeClass('selected');
             return false;
@@ -867,7 +1034,12 @@ var MagicEditor = {
             $wrapper.remove();
         })
         $dialog.append($header);
-        $dialog.append('<div class="dialog-content">' + options.content.replace(/\n/g,'<br>').replace(/ /g,'&nbsp;').replace(/\t/g,'&nbsp;&nbsp;&nbsp;&nbsp;') + '</div>');
+        var content = options.content;
+        if(options.replace !== false){
+            content = content.replace(/\n/g,'<br>').replace(/ /g,'&nbsp;').replace(/\t/g,'&nbsp;&nbsp;&nbsp;&nbsp;');
+        }
+
+        $dialog.append('<div class="dialog-content">' + content + '</div>');
         var buttons = options.buttons || [];
         var $buttons = $('<div/>').addClass('dialog-buttons').addClass('not-select');
         if(buttons.length > 1){
@@ -881,7 +1053,7 @@ var MagicEditor = {
         var $wrapper = $('<div/>').addClass('dialog-wrapper').append($dialog);
         $buttons.on('click','button',function(){
             var index = $(this).index();
-            if(buttons[index].click&&buttons[index].click() === false){
+            if(buttons[index].click&&buttons[index].click($dialog) === false){
                 return;
             }
             options.close&&options.close();

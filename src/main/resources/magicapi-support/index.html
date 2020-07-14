@@ -68,9 +68,7 @@
 				<div class="select input" style="width:120px">
 					<input type="text" value="未分组" name="group"/>
 					<ul class="not-select">
-						<li>未分组</li>
-						<li>组1</li>
-						<li>组2</li>
+						<li data-name="未分组" data-prefix="">未分组</li>
 					</ul>
 				</div>
 				<label>请求方法：</label>
@@ -87,6 +85,7 @@
 				<input type="text" style="width : 160px" name="name"/>
 				<label>接口地址：</label>
 				<input type="text" name="path"/>
+				<input type="hidden" name="prefix" />
 			</div>
 			<div class="editor-container"></div>
 		</div>
