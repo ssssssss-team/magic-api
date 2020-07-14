@@ -11,7 +11,7 @@
     </parent>
     <groupId>org.ssssssss</groupId>
     <artifactId>magic-api</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.2</version>
     <packaging>jar</packaging>
     <name>magic-api</name>
     <description>auto generate http api</description>

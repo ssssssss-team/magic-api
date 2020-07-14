@@ -555,7 +555,7 @@ var MagicEditor = {
             url : 'https://img.shields.io/maven-central/v/org.ssssssss/magic-api.json',
             dataType : 'json',
             success : function(data){
-                if(data.value != 'v0.2.1'){
+                if(data.value != 'v0.2.2'){
                     if(ignoreVersion != data.value){
                         _this.createDialog({
                             title : '更新提示',
