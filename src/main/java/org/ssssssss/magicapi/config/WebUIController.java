@@ -240,6 +240,7 @@ public class WebUIController {
 				context.set("cookie", request.get("cookie"));
 				context.set("session", request.get("session"));
 				context.set("header", request.get("header"));
+				context.set("body", request.get("body"));
 			} catch (Exception e) {
 				return new JsonBean<>(0, "请求参数填写错误", resultProvider.buildResult(0, "请求参数填写错误"));
 			}
