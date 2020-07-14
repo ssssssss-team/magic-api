@@ -32,7 +32,10 @@ ul li {
     -khtml-user-select: none;
     user-select: none;
 }
-
+*{
+    scrollbar-color: rgba(170, 170, 170, .7) rgba(170, 170, 170, .7);
+    scrollbar-width: thin;
+}
 ::-webkit-scrollbar {
     width: 7px;
     height: 7px;
@@ -220,6 +223,7 @@ ul li {
     font-family: 'iconfont';
     position: absolute;
     right : 5px;
+    top: 0px;
 }
 .button-run,.bottom-container .bottom-item-toolbar span.button-continue{
     color: #59A869;
