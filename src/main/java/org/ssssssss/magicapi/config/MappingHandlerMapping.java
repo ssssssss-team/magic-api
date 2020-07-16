@@ -165,8 +165,8 @@ public class MappingHandlerMapping {
 		mappings.put(getMappingKey(info), info);
 		requestMappingHandlerMapping.registerMapping(requestMapping, handler, method);
 		if (delete) {
-			apiInfos.add(info);
 			apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
+			apiInfos.add(info);
 		}
 	}
 
