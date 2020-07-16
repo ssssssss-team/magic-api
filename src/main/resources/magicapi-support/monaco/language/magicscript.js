@@ -574,7 +574,7 @@ var Parser = {
                         varName = stream.consume().getText();
                     }
                     if (Parser.scriptClass[value] === undefined) {
-                        _ajax({
+                        MagicEditor.ajax({
                             url: 'class',
                             data: {
                                 className: value
@@ -1240,60 +1240,64 @@ require(['vs/editor/editor.main'], function() {
             });
             var suggestions = [];
             if (value.charAt(value.length - 1) == '.' && value.length > 1) {
-                var className = Parser.parse(new TokenStream(Parser.tokenize(value.substring(0, value.length - 1))));
-                if (className) {
-                    var target = Parser.scriptClass[className];
-                    if (target !== undefined) {
-                        if (target != null) {
-                            for (var j = 0; j < target.attributes.length; j++) {
-                                var attribute = target.attributes[j];
-                                suggestions.push({
-                                    label: attribute.name,
-                                    kind: monaco.languages.CompletionItemKind.Field,
-                                    detail: attribute.type + ":" + attribute.name,
-                                    insertText: attribute.name,
-                                    sortText: ' ~~' + attribute.name
-                                })
-                            }
-                            var methods = target.methods;
-                            for (var i = 0, len = methods.length; i < len; i++) {
-                                var method = methods[i];
-                                method.insertText = method.name;
-                                if (method.parameters.length > 0) {
-                                    var params = [];
-                                    var params1 = [];
-                                    var params2 = [];
-                                    for (var j = 0; j < method.parameters.length; j++) {
-                                        params.push('${' + (j + 1) + ':' + method.parameters[j].name + '}');
-                                        params1.push(method.parameters[j].name);
-                                        params2.push(Parser.getSimpleClass(method.parameters[j].type) + " " + method.parameters[j].name);
-                                    }
-                                    if (!method.comment) {
-                                        method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '(' + params1.join(',') + ')';
-                                    }
-                                    method.fullName = method.name + '(' + params2.join(', ') + ')';
-                                    method.insertText += '(' + params.join(',') + ')';
-                                } else {
-                                    method.insertText += '()';
-                                    method.fullName = method.name + '()';
-                                    if (!method.comment) {
-                                        method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '()';
+                try{
+                    var className = Parser.parse(new TokenStream(Parser.tokenize(value.substring(0, value.length - 1))));
+                    if (className) {
+                        var target = Parser.scriptClass[className];
+                        if (target !== undefined) {
+                            if (target != null) {
+                                for (var j = 0; j < target.attributes.length; j++) {
+                                    var attribute = target.attributes[j];
+                                    suggestions.push({
+                                        label: attribute.name,
+                                        kind: monaco.languages.CompletionItemKind.Field,
+                                        detail: attribute.type + ":" + attribute.name,
+                                        insertText: attribute.name,
+                                        sortText: ' ~~' + attribute.name
+                                    })
+                                }
+                                var methods = target.methods;
+                                for (var i = 0, len = methods.length; i < len; i++) {
+                                    var method = methods[i];
+                                    method.insertText = method.name;
+                                    if (method.parameters.length > 0) {
+                                        var params = [];
+                                        var params1 = [];
+                                        var params2 = [];
+                                        for (var j = 0; j < method.parameters.length; j++) {
+                                            params.push('${' + (j + 1) + ':' + method.parameters[j].name + '}');
+                                            params1.push(method.parameters[j].name);
+                                            params2.push(Parser.getSimpleClass(method.parameters[j].type) + " " + method.parameters[j].name);
+                                        }
+                                        if (!method.comment) {
+                                            method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '(' + params1.join(',') + ')';
+                                        }
+                                        method.fullName = method.name + '(' + params2.join(', ') + ')';
+                                        method.insertText += '(' + params.join(',') + ')';
+                                    } else {
+                                        method.insertText += '()';
+                                        method.fullName = method.name + '()';
+                                        if (!method.comment) {
+                                            method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '()';
+                                        }
                                     }
                                 }
-                            }
-                            for (var j = 0; j < methods.length; j++) {
-                                var method = methods[j];
-                                suggestions.push({
-                                    sortText: method.sortText || method.fullName,
-                                    label: method.fullName,
-                                    kind: monaco.languages.CompletionItemKind.Method,
-                                    detail: method.comment,
-                                    insertText: method.insertText,
-                                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-                                })
+                                for (var j = 0; j < methods.length; j++) {
+                                    var method = methods[j];
+                                    suggestions.push({
+                                        sortText: method.sortText || method.fullName,
+                                        label: method.fullName,
+                                        kind: monaco.languages.CompletionItemKind.Method,
+                                        detail: method.comment,
+                                        insertText: method.insertText,
+                                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                                    })
+                                }
                             }
                         }
                     }
+                }catch (e) {
+
                 }
             } else {
                 suggestions = defaultSuggestions;
