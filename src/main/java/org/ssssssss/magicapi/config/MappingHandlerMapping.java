@@ -106,6 +106,10 @@ public class MappingHandlerMapping {
 		this.magicApiService = magicApiService;
 	}
 
+	public List<ApiInfo> getApiInfos() {
+		return apiInfos;
+	}
+
 	/**
 	 * 注册请求
 	 */
@@ -193,7 +197,7 @@ public class MappingHandlerMapping {
 	 *
 	 * @param path 请求路径
 	 */
-	private String getRequestPath(String groupPrefix, String path) {
+	public String getRequestPath(String groupPrefix, String path) {
 		groupPrefix = groupPrefix == null ? "" : groupPrefix;
 		while (groupPrefix.endsWith("/")) {
 			groupPrefix = groupPrefix.substring(0, groupPrefix.length() - 1);

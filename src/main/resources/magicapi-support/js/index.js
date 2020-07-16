@@ -46,6 +46,7 @@ var MagicEditor = {
         $('input[name=name]').val('');
         $('input[name=path]').val('');
         $('input[name=prefix]').val('');
+        this.outputJson = null;
         this.apiId = null;
         this.scriptEditor&&this.scriptEditor.setValue('return message;');
         this.requestEditor && this.requestEditor.setValue(this.defaultRequestValue);
@@ -626,7 +627,8 @@ var MagicEditor = {
                 groupPrefix : groupPrefix,
                 parameter: this.requestEditor.getValue(),
                 option: this.optionsEditor.getValue(),
-                name : name
+                name : name,
+                output : this.outputJson
             },
             async : false,
             exception : function(){
@@ -704,7 +706,9 @@ var MagicEditor = {
         $(".button-run").removeClass('disabled');
         $('.button-continue').addClass('disabled');
         this.navigateTo(2)
-        this.resultEditor.setValue(this.formatJson(json.data))
+        var outputJson = this.formatJson(json.data);
+        this.outputJson = outputJson;
+        this.resultEditor.setValue(outputJson);
         return ret;
     },
     debugIn : function(id,data){

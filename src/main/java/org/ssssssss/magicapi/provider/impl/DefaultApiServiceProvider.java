@@ -20,6 +20,7 @@ public class DefaultApiServiceProvider implements ApiServiceProvider {
 
 	private final String SCRIPT_COLUMNS = "api_script script,\n" +
 			"api_parameter parameter,\n" +
+			"api_output output,\n" +
 			"api_option option_value\n";
 
 	private RowMapper<ApiInfo> rowMapper = new BeanPropertyRowMapper<>(ApiInfo.class);
