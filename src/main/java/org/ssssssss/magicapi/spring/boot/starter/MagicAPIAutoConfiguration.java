@@ -12,6 +12,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +27,7 @@ import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.functions.AssertFunctions;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
+import org.ssssssss.magicapi.functions.ResponseFunctions;
 import org.ssssssss.magicapi.logging.LoggerManager;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.MagicAPIService;
@@ -34,27 +37,32 @@ import org.ssssssss.magicapi.provider.impl.DefaultApiServiceProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultMagicAPIService;
 import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultResultProvider;
+import org.ssssssss.magicapi.swagger.SwaggerProvider;
 import org.ssssssss.script.MagicModuleLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.functions.ExtensionMethod;
 import org.ssssssss.script.interpreter.AbstractReflection;
+import springfox.documentation.swagger.web.SwaggerResource;
+import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 @Configuration
 @ConditionalOnClass({DataSource.class, RequestMappingHandlerMapping.class})
-@AutoConfigureAfter(DataSourceAutoConfiguration.class)
+@AutoConfigureAfter({DataSourceAutoConfiguration.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	private static Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
 	@Autowired
+	@Lazy
 	RequestMappingHandlerMapping requestMappingHandlerMapping;
 
 	private MagicAPIProperties properties;
@@ -92,6 +100,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(web).build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("redirectIndex", HttpServletRequest.class));
 				// 读取配置
 				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(web + "/config.json").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readConfig"));
+
 			} catch (NoSuchMethodException ignored) {
 			}
 		}
@@ -132,6 +141,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			}
 			handlerMapping.setPrefix(prefix);
 		}
+		RequestMappingInfo requestMappingInfo = RequestMappingInfo.paths("/v2/api-docs/magic-api/swagger2.json").build();
+		Method handlerMethod = SwaggerProvider.class.getDeclaredMethod("swaggerJson");
+		SwaggerProvider swaggerProvider = new SwaggerProvider();
+		swaggerProvider.setMappingHandlerMapping(handlerMapping);
+		requestMappingHandlerMapping.registerMapping(requestMappingInfo, swaggerProvider, handlerMethod);
 		return handlerMapping;
 	}
 
@@ -206,6 +220,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		});
 		logger.info("注册模块:{} -> {}", "log", Logger.class);
 		MagicModuleLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
+		logger.info("注册模块:{} -> {}", "response", ResponseFunctions.class);
+		MagicModuleLoader.addModule("response", new ResponseFunctions(resultProvider));
 		logger.info("注册模块:{} -> {}", "assert", AssertFunctions.class);
 		MagicModuleLoader.addModule("assert", AssertFunctions.class);
 		if (magicModules != null) {
@@ -230,7 +246,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		query.setSqlCache(sqlCache);
 		MagicScriptEngine.addDefaultImport("db", query);    //默认导入
 		Method[] methods = WebUIController.class.getDeclaredMethods();
-		LoggerManager.createMagicAppender();	//收集日志
+		LoggerManager.createMagicAppender();    //收集日志
 		WebUIController controller = new WebUIController();
 		controller.setResultProvider(resultProvider);
 		controller.setDebugTimeout(properties.getDebugConfig().getTimeout());
@@ -270,5 +286,21 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		DynamicDataSource dynamicDataSource = new DynamicDataSource();
 		dynamicDataSource.put(dataSource);
 		return dynamicDataSource;
+	}
+
+	@Bean
+	@Primary
+	public SwaggerResourcesProvider swaggerResourcesProvider(){
+		return () -> Arrays.asList(
+				swaggerResource("应用接口", "/v2/api-docs", "2.0"),
+				swaggerResource("MagicAPI接口","/v2/api-docs/magic-api/swagger2.json","2.0"));
+	}
+
+	private SwaggerResource swaggerResource(String name,String location,String version){
+		SwaggerResource resource = new SwaggerResource();
+		resource.setName(name);
+		resource.setLocation(location);
+		resource.setSwaggerVersion(version);
+		return resource;
 	}
 }
