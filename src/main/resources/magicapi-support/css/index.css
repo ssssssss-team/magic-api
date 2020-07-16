@@ -487,7 +487,46 @@ ul li {
 .bottom-container .bottom-item-body table tr td:not(:last-child){
     border-right: 1px solid #E5E5E5;
 }
-
+.bottom-container .bottom-item-body.output{
+    white-space: nowrap;
+    max-width: 100%;
+    font-size: 1.1em;
+}
+.output-log-line > div{
+    display: inline-block;
+    line-height: 20px;
+    white-space:nowrap;
+}
+.output-log-line.level-warn .level{
+    color : #A66F00;
+}
+.output-log-line.level-info .level{
+    color : #00cd00;
+}
+.output-log-line.level-debug .level{
+    color : #00cccc;
+}
+.output-log-line.level-error .level{
+    color : #cd0000;
+}
+.output-log-line.level-trace .level{
+    color : #0000EE;
+}
+.output-log-line .message{
+    padding: 0 10px;
+}
+.output-log-line .message-line{
+    display: block;
+}
+.output-log-line .timestamp{
+    padding: 0 5px;
+}
+.output-log-line .level{
+    width: 50px;
+    padding:0 5px;
+    text-align: right;
+    margin-left: 5px;
+}
 .margin-view-overlays{
     border-right : 1px solid #c0c0c0;
 }
@@ -748,6 +787,21 @@ ul li {
 .skin-dark .dialog-wrapper .dialog .dialog-buttons button:hover{
     background: #365880;
     border-color: #43688C;
+}
+.skin-dark .output-log-line.level-warn .level{
+    color : #A66F00;
+}
+.skin-dark .output-log-line.level-info .level{
+    color : #ABC023;
+}
+.skin-dark .output-log-line.level-debug .level{
+    color : #299999;
+}
+.skin-dark .output-log-line.level-error .level{
+    color : #CC666E;
+}
+.skin-dark .output-log-line.level-trace .level{
+    color : #5394EC;
 }
 .skin-dark .bottom-container .bottom-item-body table{
     background: #2B2B2B

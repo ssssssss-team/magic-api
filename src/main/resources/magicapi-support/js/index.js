@@ -45,6 +45,7 @@ var MagicEditor = {
         $('input[name=method]').val('GET');
         $('input[name=name]').val('');
         $('input[name=path]').val('');
+        $('input[name=prefix]').val('');
         this.apiId = null;
         this.scriptEditor&&this.scriptEditor.setValue('return message;');
         this.requestEditor && this.requestEditor.setValue(this.defaultRequestValue);
@@ -485,16 +486,72 @@ var MagicEditor = {
             })
         }
     },
+    paddingZero : function(val){
+        if(val < 10){
+            return '0' + val;
+        }
+        return val.toString();
+    },
+    getTimeStr : function(date){
+        var month = date.getMonth() + 1;
+        var day = date.getDate();
+        var hour = date.getHours();
+        var minute = date.getMinutes();
+        var seconds = date.getSeconds();
+        return date.getFullYear() + '-' + this.paddingZero(month) + '-' + this.paddingZero(day) + ' ' + this.paddingZero(hour) + ':' + this.paddingZero(minute) + ':'+this.paddingZero(seconds);
+    },
+    appendLog : function(level,message,throwable){
+
+        var $div = $('<div class="output-log-line level-'+level+'"/>')
+        $div.append($('<div class="timestamp"/>').append(this.getTimeStr(new Date())));
+        $div.append($('<div class="level"/>').append(level.toUpperCase()));
+        var messages = message.replace(/ /g,'&nbsp;').replace(/\t/g,'&nbsp;&nbsp;&nbsp;&nbsp;').split('\n');
+        $div.append($('<div class="message"/>').append(messages[0]));
+        if(messages.length > 1){
+            for(var i=1;i<messages.length;i++){
+                $div.append($('<div class="message-line level-'+level+'" />').append(messages[i]));
+            }
+        }
+        if(throwable){
+            messages = throwable.replace(/ /g,'&nbsp;').replace(/\t/g,'&nbsp;&nbsp;&nbsp;&nbsp;').split('\n');
+            for(var i=0;i<messages.length;i++){
+                $div.append($('<div class="message-line level-'+level+'" />').append(messages[i]));
+            }
+        }
+        if(!this.$output){
+            this.$output = $('.bottom-container .bottom-item-body.output');
+        }
+        this.$output.append($div);
+        this.$output.scrollTop(this.$output[0].scrollHeight);
+    },
+    createConsole : function(callback){
+        var source = new EventSource('console');
+        var _this = this;
+        source.addEventListener('create',function(e){
+            _this.navigateTo(4);
+            _this.appendLog('info','Create Console Session : ' + e.data);
+            callback&&callback(e.data);
+        })
+        source.addEventListener('close',function(e){
+            _this.appendLog('info','Close Console Session : ' + e.data);
+            source.close();
+        })
+        source.addEventListener('log',function(e){
+            var data = JSON.parse(e.data);
+            _this.appendLog(data.level,data.message,data.throwable);
+        })
+    },
     doTest : function(){
+        var _this = this;
         if($('.button-run').hasClass('disabled')){
             return;
         }
-        var request = this.requestEditor.getValue();
+        var request = _this.requestEditor.getValue();
         try{
             request = JSON.parse(request);
             if(typeof request != 'object'){
-                MagicEditor.setStatusBar('请求参数有误！');
-                this.createDialog({
+                _this.setStatusBar('请求参数有误！');
+                _this.createDialog({
                     title : '运行测试',
                     content : '请求参数有误！',
                     buttons : [{
@@ -504,8 +561,8 @@ var MagicEditor = {
                 return;
             }
         }catch(e){
-            MagicEditor.setStatusBar('请求参数有误！');
-            this.createDialog({
+            _this.setStatusBar('请求参数有误！');
+            _this.createDialog({
                 title : '运行测试',
                 content : '请求参数有误！',
                 buttons : [{
@@ -514,35 +571,37 @@ var MagicEditor = {
             });
             return;
         }
-        MagicEditor.setStatusBar('开始测试...');
-        MagicEditor.report('run');
-        request.script = this.scriptEditor.getValue();
-        var decorations = this.scriptEditor.getModel().getAllDecorations();
-        var breakpoints = [];
-        for (var i=0,len =decorations.length;i<len;i++) {
-            if (decorations[i].options.linesDecorationsClassName === 'breakpoints') {
-                breakpoints.push(decorations[i].range.startLineNumber);
+        _this.setStatusBar('开始测试...');
+        _this.createConsole(function(sessionId){
+            _this.report('run');
+            request.script = _this.scriptEditor.getValue();
+            var decorations = _this.scriptEditor.getModel().getAllDecorations();
+            var breakpoints = [];
+            for (var i=0,len =decorations.length;i<len;i++) {
+                if (decorations[i].options.linesDecorationsClassName === 'breakpoints') {
+                    breakpoints.push(decorations[i].range.startLineNumber);
+                }
             }
-        }
-        request.breakpoints = breakpoints;
-        this.resetDebugContent();
-        $('.button-run').addClass('disabled');
-        $('.button-continue').addClass('disabled');
-        var _this = this;
-        this.ajax({
-            url : 'test',
-            data : JSON.stringify(request),
-            contentType : 'application/json;charset=utf-8',
-            success : function(data,json){
-                _this.convertResult(json.code,json.message,json);
-            },
-            exception : function(code,message,json){
-                return _this.convertResult(code,message,json);
-            },
-            error : function(){
-                $('.button-run').removeClass('disabled');
-            }
-        })
+            request.breakpoints = breakpoints;
+            request.sessionId = sessionId;
+            _this.resetDebugContent();
+            $('.button-run').addClass('disabled');
+            $('.button-continue').addClass('disabled');
+            _this.ajax({
+                url : 'test',
+                data : JSON.stringify(request),
+                contentType : 'application/json;charset=utf-8',
+                success : function(data,json){
+                    _this.convertResult(json.code,json.message,json);
+                },
+                exception : function(code,message,json){
+                    return _this.convertResult(code,message,json);
+                },
+                error : function(){
+                    $('.button-run').removeClass('disabled');
+                }
+            })
+        });
     },
     doSave : function(){
         if($('.button-save').hasClass('disabled')){
@@ -611,6 +670,7 @@ var MagicEditor = {
         this.debugDecorations&&this.scriptEditor&&this.scriptEditor.deltaDecorations(this.debugDecorations,[]);
         this.debugDecorations = null;
         var _this = this;
+        var ret = undefined;
         if(code === -1000){
             MagicEditor.setStatusBar('脚本执行出错..');
             MagicEditor.report('script_error');
@@ -632,6 +692,7 @@ var MagicEditor = {
                     _this.scriptEditor&&_this.scriptEditor.deltaDecorations(decorations,[])
                 },10000)
             }
+            ret = false;
         }else if(code === 1000){ // debug断点
             $(".button-run").addClass('disabled');
             $('.button-continue').removeClass('disabled');
@@ -644,6 +705,7 @@ var MagicEditor = {
         $('.button-continue').addClass('disabled');
         this.navigateTo(2)
         this.resultEditor.setValue(this.formatJson(json.data))
+        return ret;
     },
     debugIn : function(id,data){
         MagicEditor.setStatusBar('进入断点...');

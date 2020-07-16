@@ -3,10 +3,13 @@ package org.ssssssss.magicapi.config;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
+import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.model.JsonBodyBean;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
@@ -21,10 +24,8 @@ import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.Span;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * 页面UI对应的Controller
@@ -232,6 +233,18 @@ public class WebUIController {
 	/**
 	 * 获取单个class
 	 *
+	 */
+	@RequestMapping("/console")
+	public SseEmitter console() throws IOException {
+		String sessionId = UUID.randomUUID().toString().replace("-","");
+		SseEmitter emitter = MagicLoggerContext.createEmitter(sessionId);
+		emitter.send(SseEmitter.event().data(sessionId).name("create"));
+		return emitter;
+	}
+
+	/**
+	 * 获取单个class
+	 *
 	 * @param className 类名
 	 * @return
 	 */
@@ -259,6 +272,7 @@ public class WebUIController {
 			request.remove("script");
 			Object breakpoints = request.get("breakpoints");
 			request.remove("breakpoints");
+			Object sessionId = request.remove("sessionId");
 			MagicScriptDebugContext context = new MagicScriptDebugContext();
 			try {
 				context.putMapIntoContext((Map<String, Object>) request.get("request"));
@@ -273,6 +287,12 @@ public class WebUIController {
 			try {
 				context.setBreakpoints((List<Integer>) breakpoints);    //设置断点
 				context.setTimeout(this.debugTimeout);    //设置断点超时时间
+				if(sessionId != null){
+					context.setId(sessionId.toString());
+					context.onComplete(()->MagicLoggerContext.remove(sessionId.toString()));
+					logger.info("Start Console Session : {},{}",sessionId,this.getClass().getClassLoader().getClass().getName());
+					context.onStart(()-> MDC.put(MagicLoggerContext.MAGIC_CONSOLE_SESSION,sessionId.toString()));
+				}
 				Object result = MagicScriptEngine.execute(MagicScriptCompiler.compile(script.toString()), context);
 				if (context.isRunning()) {    //判断是否执行完毕
 					return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result), result);
