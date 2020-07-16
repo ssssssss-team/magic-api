@@ -25,6 +25,7 @@ import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.functions.AssertFunctions;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
+import org.ssssssss.magicapi.logging.LoggerManager;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.PageProvider;
@@ -229,6 +230,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		query.setSqlCache(sqlCache);
 		MagicScriptEngine.addDefaultImport("db", query);    //默认导入
 		Method[] methods = WebUIController.class.getDeclaredMethods();
+		LoggerManager.createMagicAppender();	//收集日志
 		WebUIController controller = new WebUIController();
 		controller.setResultProvider(resultProvider);
 		controller.setDebugTimeout(properties.getDebugConfig().getTimeout());
