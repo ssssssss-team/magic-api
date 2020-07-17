@@ -551,7 +551,6 @@ ul li {
     display: inline-block;
     vertical-align: middle;
     position: relative;
-    padding-left: 5px;
     min-width : 250px;
     box-shadow: 0px 0px 8px #CFCFCF;
     max-width: 800px;
@@ -559,11 +558,11 @@ ul li {
 .dialog-wrapper .dialog .dialog-header{
     height : 30px;
     line-height: 30px;
-    padding-left : 25px;
+    padding-left : 30px;
     padding-right: 75px;
     background-image: url(../images/logo.png);
     background-size: 22px 24px;
-    background-position: 0px 4px;
+    background-position: 5px 4px;
     background-repeat: no-repeat;
     text-align: left;
 }
@@ -610,7 +609,61 @@ ul li {
     background: #E3F1FA;
     border-color: #0784DE;
 }
-
+.dialog-wrapper .dialog.history-list{
+    max-width: inherit;
+    width : 80%;
+    height : 750px;
+}
+.dialog-wrapper .dialog.history-list .dialog-content{
+    border-top: 1px solid #C0C0C0;
+    overflow: auto;
+    position: relative;
+    width : 100%;
+    height : 680px
+}
+.dialog-wrapper .dialog.history-list .version{
+    position: absolute;
+    left : 160px;
+    right : 0px;
+}
+.dialog-wrapper .dialog.history-list .version span{
+    float : left;
+    display: inline-block;
+    line-height: 16px;
+    padding: 0 10px;
+}
+.dialog-wrapper .dialog.history-list .version span.current{
+    float : right
+}
+.dialog-wrapper .dialog.history-list .dialog-content ul{
+    position: absolute;
+    left : 0px;
+    width : 160px;
+    background: #fff;
+    bottom : 5px;
+    top: 0px;
+    color : #666;
+    overflow: auto;
+}
+.dialog-wrapper .dialog.history-list .diff-editor{
+    position: absolute;
+    left : 160px;
+    right : 0px;
+    top : 24px;
+    bottom : 5px;
+}
+.dialog-wrapper .dialog.history-list .dialog-content ul li{
+    height : 20px;
+    line-height: 20px;
+    color : #666;
+    padding-left: 5px;
+    border-bottom: 1px solid #c0c0c0;
+}
+.dialog-wrapper .dialog.history-list .dialog-content ul li:hover,
+.dialog-wrapper .dialog.history-list .dialog-content ul li.selected{
+    background: #1A7DC4;
+    color : #fff;
+}
 .breakpoints{
     background: #db5860;
     width: 10px !important;
@@ -764,10 +817,20 @@ ul li {
 .skin-dark .context-menu li:not(:last-child){
     border-bottom: 1px solid #616161;
 }
-.skin-dark .context-menu li:not(:last-child){
-
+.skin-dark .dialog-wrapper .dialog.history-list .dialog-content{
+    border-top: 1px solid #323232;
 }
-.skin-dark .select ul li:hover,.skin-dark .skin-dark .context-menu li:hover{
+.skin-dark .dialog-wrapper .dialog.history-list .dialog-content ul{
+    background: #3C3F41;
+}
+.skin-dark .dialog-wrapper .dialog.history-list .dialog-content ul li{
+    border-bottom : 1px solid #323232;
+    color: #bbb;
+}
+.dialog.history-list .dialog-content ul li:hover,
+.dialog.history-list .dialog-content ul li:selected,
+.skin-dark .select ul li:hover,
+.skin-dark .skin-dark .context-menu li:hover{
     background: #4B6EAF;
     color: #bbbbbb;
 }

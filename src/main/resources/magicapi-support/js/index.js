@@ -246,11 +246,7 @@ var MagicEditor = {
                         }
                     });
                     if(exists){
-                        _this.createDialog({
-                            title : '创建分组',
-                            content : '分组已存在！',
-                            buttons : [{name : 'OK'}]
-                        })
+                        _this.alert('创建分组','分组已存在！');
                         return false;
                     }
                     _this.ajax({
@@ -320,11 +316,7 @@ var MagicEditor = {
                     });
                     if(exists){
                         _this.setStatusBar('分组「'+groupName + '」');
-                        MagicEditor.createDialog({
-                            title : '创建分组',
-                            content : '分组已存在！',
-                            buttons : [{name : 'OK'}]
-                        })
+                        _this.alert('创建分组','分组已存在！');
                         return false;
                     }
                     _this.addedGroups[groupName] = {
@@ -424,40 +416,22 @@ var MagicEditor = {
                 }else{
                     var val = options.exception&&options.exception(json.code,json.message,json);
                     if(val !== false){
-                        MagicEditor.createDialog({
-                            title : 'Error',
-                            content : json.message,
-                            buttons : [{name : 'OK'}]
-                        });
+                        MagicEditor.alert('Error',json.message);
                     }
                 }
             },
             error : function(){
                 MagicEditor.setStatusBar('ajax请求失败');
-                MagicEditor.createDialog({
-                    title : '网络错误',
-                    content : 'ajax请求失败',
-                    buttons : [{
-                        name : '关闭'
-                    }]
-                });
+                MagicEditor.alert('网络错误','ajax请求失败');
                 options.error&&options.error();
             }
         })
     },
     copyApi : function(){
-        MagicEditor.createDialog({
-            title : '复制接口',
-            content : '功能暂未实现！',
-            buttons : [{name : '知道了'}]
-        })
+        MagicEditor.alert('复制接口','功能暂未实现！');
     },
     copyApiPath : function(){
-        MagicEditor.createDialog({
-            title : '复制接口路径',
-            content : '功能暂未实现！',
-            buttons : [{name : '知道了'}]
-        })
+        MagicEditor.alert('复制接口路径', '功能暂未实现！');
     },
     resetDebugContent : function(){
         $('.bottom-item-body table tbody').html('<tr><td colspan="3" align="center">no message.</td></tr>');
@@ -552,24 +526,12 @@ var MagicEditor = {
             request = JSON.parse(request);
             if(typeof request != 'object'){
                 _this.setStatusBar('请求参数有误！');
-                _this.createDialog({
-                    title : '运行测试',
-                    content : '请求参数有误！',
-                    buttons : [{
-                        name : '确定'
-                    }]
-                });
+                _this.alert('运行测试','请求参数有误！');
                 return;
             }
         }catch(e){
             _this.setStatusBar('请求参数有误！');
-            _this.createDialog({
-                title : '运行测试',
-                content : '请求参数有误！',
-                buttons : [{
-                    name : '确定'
-                }]
-            });
+            _this.alert('运行测试','请求参数有误！');
             return;
         }
         _this.setStatusBar('开始测试...');
@@ -796,6 +758,95 @@ var MagicEditor = {
             }
         })
     },
+    alert : function(title,content){
+        this.createDialog({
+            title : title,
+            content : content,
+            buttons : [{name : 'OK'}]
+        });
+    },
+    doShowHistory : function(){
+        if(!this.apiId){
+            this.alert('历史记录','请选择接口后在查看历史记录');
+            return;
+        }
+        var _this = this;
+        var apiId = this.apiId;
+        var name = $('input[name=name]').val();
+        var scriptModel = monaco.editor.createModel(this.scriptEditor.getValue(),'magicscript');
+        this.ajax({
+            url : 'backups',
+            data : {
+                id : apiId
+            },
+            success : function(timestamps){
+                if(timestamps.length == 0){
+                    _this.alert('历史记录','暂无历史记录信息');
+                    return;
+                }
+                var $ul = $('<ul class="not-select"/>')
+                for(var i=0,len = timestamps.length;i<len;i++){
+                    var timestamp = timestamps[i];
+                    var timeStr = _this.getTimeStr(new Date(timestamp));
+                    $ul.append($('<li/>').attr('data-timestamp',timestamp).attr('data-id',apiId).append(timeStr))
+                }
+                var html = $ul[0].outerHTML;
+                html+= '<div class="version"><span class="version-time"></span><span class="current">当前版本</span></div>'
+                html += '<div class="diff-editor"></div>';
+                _this.createDialog({
+                    title : '历史记录：' + (name || ''),
+                    content : html,
+                    replace : false,
+                    className : 'history-list',
+                    buttons : [{
+                        name : '恢复',
+                        click : function(){
+                            _this.scriptEditor.setValue(scriptModel.getValue());
+                        }
+                    },{
+                        name : '取消'
+                    }],
+                    close : function(){
+                      _this.diffEditor = null;
+                    },
+                    onCreate : function($dom){
+                        _this.diffEditor = monaco.editor.createDiffEditor($dom.find('.diff-editor')[0], {
+                            enableSplitViewResizing: false,
+                            minimap : {
+                                enabled : false
+                            },
+                            folding : false,
+                            lineDecorationsWidth : 20,
+                            fixedOverflowWidgets :false
+                        });
+                        _this.diffEditor.setModel({
+                            original : scriptModel,
+                            modified : scriptModel
+                        });
+                        var $version = $dom.find('.version-time');
+                        $dom.on('click','ul li[data-timestamp]',function(){
+                            $(this).addClass('selected').siblings().removeClass('selected');
+                            var timestamp = $(this).data('timestamp');
+                            $version.html($(this).text());
+                            _this.ajax({
+                                url : 'backup/get',
+                                data : {
+                                    id : apiId,
+                                    timestamp : timestamp
+                                },
+                                success : function(info){
+                                    _this.diffEditor.setModel({
+                                        original : monaco.editor.createModel(info.script,'magicscript'),
+                                        modified : scriptModel
+                                    });
+                                }
+                            })
+                        })
+                    }
+                })
+            }
+        })
+    },
     //初始化右键菜单
     initContextMenu : function(){
         var _this = this;
@@ -832,11 +883,7 @@ var MagicEditor = {
                 name : '移动',
                 shortKey : 'Ctrl+M',
                 click : function(){
-                    _this.createDialog({
-                        title : '移动接口',
-                        content : '功能暂未实现！',
-                        buttons : [{name : '知道了'}]
-                    })
+                    _this.alert('移动接口','功能暂未实现！');
                 }
             },{
                 name : '删除接口',
@@ -879,6 +926,8 @@ var MagicEditor = {
             _this.loadAPI($(this).addClass('selected').data('id'))
         }).on('click','.button-run',function(){
             _this.doTest();
+        }).on('click','.button-history',function(){
+            _this.doShowHistory();
         }).on('click','.button-delete',function(){
             if($(this).hasClass('disabled')){
                 return;
@@ -1092,6 +1141,9 @@ var MagicEditor = {
     createDialog : function(options){
         options = options || {};
         var $dialog = $('<div/>').addClass('dialog');
+        if(options.className){
+            $dialog.addClass(options.className);
+        }
         var $header = $('<div/>').addClass('dialog-header').addClass('not-select').append(options.title || '');
         var $close = $('<span/>').append('<i class="iconfont icon-close"></i>');
         $header.append($close);
@@ -1100,7 +1152,7 @@ var MagicEditor = {
             $wrapper.remove();
         })
         $dialog.append($header);
-        var content = options.content;
+        var content = options.content || '';
         if(options.replace !== false){
             content = content.replace(/\n/g,'<br>').replace(/ /g,'&nbsp;').replace(/\t/g,'&nbsp;&nbsp;&nbsp;&nbsp;');
         }
@@ -1126,6 +1178,7 @@ var MagicEditor = {
             $wrapper.remove();
         })
         $('body').append($wrapper);
+        options.onCreate&&options.onCreate($wrapper);
     },
     createContextMenu : function(menus,left,top,$dom){
         $('.context-menu').remove();
@@ -1299,6 +1352,7 @@ var MagicEditor = {
         this.optionsEditor&&this.optionsEditor.layout();
         this.requestEditor&&this.requestEditor.layout();
         this.resultEditor&&this.resultEditor.layout();
+        this.diffEditor&&this.diffEditor.layout();
     }
 }
 $(function(){

@@ -81,6 +81,27 @@ public interface ApiServiceProvider {
 	boolean update(ApiInfo info);
 
 	/**
+	 * 备份历史记录
+	 *
+	 * @param apiId
+	 */
+	void backup(String apiId);
+
+	/**
+	 * 查询API历史记录
+	 * @param apiId
+	 * @return 时间戳列表
+	 */
+	List<Long> backupList(String apiId);
+
+	/**
+	 * 查询API历史记录详情
+	 * @param apiId
+	 * @param timestamp 时间戳
+	 */
+	ApiInfo backupInfo(String apiId, Long timestamp);
+
+	/**
 	 * 包装接口信息（可用于加密）
 	 *
 	 * @param info

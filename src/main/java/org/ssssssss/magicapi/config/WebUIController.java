@@ -231,12 +231,11 @@ public class WebUIController {
 	}
 
 	/**
-	 * 获取单个class
-	 *
+	 * 创建控制台输出
 	 */
 	@RequestMapping("/console")
 	public SseEmitter console() throws IOException {
-		String sessionId = UUID.randomUUID().toString().replace("-","");
+		String sessionId = UUID.randomUUID().toString().replace("-", "");
 		SseEmitter emitter = MagicLoggerContext.createEmitter(sessionId);
 		emitter.send(SseEmitter.event().data(sessionId).name("create"));
 		return emitter;
@@ -287,11 +286,11 @@ public class WebUIController {
 			try {
 				context.setBreakpoints((List<Integer>) breakpoints);    //设置断点
 				context.setTimeout(this.debugTimeout);    //设置断点超时时间
-				if(sessionId != null){
+				if (sessionId != null) {
 					context.setId(sessionId.toString());
-					context.onComplete(()->MagicLoggerContext.remove(sessionId.toString()));
-					logger.info("Start Console Session : {},{}",sessionId,this.getClass().getClassLoader().getClass().getName());
-					context.onStart(()-> MDC.put(MagicLoggerContext.MAGIC_CONSOLE_SESSION,sessionId.toString()));
+					context.onComplete(() -> MagicLoggerContext.remove(sessionId.toString()));
+					logger.info("Start Console Session : {},{}", sessionId, this.getClass().getClassLoader().getClass().getName());
+					context.onStart(() -> MDC.put(MagicLoggerContext.MAGIC_CONSOLE_SESSION, sessionId.toString()));
 				}
 				Object result = MagicScriptEngine.execute(MagicScriptCompiler.compile(script.toString()), context);
 				if (context.isRunning()) {    //判断是否执行完毕
@@ -351,6 +350,18 @@ public class WebUIController {
 		}
 	}
 
+	@RequestMapping("/backups")
+	@ResponseBody
+	public JsonBean<List<Long>> backups(String id) {
+		return new JsonBean<>(magicApiService.backupList(id));
+	}
+
+	@RequestMapping("/backup/get")
+	@ResponseBody
+	public JsonBean<ApiInfo> backups(String id, Long timestamp) {
+		return new JsonBean<>(magicApiService.backupInfo(id, timestamp));
+	}
+
 	/**
 	 * 保存接口
 	 *
@@ -390,6 +401,7 @@ public class WebUIController {
 				}
 				magicApiService.update(info);
 			}
+			magicApiService.backup(info.getId());
 			// 注册接口
 			mappingHandlerMapping.registerMapping(info, true);
 			return new JsonBean<>(info.getId());

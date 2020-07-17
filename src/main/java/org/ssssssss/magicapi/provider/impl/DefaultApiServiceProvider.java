@@ -93,4 +93,23 @@ public class DefaultApiServiceProvider implements ApiServiceProvider {
 		String update = "update magic_api_info set api_method = ?,api_path = ?,api_script = ?,api_name = ?,api_group_name = ?,api_parameter = ?,api_option = ?,api_output = ?,api_group_prefix = ?,api_update_time = ? where id = ?";
 		return template.update(update, info.getMethod(), info.getPath(), info.getScript(), info.getName(), info.getGroupName(), info.getParameter(), info.getOption(), info.getOutput(), info.getGroupPrefix(), System.currentTimeMillis(), info.getId()) > 0;
 	}
+
+	@Override
+	public void backup(String apiId) {
+		String backupSql = "insert into magic_api_info_his select * from magic_api_info where id = ?";
+		template.update(backupSql, apiId);
+	}
+
+	@Override
+	public List<Long> backupList(String apiId) {
+		return template.queryForList("select api_update_time from magic_api_info_his where id = ? order by api_update_time desc",Long.class,apiId);
+	}
+
+	@Override
+	public ApiInfo backupInfo(String apiId, Long timestamp) {
+		String selectOne = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_api_info_his where id = ? and api_update_time = ? limit 1";
+		ApiInfo info = template.queryForObject(selectOne, rowMapper, apiId,timestamp);
+		unwrap(info);
+		return info;
+	}
 }
