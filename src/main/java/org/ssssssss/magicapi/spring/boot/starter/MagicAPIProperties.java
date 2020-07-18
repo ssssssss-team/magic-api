@@ -46,6 +46,9 @@ public class MagicAPIProperties {
 	@NestedConfigurationProperty
 	private DebugConfig debugConfig = new DebugConfig();
 
+	@NestedConfigurationProperty
+	private SwaggerConfig swaggerConfig = new SwaggerConfig();
+
 	public String getWeb() {
 		if (StringUtils.isBlank(web)) {
 			return null;
@@ -128,5 +131,13 @@ public class MagicAPIProperties {
 
 	public void setDatasource(String datasource) {
 		this.datasource = datasource;
+	}
+
+	public SwaggerConfig getSwaggerConfig() {
+		return swaggerConfig;
+	}
+
+	public void setSwaggerConfig(SwaggerConfig swaggerConfig) {
+		this.swaggerConfig = swaggerConfig;
 	}
 }

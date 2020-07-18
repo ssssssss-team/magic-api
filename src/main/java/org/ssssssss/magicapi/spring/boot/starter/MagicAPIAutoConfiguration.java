@@ -13,7 +13,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,19 +36,15 @@ import org.ssssssss.magicapi.provider.impl.DefaultApiServiceProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultMagicAPIService;
 import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultResultProvider;
-import org.ssssssss.magicapi.swagger.SwaggerProvider;
 import org.ssssssss.script.MagicModuleLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.functions.ExtensionMethod;
 import org.ssssssss.script.interpreter.AbstractReflection;
-import springfox.documentation.swagger.web.SwaggerResource;
-import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -141,11 +136,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			}
 			handlerMapping.setPrefix(prefix);
 		}
-		RequestMappingInfo requestMappingInfo = RequestMappingInfo.paths("/v2/api-docs/magic-api/swagger2.json").build();
-		Method handlerMethod = SwaggerProvider.class.getDeclaredMethod("swaggerJson");
-		SwaggerProvider swaggerProvider = new SwaggerProvider();
-		swaggerProvider.setMappingHandlerMapping(handlerMapping);
-		requestMappingHandlerMapping.registerMapping(requestMappingInfo, swaggerProvider, handlerMethod);
 		return handlerMapping;
 	}
 
@@ -166,16 +156,30 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	public RequestHandler requestHandler(@Autowired(required = false) List<MagicModule> magicModules, //定义的模块集合
 										 @Autowired(required = false) List<ExtensionMethod> extensionMethods, //自定义的类型扩展
 										 ApiServiceProvider apiServiceProvider,
-										 // 动态数据源
-										 DynamicDataSource dynamicDataSource,
-										 // 分页信息获取
-										 PageProvider pageProvider,
 										 // url 映射
 										 MappingHandlerMapping mappingHandlerMapping,
-										 // Sql缓存
-										 SqlCache sqlCache,
 										 // JSON结果转换
 										 ResultProvider resultProvider) {
+
+		// 设置模块和扩展方法
+		setupMagicModules(resultProvider, magicModules, extensionMethods);
+		LoggerManager.createMagicAppender();    //收集日志
+		// 构建请求处理器
+		RequestHandler requestHandler = new RequestHandler();
+		requestHandler.setResultProvider(resultProvider);
+		requestHandler.setThrowException(properties.isThrowException());
+		mappingHandlerMapping.setHandler(requestHandler);
+		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
+		mappingHandlerMapping.setMagicApiService(apiServiceProvider);
+		// 设置拦截器
+		setupRequestInterceptor(createWebUIController(resultProvider, apiServiceProvider, mappingHandlerMapping), requestHandler);
+		// 注册所有映射
+		mappingHandlerMapping.registerAllMapping();
+		return requestHandler;
+	}
+
+	@Bean
+	public DatabaseQuery databaseQuery(DynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
 		RowMapper<Map<String, Object>> rowMapper;
 		if (properties.isMapUnderscoreToCamelCase()) {
 			logger.info("开启下划线转驼峰命名");
@@ -205,6 +209,17 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		} else {
 			rowMapper = new ColumnMapRowMapper();
 		}
+		DatabaseQuery query = new DatabaseQuery(dynamicDataSource);
+		query.setResultProvider(resultProvider);
+		query.setPageProvider(pageProvider);
+		query.setRowMapper(rowMapper);
+		query.setSqlCache(sqlCache);
+		MagicScriptEngine.addDefaultImport("db", query);    //默认导入
+		return query;
+	}
+
+	private void setupMagicModules(ResultProvider resultProvider, List<MagicModule> magicModules, List<ExtensionMethod> extensionMethods) {
+		// 设置脚本import时 class加载策略
 		MagicModuleLoader.setClassLoader((className) -> {
 			try {
 				return springContext.getBean(className);
@@ -224,6 +239,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		MagicModuleLoader.addModule("response", new ResponseFunctions(resultProvider));
 		logger.info("注册模块:{} -> {}", "assert", AssertFunctions.class);
 		MagicModuleLoader.addModule("assert", AssertFunctions.class);
+
 		if (magicModules != null) {
 			for (MagicModule module : magicModules) {
 				logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
@@ -239,14 +255,25 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 				}
 			}
 		}
-		DatabaseQuery query = new DatabaseQuery(dynamicDataSource);
-		query.setResultProvider(resultProvider);
-		query.setPageProvider(pageProvider);
-		query.setRowMapper(rowMapper);
-		query.setSqlCache(sqlCache);
-		MagicScriptEngine.addDefaultImport("db", query);    //默认导入
-		Method[] methods = WebUIController.class.getDeclaredMethods();
-		LoggerManager.createMagicAppender();    //收集日志
+	}
+
+	private void setupRequestInterceptor(WebUIController controller, RequestHandler requestHandler) {
+		// 设置拦截器信息
+		if (this.requestInterceptors != null) {
+			this.requestInterceptors.forEach(interceptor -> {
+				logger.info("注册请求拦截器：{}", interceptor.getClass());
+				requestHandler.addRequestInterceptor(interceptor);
+				if (controller != null) {
+					controller.addRequestInterceptor(interceptor);
+				}
+			});
+		}
+	}
+
+	private WebUIController createWebUIController(ResultProvider resultProvider, ApiServiceProvider apiServiceProvider, MappingHandlerMapping mappingHandlerMapping) {
+		if (properties.getWeb() == null) {
+			return null;
+		}
 		WebUIController controller = new WebUIController();
 		controller.setResultProvider(resultProvider);
 		controller.setDebugTimeout(properties.getDebugConfig().getTimeout());
@@ -255,7 +282,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		if (this.properties.isBanner()) {
 			controller.printBanner();
 		}
+		// 构建UI请求处理器
 		String base = properties.getWeb();
+		Method[] methods = WebUIController.class.getDeclaredMethods();
 		for (Method method : methods) {
 			RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
 			if (requestMapping != null) {
@@ -263,21 +292,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(paths).build(), controller, method);
 			}
 		}
-		RequestHandler requestHandler = new RequestHandler();
-		requestHandler.setResultProvider(resultProvider);
-		requestHandler.setThrowException(properties.isThrowException());
-		if (this.requestInterceptors != null) {
-			this.requestInterceptors.forEach(interceptor -> {
-				logger.info("注册请求拦截器：{}", interceptor.getClass());
-				requestHandler.addRequestInterceptor(interceptor);
-				controller.addRequestInterceptor(interceptor);
-			});
-		}
-		mappingHandlerMapping.setHandler(requestHandler);
-		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
-		mappingHandlerMapping.setMagicApiService(apiServiceProvider);
-		mappingHandlerMapping.registerAllMapping();
-		return requestHandler;
+		return controller;
 	}
 
 	@Bean
@@ -286,21 +301,5 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		DynamicDataSource dynamicDataSource = new DynamicDataSource();
 		dynamicDataSource.put(dataSource);
 		return dynamicDataSource;
-	}
-
-	@Bean
-	@Primary
-	public SwaggerResourcesProvider swaggerResourcesProvider(){
-		return () -> Arrays.asList(
-				swaggerResource("应用接口", "/v2/api-docs", "2.0"),
-				swaggerResource("MagicAPI接口","/v2/api-docs/magic-api/swagger2.json","2.0"));
-	}
-
-	private SwaggerResource swaggerResource(String name,String location,String version){
-		SwaggerResource resource = new SwaggerResource();
-		resource.setName(name);
-		resource.setLocation(location);
-		resource.setSwaggerVersion(version);
-		return resource;
 	}
 }
