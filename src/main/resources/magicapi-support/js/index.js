@@ -634,7 +634,7 @@ var MagicEditor = {
                     })
                 }
                 _this.setStatusBar('保存成功！');
-                _this.renderApiList();
+                _this.loadAPI();
             }
         })
     },
@@ -700,7 +700,7 @@ var MagicEditor = {
             a.href = window.URL.createObjectURL(new Blob([u8arr]));
             a.click();
             MagicEditor.report('output_blob');
-        }else if(contentType.indexOf('image') == 0){    //image开头
+        }else if(contentType && contentType.indexOf('image') == 0){    //image开头
             outputJson = this.formatJson(json.data);
             this.createDialog({
                 title : '图片结果',
@@ -773,7 +773,7 @@ var MagicEditor = {
             url : 'https://img.shields.io/maven-central/v/org.ssssssss/magic-api.json',
             dataType : 'json',
             success : function(data){
-                if(data.value != 'v0.2.2'){
+                if(data.value != 'v0.3.0'){
                     if(ignoreVersion != data.value){
                         _this.createDialog({
                             title : '更新提示',

@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.core.io.InputStreamSource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -296,7 +295,7 @@ public class WebUIController {
 				if (sessionId != null) {
 					context.setId(sessionId.toString());
 					context.onComplete(() -> MagicLoggerContext.remove(sessionId.toString()));
-					logger.info("Start Console Session : {},{}", sessionId, this.getClass().getClassLoader().getClass().getName());
+					logger.info("Start Console Session : {}", sessionId);
 					context.onStart(() -> MDC.put(MagicLoggerContext.MAGIC_CONSOLE_SESSION, sessionId.toString()));
 				}
 				Object result = MagicScriptEngine.execute(MagicScriptCompiler.compile(script.toString()), context);
@@ -312,6 +311,9 @@ public class WebUIController {
 						for (String value : entry.getValue()) {
 							response.addHeader("MA-" + key, value);
 						}
+					}
+					if(entity.getHeaders().isEmpty()){
+						return ResponseEntity.ok(new JsonBean<>(entity.getBody()));
 					}
 					return ResponseEntity.ok(new JsonBean<>(convertToBase64(entity.getBody())));
 				}
@@ -347,7 +349,7 @@ public class WebUIController {
 		do {
 			if (parent instanceof MagicScriptAssertException) {
 				MagicScriptAssertException sae = (MagicScriptAssertException) parent;
-				return new JsonBean<>(sae.getCode(), sae.getMessage(), resultProvider.buildResult(sae.getCode(), sae.getMessage()));
+				return new JsonBean<>(resultProvider.buildResult(sae.getCode(), sae.getMessage()));
 			}
 			if (parent instanceof MagicScriptException) {
 				se = (MagicScriptException) parent;
@@ -422,13 +424,13 @@ public class WebUIController {
 			}
 			if (StringUtils.isBlank(info.getId())) {
 				// 先判断接口是否存在
-				if (magicApiService.exists(info.getMethod(), info.getPath())) {
+				if (magicApiService.exists(info.getGroupPrefix(), info.getMethod(), info.getPath())) {
 					return new JsonBean<>(0, String.format("接口%s:%s已存在", info.getMethod(), info.getPath()));
 				}
 				magicApiService.insert(info);
 			} else {
 				// 先判断接口是否存在
-				if (magicApiService.existsWithoutId(info.getMethod(), info.getPath(), info.getId())) {
+				if (magicApiService.existsWithoutId(info.getGroupPrefix(), info.getMethod(), info.getPath(), info.getId())) {
 					return new JsonBean<>(0, String.format("接口%s:%s已存在", info.getMethod(), info.getPath()));
 				}
 				magicApiService.update(info);

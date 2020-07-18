@@ -64,9 +64,9 @@ public class DefaultApiServiceProvider implements ApiServiceProvider {
 		return info;
 	}
 
-	public boolean exists(String method, String path) {
-		String exists = "select count(*) from magic_api_info where api_method = ? and api_path = ?";
-		return template.queryForObject(exists, Integer.class, method, path) > 0;
+	public boolean exists(String groupPrefix, String method, String path) {
+		String exists = "select count(*) from magic_api_info where api_method = ? and api_path = ? and api_group_prefix = ?";
+		return template.queryForObject(exists, Integer.class, method, path, groupPrefix) > 0;
 	}
 
 	@Override
@@ -75,9 +75,9 @@ public class DefaultApiServiceProvider implements ApiServiceProvider {
 		return template.update(updateGroup, groupName, groupPrefix, System.currentTimeMillis(), oldGroupName) > 0;
 	}
 
-	public boolean existsWithoutId(String method, String path, String id) {
-		String existsWithoutId = "select count(*) from magic_api_info where api_method = ? and api_path = ? and id !=?";
-		return template.queryForObject(existsWithoutId, Integer.class, method, path, id) > 0;
+	public boolean existsWithoutId(String groupPrefix, String method, String path, String id) {
+		String existsWithoutId = "select count(*) from magic_api_info where api_method = ? and api_path = ? and api_group_prefix = ? and id !=?";
+		return template.queryForObject(existsWithoutId, Integer.class, method, path, groupPrefix, id) > 0;
 	}
 
 	public boolean insert(ApiInfo info) {
@@ -102,13 +102,13 @@ public class DefaultApiServiceProvider implements ApiServiceProvider {
 
 	@Override
 	public List<Long> backupList(String apiId) {
-		return template.queryForList("select api_update_time from magic_api_info_his where id = ? order by api_update_time desc",Long.class,apiId);
+		return template.queryForList("select api_update_time from magic_api_info_his where id = ? order by api_update_time desc", Long.class, apiId);
 	}
 
 	@Override
 	public ApiInfo backupInfo(String apiId, Long timestamp) {
 		String selectOne = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_api_info_his where id = ? and api_update_time = ? limit 1";
-		ApiInfo info = template.queryForObject(selectOne, rowMapper, apiId,timestamp);
+		ApiInfo info = template.queryForObject(selectOne, rowMapper, apiId, timestamp);
 		unwrap(info);
 		return info;
 	}

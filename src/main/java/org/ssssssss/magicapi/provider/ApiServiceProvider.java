@@ -40,11 +40,11 @@ public interface ApiServiceProvider {
 
 	/**
 	 * 判断接口是否存在
-	 *
+	 * @param groupPrefix 分组前缀
 	 * @param method 请求方法
 	 * @param path   请求路径
 	 */
-	boolean exists(String method, String path);
+	boolean exists(String groupPrefix, String method, String path);
 
 	/**
 	 * 修改分组信息
@@ -57,12 +57,13 @@ public interface ApiServiceProvider {
 	/**
 	 * 判断接口是否存在
 	 *
+	 * @param groupPrefix 分组前缀
 	 * @param method 请求方法
 	 * @param path   请求路径
 	 * @param id     排除接口
 	 * @return
 	 */
-	boolean existsWithoutId(String method, String path, String id);
+	boolean existsWithoutId(String groupPrefix, String method, String path, String id);
 
 	/**
 	 * 添加接口信息
