@@ -185,7 +185,7 @@ var MagicEditor = {
             })
         }
     },
-    createNew : function(){
+    createNew : function($header){
         MagicEditor.createDialog({
             title : '新建接口',
             content : '新建接口会清空当前编辑器，是否继续？',
@@ -195,6 +195,14 @@ var MagicEditor = {
                     $('.group-item .group-list li.selected').removeClass('selected');
                     MagicEditor.resetEditor();
                     $('.button-delete').addClass('disabled');
+                    if($header){
+                        $('input[name=group]').val($header.find('label').text());
+                        var prefix = $header.find('span').text();
+                        if(prefix){
+                            $('input[name=prefix]').val(prefix.substring(1,prefix.length - 1));
+                        }
+                    }
+                    MagicEditor.report('create_api');
                     MagicEditor.setStatusBar('创建接口');
                 }
             },{
@@ -249,6 +257,7 @@ var MagicEditor = {
                         _this.alert('创建分组','分组已存在！');
                         return false;
                     }
+                    _this.report('group_update');
                     _this.ajax({
                         url : 'group/update',
                         data : {
@@ -323,6 +332,7 @@ var MagicEditor = {
                         groupName : groupName,
                         groupPrefix : groupPrefix
                     }
+                    _this.report('group_create');
                     _this.setStatusBar('分组「'+groupName + '」创建成功');
                     $('input[name=group]').next().append($('<li data-name="'+groupName+'" data-prefix="'+(groupPrefix || '')+'"/>').append(groupName));
                     _this.renderApiList();
@@ -689,6 +699,7 @@ var MagicEditor = {
             }
             a.href = window.URL.createObjectURL(new Blob([u8arr]));
             a.click();
+            MagicEditor.report('output_blob');
         }else if(contentType.indexOf('image') == 0){    //image开头
             outputJson = this.formatJson(json.data);
             this.createDialog({
@@ -697,6 +708,7 @@ var MagicEditor = {
                 replace : false,
                 buttons : [{name : 'OK'}]
             })
+            MagicEditor.report('output_image');
         }else{
             outputJson = this.formatJson(json.data);
         }
@@ -806,6 +818,7 @@ var MagicEditor = {
         var apiId = this.apiId;
         var name = $('input[name=name]').val();
         var scriptModel = monaco.editor.createModel(this.scriptEditor.getValue(),'magicscript');
+        _this.report('history_view');
         this.ajax({
             url : 'backups',
             data : {
@@ -825,6 +838,7 @@ var MagicEditor = {
                 var html = $ul[0].outerHTML;
                 html+= '<div class="version"><span class="version-time"></span><span class="current">当前版本</span></div>'
                 html += '<div class="diff-editor"></div>';
+                _this.setStatusBar('查看历史记录:' + (name || ''));
                 _this.createDialog({
                     title : '历史记录：' + (name || ''),
                     content : html,
@@ -834,6 +848,8 @@ var MagicEditor = {
                         name : '恢复',
                         click : function(){
                             _this.scriptEditor.setValue(scriptModel.getValue());
+                            _this.report('history_revert');
+                            _this.setStatusBar('恢复历史记录:' + (name || ''));
                         }
                     },{
                         name : '取消'
