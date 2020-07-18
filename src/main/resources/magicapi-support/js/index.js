@@ -410,9 +410,9 @@ var MagicEditor = {
             dataType : 'json',
             contentType : options.contentType,
             data : options.data,
-            success : function(json){
+            success : function(json,data,xhr){
                 if(json.code == 1){
-                    options&&options.success(json.data,json);
+                    options&&options.success(json.data,json,xhr);
                 }else{
                     var val = options.exception&&options.exception(json.code,json.message,json);
                     if(val !== false){
@@ -449,8 +449,8 @@ var MagicEditor = {
                 data : {
                     id : this.debugSessionId
                 },
-                success : function(data,json){
-                    _this.convertResult(json.code,json.message,json);
+                success : function(data,json,xhr){
+                    _this.convertResult(json.code,json.message,json,xhr);
                 },
                 exception : function(code,message,json){
                     return _this.convertResult(code,message,json);
@@ -554,8 +554,8 @@ var MagicEditor = {
                 url : 'test',
                 data : JSON.stringify(request),
                 contentType : 'application/json;charset=utf-8',
-                success : function(data,json){
-                    _this.convertResult(json.code,json.message,json);
+                success : function(data,json,xhr){
+                    _this.convertResult(json.code,json.message,json,xhr);
                 },
                 exception : function(code,message,json){
                     return _this.convertResult(code,message,json);
@@ -628,7 +628,7 @@ var MagicEditor = {
             }
         })
     },
-    convertResult : function(code,message,json){
+    convertResult : function(code,message,json,xhr){
         this.debugSessionId = null;
         this.resetDebugContent();
         this.debugDecorations&&this.scriptEditor&&this.scriptEditor.deltaDecorations(this.debugDecorations,[]);
@@ -668,7 +668,39 @@ var MagicEditor = {
         $(".button-run").removeClass('disabled');
         $('.button-continue').addClass('disabled');
         this.navigateTo(2)
-        var outputJson = this.formatJson(json.data);
+        var outputJson;
+        var contentType = xhr&&xhr.getResponseHeader('ma-content-type');
+        if(contentType == 'application/octet-stream'){  //文件下载
+            var disposition = xhr.getResponseHeader('ma-content-disposition');
+            var filename = 'output';
+            if(disposition){
+                filename = disposition.substring(disposition.indexOf('filename=') + 9);
+            }
+            outputJson = this.formatJson({
+                filename : filename
+            });
+            var a = document.createElement("a");
+            a.download = filename;
+            var bstr = atob(json.data);
+            var n = bstr.length;
+            var u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            a.href = window.URL.createObjectURL(new Blob([u8arr]));
+            a.click();
+        }else if(contentType.indexOf('image') == 0){    //image开头
+            outputJson = this.formatJson(json.data);
+            this.createDialog({
+                title : '图片结果',
+                content : '<p align="center"><img  src="data:'+contentType+';base64,'+json.data+'"></p>',
+                replace : false,
+                buttons : [{name : 'OK'}]
+            })
+        }else{
+            outputJson = this.formatJson(json.data);
+        }
+
         this.outputJson = outputJson;
         this.resultEditor.setValue(outputJson);
         return ret;

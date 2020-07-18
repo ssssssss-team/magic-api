@@ -1,9 +1,14 @@
 package org.ssssssss.magicapi.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.core.io.InputStreamSource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -24,7 +29,9 @@ import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.parsing.Span;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 /**
@@ -262,7 +269,7 @@ public class WebUIController {
 	 */
 	@RequestMapping("/test")
 	@ResponseBody
-	public JsonBean<Object> test(HttpServletRequest servletRequest, @RequestBody(required = false) Map<String, Object> request) {
+	public Object test(HttpServletRequest servletRequest, @RequestBody(required = false) Map<String, Object> request, HttpServletResponse response) {
 		if (!allowVisit(servletRequest, RequestInterceptor.Authorization.RUN)) {
 			return new JsonBean<>(-10, "无权限执行测试方法");
 		}
@@ -298,12 +305,37 @@ public class WebUIController {
 				} else if (context.isException()) {    //判断是否出现异常
 					return resolveThrowable((Throwable) context.getReturnValue());
 				}
+				if (result instanceof ResponseEntity) {
+					ResponseEntity entity = (ResponseEntity) result;
+					for (Map.Entry<String, List<String>> entry : entity.getHeaders().entrySet()) {
+						String key = entry.getKey();
+						for (String value : entry.getValue()) {
+							response.addHeader("MA-" + key, value);
+						}
+					}
+					return ResponseEntity.ok(new JsonBean<>(convertToBase64(entity.getBody())));
+				}
 				return new JsonBean<>(resultProvider.buildResult(result));
 			} catch (Exception e) {
 				return resolveThrowable(e);
 			}
 		}
 		return new JsonBean<>(resultProvider.buildResult(0, "脚本不能为空"));
+	}
+
+	private String convertToBase64(Object value) throws IOException {
+		if(value instanceof String || value instanceof Number){
+			return convertToBase64(value.toString().getBytes());
+		}else if(value instanceof byte[]){
+			return Base64.getEncoder().encodeToString((byte[]) value);
+		}else if(value instanceof InputStream){
+			return convertToBase64(IOUtils.toByteArray((InputStream) value));
+		}else if(value instanceof InputStreamSource){
+			InputStreamSource iss = (InputStreamSource) value;
+			return convertToBase64(iss.getInputStream());
+		}else {
+			return convertToBase64(new ObjectMapper().writeValueAsString(value));
+		}
 	}
 
 	/**
