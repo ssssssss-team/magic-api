@@ -15,8 +15,26 @@ public class SwaggerProvider {
 
 	private MappingHandlerMapping mappingHandlerMapping;
 
+	private String description;
+
+	private String title;
+
+	private String version;
+
 	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
 	}
 
 	@ResponseBody
@@ -24,7 +42,7 @@ public class SwaggerProvider {
 		List<ApiInfo> infos = mappingHandlerMapping.getApiInfos();
 		SwaggerEntity swaggerEntity = new SwaggerEntity();
 		SwaggerEntity.License license = new SwaggerEntity.License("MIT", "https://gitee.com/ssssssss-team/magic-api/blob/master/LICENSE");
-		swaggerEntity.setInfo(new SwaggerEntity.Info("MagicAPI 接口信息","0.2.2","MagicAPI Swagger Docs",license));
+		swaggerEntity.setInfo(new SwaggerEntity.Info(this.description, this.version, this.title, license));
 		ObjectMapper mapper = new ObjectMapper();
 		for (ApiInfo info : infos) {
 			swaggerEntity.addTag(info.getGroupName(),info.getGroupPrefix());
