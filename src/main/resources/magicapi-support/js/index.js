@@ -1,5 +1,6 @@
 var MagicEditor = {
     init : function(){
+        this.config = {};
         var skin = this.getValue('skin');
         if(skin){
             $('body').addClass('skin-' + skin);
@@ -20,6 +21,10 @@ var MagicEditor = {
         this.initScriptEditor();
         this.resetEditor();
         this.checkUpdate();
+        var _this = this;
+        $.getJSON('config.json',function(data){
+            _this.config = data;
+        })
     },
     initSkin : function(){
         var skinSelector = $('.skin-selector');
@@ -150,7 +155,7 @@ var MagicEditor = {
             $dom.append($item);
         }
     },
-    loadAPI : function(id){
+    loadAPI : function(id,isCopy){
         var _this = this;
         if(id){
             this.ajax({
@@ -160,11 +165,17 @@ var MagicEditor = {
                 },
                 success : function(info){
                     _this.resetEditor();
-                    _this.apiId = id;
                     $('.button-delete').removeClass('disabled');
-                    $('input[name=name]').val(info.name);
-                    $('input[name=path]').val(info.path);
-                    MagicEditor.setStatusBar('编辑接口：' + info.name + '(' + info.path + ')')
+                    if(isCopy === true){
+                        $('input[name=name]').val();
+                        $('input[name=path]').val();
+                        MagicEditor.setStatusBar('复制接口：' + info.name + '(' + info.path + ')')
+                    }else{
+                        _this.apiId = id;
+                        $('input[name=name]').val(info.name);
+                        $('input[name=path]').val(info.path);
+                        MagicEditor.setStatusBar('编辑接口：' + info.name + '(' + info.path + ')')
+                    }
                     $('input[name=method]').val(info.method);
                     $('input[name=group]').val(info.groupName || '未分组');
                     $('input[name=prefix]').val(info.groupPrefix || '');
@@ -437,11 +448,44 @@ var MagicEditor = {
             }
         })
     },
-    copyApi : function(){
-        MagicEditor.alert('复制接口','功能暂未实现！');
+    copyApi : function($li){
+        var id = $li&&$li.data('id');
+        id&&MagicEditor.confirm('复制接口','复制接口会清空当前编辑器，是否继续？',function(){
+            MagicEditor.loadAPI(id,true);
+        })
     },
-    copyApiPath : function(){
-        MagicEditor.alert('复制接口路径', '功能暂未实现！');
+    copyApiPath : function($li){
+        var _this = MagicEditor;
+        var path = $li&&$li.find('span').text();
+        if(_this.config.web&&path){
+            path = path.substring(1,path.length - 1);
+            var prefix = $li.parent().prev().find('span').text() || '';
+            if(prefix){
+                prefix = prefix.substring(1,prefix.length - 1).replace(/(^\/+)|(\/+$)/g,'');
+            }
+            path = prefix + '/' + path.replace(/(^\/+)/g,'');
+            if(_this.config&&_this.config.prefix){
+                path = _this.config.prefix.replace(/(^\/+)|(\/+$)/g,'') + '/'+ path;
+            }
+            var host = location.href.substring(0,location.href.indexOf(_this.config.web)).replace(/(\/+$)/g,'');
+            if(_this.config.prefix){
+                host = host + '/' + _this.config.prefix.replace(/(^\/+)|(\/+$)/g,'');
+            }
+            path = host + '/' + path;
+            try {
+                var copyText = document.createElement('textarea');
+                copyText.style = 'position:absolute;left:-99999999px';
+                document.body.appendChild(copyText);
+                copyText.innerHTML = path;
+                copyText.readOnly = false;
+                copyText.select();
+                copyText.setSelectionRange(0, copyText.value.length);
+                document.execCommand("copy");
+                _this.alert('复制接口路径','复制成功');
+            } catch (e) {
+                _this.alert('复制接口路径失败，请手动赋值',path);
+            }
+        }
     },
     resetDebugContent : function(){
         $('.bottom-item-body table tbody').html('<tr><td colspan="3" align="center">no message.</td></tr>');
@@ -762,6 +806,9 @@ var MagicEditor = {
             }else if(e.keyCode == 71 && e.altKey){  //Alt + G
                 _this.createGroup();
                 e.preventDefault();
+            }else if(e.keyCode == 27 || e.keyCode == 13){ //Enter or Esc
+                $('.dialog-wrapper').remove();
+                e.preventDefault();
             }
         })
     },
@@ -807,6 +854,13 @@ var MagicEditor = {
             title : title,
             content : content,
             buttons : [{name : 'OK'}]
+        });
+    },
+    confirm : function(title,content,callback){
+        this.createDialog({
+            title : title,
+            content : content,
+            buttons : [{name : '确定',click : function(){callback&&callback();}},{name : '取消'}]
         });
     },
     doShowHistory : function(){
@@ -921,11 +975,11 @@ var MagicEditor = {
             var $li = $(this);
             _this.createContextMenu([{
                 name : '复制接口',
-                shortKey : 'Ctrl+C',
+                shortKey : '',
                 click : _this.copyApi,
             },{
                 name : '复制路径',
-                shortKey : 'Ctrl+Shift+C',
+                shortKey : '',
                 click : _this.copyApiPath
             },{
                 name : '移动',
