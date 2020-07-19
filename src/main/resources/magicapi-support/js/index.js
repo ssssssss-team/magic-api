@@ -558,11 +558,9 @@ var MagicEditor = {
         var _this = this;
         source.addEventListener('create',function(e){
             _this.navigateTo(4);
-            _this.appendLog('info','Create Console Session : ' + e.data);
             callback&&callback(e.data);
         })
         source.addEventListener('close',function(e){
-            _this.appendLog('info','Close Console Session : ' + e.data);
             source.close();
         })
         source.addEventListener('log',function(e){

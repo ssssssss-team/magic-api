@@ -262,9 +262,7 @@ public class WebUIController {
 	/**
 	 * 测试运行
 	 *
-	 * @param servletRequest
 	 * @param request        请求参数
-	 * @return
 	 */
 	@RequestMapping("/test")
 	@ResponseBody
@@ -294,9 +292,14 @@ public class WebUIController {
 				context.setTimeout(this.debugTimeout);    //设置断点超时时间
 				if (sessionId != null) {
 					context.setId(sessionId.toString());
-					context.onComplete(() -> MagicLoggerContext.remove(sessionId.toString()));
-					logger.info("Start Console Session : {}", sessionId);
-					context.onStart(() -> MDC.put(MagicLoggerContext.MAGIC_CONSOLE_SESSION, sessionId.toString()));
+					context.onComplete(() -> {
+						logger.info("Close Console Session : {}", sessionId);
+						MagicLoggerContext.remove(sessionId.toString());
+					});
+					context.onStart(() -> {
+						MDC.put(MagicLoggerContext.MAGIC_CONSOLE_SESSION, sessionId.toString());
+						logger.info("Create Console Session : {}", sessionId);
+					});
 				}
 				Object result = MagicScriptEngine.execute(MagicScriptCompiler.compile(script.toString()), context);
 				if (context.isRunning()) {    //判断是否执行完毕
