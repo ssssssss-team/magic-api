@@ -12,6 +12,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +26,8 @@ import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.functions.AssertFunctions;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
+import org.ssssssss.magicapi.functions.ResponseFunctions;
+import org.ssssssss.magicapi.logging.LoggerManager;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.PageProvider;
@@ -48,12 +51,13 @@ import java.util.stream.Stream;
 
 @Configuration
 @ConditionalOnClass({DataSource.class, RequestMappingHandlerMapping.class})
-@AutoConfigureAfter(DataSourceAutoConfiguration.class)
+@AutoConfigureAfter({DataSourceAutoConfiguration.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	private static Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
 	@Autowired
+	@Lazy
 	RequestMappingHandlerMapping requestMappingHandlerMapping;
 
 	private MagicAPIProperties properties;
@@ -91,6 +95,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(web).build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("redirectIndex", HttpServletRequest.class));
 				// 读取配置
 				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(web + "/config.json").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readConfig"));
+
 			} catch (NoSuchMethodException ignored) {
 			}
 		}
@@ -151,16 +156,30 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	public RequestHandler requestHandler(@Autowired(required = false) List<MagicModule> magicModules, //定义的模块集合
 										 @Autowired(required = false) List<ExtensionMethod> extensionMethods, //自定义的类型扩展
 										 ApiServiceProvider apiServiceProvider,
-										 // 动态数据源
-										 DynamicDataSource dynamicDataSource,
-										 // 分页信息获取
-										 PageProvider pageProvider,
 										 // url 映射
 										 MappingHandlerMapping mappingHandlerMapping,
-										 // Sql缓存
-										 SqlCache sqlCache,
 										 // JSON结果转换
 										 ResultProvider resultProvider) {
+
+		// 设置模块和扩展方法
+		setupMagicModules(resultProvider, magicModules, extensionMethods);
+		LoggerManager.createMagicAppender();    //收集日志
+		// 构建请求处理器
+		RequestHandler requestHandler = new RequestHandler();
+		requestHandler.setResultProvider(resultProvider);
+		requestHandler.setThrowException(properties.isThrowException());
+		mappingHandlerMapping.setHandler(requestHandler);
+		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
+		mappingHandlerMapping.setMagicApiService(apiServiceProvider);
+		// 设置拦截器
+		setupRequestInterceptor(createWebUIController(resultProvider, apiServiceProvider, mappingHandlerMapping), requestHandler);
+		// 注册所有映射
+		mappingHandlerMapping.registerAllMapping();
+		return requestHandler;
+	}
+
+	@Bean
+	public DatabaseQuery databaseQuery(DynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
 		RowMapper<Map<String, Object>> rowMapper;
 		if (properties.isMapUnderscoreToCamelCase()) {
 			logger.info("开启下划线转驼峰命名");
@@ -190,6 +209,17 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		} else {
 			rowMapper = new ColumnMapRowMapper();
 		}
+		DatabaseQuery query = new DatabaseQuery(dynamicDataSource);
+		query.setResultProvider(resultProvider);
+		query.setPageProvider(pageProvider);
+		query.setRowMapper(rowMapper);
+		query.setSqlCache(sqlCache);
+		MagicScriptEngine.addDefaultImport("db", query);    //默认导入
+		return query;
+	}
+
+	private void setupMagicModules(ResultProvider resultProvider, List<MagicModule> magicModules, List<ExtensionMethod> extensionMethods) {
+		// 设置脚本import时 class加载策略
 		MagicModuleLoader.setClassLoader((className) -> {
 			try {
 				return springContext.getBean(className);
@@ -205,8 +235,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		});
 		logger.info("注册模块:{} -> {}", "log", Logger.class);
 		MagicModuleLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
+		logger.info("注册模块:{} -> {}", "response", ResponseFunctions.class);
+		MagicModuleLoader.addModule("response", new ResponseFunctions(resultProvider));
 		logger.info("注册模块:{} -> {}", "assert", AssertFunctions.class);
 		MagicModuleLoader.addModule("assert", AssertFunctions.class);
+
 		if (magicModules != null) {
 			for (MagicModule module : magicModules) {
 				logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
@@ -222,13 +255,25 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 				}
 			}
 		}
-		DatabaseQuery query = new DatabaseQuery(dynamicDataSource);
-		query.setResultProvider(resultProvider);
-		query.setPageProvider(pageProvider);
-		query.setRowMapper(rowMapper);
-		query.setSqlCache(sqlCache);
-		MagicScriptEngine.addDefaultImport("db", query);    //默认导入
-		Method[] methods = WebUIController.class.getDeclaredMethods();
+	}
+
+	private void setupRequestInterceptor(WebUIController controller, RequestHandler requestHandler) {
+		// 设置拦截器信息
+		if (this.requestInterceptors != null) {
+			this.requestInterceptors.forEach(interceptor -> {
+				logger.info("注册请求拦截器：{}", interceptor.getClass());
+				requestHandler.addRequestInterceptor(interceptor);
+				if (controller != null) {
+					controller.addRequestInterceptor(interceptor);
+				}
+			});
+		}
+	}
+
+	private WebUIController createWebUIController(ResultProvider resultProvider, ApiServiceProvider apiServiceProvider, MappingHandlerMapping mappingHandlerMapping) {
+		if (properties.getWeb() == null) {
+			return null;
+		}
 		WebUIController controller = new WebUIController();
 		controller.setResultProvider(resultProvider);
 		controller.setDebugTimeout(properties.getDebugConfig().getTimeout());
@@ -237,7 +282,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		if (this.properties.isBanner()) {
 			controller.printBanner();
 		}
+		// 构建UI请求处理器
 		String base = properties.getWeb();
+		Method[] methods = WebUIController.class.getDeclaredMethods();
 		for (Method method : methods) {
 			RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
 			if (requestMapping != null) {
@@ -245,21 +292,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(paths).build(), controller, method);
 			}
 		}
-		RequestHandler requestHandler = new RequestHandler();
-		requestHandler.setResultProvider(resultProvider);
-		requestHandler.setThrowException(properties.isThrowException());
-		if (this.requestInterceptors != null) {
-			this.requestInterceptors.forEach(interceptor -> {
-				logger.info("注册请求拦截器：{}", interceptor.getClass());
-				requestHandler.addRequestInterceptor(interceptor);
-				controller.addRequestInterceptor(interceptor);
-			});
-		}
-		mappingHandlerMapping.setHandler(requestHandler);
-		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
-		mappingHandlerMapping.setMagicApiService(apiServiceProvider);
-		mappingHandlerMapping.registerAllMapping();
-		return requestHandler;
+		return controller;
 	}
 
 	@Bean
