@@ -728,7 +728,7 @@ var MagicEditor = {
             var disposition = xhr.getResponseHeader('ma-content-disposition');
             var filename = 'output';
             if(disposition){
-                filename = disposition.substring(disposition.indexOf('filename=') + 9);
+                filename = decodeURIComponent(disposition.substring(disposition.indexOf('filename=') + 9));
             }
             outputJson = this.formatJson({
                 filename : filename
