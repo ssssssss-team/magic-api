@@ -2,7 +2,9 @@ package org.ssssssss.magicapi.spring.boot.starter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -16,6 +18,7 @@ import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Swagger配置类
@@ -23,11 +26,15 @@ import java.util.List;
 @Configuration
 @AutoConfigureAfter({MagicAPIAutoConfiguration.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
+@ConditionalOnClass(name = "springfox.documentation.swagger.web.SwaggerResourcesProvider")
 public class MagicSwaggerConfiguration {
 
 	@Autowired
 	@Lazy
 	private RequestMappingHandlerMapping requestMappingHandlerMapping;
+
+	@Autowired
+	private ApplicationContext context;
 
 	private MagicAPIProperties properties;
 
@@ -37,8 +44,7 @@ public class MagicSwaggerConfiguration {
 
 	@Bean
 	@Primary
-	public SwaggerResourcesProvider swaggerResourcesProvider(@Autowired(required = false) SwaggerResourcesProvider provider, MappingHandlerMapping handlerMapping) throws NoSuchMethodException {
-
+	public SwaggerResourcesProvider magicSwaggerResourcesProvider(MappingHandlerMapping handlerMapping) throws NoSuchMethodException {
 		SwaggerConfig config = properties.getSwaggerConfig();
 		RequestMappingInfo requestMappingInfo = RequestMappingInfo.paths(config.getLocation()).build();
 
@@ -54,9 +60,14 @@ public class MagicSwaggerConfiguration {
 
 		return () -> {
 			List<SwaggerResource> resources = new ArrayList<>();
+			Map<String, SwaggerResourcesProvider> beans = context.getBeansOfType(SwaggerResourcesProvider.class);
 			// 获取已定义的文档信息
-			if (provider != null) {
-				resources.addAll(provider.get());
+			if (beans != null) {
+				for (Map.Entry<String, SwaggerResourcesProvider> entry : beans.entrySet()) {
+					if(!"magicSwaggerResourcesProvider".equalsIgnoreCase(entry.getKey())){
+						resources.addAll(entry.getValue().get());
+					}
+				}
 			}
 			// 追加Magic Swagger信息
 			resources.add(swaggerResource(config.getName(), config.getLocation()));
