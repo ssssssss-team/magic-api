@@ -26,16 +26,16 @@ public class Log4j2LoggerContext implements MagicLoggerContext{
 				.withConfiguration(configuration)
 				.withPattern("%d %t %p %X{TracingMsg} %c - %m%n")
 				.build();
-		MagicLog4jAppender appender = new MagicLog4jAppender("Magic", logger.getFilter(), layout);
+		MagicLog4j2Appender appender = new MagicLog4j2Appender("Magic", logger.getFilter(), layout);
 		appender.start();
 		configuration.addAppender(appender);
 		logger.addAppender(appender,logger.getLevel(),logger.getFilter());
 		context.updateLoggers(configuration);
 	}
 
-	class MagicLog4jAppender extends AbstractAppender{
+	class MagicLog4j2Appender extends AbstractAppender{
 
-		MagicLog4jAppender(String name, Filter filter, Layout<? extends Serializable> layout) {
+		MagicLog4j2Appender(String name, Filter filter, Layout<? extends Serializable> layout) {
 			super(name, filter, layout);
 		}
 
