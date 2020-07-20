@@ -16,6 +16,8 @@ public class LoggerManager {
 			magicLoggerContext = new LogbackLoggerContext();
 		}else if("org.apache.logging.slf4j.Log4jLoggerFactory".equalsIgnoreCase(loggerFactoryClassName)){	//log4j2
 			magicLoggerContext = new Log4j2LoggerContext();
+		}else if ("org.slf4j.impl.Log4jLoggerFactory".equalsIgnoreCase(loggerFactoryClassName)) {
+			magicLoggerContext = new Log4jLoggerContext();
 		}
 		if (magicLoggerContext == null) {
 			logger.error("无法识别LoggerContext:{}", loggerFactoryClassName);
