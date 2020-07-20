@@ -806,7 +806,6 @@ var MagicEditor = {
                 e.preventDefault();
             }else if(e.keyCode == 27 || e.keyCode == 13){ //Enter or Esc
                 $('.dialog-wrapper').remove();
-                e.preventDefault();
             }
         })
     },
@@ -814,11 +813,12 @@ var MagicEditor = {
     checkUpdate : function(){
         var _this = this;
         var ignoreVersion = this.getValue('ignore-version');
+        _this.report('v0_3_1')
         $.ajax({
             url : 'https://img.shields.io/maven-central/v/org.ssssssss/magic-api.json',
             dataType : 'json',
             success : function(data){
-                if(data.value != 'v0.3.0'){
+                if(data.value != 'v0.3.1'){
                     if(ignoreVersion != data.value){
                         _this.createDialog({
                             title : '更新提示',
