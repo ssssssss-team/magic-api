@@ -60,6 +60,10 @@ public class RequestHandler {
 		try {
 			//	找到对应的接口信息
 			info = MappingHandlerMapping.getMappingApiInfo(request);
+			if(info==null){
+				logger.error("接口不存在");
+				return resultProvider.buildResult(1001,"fail","接口不存在");
+			}
 			// 构建脚本上下文
 			MagicScriptContext context = new MagicScriptContext();
 			context.putMapIntoContext(parameters);
