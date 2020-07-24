@@ -695,8 +695,9 @@ var MagicEditor = {
             this.navigateTo(2);
             if (json.body) {
                 var line = json.body;
+                var range = new monaco.Range(line[0], line[2], line[1], line[3] + 1);
                 var decorations = this.scriptEditor&&this.scriptEditor.deltaDecorations([],[{
-                    range: new monaco.Range(line[0], line[2], line[1], line[3] + 1),
+                    range: range,
                     options : {
                         hoverMessage : {
                             value : message
@@ -704,6 +705,8 @@ var MagicEditor = {
                         inlineClassName : 'squiggly-error',
                     }
                 }])
+                this.scriptEditor.revealRangeInCenter(range);
+                this.scriptEditor.focus();
                 setTimeout(function(){
                     _this.scriptEditor&&_this.scriptEditor.deltaDecorations(decorations,[])
                 },10000)
