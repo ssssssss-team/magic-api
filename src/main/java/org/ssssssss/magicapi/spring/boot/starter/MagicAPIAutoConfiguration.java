@@ -47,6 +47,7 @@ import javax.sql.DataSource;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Configuration
@@ -160,7 +161,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 										 MappingHandlerMapping mappingHandlerMapping,
 										 // JSON结果转换
 										 ResultProvider resultProvider) {
-
 		// 设置模块和扩展方法
 		setupMagicModules(resultProvider, magicModules, extensionMethods);
 		LoggerManager.createMagicAppender();    //收集日志
@@ -214,7 +214,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		query.setPageProvider(pageProvider);
 		query.setRowMapper(rowMapper);
 		query.setSqlCache(sqlCache);
-		MagicScriptEngine.addDefaultImport("db", query);    //默认导入
 		return query;
 	}
 
@@ -235,15 +234,22 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		});
 		logger.info("注册模块:{} -> {}", "log", Logger.class);
 		MagicModuleLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
+		List<String> importModules = properties.getAutoImportModuleList();
 		logger.info("注册模块:{} -> {}", "response", ResponseFunctions.class);
 		MagicModuleLoader.addModule("response", new ResponseFunctions(resultProvider));
 		logger.info("注册模块:{} -> {}", "assert", AssertFunctions.class);
 		MagicModuleLoader.addModule("assert", AssertFunctions.class);
-
 		if (magicModules != null) {
 			for (MagicModule module : magicModules) {
 				logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
 				MagicModuleLoader.addModule(module.getModuleName(), module);
+			}
+		}
+		Set<String> moduleNames = MagicModuleLoader.getModuleNames();
+		for (String moduleName : moduleNames) {
+			if (importModules.contains(moduleName)) {
+				logger.info("自动导入模块：{}", moduleName);
+				MagicScriptEngine.addDefaultImport(moduleName, MagicModuleLoader.loadModule(moduleName));
 			}
 		}
 		if (extensionMethods != null) {

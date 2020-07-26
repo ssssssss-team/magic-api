@@ -4,6 +4,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
+import java.util.Arrays;
+import java.util.List;
+
 @ConfigurationProperties(prefix = "magic-api")
 public class MagicAPIProperties {
 
@@ -31,6 +34,11 @@ public class MagicAPIProperties {
 	 * 接口保存的数据源
 	 */
 	private String datasource;
+
+	/**
+	 * 自动导入的模块,多个用","分隔
+	 */
+	private String autoImportModule = "db";
 
 	/**
 	 * 驼峰命名转换
@@ -139,5 +147,17 @@ public class MagicAPIProperties {
 
 	public void setSwaggerConfig(SwaggerConfig swaggerConfig) {
 		this.swaggerConfig = swaggerConfig;
+	}
+
+	public String getAutoImportModule() {
+		return autoImportModule;
+	}
+
+	public List<String> getAutoImportModuleList() {
+		return Arrays.asList(autoImportModule.replaceAll("\\s","").split(","));
+	}
+
+	public void setAutoImportModule(String autoImport) {
+		this.autoImportModule = autoImport;
 	}
 }
