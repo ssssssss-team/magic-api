@@ -207,7 +207,7 @@ public class WebUIController {
 	 */
 	@RequestMapping("/continue")
 	@ResponseBody
-	public JsonBean<Object> debugContinue(String id) {
+	public Object debugContinue(String id, HttpServletResponse response) throws IOException {
 		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(id);
 		if (context == null) {
 			return new JsonBean<>(0, "debug session not found!", resultProvider.buildResult(0, "debug session not found!"));
@@ -222,7 +222,7 @@ public class WebUIController {
 		} else if (context.isException()) {
 			return resolveThrowable((Throwable) context.getReturnValue());
 		}
-		return new JsonBodyBean<>(resultProvider.buildResult(context.getReturnValue()), context.getReturnValue());
+		return convertResult(context.getReturnValue(), response);
 	}
 
 	/**
@@ -262,7 +262,7 @@ public class WebUIController {
 	/**
 	 * 测试运行
 	 *
-	 * @param request        请求参数
+	 * @param request 请求参数
 	 */
 	@RequestMapping("/test")
 	@ResponseBody
@@ -307,20 +307,7 @@ public class WebUIController {
 				} else if (context.isException()) {    //判断是否出现异常
 					return resolveThrowable((Throwable) context.getReturnValue());
 				}
-				if (result instanceof ResponseEntity) {
-					ResponseEntity entity = (ResponseEntity) result;
-					for (Map.Entry<String, List<String>> entry : entity.getHeaders().entrySet()) {
-						String key = entry.getKey();
-						for (String value : entry.getValue()) {
-							response.addHeader("MA-" + key, value);
-						}
-					}
-					if(entity.getHeaders().isEmpty()){
-						return ResponseEntity.ok(new JsonBean<>(entity.getBody()));
-					}
-					return ResponseEntity.ok(new JsonBean<>(convertToBase64(entity.getBody())));
-				}
-				return new JsonBean<>(resultProvider.buildResult(result));
+				return convertResult(result, response);
 			} catch (Exception e) {
 				return resolveThrowable(e);
 			}
@@ -328,17 +315,34 @@ public class WebUIController {
 		return new JsonBean<>(resultProvider.buildResult(0, "脚本不能为空"));
 	}
 
+	private Object convertResult(Object result, HttpServletResponse response) throws IOException {
+		if (result instanceof ResponseEntity) {
+			ResponseEntity entity = (ResponseEntity) result;
+			for (Map.Entry<String, List<String>> entry : entity.getHeaders().entrySet()) {
+				String key = entry.getKey();
+				for (String value : entry.getValue()) {
+					response.addHeader("MA-" + key, value);
+				}
+			}
+			if (entity.getHeaders().isEmpty()) {
+				return ResponseEntity.ok(new JsonBean<>(entity.getBody()));
+			}
+			return ResponseEntity.ok(new JsonBean<>(convertToBase64(entity.getBody())));
+		}
+		return new JsonBean<>(resultProvider.buildResult(result));
+	}
+
 	private String convertToBase64(Object value) throws IOException {
-		if(value instanceof String || value instanceof Number){
+		if (value instanceof String || value instanceof Number) {
 			return convertToBase64(value.toString().getBytes());
-		}else if(value instanceof byte[]){
+		} else if (value instanceof byte[]) {
 			return Base64.getEncoder().encodeToString((byte[]) value);
-		}else if(value instanceof InputStream){
+		} else if (value instanceof InputStream) {
 			return convertToBase64(IOUtils.toByteArray((InputStream) value));
-		}else if(value instanceof InputStreamSource){
+		} else if (value instanceof InputStreamSource) {
 			InputStreamSource iss = (InputStreamSource) value;
 			return convertToBase64(iss.getInputStream());
-		}else {
+		} else {
 			return convertToBase64(new ObjectMapper().writeValueAsString(value));
 		}
 	}
