@@ -236,7 +236,7 @@ var MagicEditor = {
         var _this = this;
         element.onload = element.onreadystatechange = function(){
             if(!this.readyState||this.readyState=='loaded'||this.readyState=='complete') {
-                _this.report('v0_3_1');
+                _this.report('v0_3_2');
             }
         }
 
@@ -562,9 +562,9 @@ var MagicEditor = {
     createConsole : function(callback){
         var source = new EventSource('console');
         var _this = this;
-        // source.onerror = function(){
-        //     source.close();
-        // }
+        source.onerror = function(){
+            source.close();
+        }
         source.addEventListener('create',function(e){
             _this.navigateTo(4);
             callback&&callback(e.data);
@@ -829,7 +829,7 @@ var MagicEditor = {
             url : 'https://img.shields.io/maven-central/v/org.ssssssss/magic-api.json',
             dataType : 'json',
             success : function(data){
-                if(data.value != 'v0.3.1'){
+                if(data.value != 'v0.3.2'){
                     if(ignoreVersion != data.value){
                         _this.createDialog({
                             title : '更新提示',
