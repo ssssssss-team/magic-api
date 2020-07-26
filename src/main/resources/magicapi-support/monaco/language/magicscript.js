@@ -200,6 +200,7 @@ var TokenType = {
     SingleQuote: {literal: '\'', error: '\''},
     BooleanLiteral: {error: 'true 或 false'},
     DoubleLiteral: {error: '一个 double 类型数值'},
+    DecimalLiteral: {error: '一个 BigDecimal 类型数值'},
     FloatLiteral: {error: '一个 float 类型数值'},
     LongLiteral: {error: '一个 long 类型数值'},
     IntegerLiteral: {error: '一个 int 类型数值'},
@@ -375,6 +376,8 @@ var Parser = {
                     type = TokenType.FloatLiteral;
                 } else if (stream.match("d", true) || stream.match("D", true)) {
                     type = TokenType.DoubleLiteral;
+                } else if (stream.match("m", true) || stream.match("M", true)) {
+                    type = TokenType.DecimalLiteral;
                 }
                 tokens.push(new Token(type, stream.endSpan()));
                 continue;
@@ -869,6 +872,8 @@ var Parser = {
             return new AST.TypeLiteral('int', stream.expect(TokenType.IntegerLiteral).getSpan());
         } else if (stream.match(TokenType.LongLiteral, false)) {
             return new AST.TypeLiteral('long', stream.expect(TokenType.LongLiteral).getSpan());
+        } else if (stream.match(TokenType.DecimalLiteral, false)) {
+            return new AST.TypeLiteral('BigDecimal', stream.expect(TokenType.LongLiteral).getSpan());
         } else if (stream.match(TokenType.NullLiteral, false)) {
             return new AST.TypeLiteral('null', stream.expect(TokenType.NullLiteral).getSpan());
         } else {
@@ -974,6 +979,9 @@ var AST = {
             if (type == 'long') {
                 return 'java.lang.Long';
             }
+            if (type == 'BigDecimal') {
+                return 'java.math.BigDecimal';
+            }
             if (type == 'null') {
                 return null;
             }
@@ -1011,6 +1019,9 @@ var AST = {
                 if (left.type == 'string' || right.type == 'string') {
                     return 'java.lang.String';
                 }
+            }
+            if (left.type == 'BigDecimal' || right.type == 'BigDecimal') {
+                return 'java.math.BigDecimal';
             }
             if (left.type == 'double' || right.type == 'double') {
                 return 'java.lang.Double';
@@ -1321,7 +1332,7 @@ require(['vs/editor/editor.main'], function() {
                     }
                 }],
                 [/[{}()\[\]]/, '@brackets'],
-                [/(@digits)[lLbBsSdDfF]?/, 'number'],
+                [/(@digits)[lLbBsSdDfFmM]?/, 'number'],
                 [/\/\*\*(?!\/)/, 'comment.doc', '@mulcomment'],
                 [/\/\*/, 'comment', '@comment'],
                 [/\/\/.*$/, 'comment'],
