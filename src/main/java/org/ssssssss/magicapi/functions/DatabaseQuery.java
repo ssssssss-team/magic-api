@@ -5,6 +5,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.DynamicDataSource;
 import org.ssssssss.magicapi.config.DynamicDataSource.DataSourceNode;
+import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.magicapi.dialect.Dialect;
 import org.ssssssss.magicapi.dialect.DialectUtils;
 import org.ssssssss.magicapi.exception.MagicAPIException;
@@ -24,7 +25,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
-public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
+public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements MagicModule {
 
 	@UnableCall
 	private DynamicDataSource dynamicDataSource;
@@ -286,6 +287,12 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> {
 	private static GenericTokenParser ifTokenParser = new GenericTokenParser("?{", "}", true);
 
 	private static GenericTokenParser ifParamTokenParser = new GenericTokenParser("?{", ",", true);
+
+	@UnableCall
+	@Override
+	public String getModuleName() {
+		return "db";
+	}
 
 	public static class BoundSql {
 		private String sql;
