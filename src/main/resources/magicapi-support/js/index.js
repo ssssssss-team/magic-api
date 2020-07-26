@@ -226,14 +226,20 @@ var MagicEditor = {
     },
     initMTA : function(){
         window._mtac = {};
-        var mta = document.createElement("script");
-        mta.src = "//pingjs.qq.com/h5/stats.js?v2.0.4";
-        mta.setAttribute("name", "MTAH5");
-        mta.setAttribute("sid", "500724136");
-        mta.setAttribute("cid", "500724141");
+        var element = document.createElement("script");
+        element.src = "//pingjs.qq.com/h5/stats.js?v2.0.4";
+        element.setAttribute("name", "MTAH5");
+        element.setAttribute("sid", "500724136");
+        element.setAttribute("cid", "500724141");
         var s = document.getElementsByTagName("script")[0];
-        s.parentNode.insertBefore(mta, s);
-        this.report('visit');
+        s.parentNode.insertBefore(element, s);
+        var _this = this;
+        element.onload = element.onreadystatechange = function(){
+            if(!this.readyState||this.readyState=='loaded'||this.readyState=='complete') {
+                _this.report('v0_3_1');
+            }
+        }
+
     },
     // 修改分组
     updateGroup : function($header){
@@ -556,6 +562,9 @@ var MagicEditor = {
     createConsole : function(callback){
         var source = new EventSource('console');
         var _this = this;
+        // source.onerror = function(){
+        //     source.close();
+        // }
         source.addEventListener('create',function(e){
             _this.navigateTo(4);
             callback&&callback(e.data);
@@ -816,7 +825,6 @@ var MagicEditor = {
     checkUpdate : function(){
         var _this = this;
         var ignoreVersion = this.getValue('ignore-version');
-        _this.report('v0_3_1')
         $.ajax({
             url : 'https://img.shields.io/maven-central/v/org.ssssssss/magic-api.json',
             dataType : 'json',
