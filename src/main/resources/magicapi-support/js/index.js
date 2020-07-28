@@ -1105,7 +1105,9 @@ var MagicEditor = {
             url: 'classes',
             async : false,
             success: function (data) {
-                Parser.scriptClass = data || {};
+                data = data || {};
+                Parser.scriptClass = data.classes || {};
+                Parser.extensions = data.extensions || {};
             }
         })
 

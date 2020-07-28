@@ -230,10 +230,13 @@ public class WebUIController {
 	 */
 	@RequestMapping("/classes")
 	@ResponseBody
-	public JsonBean<Map<String, ScriptClass>> classes() {
+	public JsonBean<Map<String, Map<String, ScriptClass>>> classes() {
 		Map<String, ScriptClass> classMap = MagicScriptEngine.getScriptClassMap();
 		classMap.putAll(MagicModuleLoader.getModules());
-		return new JsonBean<>(classMap);
+		Map<String, Map<String, ScriptClass>> values = new HashMap<>();
+		values.put("classes", classMap);
+		values.put("extensions", MagicScriptEngine.getExtensionScriptClass());
+		return new JsonBean<>(values);
 	}
 
 	/**

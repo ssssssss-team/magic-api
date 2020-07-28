@@ -330,6 +330,7 @@ TokenStream.prototype.getSource = function () {
 }
 var Parser = {
     scriptClass: {},
+    extensions : {},
     tokenize: function (source) {
         var stream = new CharacterStream(source, 0, source.length);
         var tokens = [];
@@ -542,7 +543,7 @@ var Parser = {
             return 'java.lang.Long';
         }
         if (target.indexOf('[]') > -1) {
-            return 'Object[]';
+            return '[Ljava.lang.Object;';
         }
         return target || 'java.lang.Object';
     },
@@ -612,7 +613,8 @@ var Parser = {
                     }
                 }
             }
-            return expression && expression.getJavaType(vars);
+            var type = expression && expression.getJavaType(vars);
+            return type;
         }catch(e){
             return '';
         }
@@ -1082,6 +1084,16 @@ var AST = {
                     }
                 }
             }
+            target = Parser.extensions[target];
+            var methods = target && target.methods;
+            if (methods) {
+                for (var i = 0, len = methods.length; i < len; i++) {
+                    var m = methods[i];
+                    if (m.name == targetMethod && AST.matchTypes(m.parameters, args)) {
+                        return Parser.getWrapperClass(m.returnType);
+                    }
+                }
+            }
             return 'java.lang.Object';
         }
     },
@@ -1241,6 +1253,70 @@ require(['vs/editor/editor.main'], function() {
             '}'
         ].join('\n')
     }];
+    var findAttributes = function(className){
+        var target = Parser.scriptClass[className];
+        var attributes = [];
+        if(target){
+            attributes = target.attributes;
+            if(target.superClass){
+                attributes = attributes.concat(findAttributes(target.superClass));
+            }
+            if(target.interfaces && target.interfaces.length > 0){
+                for(var i=0,len = target.interfaces.length;i < len;i++){
+                    attributes = attributes.concat(findAttributes(target.interfaces[i]));
+                }
+            }
+        }
+        return attributes;
+    }
+    var findMethods = function(className){
+        var target = Parser.scriptClass[className];
+        var methods = [];
+        var _findMethod = function(target,begin){
+            for (var i = 0, len = target.methods.length; i < len; i++) {
+                var method = target.methods[i];
+                method.insertText = method.name;
+                if (method.parameters.length > begin) {
+                    var params = [];
+                    var params1 = [];
+                    var params2 = [];
+                    for (var j = begin; j < method.parameters.length; j++) {
+                        params.push('${' + (j + 1 - begin) + ':' + method.parameters[j].name + '}');
+                        params1.push(method.parameters[j].name);
+                        params2.push(Parser.getSimpleClass(method.parameters[j].type) + " " + method.parameters[j].name);
+                    }
+                    if (!method.comment) {
+                        method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '(' + params1.join(',') + ')';
+                    }
+                    method.fullName = method.name + '(' + params2.join(', ') + ')';
+                    method.insertText += '(' + params.join(',') + ')';
+                } else {
+                    method.insertText += '()';
+                    method.fullName = method.name + '()';
+                    if (!method.comment) {
+                        method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '()';
+                    }
+                }
+                methods.push(method);
+            }
+        }
+        if(target){
+            _findMethod(target,0);
+            if(target.superClass){
+                methods = methods.concat(findMethods(target.superClass));
+            }
+            if(target.interfaces && target.interfaces.length > 0){
+                for(var i=0,len = target.interfaces.length;i < len;i++){
+                    methods = methods.concat(findMethods(target.interfaces[i]));
+                }
+            }
+        }
+        target = Parser.extensions[className];
+        if(target){
+            _findMethod(target,1);
+        }
+        return methods;
+    }
     monaco.languages.registerCompletionItemProvider('magicscript',{
         provideCompletionItems: function (model, position) {
             var value = model.getValueInRange({
@@ -1250,65 +1326,50 @@ require(['vs/editor/editor.main'], function() {
                 endColumn: position.column
             });
             var suggestions = [];
-            if (value.charAt(value.length - 1) == '.' && value.length > 1) {
+
+            if (value.length > 1) {
+                var endDot = value.charAt(value.length - 1) == '.';
+                var input = ''
+                if(endDot){
+                    input = value.substring(0, value.length - 1);
+                }else if(value.indexOf('.') > 1){
+                    input = value.substring(0,value.lastIndexOf('.'));
+                }
                 try{
-                    var className = Parser.parse(new TokenStream(Parser.tokenize(value.substring(0, value.length - 1))));
+                    var className = Parser.parse(new TokenStream(Parser.tokenize(input)));
                     if (className) {
-                        var target = Parser.scriptClass[className];
-                        if (target !== undefined) {
-                            if (target != null) {
-                                for (var j = 0; j < target.attributes.length; j++) {
-                                    var attribute = target.attributes[j];
-                                    suggestions.push({
-                                        label: attribute.name,
-                                        kind: monaco.languages.CompletionItemKind.Field,
-                                        detail: attribute.type + ":" + attribute.name,
-                                        insertText: attribute.name,
-                                        sortText: ' ~~' + attribute.name
-                                    })
+                        var attributes = findAttributes(className);
+                        if (attributes) {
+                            for (var j = 0; j < attributes.length; j++) {
+                                var attribute = attributes[j];
+                                suggestions.push({
+                                    label: attribute.name,
+                                    kind: monaco.languages.CompletionItemKind.Field,
+                                    detail: attribute.type + ":" + attribute.name,
+                                    insertText: attribute.name,
+                                    sortText: ' ~~' + attribute.name
+                                })
+                            }
+                            var methods = findMethods(className);
+                            var mmap = {};
+                            for (var j = 0; j < methods.length; j++) {
+                                var method = methods[j];
+                                if(mmap[method.fullName]){
+                                    continue;
                                 }
-                                var methods = target.methods;
-                                for (var i = 0, len = methods.length; i < len; i++) {
-                                    var method = methods[i];
-                                    method.insertText = method.name;
-                                    if (method.parameters.length > 0) {
-                                        var params = [];
-                                        var params1 = [];
-                                        var params2 = [];
-                                        for (var j = 0; j < method.parameters.length; j++) {
-                                            params.push('${' + (j + 1) + ':' + method.parameters[j].name + '}');
-                                            params1.push(method.parameters[j].name);
-                                            params2.push(Parser.getSimpleClass(method.parameters[j].type) + " " + method.parameters[j].name);
-                                        }
-                                        if (!method.comment) {
-                                            method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '(' + params1.join(',') + ')';
-                                        }
-                                        method.fullName = method.name + '(' + params2.join(', ') + ')';
-                                        method.insertText += '(' + params.join(',') + ')';
-                                    } else {
-                                        method.insertText += '()';
-                                        method.fullName = method.name + '()';
-                                        if (!method.comment) {
-                                            method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '()';
-                                        }
-                                    }
-                                }
-                                for (var j = 0; j < methods.length; j++) {
-                                    var method = methods[j];
-                                    suggestions.push({
-                                        sortText: method.sortText || method.fullName,
-                                        label: method.fullName,
-                                        kind: monaco.languages.CompletionItemKind.Method,
-                                        detail: method.comment,
-                                        insertText: method.insertText,
-                                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-                                    })
-                                }
+                                mmap[method.fullName] = true;
+                                suggestions.push({
+                                    sortText: method.sortText || method.fullName,
+                                    label: method.fullName,
+                                    kind: monaco.languages.CompletionItemKind.Method,
+                                    detail: method.comment,
+                                    insertText: method.insertText,
+                                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                                })
                             }
                         }
                     }
                 }catch (e) {
-
                 }
             } else {
                 suggestions = defaultSuggestions;
