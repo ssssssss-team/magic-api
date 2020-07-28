@@ -8,8 +8,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.ssssssss.magicapi.utils.Assert;
 
 import javax.sql.DataSource;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 动态数据源
@@ -38,6 +37,27 @@ public class DynamicDataSource {
         }
         logger.info("注册数据源：{}", StringUtils.isNotBlank(dataSourceName) ? dataSourceName : "default");
         this.dataSourceMap.put(dataSourceName, new DataSourceNode(dataSource));
+    }
+
+    /**
+     * 获取全部数据源
+     */
+    public List<String> datasources(){
+        return new ArrayList<>(this.dataSourceMap.keySet());
+    }
+
+    /**
+     * 删除数据源
+     * @param datasourceName    数据源名称
+     */
+    public boolean delete(String datasourceName){
+        boolean result = false;
+        // 检查参数是否合法
+        if(datasourceName != null && !datasourceName.isEmpty()){
+            result = this.dataSourceMap.remove(datasourceName) != null;
+        }
+        logger.info("删除数据源：{}:{}", datasourceName, result ? "成功" : "失败");
+        return result;
     }
 
     /**
