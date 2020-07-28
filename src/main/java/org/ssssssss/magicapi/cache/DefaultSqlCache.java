@@ -120,7 +120,7 @@ public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.Expir
         long expire;
         Object value;
 
-        public ExpireNode(long expire, Object value) {
+        ExpireNode(long expire, Object value) {
             this.expire = expire;
             this.value = value;
         }

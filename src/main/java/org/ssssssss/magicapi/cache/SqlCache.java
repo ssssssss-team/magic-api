@@ -22,6 +22,7 @@ public interface SqlCache {
      * @param name 名字
      * @param key   key
      * @param value 值
+     * @param ttl 有效期
      */
     void put(String name, String key, Object value, long ttl);
 
