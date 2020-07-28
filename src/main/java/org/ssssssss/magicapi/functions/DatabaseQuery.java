@@ -1,7 +1,10 @@
 package org.ssssssss.magicapi.functions;
 
+import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.DynamicDataSource;
 import org.ssssssss.magicapi.config.DynamicDataSource.DataSourceNode;
@@ -21,6 +24,8 @@ import org.ssssssss.script.parsing.TokenStream;
 import org.ssssssss.script.parsing.Tokenizer;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
@@ -209,6 +214,27 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 			this.sqlCache.delete(this.cacheName);
 		}
 		return value;
+	}
+
+	/**
+	 * 插入并返回主键
+	 */
+	public long insert(String sql){
+		BoundSql boundSql = new BoundSql(sql);
+		KeyHolder keyHolder = new GeneratedKeyHolder();
+		dataSourceNode.getJdbcTemplate().update(con -> {
+			PreparedStatement ps = con.prepareStatement(boundSql.getSql(), Statement.RETURN_GENERATED_KEYS);
+			new ArgumentPreparedStatementSetter(boundSql.getParameters()).setValues(ps);
+			return ps;
+		}, keyHolder);
+		if (this.cacheName != null) {
+			this.sqlCache.delete(this.cacheName);
+		}
+		Number key = keyHolder.getKey();
+		if(key == null){
+			return -1;
+		}
+		return key.longValue();
 	}
 
 	/**
