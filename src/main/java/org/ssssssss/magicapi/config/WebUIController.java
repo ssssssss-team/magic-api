@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
@@ -293,6 +294,7 @@ public class WebUIController {
 			try {
 				context.setBreakpoints((List<Integer>) breakpoints);    //设置断点
 				context.setTimeout(this.debugTimeout);    //设置断点超时时间
+				RequestContextHolder.setRequestAttributes(RequestContextHolder.getRequestAttributes(), true);
 				if (sessionId != null) {
 					context.setId(sessionId.toString());
 					context.onComplete(() -> {
