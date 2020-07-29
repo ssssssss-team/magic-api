@@ -425,6 +425,12 @@ public class WebUIController {
 			if (StringUtils.isBlank(info.getMethod())) {
 				return new JsonBean<>(0, "请求方法不能为空");
 			}
+			if (info.getGroupName() != null && (info.getGroupName().indexOf("'") > -1 || info.getGroupName().indexOf("\"") > -1)) {
+				return new JsonBean<>(0, "分组名不能包含特殊字符' \"");
+			}
+			if (info.getGroupPrefix() != null && (info.getGroupPrefix().indexOf("'") > -1 || info.getGroupPrefix().indexOf("\"") > -1)) {
+				return new JsonBean<>(0, "分组前缀不能包含特殊字符' \"");
+			}
 			if (StringUtils.isBlank(info.getPath())) {
 				return new JsonBean<>(0, "请求路径不能为空");
 			}

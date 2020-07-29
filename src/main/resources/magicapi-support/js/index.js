@@ -111,7 +111,7 @@ var MagicEditor = {
                         groupPrefix : info.groupPrefix,
                         title : info.groupName
                     }
-                    if($groupUL.find('[data-name='+info.groupName+']').length == 0){
+                    if($groupUL.find('[data-name='+$.escapeSelector(info.groupName)+']').length == 0){
                         $groupUL.append($('<li data-name="'+info.groupName+'" data-prefix="'+(info.groupPrefix || '')+'"/>').append(info.groupName))
                     }
                 }
@@ -270,6 +270,14 @@ var MagicEditor = {
                             }
                         }
                     });
+                    if(groupName.indexOf("'")!= -1 || groupName.indexOf('"') != -1){
+                        _this.alert('创建分组','分组名不能包含特殊字符 \' "');
+                        return false;
+                    }
+                    if(groupPrefix.indexOf("'")!= -1 || groupPrefix.indexOf('"') != -1){
+                        _this.alert('创建分组','分组前缀不能包含特殊字符 \' "');
+                        return false;
+                    }
                     if(exists){
                         _this.alert('创建分组','分组已存在！');
                         return false;
@@ -300,7 +308,7 @@ var MagicEditor = {
                                 }
                             }
                             var $group = $('input[name=group]');
-                            $group.next().find('li[data-name='+oldGroupName+']').attr('data-prefix',(groupPrefix || '')).attr('data-name',groupName).html(groupName);
+                            $group.next().find('li[data-name='+$.escapeSelector(oldGroupName)+']').attr('data-prefix',(groupPrefix || '')).attr('data-name',groupName).html(groupName);
                             if($group.val() == oldGroupName){
                                 $group.val(groupName);
                                 $('input[name=prefix]').val(groupPrefix);
@@ -332,6 +340,14 @@ var MagicEditor = {
                         $dom.find('input[name=path]').focus();
                         return false;
                     }
+                    if(groupName.indexOf("'")!= -1 || groupName.indexOf('"') != -1){
+                        _this.alert('创建分组','分组名不能包含特殊字符 \' "');
+                        return false;
+                    }
+                    if(groupPrefix.indexOf("'")!= -1 || groupPrefix.indexOf('"') != -1){
+                        _this.alert('创建分组','分组前缀不能包含特殊字符 \' "');
+                        return false;
+                    }
                     var exists = false;
                     $('.group-header').each(function(){
                         var name = $(this).find('label').text();
@@ -361,9 +377,9 @@ var MagicEditor = {
     },
     // 删除分组
     deleteGroup : function($header){
+        var _this = MagicEditor;
         var groupName = $header.find('label').text();
         _this.setStatusBar('准备删除分组「'+groupName + '」');
-        var _this = MagicEditor;
         _this.createDialog({
             title : '删除接口分组',
             content : '是否要删除接口分组「'+groupName + '」',
