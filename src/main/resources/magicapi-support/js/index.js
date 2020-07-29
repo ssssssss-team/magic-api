@@ -236,7 +236,7 @@ var MagicEditor = {
         var _this = this;
         element.onload = element.onreadystatechange = function(){
             if(!this.readyState||this.readyState=='loaded'||this.readyState=='complete') {
-                _this.report('v0_3_2');
+                _this.report('v0_3_3');
             }
         }
 
@@ -512,18 +512,20 @@ var MagicEditor = {
     resetDebugContent : function(){
         $('.bottom-item-body table tbody').html('<tr><td colspan="3" align="center">no message.</td></tr>');
     },
-    doContinue : function(){
+    doContinue : function(step){
         if($('.button-continue').hasClass('disabled')){
             return;
         }
         if(this.debugSessionId){
             MagicEditor.resetDebugContent();
-            $('.button-continue').addClass('disabled');
+            $('.button-continue,.button-step-over').addClass('disabled');
             var _this = this;
             this.ajax({
                 url : 'continue',
                 data : {
-                    id : this.debugSessionId
+                    id : this.debugSessionId,
+                    breakpoints : _this.getBreakPoints().join(','),
+                    step : step ? '1' : '0'
                 },
                 success : function(data,json,xhr){
                     _this.convertResult(json.code,json.message,json,xhr);
@@ -593,6 +595,16 @@ var MagicEditor = {
             _this.appendLog(data.level,data.message,data.throwable);
         })
     },
+    getBreakPoints : function(){
+        var decorations = MagicEditor.scriptEditor.getModel().getAllDecorations();
+        var breakpoints = [];
+        for (var i=0,len =decorations.length;i<len;i++) {
+            if (decorations[i].options.linesDecorationsClassName === 'breakpoints') {
+                breakpoints.push(decorations[i].range.startLineNumber);
+            }
+        }
+        return breakpoints;
+    },
     doTest : function(){
         var _this = this;
         if($('.button-run').hasClass('disabled')){
@@ -615,18 +627,12 @@ var MagicEditor = {
         _this.createConsole(function(sessionId){
             _this.report('run');
             request.script = _this.scriptEditor.getValue();
-            var decorations = _this.scriptEditor.getModel().getAllDecorations();
-            var breakpoints = [];
-            for (var i=0,len =decorations.length;i<len;i++) {
-                if (decorations[i].options.linesDecorationsClassName === 'breakpoints') {
-                    breakpoints.push(decorations[i].range.startLineNumber);
-                }
-            }
+            var breakpoints = _this.getBreakPoints();
             request.breakpoints = breakpoints;
             request.sessionId = sessionId;
             _this.resetDebugContent();
             $('.button-run').addClass('disabled');
-            $('.button-continue').addClass('disabled');
+            $('.button-continue,.button-step-over').addClass('disabled');
             _this.ajax({
                 url : 'test',
                 data : JSON.stringify(request),
@@ -716,7 +722,7 @@ var MagicEditor = {
             MagicEditor.setStatusBar('脚本执行出错..');
             MagicEditor.report('script_error');
             $(".button-run").removeClass('disabled');
-            $('.button-continue').addClass('disabled');
+            $('.button-continue,.button-step-over').addClass('disabled');
             this.navigateTo(2);
             if (json.body) {
                 var line = json.body;
@@ -739,14 +745,14 @@ var MagicEditor = {
             ret = false;
         }else if(code === 1000){ // debug断点
             $(".button-run").addClass('disabled');
-            $('.button-continue').removeClass('disabled');
+            $('.button-continue,.button-step-over').removeClass('disabled');
             this.navigateTo(3);
             this.debugIn(message, json.body);
             return false;
         }
         MagicEditor.setStatusBar('脚本执行完毕');
         $(".button-run").removeClass('disabled');
-        $('.button-continue').addClass('disabled');
+        $('.button-continue,.button-step-over').addClass('disabled');
         this.navigateTo(2)
         var outputJson;
         var contentType = xhr&&xhr.getResponseHeader('ma-content-type');
@@ -820,6 +826,9 @@ var MagicEditor = {
             if(e.keyCode == 119){ //F8
                 _this.doContinue();
                 e.preventDefault();
+            }else if(e.keyCode == 117){ //F6
+                _this.doContinue(true);
+                e.preventDefault();
             }else if(e.keyCode == 81 && (e.metaKey || e.ctrlKey)){  //Ctrl + Q
                 _this.doTest();
                 e.preventDefault();
@@ -845,7 +854,7 @@ var MagicEditor = {
             url : 'https://img.shields.io/maven-central/v/org.ssssssss/magic-api.json',
             dataType : 'json',
             success : function(data){
-                if(data.value != 'v0.3.2'){
+                if(data.value != 'v0.3.3'){
                     if(ignoreVersion != data.value){
                         _this.createDialog({
                             title : '更新提示',
@@ -1069,6 +1078,8 @@ var MagicEditor = {
             _this.doSave();
         }).on('click','.button-continue',function(){
             _this.doContinue();
+        }).on('click','.button-step-over',function(){
+            _this.doContinue(true);
         }).on('click','.button-gitee',function(){
             MagicEditor.report('button-gitee');
             window.open('https://gitee.com/ssssssss-team/magic-api');

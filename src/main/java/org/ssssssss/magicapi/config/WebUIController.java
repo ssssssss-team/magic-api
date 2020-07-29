@@ -26,6 +26,7 @@ import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.ScriptClass;
 import org.ssssssss.script.exception.MagicScriptAssertException;
 import org.ssssssss.script.exception.MagicScriptException;
+import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Span;
 
 import javax.servlet.http.HttpServletRequest;
@@ -208,11 +209,22 @@ public class WebUIController {
 	 */
 	@RequestMapping("/continue")
 	@ResponseBody
-	public Object debugContinue(String id, HttpServletResponse response) throws IOException {
+	public Object debugContinue(String id, String breakpoints, String step, HttpServletResponse response) throws IOException {
 		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(id);
 		if (context == null) {
 			return new JsonBean<>(0, "debug session not found!", resultProvider.buildResult(0, "debug session not found!"));
 		}
+		if (breakpoints != null) {
+			List<Integer> lines = new ArrayList<>();
+			for (String line : breakpoints.split(",")) {
+				int value = ObjectConvertExtension.asInt(line, -1);
+				if (value != -1) {
+					lines.add(value);
+				}
+			}
+			context.setBreakpoints(lines);    //重新调整断点
+		}
+		context.setStepInto("1".equals(step));
 		try {
 			context.singal();    //等待语句执行到断点或执行完毕
 		} catch (InterruptedException e) {

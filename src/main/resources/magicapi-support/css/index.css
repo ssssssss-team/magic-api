@@ -231,6 +231,9 @@ ul li {
 .button-run,.bottom-container .bottom-item-toolbar span.button-continue{
     color: #59A869;
 }
+.bottom-container .bottom-item-toolbar span.button-step-over:not(.disabled){
+    color: #389FD6 !important;
+}
 .select input{
     cursor: default;
     width: 100%;
