@@ -11,9 +11,12 @@ import org.ssssssss.magicapi.context.CookieContext;
 import org.ssssssss.magicapi.context.HeaderContext;
 import org.ssssssss.magicapi.context.SessionContext;
 import org.ssssssss.magicapi.provider.ResultProvider;
+import org.ssssssss.magicapi.script.ScriptManager;
+import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.MagicScriptEngine;
 
+import javax.script.ScriptContext;
+import javax.script.SimpleScriptContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -82,8 +85,10 @@ public class RequestHandler {
 					return value;
 				}
 			}
+			SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
+			simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, context, ScriptContext.ENGINE_SCOPE);
 			// 执行脚本
-			Object value = MagicScriptEngine.execute(MagicScriptCompiler.compile(info.getScript()), context);
+			Object value = ScriptManager.compile("MagicScript", info.getScript()).eval(simpleScriptContext);
 			// 执行后置拦截器
 			for (RequestInterceptor requestInterceptor : requestInterceptors) {
 				Object target = requestInterceptor.postHandle(info, context, value);

@@ -20,15 +20,15 @@ import org.ssssssss.magicapi.model.JsonBodyBean;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.ResultProvider;
-import org.ssssssss.script.MagicModuleLoader;
-import org.ssssssss.script.MagicScriptDebugContext;
-import org.ssssssss.script.MagicScriptEngine;
-import org.ssssssss.script.ScriptClass;
+import org.ssssssss.magicapi.script.ScriptManager;
+import org.ssssssss.script.*;
 import org.ssssssss.script.exception.MagicScriptAssertException;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Span;
 
+import javax.script.Bindings;
+import javax.script.ScriptEngine;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -318,7 +318,10 @@ public class WebUIController {
 						logger.info("Create Console Session : {}", sessionId);
 					});
 				}
-				Object result = MagicScriptEngine.execute(MagicScriptCompiler.compile(script.toString()), context);
+				ScriptEngine scriptEngine = ScriptManager.getEngine("MagicScript");
+				Bindings bindings = scriptEngine.createBindings();
+				bindings.put(MagicScript.CONTEXT_ROOT, context);
+				Object result = scriptEngine.eval(script.toString(), bindings);
 				if (context.isRunning()) {    //判断是否执行完毕
 					return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result), result);
 				} else if (context.isException()) {    //判断是否出现异常

@@ -1,14 +1,16 @@
 package org.ssssssss.magicapi.provider.impl;
 
 import org.ssssssss.magicapi.config.ApiInfo;
-import org.ssssssss.magicapi.config.MagicScriptCompiler;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.exception.MagicServiceException;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.ResultProvider;
+import org.ssssssss.magicapi.script.ScriptManager;
+import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.MagicScriptEngine;
 
+import javax.script.ScriptContext;
+import javax.script.SimpleScriptContext;
 import java.util.Map;
 
 public class DefaultMagicAPIService implements MagicAPIService {
@@ -33,7 +35,9 @@ public class DefaultMagicAPIService implements MagicAPIService {
 		}
 		MagicScriptContext scriptContext = new MagicScriptContext();
 		scriptContext.putMapIntoContext(context);
-		return MagicScriptEngine.execute(MagicScriptCompiler.compile(info.getScript()), scriptContext);
+		SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
+		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, scriptContext, ScriptContext.ENGINE_SCOPE);
+		return ScriptManager.compile("MagicScript", info.getScript()).eval(simpleScriptContext);
 	}
 
 	@Override
