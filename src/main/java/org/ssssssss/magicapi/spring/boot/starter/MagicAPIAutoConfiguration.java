@@ -13,6 +13,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +27,7 @@ import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.functions.AssertFunctions;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
+import org.ssssssss.magicapi.functions.RequestFunctions;
 import org.ssssssss.magicapi.functions.ResponseFunctions;
 import org.ssssssss.magicapi.logging.LoggerManager;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
@@ -176,6 +178,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	public RequestHandler requestHandler(@Autowired(required = false) List<MagicModule> magicModules, //定义的模块集合
 										 @Autowired(required = false) List<ExtensionMethod> extensionMethods, //自定义的类型扩展
+										 @Autowired(required = false) List<HttpMessageConverter<?>> httpMessageConverters,
 										 ApiServiceProvider apiServiceProvider,
 										 // url 映射
 										 MappingHandlerMapping mappingHandlerMapping,
@@ -188,6 +191,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		if (this.properties.isBanner()) {
 			requestHandler.printBanner();
 		}
+		requestHandler.setHttpMessageConverters(httpMessageConverters);
 		requestHandler.setResultProvider(resultProvider);
 		requestHandler.setThrowException(properties.isThrowException());
 		mappingHandlerMapping.setHandler(requestHandler);
@@ -264,6 +268,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		logger.info("注册模块:{} -> {}", "log", Logger.class);
 		MagicModuleLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
 		List<String> importModules = properties.getAutoImportModuleList();
+		logger.info("注册模块:{} -> {}", "request", RequestFunctions.class);
+		MagicModuleLoader.addModule("request", new RequestFunctions());
 		logger.info("注册模块:{} -> {}", "response", ResponseFunctions.class);
 		MagicModuleLoader.addModule("response", new ResponseFunctions(resultProvider));
 		logger.info("注册模块:{} -> {}", "assert", AssertFunctions.class);
