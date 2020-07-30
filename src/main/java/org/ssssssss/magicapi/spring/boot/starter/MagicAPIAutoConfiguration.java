@@ -89,6 +89,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		String web = properties.getWeb();
 		if (web != null) {
+			// 当开启了UI界面时，收集日志
+			LoggerManager.createMagicAppender();
 			// 配置静态资源路径
 			registry.addResourceHandler(web + "/**").addResourceLocations("classpath:/magicapi-support/");
 			try {
@@ -110,12 +112,18 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return new DefaultPageProvider(pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize());
 	}
 
+	/**
+	 * 注入结果构建方法
+	 */
 	@ConditionalOnMissingBean(ResultProvider.class)
 	@Bean
 	public ResultProvider resultProvider() {
 		return new DefaultResultProvider();
 	}
 
+	/**
+	 * 注入SQL缓存实现
+	 */
 	@ConditionalOnMissingBean(SqlCache.class)
 	@Bean
 	public SqlCache sqlCache() {
@@ -124,6 +132,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return new DefaultSqlCache(cacheConfig.getCapacity(), cacheConfig.getTtl());
 	}
 
+	/**
+	 * 注入接口映射
+	 */
 	@Bean
 	public MappingHandlerMapping mappingHandlerMapping() throws NoSuchMethodException {
 		MappingHandlerMapping handlerMapping = new MappingHandlerMapping();
@@ -140,6 +151,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return handlerMapping;
 	}
 
+	/**
+	 * 注入接口存储service
+	 */
 	@ConditionalOnMissingBean(ApiServiceProvider.class)
 	@Bean
 	public ApiServiceProvider apiServiceProvider(DynamicDataSource dynamicDataSource) {
@@ -147,12 +161,18 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return new DefaultApiServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
 	}
 
+	/**
+	 * 注入API调用Service
+	 */
 	@ConditionalOnMissingBean(MagicAPIService.class)
 	@Bean
 	public MagicAPIService magicAPIService(MappingHandlerMapping mappingHandlerMapping, ResultProvider resultProvider) {
 		return new DefaultMagicAPIService(mappingHandlerMapping, resultProvider, properties.isThrowException());
 	}
 
+	/**
+	 * 注入请求处理器
+	 */
 	@Bean
 	public RequestHandler requestHandler(@Autowired(required = false) List<MagicModule> magicModules, //定义的模块集合
 										 @Autowired(required = false) List<ExtensionMethod> extensionMethods, //自定义的类型扩展
@@ -163,9 +183,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 										 ResultProvider resultProvider) {
 		// 设置模块和扩展方法
 		setupMagicModules(resultProvider, magicModules, extensionMethods);
-		LoggerManager.createMagicAppender();    //收集日志
 		// 构建请求处理器
 		RequestHandler requestHandler = new RequestHandler();
+		if (this.properties.isBanner()) {
+			requestHandler.printBanner();
+		}
 		requestHandler.setResultProvider(resultProvider);
 		requestHandler.setThrowException(properties.isThrowException());
 		mappingHandlerMapping.setHandler(requestHandler);
@@ -178,9 +200,13 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return requestHandler;
 	}
 
+	/**
+	 * 注入数据库查询模块
+	 */
 	@Bean
 	public DatabaseQuery databaseQuery(DynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
 		RowMapper<Map<String, Object>> rowMapper;
+		// 下划线转驼峰命名
 		if (properties.isMapUnderscoreToCamelCase()) {
 			logger.info("开启下划线转驼峰命名");
 			rowMapper = new ColumnMapRowMapper() {
@@ -217,6 +243,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return query;
 	}
 
+	/**
+	 * 注册模块、类型扩展
+	 */
 	private void setupMagicModules(ResultProvider resultProvider, List<MagicModule> magicModules, List<ExtensionMethod> extensionMethods) {
 		// 设置脚本import时 class加载策略
 		MagicModuleLoader.setClassLoader((className) -> {
@@ -263,6 +292,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		}
 	}
 
+	/**
+	 * 注册请求拦截器
+	 */
 	private void setupRequestInterceptor(WebUIController controller, RequestHandler requestHandler) {
 		// 设置拦截器信息
 		if (this.requestInterceptors != null) {
@@ -276,8 +308,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		}
 	}
 
+
+	/**
+	 * 创建UI对应的后台Controller
+	 */
 	private WebUIController createWebUIController(ResultProvider resultProvider, ApiServiceProvider apiServiceProvider, MappingHandlerMapping mappingHandlerMapping) {
-		if (properties.getWeb() == null) {
+		if (properties.getWeb() == null) {	//	判断是否开启了UI界面
 			return null;
 		}
 		WebUIController controller = new WebUIController();
@@ -285,9 +321,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		controller.setDebugTimeout(properties.getDebugConfig().getTimeout());
 		controller.setMagicApiService(apiServiceProvider);
 		controller.setMappingHandlerMapping(mappingHandlerMapping);
-		if (this.properties.isBanner()) {
-			controller.printBanner();
-		}
 		// 构建UI请求处理器
 		String base = properties.getWeb();
 		Method[] methods = WebUIController.class.getDeclaredMethods();
@@ -301,6 +334,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return controller;
 	}
 
+	/**
+	 * 注入动态数据源
+	 */
 	@Bean
 	@ConditionalOnMissingBean(DynamicDataSource.class)
 	public DynamicDataSource dynamicDataSource(DataSource dataSource) {

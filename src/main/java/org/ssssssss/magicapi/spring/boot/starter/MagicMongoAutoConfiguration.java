@@ -12,10 +12,16 @@ import org.ssssssss.magicapi.functions.MongoFunctions;
 import org.ssssssss.script.interpreter.AbstractReflection;
 import org.ssssssss.script.interpreter.JavaReflection;
 
+/**
+ * mongo配置
+ */
 @ConditionalOnBean(MongoClient.class)
 @Configuration
 public class MagicMongoAutoConfiguration {
 
+	/**
+	 * 注入mongo模块
+	 */
 	@Bean
 	public MongoFunctions mongoFunctions(MongoClient mongoClient) {
 		AbstractReflection.getInstance().registerExtensionClass(MongoCollection.class, MongoCollectionExtension.class);

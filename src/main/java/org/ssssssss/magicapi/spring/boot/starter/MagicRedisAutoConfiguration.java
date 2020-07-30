@@ -6,10 +6,16 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.ssssssss.magicapi.functions.RedisFunctions;
 
+/**
+ * redis配置
+ */
 @ConditionalOnBean(RedisConnectionFactory.class)
 @Configuration
 public class MagicRedisAutoConfiguration {
 
+	/**
+	 * 注入redis模块
+	 */
 	@Bean
 	public RedisFunctions redisFunctions(RedisConnectionFactory connectionFactory) {
 		return new RedisFunctions(connectionFactory);
