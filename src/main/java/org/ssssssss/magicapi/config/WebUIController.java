@@ -93,21 +93,11 @@ public class WebUIController {
 		this.magicApiService = magicApiService;
 	}
 
-	public void printBanner() {
-		System.out.println("  __  __                _           _     ____  ___ ");
-		System.out.println(" |  \\/  |  __ _   __ _ (_)  ___    / \\   |  _ \\|_ _|");
-		System.out.println(" | |\\/| | / _` | / _` || | / __|  / _ \\  | |_) || | ");
-		System.out.println(" | |  | || (_| || (_| || || (__  / ___ \\ |  __/ | | ");
-		System.out.println(" |_|  |_| \\__,_| \\__, ||_| \\___|/_/   \\_\\|_|   |___|");
-		System.out.println("                  |___/                        " + WebUIController.class.getPackage().getImplementationVersion());
-	}
-
 	/**
 	 * 删除接口
 	 *
 	 * @param request
 	 * @param id      接口ID
-	 * @return
 	 */
 	@RequestMapping("/delete")
 	@ResponseBody
@@ -130,10 +120,8 @@ public class WebUIController {
 	/**
 	 * 删除接口分组
 	 *
-	 * @param request
 	 * @param apiIds    接口ID列表，逗号分隔
 	 * @param groupName 分组名称
-	 * @return
 	 */
 	@RequestMapping("/group/delete")
 	@ResponseBody
@@ -187,8 +175,6 @@ public class WebUIController {
 
 	/**
 	 * 查询所有接口
-	 *
-	 * @return
 	 */
 	@RequestMapping("/list")
 	@ResponseBody
@@ -205,7 +191,8 @@ public class WebUIController {
 	 * debug 恢复断点
 	 *
 	 * @param id
-	 * @return
+	 * @param breakpoints 断点
+	 * @param step 是否是单步
 	 */
 	@RequestMapping("/continue")
 	@ResponseBody
@@ -267,7 +254,6 @@ public class WebUIController {
 	 * 获取单个class
 	 *
 	 * @param className 类名
-	 * @return
 	 */
 	@RequestMapping("/class")
 	@ResponseBody
@@ -335,6 +321,9 @@ public class WebUIController {
 		return new JsonBean<>(resultProvider.buildResult(0, "脚本不能为空"));
 	}
 
+	/**
+	 * 转换请求结果
+	 */
 	private Object convertResult(Object result, HttpServletResponse response) throws IOException {
 		if (result instanceof ResponseEntity) {
 			ResponseEntity entity = (ResponseEntity) result;
@@ -352,6 +341,9 @@ public class WebUIController {
 		return new JsonBean<>(resultProvider.buildResult(result));
 	}
 
+	/**
+	 * 将结果转为base64
+	 */
 	private String convertToBase64(Object value) throws IOException {
 		if (value instanceof String || value instanceof Number) {
 			return convertToBase64(value.toString().getBytes());
@@ -393,9 +385,7 @@ public class WebUIController {
 	/**
 	 * 查询接口详情
 	 *
-	 * @param request
 	 * @param id      接口ID
-	 * @return
 	 */
 	@RequestMapping("/get")
 	@ResponseBody
@@ -411,12 +401,21 @@ public class WebUIController {
 		}
 	}
 
+	/**
+	 * 查询历史记录
+	 * @param id	接口ID
+	 */
 	@RequestMapping("/backups")
 	@ResponseBody
 	public JsonBean<List<Long>> backups(String id) {
 		return new JsonBean<>(magicApiService.backupList(id));
 	}
 
+	/**
+	 * 获取历史记录
+	 * @param id	接口ID
+	 * @param timestamp	时间点
+	 */
 	@RequestMapping("/backup/get")
 	@ResponseBody
 	public JsonBean<ApiInfo> backups(String id, Long timestamp) {
@@ -426,9 +425,7 @@ public class WebUIController {
 	/**
 	 * 保存接口
 	 *
-	 * @param request
 	 * @param info    接口信息
-	 * @return
 	 */
 	@RequestMapping("/save")
 	@ResponseBody
@@ -440,10 +437,10 @@ public class WebUIController {
 			if (StringUtils.isBlank(info.getMethod())) {
 				return new JsonBean<>(0, "请求方法不能为空");
 			}
-			if (info.getGroupName() != null && (info.getGroupName().indexOf("'") > -1 || info.getGroupName().indexOf("\"") > -1)) {
+			if (info.getGroupName() != null && (info.getGroupName().contains("'") || info.getGroupName().contains("\""))) {
 				return new JsonBean<>(0, "分组名不能包含特殊字符' \"");
 			}
-			if (info.getGroupPrefix() != null && (info.getGroupPrefix().indexOf("'") > -1 || info.getGroupPrefix().indexOf("\"") > -1)) {
+			if (info.getGroupPrefix() != null && (info.getGroupPrefix().contains("'") || info.getGroupPrefix().contains("\""))) {
 				return new JsonBean<>(0, "分组前缀不能包含特殊字符' \"");
 			}
 			if (StringUtils.isBlank(info.getPath())) {
@@ -480,10 +477,6 @@ public class WebUIController {
 
 	/**
 	 * 判断是否有权限访问按钮
-	 *
-	 * @param request
-	 * @param authorization
-	 * @return
 	 */
 	private boolean allowVisit(HttpServletRequest request, RequestInterceptor.Authorization authorization) {
 		for (RequestInterceptor requestInterceptor : requestInterceptors) {

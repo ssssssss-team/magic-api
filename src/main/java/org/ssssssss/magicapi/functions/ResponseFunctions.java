@@ -17,6 +17,9 @@ import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * response模块
+ */
 public class ResponseFunctions {
 
 	private ResultProvider resultProvider;

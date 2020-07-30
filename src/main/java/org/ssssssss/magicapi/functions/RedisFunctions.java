@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * redis模块
+ */
 public class RedisFunctions extends HashMap<String, DatabaseQuery> implements MagicModule, DynamicMethod {
 
 	@Override
@@ -23,6 +26,9 @@ public class RedisFunctions extends HashMap<String, DatabaseQuery> implements Ma
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
 	}
 
+	/**
+	 * 序列化
+	 */
 	private byte[] serializer(Object value) {
 		if(value == null || value instanceof String){
 			return redisTemplate.getStringSerializer().serialize((String) value);
@@ -30,6 +36,9 @@ public class RedisFunctions extends HashMap<String, DatabaseQuery> implements Ma
 		return serializer(value.toString());
 	}
 
+	/**
+	 * 反序列化
+	 */
 	private Object deserialize(Object value) {
 		if (value != null) {
 			if (value instanceof byte[]) {
@@ -48,6 +57,11 @@ public class RedisFunctions extends HashMap<String, DatabaseQuery> implements Ma
 		return value;
 	}
 
+	/**
+	 * 执行命令
+	 * @param methodName	命令名称
+	 * @param parameters	命令参数
+	 */
 	@Override
 	public Object execute(String methodName, List<Object> parameters) {
 		return this.redisTemplate.execute((RedisCallback<Object>) connection -> {

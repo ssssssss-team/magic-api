@@ -3,6 +3,9 @@ package org.ssssssss.magicapi.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.magicapi.exception.MagicAPIException;
 
+/**
+ * 断言辅助类
+ */
 public class Assert {
 
     /**

@@ -11,14 +11,26 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * 生成swagger用的json
+ */
 public class SwaggerProvider {
 
 	private MappingHandlerMapping mappingHandlerMapping;
 
+	/**
+	 * 描述信息
+	 */
 	private String description;
 
+	/**
+	 * 标题
+	 */
 	private String title;
 
+	/**
+	 * 版本号
+	 */
 	private String version;
 
 	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {

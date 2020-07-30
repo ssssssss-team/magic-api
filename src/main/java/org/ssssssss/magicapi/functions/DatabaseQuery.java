@@ -30,6 +30,9 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
+/**
+ * 数据库查询模块
+ */
 public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements MagicModule {
 
 	@UnableCall

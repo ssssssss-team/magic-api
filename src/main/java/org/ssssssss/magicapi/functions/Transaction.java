@@ -6,6 +6,9 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.ssssssss.script.annotation.UnableCall;
 
+/**
+ * 事务模块
+ */
 public class Transaction {
 
 	@UnableCall
@@ -23,14 +26,14 @@ public class Transaction {
 	}
 
 	/**
-	 * 回滚
+	 * 回滚事务
 	 */
 	public void rollback(){
 		this.dataSourceTransactionManager.rollback(this.transactionStatus);
 	}
 
 	/**
-	 * 提交
+	 * 提交事务
 	 */
 	public void commit(){
 		this.dataSourceTransactionManager.commit(this.transactionStatus);

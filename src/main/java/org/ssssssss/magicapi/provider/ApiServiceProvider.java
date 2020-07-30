@@ -4,11 +4,14 @@ import org.ssssssss.magicapi.config.ApiInfo;
 
 import java.util.List;
 
+/**
+ * API存储接口
+ */
 public interface ApiServiceProvider {
 	/**
 	 * 删除接口
 	 *
-	 * @param id
+	 * @param id	接口ID
 	 */
 	boolean delete(String id);
 
@@ -34,7 +37,7 @@ public interface ApiServiceProvider {
 	/**
 	 * 查询接口详情（主要给页面使用）
 	 *
-	 * @param id
+	 * @param id	接口ID
 	 */
 	ApiInfo get(String id);
 
@@ -61,59 +64,52 @@ public interface ApiServiceProvider {
 	 * @param method 请求方法
 	 * @param path   请求路径
 	 * @param id     排除接口
-	 * @return
 	 */
 	boolean existsWithoutId(String groupPrefix, String method, String path, String id);
 
 	/**
 	 * 添加接口信息
-	 *
-	 * @param info
-	 * @return
+	 * @param info	接口信息
 	 */
 	boolean insert(ApiInfo info);
 
 	/**
 	 * 修改接口信息
-	 *
-	 * @param info
-	 * @return
+	 * @param info	接口信息
 	 */
 	boolean update(ApiInfo info);
 
 	/**
 	 * 备份历史记录
 	 *
-	 * @param apiId
+	 * @param apiId	接口ID
 	 */
 	void backup(String apiId);
 
 	/**
 	 * 查询API历史记录
-	 * @param apiId
+	 * @param apiId	接口ID
 	 * @return 时间戳列表
 	 */
 	List<Long> backupList(String apiId);
 
 	/**
 	 * 查询API历史记录详情
-	 * @param apiId
+	 * @param apiId	接口ID
 	 * @param timestamp 时间戳
 	 */
 	ApiInfo backupInfo(String apiId, Long timestamp);
 
 	/**
 	 * 包装接口信息（可用于加密）
-	 *
-	 * @param info
+	 * @param info	接口信息
 	 */
 	default void wrap(ApiInfo info) {
 	}
 
 	/**
 	 * 解除包装接口信息（可用于解密）
-	 *
-	 * @param info
+	 * @param info	接口信息
 	 */
 	default void unwrap(ApiInfo info) {
 	}

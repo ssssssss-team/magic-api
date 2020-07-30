@@ -2,6 +2,9 @@ package org.ssssssss.magicapi.swagger;
 
 import java.util.*;
 
+/**
+ * Swagger接口信息
+ */
 public class SwaggerEntity {
 
 	private String swagger = "2.0";

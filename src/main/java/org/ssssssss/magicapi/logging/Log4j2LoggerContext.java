@@ -8,12 +8,16 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.config.Property;
 import org.apache.logging.log4j.core.impl.ThrowableProxy;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * 对接Log4j2
+ */
 public class Log4j2LoggerContext implements MagicLoggerContext{
 
 	@Override
@@ -36,7 +40,7 @@ public class Log4j2LoggerContext implements MagicLoggerContext{
 	class MagicLog4j2Appender extends AbstractAppender{
 
 		MagicLog4j2Appender(String name, Filter filter, Layout<? extends Serializable> layout) {
-			super(name, filter, layout);
+			super(name, filter, layout,true, Property.EMPTY_ARRAY);
 		}
 
 		@Override

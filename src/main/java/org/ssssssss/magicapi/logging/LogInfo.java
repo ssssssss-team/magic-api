@@ -6,6 +6,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 
+/**
+ * 打印的日志信息
+ */
 public class LogInfo {
 
 	private String level;

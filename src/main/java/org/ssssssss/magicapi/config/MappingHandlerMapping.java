@@ -57,6 +57,9 @@ public class MappingHandlerMapping {
      */
     private String prefix;
 
+    /**
+     * 缓存已映射的接口信息
+     */
     private List<ApiInfo> apiInfos = Collections.synchronizedList(new ArrayList<>());
 
     public MappingHandlerMapping() throws NoSuchMethodException {
@@ -152,7 +155,6 @@ public class MappingHandlerMapping {
     /**
      * 注册请求映射
      *
-     * @param info
      */
     public void registerMapping(ApiInfo info, boolean delete) {
         // 先判断是否已注册，如果已注册，则先取消注册在进行注册。
@@ -169,7 +171,7 @@ public class MappingHandlerMapping {
         mappings.put(info.getId(), info);
         mappings.put(getMappingKey(info), info);
         requestMappingHandlerMapping.registerMapping(requestMapping, handler, method);
-        if (delete) {
+        if (delete) {   // 刷新缓存
             apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
             apiInfos.add(info);
         }
@@ -184,7 +186,7 @@ public class MappingHandlerMapping {
             logger.info("取消注册接口:{}", info.getName());
             mappings.remove(getMappingKey(info));
             requestMappingHandlerMapping.unregisterMapping(getRequestMapping(info));
-            if (delete) {
+            if (delete) {   //刷新缓存
                 apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
             }
         }
@@ -200,6 +202,7 @@ public class MappingHandlerMapping {
     /**
      * 处理前缀
      *
+     * @param groupPrefix 分组前缀
      * @param path 请求路径
      */
     public String getRequestPath(String groupPrefix, String path) {

@@ -4,6 +4,9 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 
+/**
+ * Cookie Context 用于脚本中获取cookie信息
+ */
 public class CookieContext extends HashMap<String,String> {
 
     private Cookie[] cookies;

@@ -15,12 +15,20 @@ public interface MagicLoggerContext {
 
 	Map<String, SseEmitter> emitterMap = new ConcurrentHashMap<>();
 
+	/**
+	 * 创建sseEmitter推送
+	 * @param sessionId	会话id
+	 */
 	static SseEmitter createEmitter(String sessionId){
 		SseEmitter sseEmitter = new SseEmitter(0L);
 		emitterMap.put(sessionId,sseEmitter);
 		return sseEmitter;
 	}
 
+	/**
+	 * 删除会话
+	 * @param sessionId	会话id
+	 */
 	static void remove(String sessionId){
 		SseEmitter sseEmitter = emitterMap.remove(sessionId);
 		MDC.remove(MAGIC_CONSOLE_SESSION);
@@ -29,12 +37,16 @@ public interface MagicLoggerContext {
 				sseEmitter.send(SseEmitter.event().data(sessionId).name("close"));
 			} catch (IOException ignored) {
 			}
-			//sseEmitter.complete();
 		}
 	}
 
 
+	/**
+	 * 打印日志
+	 * @param logInfo 日志信息
+	 */
 	default void println(LogInfo logInfo){
+		// 从MDC中获取SessionId
 		String sessionId = MDC.get(MAGIC_CONSOLE_SESSION);
 		if(sessionId != null){
 			SseEmitter sseEmitter = emitterMap.get(sessionId);
@@ -47,5 +59,9 @@ public interface MagicLoggerContext {
 			}
 		}
 	}
+
+	/**
+	 * 生成appender
+	 */
 	void generateAppender();
 }

@@ -8,6 +8,9 @@ import org.apache.log4j.spi.RootLogger;
 import org.apache.log4j.spi.ThrowableInformation;
 
 
+/**
+ * 对接Log4j
+ */
 public class Log4jLoggerContext implements MagicLoggerContext {
     @Override
     public void generateAppender() {

@@ -6,6 +6,9 @@ import org.ssssssss.magicapi.config.MagicModule;
 
 import java.util.HashMap;
 
+/**
+ * mongo模块
+ */
 public class MongoFunctions extends HashMap<String,Object> implements MagicModule {
 
 	private MongoClient mongoClient;

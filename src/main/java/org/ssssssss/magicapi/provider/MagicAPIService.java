@@ -4,6 +4,9 @@ import org.ssssssss.magicapi.config.MagicModule;
 
 import java.util.Map;
 
+/**
+ * API调用接口
+ */
 public interface MagicAPIService extends MagicModule {
 
 	/**
@@ -11,7 +14,6 @@ public interface MagicAPIService extends MagicModule {
 	 * @param method	请求方法
 	 * @param path	请求路径
 	 * @param context 请求上下文，主要给脚本中使用
-	 * @return
 	 */
 	public Object execute(String method, String path, Map<String,Object> context);
 
@@ -20,7 +22,6 @@ public interface MagicAPIService extends MagicModule {
 	 * @param method	请求方法
 	 * @param path	请求路径
 	 * @param context 请求上下文，主要给脚本中使用
-	 * @return
 	 */
 	Object call(String method, String path, Map<String,Object> context);
 }

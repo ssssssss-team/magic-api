@@ -8,5 +8,8 @@ import org.ssssssss.script.MagicScriptContext;
  */
 public interface PageProvider {
 
+    /**
+     * 从请求中获取分页对象
+     */
     public Page getPage(MagicScriptContext context);
 }

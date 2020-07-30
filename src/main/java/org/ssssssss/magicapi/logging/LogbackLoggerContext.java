@@ -7,6 +7,9 @@ import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * 对接Logback
+ */
 public class LogbackLoggerContext implements MagicLoggerContext{
 
 	@Override

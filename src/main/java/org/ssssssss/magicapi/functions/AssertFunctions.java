@@ -6,6 +6,9 @@ import org.ssssssss.script.exception.MagicScriptAssertException;
 
 import java.util.regex.Pattern;
 
+/**
+ * 断言模块
+ */
 public class AssertFunctions implements MagicModule {
 
 	/**

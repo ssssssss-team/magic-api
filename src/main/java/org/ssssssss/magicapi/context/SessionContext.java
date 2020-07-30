@@ -3,6 +3,9 @@ package org.ssssssss.magicapi.context;
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 
+/**
+ * Session Context 用于脚本中获取Session信息
+ */
 public class SessionContext extends HashMap<String,Object> {
 
     private HttpSession session;

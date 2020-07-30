@@ -54,6 +54,18 @@ public class RequestHandler {
 		this.throwException = throwException;
 	}
 
+	/**
+	 * 打印banner
+	 */
+	public void printBanner() {
+		System.out.println("  __  __                _           _     ____  ___ ");
+		System.out.println(" |  \\/  |  __ _   __ _ (_)  ___    / \\   |  _ \\|_ _|");
+		System.out.println(" | |\\/| | / _` | / _` || | / __|  / _ \\  | |_) || | ");
+		System.out.println(" | |  | || (_| || (_| || || (__  / ___ \\ |  __/ | | ");
+		System.out.println(" |_|  |_| \\__,_| \\__, ||_| \\___|/_/   \\_\\|_|   |___|");
+		System.out.println("                  |___/                        " + RequestHandler.class.getPackage().getImplementationVersion());
+	}
+
 	@ResponseBody
 	public Object invoke(HttpServletRequest request, HttpServletResponse response,
 						 @PathVariable(required = false) Map<String, Object> pathVariables,
