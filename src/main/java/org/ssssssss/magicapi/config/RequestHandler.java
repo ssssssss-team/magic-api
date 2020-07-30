@@ -2,13 +2,17 @@ package org.ssssssss.magicapi.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.context.CookieContext;
 import org.ssssssss.magicapi.context.HeaderContext;
+import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.context.SessionContext;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
@@ -54,6 +58,12 @@ public class RequestHandler {
 		this.throwException = throwException;
 	}
 
+	private List<HttpMessageConverter<?>> httpMessageConverters;
+
+	public void setHttpMessageConverters(List<HttpMessageConverter<?>> httpMessageConverters) {
+		this.httpMessageConverters = httpMessageConverters;
+	}
+
 	/**
 	 * 打印banner
 	 */
@@ -69,10 +79,10 @@ public class RequestHandler {
 	@ResponseBody
 	public Object invoke(HttpServletRequest request, HttpServletResponse response,
 						 @PathVariable(required = false) Map<String, Object> pathVariables,
-						 @RequestParam(required = false) Map<String, Object> parameters,
-						 @RequestBody(required = false) Map<String, Object> requestBody) throws Throwable {
+						 @RequestParam(required = false) Map<String, Object> parameters) throws Throwable {
 		ApiInfo info;
 		try {
+			RequestContext.setRequestAttribute(request, response);
 			//	找到对应的接口信息
 			info = MappingHandlerMapping.getMappingApiInfo(request);
 			if(info==null){
@@ -87,8 +97,15 @@ public class RequestHandler {
 			context.set("header", new HeaderContext(request));
 			context.set("session", new SessionContext(request.getSession()));
 			context.set("path", pathVariables);
-			if (requestBody != null) {
-				context.set("body", requestBody);
+			if (httpMessageConverters != null && request.getContentType() != null) {
+				MediaType mediaType = MediaType.valueOf(request.getContentType());
+				Class clazz = Map.class;
+				for (HttpMessageConverter<?> converter : httpMessageConverters) {
+					if(converter.canRead(clazz,mediaType)){
+						context.set("body", converter.read(clazz,new ServletServerHttpRequest(request)));
+						break;
+					}
+				}
 			}
 			// 执行前置拦截器
 			for (RequestInterceptor requestInterceptor : requestInterceptors) {
@@ -118,7 +135,8 @@ public class RequestHandler {
 			}
 			logger.error("接口请求出错", root);
 			return resultProvider.buildResult(root);
+		} finally {
+			RequestContext.remove();
 		}
-
 	}
 }

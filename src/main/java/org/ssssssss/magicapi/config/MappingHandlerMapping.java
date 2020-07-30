@@ -46,7 +46,7 @@ public class MappingHandlerMapping {
     /**
      * 请求到达时处理的方法
      */
-    private Method method = RequestHandler.class.getDeclaredMethod("invoke", HttpServletRequest.class, HttpServletResponse.class, Map.class, Map.class, Map.class);
+    private Method method = RequestHandler.class.getDeclaredMethod("invoke", HttpServletRequest.class, HttpServletResponse.class, Map.class, Map.class);
 
     /**
      * 接口信息读取
