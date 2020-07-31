@@ -452,6 +452,9 @@ public class WebUIController {
 			if (StringUtils.isBlank(info.getScript())) {
 				return new JsonBean<>(0, "脚本内容不能为空");
 			}
+			if(mappingHandlerMapping.hasRegisterMapping(info)){
+				return new JsonBean<>(0, "该路径已被映射,请换一个请求方法或路径");
+			}
 			if (StringUtils.isBlank(info.getId())) {
 				// 先判断接口是否存在
 				if (magicApiService.exists(info.getGroupPrefix(), info.getMethod(), info.getPath())) {
