@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -7,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.context.CookieContext;
@@ -85,12 +85,16 @@ public class RequestHandler {
 			RequestContext.setRequestAttribute(request, response);
 			//	找到对应的接口信息
 			info = MappingHandlerMapping.getMappingApiInfo(request);
-			if(info==null){
+			if (info == null) {
 				logger.error("接口不存在");
-				return resultProvider.buildResult(1001,"fail","接口不存在");
+				return resultProvider.buildResult(1001, "fail", "接口不存在");
 			}
 			// 构建脚本上下文
 			MagicScriptContext context = new MagicScriptContext();
+			Object wrap = info.getOptionValue(ApiInfo.WRAP_REQUEST_PARAMETER);
+			if (wrap != null && StringUtils.isNotBlank(wrap.toString())) {
+				context.set(wrap.toString(), parameters);
+			}
 			context.putMapIntoContext(parameters);
 			context.putMapIntoContext(pathVariables);
 			context.set("cookie", new CookieContext(request));
@@ -101,8 +105,8 @@ public class RequestHandler {
 				MediaType mediaType = MediaType.valueOf(request.getContentType());
 				Class clazz = Map.class;
 				for (HttpMessageConverter<?> converter : httpMessageConverters) {
-					if(converter.canRead(clazz,mediaType)){
-						context.set("body", converter.read(clazz,new ServletServerHttpRequest(request)));
+					if (converter.canRead(clazz, mediaType)) {
+						context.set("body", converter.read(clazz, new ServletServerHttpRequest(request)));
 						break;
 					}
 				}
@@ -125,7 +129,7 @@ public class RequestHandler {
 					return target;
 				}
 			}
-			if(value instanceof ResponseEntity){
+			if (value instanceof ResponseEntity) {
 				return value;
 			}
 			return resultProvider.buildResult(value);

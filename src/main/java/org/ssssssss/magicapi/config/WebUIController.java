@@ -191,9 +191,9 @@ public class WebUIController {
 	/**
 	 * debug 恢复断点
 	 *
-	 * @param id sessionId
+	 * @param id          sessionId
 	 * @param breakpoints 断点
-	 * @param step 是否是单步
+	 * @param step        是否是单步
 	 */
 	@RequestMapping("/continue")
 	@ResponseBody
@@ -281,7 +281,19 @@ public class WebUIController {
 			Object sessionId = request.remove("sessionId");
 			MagicScriptDebugContext context = new MagicScriptDebugContext();
 			try {
-				context.putMapIntoContext((Map<String, Object>) request.get("request"));
+				Object options = request.remove("options");
+				Map<String, Object> requestMap = (Map<String, Object>) request.get("request");
+				if (options != null) {
+					if (!(options instanceof Map)) {
+						return new JsonBean<>(0, "接口选项必须定义为map类型");
+					}
+					Map<String, Object> objectMap = (Map<String, Object>) options;
+					Object wrap = objectMap.get(ApiInfo.WRAP_REQUEST_PARAMETER);
+					if (wrap != null && StringUtils.isNotBlank(wrap.toString())) {
+						context.set(wrap.toString(), requestMap);
+					}
+				}
+				context.putMapIntoContext(requestMap);
 				context.putMapIntoContext((Map<String, Object>) request.get("path"));
 				context.set("cookie", request.get("cookie"));
 				context.set("session", request.get("session"));
@@ -388,7 +400,7 @@ public class WebUIController {
 	/**
 	 * 查询接口详情
 	 *
-	 * @param id      接口ID
+	 * @param id 接口ID
 	 */
 	@RequestMapping("/get")
 	@ResponseBody
@@ -406,7 +418,8 @@ public class WebUIController {
 
 	/**
 	 * 查询历史记录
-	 * @param id	接口ID
+	 *
+	 * @param id 接口ID
 	 */
 	@RequestMapping("/backups")
 	@ResponseBody
@@ -416,8 +429,9 @@ public class WebUIController {
 
 	/**
 	 * 获取历史记录
-	 * @param id	接口ID
-	 * @param timestamp	时间点
+	 *
+	 * @param id        接口ID
+	 * @param timestamp 时间点
 	 */
 	@RequestMapping("/backup/get")
 	@ResponseBody
@@ -428,7 +442,7 @@ public class WebUIController {
 	/**
 	 * 保存接口
 	 *
-	 * @param info    接口信息
+	 * @param info 接口信息
 	 */
 	@RequestMapping("/save")
 	@ResponseBody
@@ -455,7 +469,7 @@ public class WebUIController {
 			if (StringUtils.isBlank(info.getScript())) {
 				return new JsonBean<>(0, "脚本内容不能为空");
 			}
-			if(mappingHandlerMapping.hasRegisterMapping(info)){
+			if (mappingHandlerMapping.hasRegisterMapping(info)) {
 				return new JsonBean<>(0, "该路径已被映射,请换一个请求方法或路径");
 			}
 			if (StringUtils.isBlank(info.getId())) {

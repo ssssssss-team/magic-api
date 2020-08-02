@@ -624,6 +624,20 @@ var MagicEditor = {
             _this.alert('运行测试','请求参数有误！');
             return;
         }
+        var options = _this.optionsEditor.getValue();
+        try{
+            options = JSON.parse(options);
+            if(typeof options != 'object'){
+                _this.setStatusBar('接口选项有误！');
+                _this.alert('运行测试','接口选项有误！');
+                return;
+            }
+        }catch(e){
+            _this.setStatusBar('接口选项有误！');
+            _this.alert('运行测试','接口选项有误！');
+            return;
+        }
+
         _this.setStatusBar('开始测试...');
         _this.createConsole(function(sessionId){
             _this.report('run');
@@ -631,6 +645,7 @@ var MagicEditor = {
             var breakpoints = _this.getBreakPoints();
             request.breakpoints = breakpoints;
             request.sessionId = sessionId;
+            request.options = options;
             _this.resetDebugContent();
             $('.button-run').addClass('disabled');
             $('.button-continue,.button-step-over').addClass('disabled');
