@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.JsonBean;
@@ -297,9 +298,11 @@ public class WebUIController {
 					context.setId(sessionId.toString());
 					context.onComplete(() -> {
 						logger.info("Close Console Session : {}", sessionId);
+						RequestContext.remove();
 						MagicLoggerContext.remove(sessionId.toString());
 					});
 					context.onStart(() -> {
+						RequestContext.setRequestAttribute(servletRequest, response);
 						MDC.put(MagicLoggerContext.MAGIC_CONSOLE_SESSION, sessionId.toString());
 						logger.info("Create Console Session : {}", sessionId);
 					});
