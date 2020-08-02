@@ -826,16 +826,26 @@ var Parser = {
         var keys = [];
         var values = [];
         while (stream.hasMore() && !stream.match("}", false)) {
+            var key;
             if (stream.match(TokenType.StringLiteral, false)) {
-                keys.push(stream.expect(TokenType.StringLiteral));
+                key = stream.expect(TokenType.StringLiteral);
             } else {
-                keys.push(stream.expect(TokenType.Identifier));
+                key = stream.expect(TokenType.Identifier);
             }
-
-            stream.expect(":");
-            values.push(this.parseExpression(stream));
-            if (!stream.match("}", false)) {
-                stream.expect(TokenType.Comma);
+            keys.push(key);
+            if (stream.match([TokenType.Comma, TokenType.RightCurly],false)) {
+                stream.match(TokenType.Comma, true);
+                if (key.getTokenType() == TokenType.Identifier) {
+                    values.push(new AST.VariableAccess(key.getSpan()));
+                } else {
+                    values.push(new AST.StringLiteral(key.getSpan()));
+                }
+            } else {
+                stream.expect(":");
+                values.add(parseExpression(stream));
+                if (!stream.match("}", false)) {
+                    stream.expect(TokenType.Comma);
+                }
             }
         }
         var closeCurly = stream.expect("}").getSpan();
