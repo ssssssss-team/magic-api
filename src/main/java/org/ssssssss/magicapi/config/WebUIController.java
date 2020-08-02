@@ -135,7 +135,7 @@ public class WebUIController {
 			if (success) {    //删除成功时取消注册
 				if (StringUtils.isNotBlank(apiIds)) {
 					String[] ids = apiIds.split(",");
-					if (ids != null && ids.length > 0) {
+					if (ids.length > 0) {
 						for (String id : ids) {
 							mappingHandlerMapping.unregisterMapping(id, true);
 						}
@@ -191,7 +191,7 @@ public class WebUIController {
 	/**
 	 * debug 恢复断点
 	 *
-	 * @param id
+	 * @param id sessionId
 	 * @param breakpoints 断点
 	 * @param step 是否是单步
 	 */
