@@ -39,7 +39,7 @@
         <dependency>
             <groupId>org.ssssssss</groupId>
             <artifactId>magic-api</artifactId>
-            <version>0.3.3</version>
+            <version>0.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
