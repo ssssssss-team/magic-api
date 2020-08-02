@@ -21,6 +21,7 @@ var MagicEditor = {
         this.initScriptEditor();
         this.resetEditor();
         this.checkUpdate();
+        this.backupInterval();
         var _this = this;
         $.getJSON('config.json',function(data){
             _this.config = data;
@@ -819,6 +820,38 @@ var MagicEditor = {
             }
         }])];
     },
+    backupInterval : function(){
+        var _this = this;
+        var info = _this.getValue('api_info');
+        if(info){
+            info = JSON.parse(info);
+            _this.apiId = info.id;
+            $('input[name=name]').val(info.name || '');
+            $('input[name=path]').val(info.path || '');
+            $('input[name=method]').val(info.method || '');
+            $('input[name=group]').val(info.groupName || '');
+            $('input[name=prefix]').val(info.groupPrefix || '');
+            _this.scriptEditor&&_this.scriptEditor.setValue(info.script || 'return message;');
+            _this.requestEditor&&_this.requestEditor.setValue(info.parameters || _this.defaultRequestValue);
+            _this.options&&_this.options.setValue(info.options || '{\r\n}');
+            _this.output&&_this.output.setValue(info.options || '');
+
+        }
+        setInterval(function(){
+            _this.setValue('api_info',{
+                id : _this.apiId,
+                name : $('input[name=name]').val(),
+                path : $('input[name=path]').val(),
+                method : $('input[name=method]').val(),
+                groupName : $('input[name=group]').val(),
+                groupPrefix : $('input[name=prefix]').val(),
+                script : _this.scriptEditor&&_this.scriptEditor.getValue(),
+                parameters : _this.requestEditor&&_this.requestEditor.getValue(),
+                options : _this.optionsEditor&&_this.optionsEditor.getValue(),
+                output: _this.outputEditor&&_this.outputEditor.getValue()
+            })
+        },5000)
+    },
     // 初始化快捷键
     initShortKey : function(){
         var _this = this;
@@ -1101,6 +1134,9 @@ var MagicEditor = {
             value = JSON.stringify(value);
         }
         localStorage&&localStorage.setItem(key,value) || '';
+    },
+    removeValue : function(key){
+        localStorage&&localStorage.removeItem(key);
     },
     bindEditorShortKey : function(editor){
         // Alt + / 代码提示
