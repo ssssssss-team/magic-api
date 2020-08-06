@@ -1347,11 +1347,11 @@ require(['vs/editor/editor.main'], function() {
             if(line.length > 1 && (imporIndex = $.trim(line).indexOf('import')) == 0){
                 var keyword = $.trim($.trim(line).substring(imporIndex + 6)).replace(/['|"]/g,'').toLowerCase();
                 var len = 0;
-                if(keyword && (len = Parser.importClass.length) > 0){
-                    var start = line.indexOf('"') + 1;
-                    if(start == 0){
-                        start = line.indexOf("'") + 1;
-                    }
+                var start = line.indexOf('"') + 1;
+                if(start == 0){
+                    start = line.indexOf("'") + 1;
+                }
+                if(start != 0 && keyword && (len = Parser.importClass.length) > 0){
                     var set = new Set();
                     for(var i =0;i < len;i++){
                         var clazz = Parser.importClass[i];
@@ -1389,6 +1389,18 @@ require(['vs/editor/editor.main'], function() {
                                     range : new monaco.Range(position.lineNumber, start + 1, position.lineNumber, position.column)
                                 })
                             }
+                        }
+                    }
+                }else {
+                    for(var key in Parser.scriptClass){
+                        if(key.indexOf('.') == -1){
+                            suggestions.push({
+                                label : key,
+                                kind: monaco.languages.CompletionItemKind.Module,
+                                detail : key,
+                                insertText : key,
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                            })
                         }
                     }
                 }
