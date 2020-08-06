@@ -1188,7 +1188,9 @@ var MagicEditor = {
                 Parser.extensions = data.extensions || {};
             }
         })
-
+        $.get('classes.txt',function(txt){
+            Parser.importClass = txt.split('\r\n');
+        })
         monaco.editor.defineTheme('default', {
             base: 'vs',
             inherit: true,
@@ -1270,8 +1272,7 @@ var MagicEditor = {
             language: 'magicscript',
             folding : false,
             lineDecorationsWidth : 35,
-            fixedOverflowWidgets :false,
-            theme : theme
+            theme : theme,
         })
         this.requestEditor = monaco.editor.create($('.request-editor')[0], {
             value: "{}",

@@ -331,6 +331,7 @@ TokenStream.prototype.getSource = function () {
 var Parser = {
     scriptClass: {},
     extensions : {},
+    importClass : [],
     tokenize: function (source) {
         var stream = new CharacterStream(source, 0, source.length);
         var tokens = [];
@@ -1335,9 +1336,63 @@ require(['vs/editor/editor.main'], function() {
                 endLineNumber: position.lineNumber,
                 endColumn: position.column
             });
+            var line =  model.getValueInRange({
+                startLineNumber: position.lineNumber,
+                startColumn: 1,
+                endLineNumber: position.lineNumber,
+                endColumn: position.column
+            });
             var suggestions = [];
-
-            if (value.length > 1) {
+            var imporIndex = 0;
+            if(line.length > 1 && (imporIndex = $.trim(line).indexOf('import')) == 0){
+                var keyword = $.trim($.trim(line).substring(imporIndex + 6)).replace(/['|"]/g,'').toLowerCase();
+                var len = 0;
+                if(keyword && (len = Parser.importClass.length) > 0){
+                    var start = line.indexOf('"') + 1;
+                    if(start == 0){
+                        start = line.indexOf("'") + 1;
+                    }
+                    var set = new Set();
+                    for(var i =0;i < len;i++){
+                        var clazz = Parser.importClass[i];
+                        var index = clazz.toLowerCase().indexOf(keyword);
+                        if(index > -1){
+                            if((index = clazz.indexOf('.',index + keyword.length)) > -1){
+                                var content = clazz.substring(0,index);
+                                content = content.substring(content.lastIndexOf('.') + 1) + '.';
+                                if(set.has(content)){
+                                    continue;
+                                }
+                                set.add(content);
+                                suggestions.push({
+                                    sortText: '1',
+                                    label: content,
+                                    kind: monaco.languages.CompletionItemKind.Folder,
+                                    filterText : clazz,
+                                    detail: content,
+                                    insertText: content,
+                                    insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                    command : {
+                                        id : 'editor.action.triggerSuggest'
+                                    }
+                                    //range : new monaco.Range(position.lineNumber, start + 1, position.lineNumber, position.column)
+                                })
+                            }else{
+                                suggestions.push({
+                                    sortText: '2',
+                                    label: clazz.substring(clazz.lastIndexOf('.') + 1),
+                                    kind: monaco.languages.CompletionItemKind.Module,
+                                    filterText : clazz,
+                                    detail: clazz,
+                                    insertText: clazz,
+                                    //insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                                    range : new monaco.Range(position.lineNumber, start + 1, position.lineNumber, position.column)
+                                })
+                            }
+                        }
+                    }
+                }
+            }else if (value.length > 1) {
                 var endDot = value.charAt(value.length - 1) == '.';
                 var input = ''
                 if(endDot){
