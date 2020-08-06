@@ -38,6 +38,7 @@ import org.ssssssss.magicapi.provider.impl.DefaultApiServiceProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultMagicAPIService;
 import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultResultProvider;
+import org.ssssssss.magicapi.utils.ClassScanner;
 import org.ssssssss.script.MagicModuleLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
@@ -71,6 +72,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Autowired
 	private ApplicationContext springContext;
 
+	private String ALL_CLASS_TXT;
+
 	public MagicAPIAutoConfiguration(MagicAPIProperties properties) {
 		this.properties = properties;
 	}
@@ -87,6 +90,19 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return properties;
 	}
 
+	@ResponseBody
+	private String readClass() {
+		if (ALL_CLASS_TXT == null) {
+			try {
+				ALL_CLASS_TXT = StringUtils.join(ClassScanner.scan(), "\r\n");
+			} catch (Throwable t) {
+				logger.warn("扫描Class失败", t);
+				ALL_CLASS_TXT = "";
+			}
+		}
+		return ALL_CLASS_TXT;
+	}
+
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		String web = properties.getWeb();
@@ -100,7 +116,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(web).build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("redirectIndex", HttpServletRequest.class));
 				// 读取配置
 				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(web + "/config.json").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readConfig"));
-
+				// 读取配置
+				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(web + "/classes.txt").produces("text/plain").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readClass"));
 			} catch (NoSuchMethodException ignored) {
 			}
 		}
@@ -319,7 +336,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 * 创建UI对应的后台Controller
 	 */
 	private WebUIController createWebUIController(ResultProvider resultProvider, ApiServiceProvider apiServiceProvider, MappingHandlerMapping mappingHandlerMapping) {
-		if (properties.getWeb() == null) {	//	判断是否开启了UI界面
+		if (properties.getWeb() == null) {    //	判断是否开启了UI界面
 			return null;
 		}
 		WebUIController controller = new WebUIController();
