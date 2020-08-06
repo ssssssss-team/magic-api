@@ -1280,10 +1280,14 @@ require(['vs/editor/editor.main'], function() {
         }
         return attributes;
     }
-    var findMethods = function(className){
+    var padding = function(num, n) {
+        return Array(n>(num + '').length?(n-(''+num).length-1):0).join(0)+num;
+    }
+    var findMethods = function(className,sort){
+        sort = sort || 0;
         var target = Parser.scriptClass[className];
         var methods = [];
-        var _findMethod = function(target,begin){
+        var _findMethod = function(target,begin,sort){
             for (var i = 0, len = target.methods.length; i < len; i++) {
                 var method = target.methods[i];
                 method.insertText = method.name;
@@ -1299,9 +1303,11 @@ require(['vs/editor/editor.main'], function() {
                     if (!method.comment) {
                         method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '(' + params1.join(',') + ')';
                     }
+                    method.sortText = padding(sort,10) + method.name;
                     method.fullName = method.name + '(' + params2.join(', ') + ')';
                     method.insertText += '(' + params.join(',') + ')';
                 } else {
+                    method.sortText = padding(sort,10) + method.name;
                     method.insertText += '()';
                     method.fullName = method.name + '()';
                     if (!method.comment) {
@@ -1312,20 +1318,21 @@ require(['vs/editor/editor.main'], function() {
             }
         }
         if(target){
-            _findMethod(target,0);
+            _findMethod(target,0,sort);
             if(target.superClass){
-                methods = methods.concat(findMethods(target.superClass));
+                methods = methods.concat(findMethods(target.superClass,sort + 1));
             }
             if(target.interfaces && target.interfaces.length > 0){
                 for(var i=0,len = target.interfaces.length;i < len;i++){
-                    methods = methods.concat(findMethods(target.interfaces[i]));
+                    methods = methods.concat(findMethods(target.interfaces[i],sort + 100));
                 }
             }
         }
         target = Parser.extensions[className];
         if(target){
-            _findMethod(target,1);
+            _findMethod(target,1,sort + 10000);
         }
+        console.log(methods);
         return methods;
     }
     monaco.languages.registerCompletionItemProvider('magicscript',{
