@@ -32,7 +32,6 @@ public class ClassScanner {
 		Set<String> classes = new HashSet<>();
 		if(urls != null){
 			for (URL url : urls) {
-				System.out.println(url);
 				String protocol = url.getProtocol();
 				if("file".equalsIgnoreCase(protocol)){
 					String path = url.getPath();

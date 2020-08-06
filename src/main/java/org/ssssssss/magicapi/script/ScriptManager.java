@@ -42,12 +42,4 @@ public class ScriptManager {
 	public static List<ScriptInfo> engines(){
 		return scriptEngineManager.getEngineFactories().stream().map(ScriptInfo::new).collect(Collectors.toList());
 	}
-
-	public static void main(String[] args) {
-		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
-		List<ScriptEngineFactory> factories = scriptEngineManager.getEngineFactories();
-		for (ScriptEngineFactory factory : factories) {
-			System.out.println(factory.getEngineName() + "------" + factory.getLanguageVersion());
-		}
-	}
 }
