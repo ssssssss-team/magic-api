@@ -1332,7 +1332,6 @@ require(['vs/editor/editor.main'], function() {
         if(target){
             _findMethod(target,1,sort + 10000);
         }
-        console.log(methods);
         return methods;
     }
     monaco.languages.registerCompletionItemProvider('magicscript',{
