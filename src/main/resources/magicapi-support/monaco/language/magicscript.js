@@ -551,8 +551,16 @@ var Parser = {
     parse: function (stream) {
         try{
             var vars = {
-                db: 'org.ssssssss.magicapi.functions.DatabaseQuery'
             };
+            for(var key in  Parser.scriptClass){
+                if(key.indexOf('.') == -1){
+                    var clazzName = Parser.scriptClass[key].className;
+                    vars[key] = clazzName;
+                    if(!Parser.scriptClass[clazzName]){
+                        Parser.scriptClass[clazzName] = Parser.scriptClass[key];
+                    }
+                }
+            }
             var expression;
             while (stream.hasMore()) {
                 var token = stream.consume();
