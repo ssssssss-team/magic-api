@@ -18,6 +18,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 请求映射
@@ -120,16 +123,30 @@ public class MappingHandlerMapping {
 	 * 注册请求
 	 */
 	public void registerAllMapping() {
-		List<ApiInfo> list = magicApiService.listWithScript();
-		if (list != null) {
-			apiInfos.addAll(list);
-			for (ApiInfo info : list) {
-				try {
-					registerMapping(info, false);
-				} catch (Exception e) {
-					logger.error("接口:{}注册失败", info.getName(), e);
+		try {
+			List<ApiInfo> list = magicApiService.listWithScript();
+			if (list != null) {
+				for (ApiInfo info : list) {
+					try {
+						// 当接口存在时，刷新缓存
+						registerMapping(info, true);
+					} catch (Exception e) {
+						logger.error("接口:{}注册失败", info.getName(), e);
+					}
+				}
+				List<String> resistedList = list.stream().map(ApiInfo::getId).collect(Collectors.toList());
+				Iterator<ApiInfo> iterator = apiInfos.iterator();
+				while (iterator.hasNext()) {
+					String oldId = iterator.next().getId();
+					// 当接口不存在时，取消注册接口
+					if (!resistedList.contains(oldId)) {
+						unregisterMapping(oldId, false);
+						iterator.remove();
+					}
 				}
 			}
+		} catch (Exception e) {
+			logger.info("注册接口映射失败", e);
 		}
 	}
 
@@ -179,18 +196,30 @@ public class MappingHandlerMapping {
 	 */
 	public void registerMapping(ApiInfo info, boolean delete) {
 		// 先判断是否已注册，如果已注册，则先取消注册在进行注册。
-		if (mappings.containsKey(info.getId())) {
-			ApiInfo oldInfo = mappings.get(info.getId());
+		ApiInfo oldInfo = mappings.get(info.getId());
+		String newMappingKey = getMappingKey(info);
+		if (oldInfo != null) {
+			String oldMappingKey = getMappingKey(oldInfo);
+			// URL 路径一致时，刷新脚本内容即可
+			if (Objects.equals(oldMappingKey, newMappingKey)) {
+				if (!info.equals(oldInfo)) {
+					mappings.put(info.getId(), info);
+					mappings.put(newMappingKey, info);
+					logger.info("刷新接口:{}", info.getName());
+				}
+				return;
+			}
+			// URL不一致时，需要取消注册旧接口，重新注册新接口
 			logger.info("取消注册接口:{}", oldInfo.getName());
 			// 取消注册
-			mappings.remove(getMappingKey(info));
+			mappings.remove(oldMappingKey);
 			requestMappingHandlerMapping.unregisterMapping(getRequestMapping(oldInfo));
 		}
 		logger.info("注册接口:{}", info.getName());
 		// 注册
 		RequestMappingInfo requestMapping = getRequestMapping(info);
 		mappings.put(info.getId(), info);
-		mappings.put(getMappingKey(info), info);
+		mappings.put(newMappingKey, info);
 		requestMappingHandlerMapping.registerMapping(requestMapping, handler, method);
 		if (delete) {   // 刷新缓存
 			apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
@@ -248,4 +277,10 @@ public class MappingHandlerMapping {
 		return RequestMappingInfo.paths(getRequestPath(info.getGroupPrefix(), info.getPath())).methods(RequestMethod.valueOf(info.getMethod().toUpperCase())).build();
 	}
 
+	public void enableRefresh(int interval) {
+		if (interval > 0) {
+			logger.info("启动自动刷新magic-api");
+			Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this::registerAllMapping, interval, interval, TimeUnit.SECONDS);
+		}
+	}
 }

@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 接口信息
@@ -165,5 +166,27 @@ public class ApiInfo {
 
 	public Object getOptionValue(String key) {
 		return this.optionMap != null ? this.optionMap.get(key) : null;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		ApiInfo apiInfo = (ApiInfo) o;
+		return Objects.equals(id, apiInfo.id) &&
+				Objects.equals(method, apiInfo.method) &&
+				Objects.equals(path, apiInfo.path) &&
+				Objects.equals(script, apiInfo.script) &&
+				Objects.equals(name, apiInfo.name) &&
+				Objects.equals(groupName, apiInfo.groupName) &&
+				Objects.equals(groupPrefix, apiInfo.groupPrefix) &&
+				Objects.equals(parameter, apiInfo.parameter) &&
+				Objects.equals(option, apiInfo.option) &&
+				Objects.equals(output, apiInfo.output);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, method, path, script, name, groupName, groupPrefix, parameter, option, output);
 	}
 }
