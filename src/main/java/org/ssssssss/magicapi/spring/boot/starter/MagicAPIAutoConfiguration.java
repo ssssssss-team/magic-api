@@ -218,6 +218,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		setupRequestInterceptor(createWebUIController(resultProvider, apiServiceProvider, mappingHandlerMapping), requestHandler);
 		// 注册所有映射
 		mappingHandlerMapping.registerAllMapping();
+		// 自动刷新
+		mappingHandlerMapping.enableRefresh(properties.getRefreshInterval());
 		return requestHandler;
 	}
 

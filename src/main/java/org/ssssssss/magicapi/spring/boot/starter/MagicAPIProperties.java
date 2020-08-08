@@ -41,6 +41,11 @@ public class MagicAPIProperties {
 	private String autoImportModule = "db";
 
 	/**
+	 * 自动刷新间隔，单位为秒，默认不开启
+	 */
+	private int refreshInterval = 0;
+
+	/**
 	 * 驼峰命名转换
 	 */
 	private boolean mapUnderscoreToCamelCase = true;
@@ -159,5 +164,13 @@ public class MagicAPIProperties {
 
 	public void setAutoImportModule(String autoImport) {
 		this.autoImportModule = autoImport;
+	}
+
+	public int getRefreshInterval() {
+		return refreshInterval;
+	}
+
+	public void setRefreshInterval(int refreshInterval) {
+		this.refreshInterval = refreshInterval;
 	}
 }
