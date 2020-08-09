@@ -1040,6 +1040,10 @@ var MagicEditor = {
                 shortKey : 'Alt+N',
                 click : _this.createNew
             },{
+                name : '刷新接口',
+                shortKey : '',
+                click : function (){_this.loadAPI()}
+            },{
                 name : '删除组',
                 shortKey : '',
                 click : _this.deleteGroup
@@ -1063,6 +1067,10 @@ var MagicEditor = {
                 name : '复制路径',
                 shortKey : '',
                 click : _this.copyApiPath
+            },{
+                name : '刷新接口',
+                shortKey : '',
+                click : function (){_this.loadAPI()}
             },{
                 name : '移动',
                 shortKey : 'Ctrl+M',
