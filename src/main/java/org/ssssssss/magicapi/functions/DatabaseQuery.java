@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.functions;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceUtils;
@@ -217,6 +218,70 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 			this.sqlCache.delete(this.cacheName);
 		}
 		return value;
+	}
+
+	public int save(String tableName,Map<String,Object> params){
+		return save(tableName,params,"id");
+	}
+
+	/**
+	 * 如果已存在就修改，否则增加
+	 */
+	public int save(String tableName,Map<String,Object> data,String primaryKey){
+//		Object[] params = new Object[]{data.get(primaryKey)};
+//		Integer count = dataSourceNode.getJdbcTemplate().queryForObject("select count(1) from "+tableName+" where "+primaryKey+" =  ?", params, Integer.class);
+//		if(count > 0){
+//			return jdbcUpdate(tableName,data,primaryKey);
+//		}
+//		return 0;
+		Object primaryKeyValue = data.get(primaryKey);
+		if(null == primaryKeyValue){
+			return jdbcInsert(tableName,data,primaryKey);
+		}
+		return jdbcUpdate(tableName,data,primaryKey);
+	}
+
+	public int jdbcUpdate(String tableName,Map<String,Object> data,String primaryKey){
+		StringBuffer sb = new StringBuffer();
+		sb.append("update ");
+		sb.append(tableName);
+		sb.append(" set ");
+		List<Object> params = new ArrayList<>();
+		for(Map.Entry<String, Object> entry : data.entrySet()){
+			String key = entry.getKey();
+			if(!key.equals(primaryKey)){
+				sb.append(key + "=" + "?,");
+				params.add(entry.getValue());
+			}
+		}
+		sb.append(" where ");
+		sb.append(primaryKey);
+		sb.append("=?");
+		params.add(data.get(primaryKey));
+		return dataSourceNode.getJdbcTemplate().update(sb.toString().replace("?, ","? "),params.toArray());
+	}
+
+	public int jdbcInsert(String tableName,Map<String,Object> data,String primaryKey){
+		List<Object> params = new ArrayList<>();
+		params.add("");
+		List<String> fields = new ArrayList<>();
+		List<String> valuePlaceholders = new ArrayList<>();
+		StringBuffer sb = new StringBuffer();
+		sb.append("insert into ");
+		sb.append(tableName);
+		for(Map.Entry<String, Object> entry : data.entrySet()){
+			String key = entry.getKey();
+			if(!key.equals(primaryKey)){
+				fields.add(key);
+				valuePlaceholders.add("?");
+				params.add(entry.getValue());
+			}
+		}
+		sb.append("("+ primaryKey + "," + StringUtils.join(fields,",") +")");
+		sb.append(" values(?,"+StringUtils.join(valuePlaceholders,",")+")");
+		String id = UUID.randomUUID().toString().replace("-","");
+		params.set(0,id);
+		return dataSourceNode.getJdbcTemplate().update(sb.toString(),params.toArray());
 	}
 
 	/**
