@@ -548,16 +548,33 @@ var Parser = {
         }
         return target || 'java.lang.Object';
     },
+    loadClass : function(value){
+        MagicEditor.ajax({
+            url: 'class',
+            async : false,
+            data: {
+                className: value
+            },
+            success: function (list) {
+                Parser.scriptClass[value] = null;
+                for (var i = 0, len = list.length; i < len; i++) {
+                    var item = list[i];
+                    Parser.scriptClass[item.className] = item;
+                }
+            }
+        })
+    },
     parse: function (stream) {
         try{
             var vars = {
             };
             for(var key in  Parser.scriptClass){
                 if(key.indexOf('.') == -1){
-                    var clazzName = Parser.scriptClass[key].className;
+                    var target = Parser.scriptClass[key];
+                    var clazzName = target.className;
                     vars[key] = clazzName;
                     if(!Parser.scriptClass[clazzName]){
-                        Parser.scriptClass[clazzName] = Parser.scriptClass[key];
+                        Parser.scriptClass[clazzName] = target;
                     }
                 }
             }
@@ -587,19 +604,7 @@ var Parser = {
                         varName = stream.consume().getText();
                     }
                     if (Parser.scriptClass[value] === undefined) {
-                        MagicEditor.ajax({
-                            url: 'class',
-                            data: {
-                                className: value
-                            },
-                            success: function (list) {
-                                Parser.scriptClass[value] = null;
-                                for (var i = 0, len = list.length; i < len; i++) {
-                                    var item = list[i];
-                                    Parser.scriptClass[item.className] = item;
-                                }
-                            }
-                        })
+                        this.loadClass(value);
                     }
                     if (varName) {
                         vars[varName] = value;
@@ -623,6 +628,9 @@ var Parser = {
                 }
             }
             var type = expression && expression.getJavaType(vars);
+            if(type&&Parser.scriptClass[type] === undefined){
+                this.loadClass(type)
+            }
             return type;
         }catch(e){
             return '';
@@ -851,7 +859,7 @@ var Parser = {
                 }
             } else {
                 stream.expect(":");
-                values.add(parseExpression(stream));
+                values.push(this.parseExpression(stream));
                 if (!stream.match("}", false)) {
                     stream.expect(TokenType.Comma);
                 }
@@ -1093,6 +1101,9 @@ var AST = {
         this.getJavaType = function (env) {
             var target = node.node.getJavaType(env);
             var targetMethod = node.member;
+            if (Parser.scriptClass[target] === undefined) {
+                Parser.loadClass(target);
+            }
             target = Parser.scriptClass[target];
             var methods = target && target.methods;
             if (methods) {
@@ -1126,6 +1137,9 @@ var AST = {
         this.member = member.getText();
         this.getJavaType = function (env, args) {
             var target = node.getJavaType(env);
+            if (Parser.scriptClass[target] === undefined) {
+                Parser.loadClass(target);
+            }
             target = Parser.scriptClass[target];
             if(target.superClass == 'java.util.HashMap'){
                 var methods = target && target.methods;
@@ -1314,6 +1328,7 @@ require(['vs/editor/editor.main'], function() {
                     method.sortText = padding(sort,10) + method.name;
                     method.fullName = method.name + '(' + params2.join(', ') + ')';
                     method.insertText += '(' + params.join(',') + ')';
+                    method.signature = method.name + params2.join(',');
                 } else {
                     method.sortText = padding(sort,10) + method.name;
                     method.insertText += '()';
@@ -1321,6 +1336,7 @@ require(['vs/editor/editor.main'], function() {
                     if (!method.comment) {
                         method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '()';
                     }
+                    method.signature = method.name;
                 }
                 methods.push(method);
             }
@@ -1445,10 +1461,10 @@ require(['vs/editor/editor.main'], function() {
                             var mmap = {};
                             for (var j = 0; j < methods.length; j++) {
                                 var method = methods[j];
-                                if(mmap[method.fullName]){
+                                if(mmap[method.signature]){
                                     continue;
                                 }
-                                mmap[method.fullName] = true;
+                                mmap[method.signature] = true;
                                 suggestions.push({
                                     sortText: method.sortText || method.fullName,
                                     label: method.fullName,

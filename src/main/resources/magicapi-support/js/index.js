@@ -237,7 +237,7 @@ var MagicEditor = {
         var _this = this;
         element.onload = element.onreadystatechange = function(){
             if(!this.readyState||this.readyState=='loaded'||this.readyState=='complete') {
-                _this.report('v0_3_4');
+                _this.report('v0_4_0');
             }
         }
 
@@ -902,7 +902,7 @@ var MagicEditor = {
             url : 'https://img.shields.io/maven-central/v/org.ssssssss/magic-api.json',
             dataType : 'json',
             success : function(data){
-                if(data.value != 'v0.3.4'){
+                if(data.value != 'v0.4.0'){
                     if(ignoreVersion != data.value){
                         _this.createDialog({
                             title : '更新提示',
