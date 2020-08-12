@@ -37,13 +37,21 @@ public class MagicAPIProperties {
 
 	/**
 	 * 自动导入的模块,多个用","分隔
+	 * @since 0.3.2
 	 */
 	private String autoImportModule = "db";
 
 	/**
 	 * 自动刷新间隔，单位为秒，默认不开启
+	 * @since 0.3.4
 	 */
 	private int refreshInterval = 0;
+
+	/**
+	 * 是否允许覆盖应用接口，默认为false
+	 * @since 0.4.0
+	 */
+	private boolean allowOverride = false;
 
 	/**
 	 * 驼峰命名转换
@@ -172,5 +180,13 @@ public class MagicAPIProperties {
 
 	public void setRefreshInterval(int refreshInterval) {
 		this.refreshInterval = refreshInterval;
+	}
+
+	public boolean isAllowOverride() {
+		return allowOverride;
+	}
+
+	public void setAllowOverride(boolean allowOverride) {
+		this.allowOverride = allowOverride;
 	}
 }

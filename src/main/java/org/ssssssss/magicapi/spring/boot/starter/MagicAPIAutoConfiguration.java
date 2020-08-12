@@ -167,6 +167,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			}
 			handlerMapping.setPrefix(prefix);
 		}
+		handlerMapping.setAllowOverride(properties.isAllowOverride());
 		return handlerMapping;
 	}
 
