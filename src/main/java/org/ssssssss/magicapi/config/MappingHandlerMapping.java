@@ -59,6 +59,11 @@ public class MappingHandlerMapping {
 	private String prefix;
 
 	/**
+	 * 是否覆盖应用接口
+	 */
+	private boolean allowOverride = false;
+
+	/**
 	 * 缓存已映射的接口信息
 	 */
 	private List<ApiInfo> apiInfos = Collections.synchronizedList(new ArrayList<>());
@@ -68,6 +73,10 @@ public class MappingHandlerMapping {
 
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
+	}
+
+	public void setAllowOverride(boolean allowOverride) {
+		this.allowOverride = allowOverride;
 	}
 
 	/**
@@ -184,9 +193,14 @@ public class MappingHandlerMapping {
 				return false;
 			}
 		}
-		Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.requestMappingHandlerMapping.getHandlerMethods();
-		if (handlerMethods != null) {
-			return handlerMethods.get(getRequestMapping(info)) != null;
+		if(mappings.containsKey(getMappingKey(info))){
+			return true;
+		}
+		if(!allowOverride){
+			Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.requestMappingHandlerMapping.getHandlerMethods();
+			if (handlerMethods != null) {
+				return handlerMethods.get(getRequestMapping(info)) != null;
+			}
 		}
 		return false;
 	}
@@ -215,9 +229,20 @@ public class MappingHandlerMapping {
 			mappings.remove(oldMappingKey);
 			requestMappingHandlerMapping.unregisterMapping(getRequestMapping(oldInfo));
 		}
-		logger.info("注册接口:{}", info.getName());
 		// 注册
 		RequestMappingInfo requestMapping = getRequestMapping(info);
+		// 如果与应用冲突
+		if (requestMappingHandlerMapping.getHandlerMethods().containsKey(requestMapping)) {
+			if (!allowOverride) {
+				// 不允许覆盖
+				logger.error("接口{}与应用冲突，无法注册", info.getName());
+				return;
+			}
+			logger.warn("取消注册应用接口:{}", requestMapping);
+			// 取消注册原接口
+			requestMappingHandlerMapping.unregisterMapping(requestMapping);
+		}
+		logger.info("注册接口:{}", info.getName());
 		mappings.put(info.getId(), info);
 		mappings.put(newMappingKey, info);
 		requestMappingHandlerMapping.registerMapping(requestMapping, handler, method);
