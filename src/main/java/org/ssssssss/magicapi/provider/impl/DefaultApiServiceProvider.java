@@ -2,32 +2,30 @@ package org.ssssssss.magicapi.provider.impl;
 
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.ssssssss.magicapi.config.ApiInfo;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 
 import java.util.List;
 import java.util.UUID;
 
-public class DefaultApiServiceProvider implements ApiServiceProvider {
+public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> implements ApiServiceProvider {
 
 	private final String COMMON_COLUMNS = "id,\n" +
-			"api_name name,\n" +
-			"api_group_name group_name,\n" +
-			"api_group_prefix group_prefix,\n" +
-			"api_path path,\n" +
-			"api_method method";
+			"api_name,\n" +
+			"api_group_name,\n" +
+			"api_group_prefix,\n" +
+			"api_path,\n" +
+			"api_method";
 
-	private final String SCRIPT_COLUMNS = "api_script script,\n" +
-			"api_parameter parameter,\n" +
-			"api_output output,\n" +
-			"api_option option_value\n";
-
-	private RowMapper<ApiInfo> rowMapper = new BeanPropertyRowMapper<>(ApiInfo.class);
+	private final String SCRIPT_COLUMNS = "api_script,\n" +
+			"api_parameter,\n" +
+			"api_output,\n" +
+			"api_option\n";
 
 	private JdbcTemplate template;
 
 	public DefaultApiServiceProvider(JdbcTemplate template) {
+		super(ApiInfo.class);
 		this.template = template;
 	}
 
@@ -43,12 +41,12 @@ public class DefaultApiServiceProvider implements ApiServiceProvider {
 
 	public List<ApiInfo> list() {
 		String selectList = "select " + COMMON_COLUMNS + " from magic_api_info order by api_update_time desc";
-		return template.query(selectList, rowMapper);
+		return template.query(selectList, this);
 	}
 
 	public List<ApiInfo> listWithScript() {
 		String selectListWithScript = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_api_info";
-		List<ApiInfo> infos = template.query(selectListWithScript, rowMapper);
+		List<ApiInfo> infos = template.query(selectListWithScript, this);
 		if (infos != null) {
 			for (ApiInfo info : infos) {
 				unwrap(info);
@@ -59,7 +57,7 @@ public class DefaultApiServiceProvider implements ApiServiceProvider {
 
 	public ApiInfo get(String id) {
 		String selectOne = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_api_info where id = ?";
-		ApiInfo info = template.queryForObject(selectOne, rowMapper, id);
+		ApiInfo info = template.queryForObject(selectOne, this, id);
 		unwrap(info);
 		return info;
 	}
@@ -108,8 +106,13 @@ public class DefaultApiServiceProvider implements ApiServiceProvider {
 	@Override
 	public ApiInfo backupInfo(String apiId, Long timestamp) {
 		String selectOne = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_api_info_his where id = ? and api_update_time = ? limit 1";
-		ApiInfo info = template.queryForObject(selectOne, rowMapper, apiId, timestamp);
+		ApiInfo info = template.queryForObject(selectOne, this, apiId, timestamp);
 		unwrap(info);
 		return info;
+	}
+
+	@Override
+	protected String lowerCaseName(String name) {
+		return super.lowerCaseName(name).replace("api_","");
 	}
 }
