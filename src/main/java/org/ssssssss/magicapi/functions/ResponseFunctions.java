@@ -127,6 +127,10 @@ public class ResponseFunctions {
 		}
 	}
 
+	public NullValue end(){
+		return NullValue.INSTANCE;
+	}
+
 	/**
 	 * 添加cookie
 	 */
@@ -167,5 +171,9 @@ public class ResponseFunctions {
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncoder.encode(filename, "UTF-8"))
 				.body(value);
+	}
+
+	public static class NullValue{
+		static final NullValue INSTANCE = new NullValue();
 	}
 }

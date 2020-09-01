@@ -14,6 +14,7 @@ import org.ssssssss.magicapi.context.CookieContext;
 import org.ssssssss.magicapi.context.HeaderContext;
 import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.context.SessionContext;
+import org.ssssssss.magicapi.functions.ResponseFunctions;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
 import org.ssssssss.script.MagicScript;
@@ -131,6 +132,8 @@ public class RequestHandler {
 			}
 			if (value instanceof ResponseEntity) {
 				return value;
+			} else if (value instanceof ResponseFunctions.NullValue){
+				return null;
 			}
 			return resultProvider.buildResult(value);
 		} catch (Throwable root) {

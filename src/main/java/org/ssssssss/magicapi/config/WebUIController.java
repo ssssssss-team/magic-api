@@ -15,6 +15,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
+import org.ssssssss.magicapi.functions.ResponseFunctions;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.model.JsonBodyBean;
@@ -352,6 +353,8 @@ public class WebUIController {
 				return ResponseEntity.ok(new JsonBean<>(entity.getBody()));
 			}
 			return ResponseEntity.ok(new JsonBean<>(convertToBase64(entity.getBody())));
+		} else if(result instanceof ResponseFunctions.NullValue){
+			return new JsonBean<>(1,"empty.");
 		}
 		return new JsonBean<>(resultProvider.buildResult(result));
 	}
