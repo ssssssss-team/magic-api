@@ -39,6 +39,7 @@ import org.ssssssss.magicapi.provider.impl.DefaultMagicAPIService;
 import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultResultProvider;
 import org.ssssssss.magicapi.utils.ClassScanner;
+import org.ssssssss.script.MagicPackageLoader;
 import org.ssssssss.script.MagicModuleLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
@@ -307,6 +308,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 				MagicScriptEngine.addDefaultImport(moduleName, MagicModuleLoader.loadModule(moduleName));
 			}
 		}
+		List<String> importPackages = properties.getAutoImportPackageList();
+		for (String importPackage : importPackages) {
+			logger.info("自动导包：{}", importPackage);
+			MagicPackageLoader.addPackage(importPackage);
+		}
 		if (extensionMethods != null) {
 			for (ExtensionMethod extension : extensionMethods) {
 				List<Class<?>> supports = extension.supports();
@@ -347,6 +353,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		controller.setDebugTimeout(properties.getDebugConfig().getTimeout());
 		controller.setMagicApiService(apiServiceProvider);
 		controller.setMappingHandlerMapping(mappingHandlerMapping);
+		SecurityConfig securityConfig = properties.getSecurityConfig();
+		controller.setUsername(securityConfig.getUsername());
+		controller.setPassword(securityConfig.getPassword());
 		// 构建UI请求处理器
 		String base = properties.getWeb();
 		Method[] methods = WebUIController.class.getDeclaredMethods();

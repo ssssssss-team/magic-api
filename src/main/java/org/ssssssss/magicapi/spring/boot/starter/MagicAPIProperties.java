@@ -42,6 +42,12 @@ public class MagicAPIProperties {
 	private String autoImportModule = "db";
 
 	/**
+	 * 可自动导入的包（目前只支持结尾以.*结尾的通配符），多个用","分隔
+	 * @since 0.3.5
+	 */
+	private String autoImportPackage = "java.lang.*,java.util.*";
+
+	/**
 	 * 自动刷新间隔，单位为秒，默认不开启
 	 * @since 0.3.4
 	 */
@@ -57,6 +63,10 @@ public class MagicAPIProperties {
 	 * 驼峰命名转换
 	 */
 	private boolean mapUnderscoreToCamelCase = true;
+
+
+	@NestedConfigurationProperty
+	private SecurityConfig securityConfig = new SecurityConfig();
 
 	@NestedConfigurationProperty
 	private PageConfig pageConfig = new PageConfig();
@@ -138,6 +148,14 @@ public class MagicAPIProperties {
 		this.debugConfig = debugConfig;
 	}
 
+	public SecurityConfig getSecurityConfig() {
+		return securityConfig;
+	}
+
+	public void setSecurityConfig(SecurityConfig securityConfig) {
+		this.securityConfig = securityConfig;
+	}
+
 	public String getPrefix() {
 		return prefix;
 	}
@@ -188,5 +206,17 @@ public class MagicAPIProperties {
 
 	public void setAllowOverride(boolean allowOverride) {
 		this.allowOverride = allowOverride;
+	}
+
+	public String getAutoImportPackage() {
+		return autoImportPackage;
+	}
+
+	public void setAutoImportPackage(String autoImportPackage) {
+		this.autoImportPackage = autoImportPackage;
+	}
+
+	public List<String> getAutoImportPackageList() {
+		return Arrays.asList(autoImportPackage.replaceAll("\\s","").split(","));
 	}
 }
