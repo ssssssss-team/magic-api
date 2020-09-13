@@ -22,9 +22,11 @@ var MagicEditor = {
         this.resetEditor();
         this.checkUpdate();
         this.backupInterval();
+        this.login();
         var _this = this;
         $.getJSON('config.json',function(data){
             _this.config = data;
+            Parser.importPackages = _this.config.autoImportPackage.replace(/\\s/g,'').replace(/\*/g,'').split(',');
         })
     },
     initSkin : function(){
@@ -44,6 +46,48 @@ var MagicEditor = {
                 $body.removeClass('skin-' + $(this).text())
             })
             _this.setSkin($(this).text());
+        })
+    },
+    login : function(){
+        $('.loading-wrapper').remove();
+        var _this = this;
+        this.ajax({
+            url : 'login',
+            async : false,
+            success : function(successed){
+                if(!successed){
+                    MagicEditor.createDialog({
+                        title : '登录',
+                        shade : true,
+                        content : '<label style="width:80px;text-align: right;display: inline-block">用户名：</label><input type="text" name="username" autocomplete="off"/><div style="height:2px;"></div><label style="width:80px;text-align: right;display: inline-block">密码：</label><input type="password" name="password" autocomplete="off"/>',
+                        replace : false,
+                        allowClose : false,
+                        buttons : [{
+                            name : '登录',
+                            click : function($dom){
+                                var username = $dom.find('input[name=username]').val();
+                                var password = $dom.find('input[name=password]').val();
+                                var successed = false;
+                                _this.ajax({
+                                    url : 'login',
+                                    data : {
+                                        username : username,
+                                        password : password
+                                    },
+                                    async : false,
+                                    success : function(succ){
+                                        successed = succ;
+                                    }
+                                })
+                                if(!successed){
+                                    _this.alert('登录','登录失败,用户名或密码不正确');
+                                    return false;
+                                }
+                            }
+                        }]
+                    })
+                }
+            }
         })
     },
     resetEditor : function(){
@@ -1345,12 +1389,16 @@ var MagicEditor = {
             $dialog.addClass(options.className);
         }
         var $header = $('<div/>').addClass('dialog-header').addClass('not-select').append(options.title || '');
-        var $close = $('<span/>').append('<i class="iconfont icon-close"></i>');
-        $header.append($close);
-        $close.on('click',function(){
-            options.close&&options.close();
-            $wrapper.remove();
-        })
+        if(options.allowClose !== false){
+            var $close = $('<span/>').append('<i class="iconfont icon-close"></i>');
+            $header.append($close);
+            $close.on('click',function(){
+                if(options.close&&options.close()){
+                    return;
+                }
+                $wrapper.remove();
+            })
+        }
         $dialog.append($header);
         var content = options.content || '';
         if(options.replace !== false){
@@ -1369,6 +1417,9 @@ var MagicEditor = {
         }
         $dialog.append($buttons);
         var $wrapper = $('<div/>').addClass('dialog-wrapper').append($dialog);
+        if(options.shade){
+            $wrapper.addClass("shade")
+        }
         $buttons.on('click','button',function(){
             var index = $(this).index();
             if(buttons[index].click&&buttons[index].click($dialog) === false){
@@ -1558,7 +1609,6 @@ var MagicEditor = {
 $(function(){
     require(['vs/editor/editor.main'],function(){
         MagicEditor.init();
-        $('.loading-wrapper').remove();
     })
     $(window).resize(function(){
         MagicEditor.layout();

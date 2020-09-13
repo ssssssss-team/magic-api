@@ -132,7 +132,7 @@ public class RequestHandler {
 			}
 			if (value instanceof ResponseEntity) {
 				return value;
-			} else if (value instanceof ResponseFunctions.NullValue){
+			} else if (value instanceof ResponseFunctions.NullValue) {
 				return null;
 			}
 			return resultProvider.buildResult(value);

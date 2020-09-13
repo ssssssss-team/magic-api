@@ -23,6 +23,7 @@ import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
+import org.ssssssss.magicapi.utils.MD5Utils;
 import org.ssssssss.script.*;
 import org.ssssssss.script.exception.MagicScriptAssertException;
 import org.ssssssss.script.exception.MagicScriptException;
@@ -31,6 +32,7 @@ import org.ssssssss.script.parsing.Span;
 
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -69,6 +71,18 @@ public class WebUIController {
 	 */
 	private List<RequestInterceptor> requestInterceptors = new ArrayList<>();
 
+	/**
+	 * 用户名
+	 */
+	private String username;
+
+	/**
+	 * 密码
+	 */
+	private String password;
+
+	private final String tokenKey = "MAGICTOKEN";
+
 	public WebUIController() {
 		// 给前端添加代码提示
 		MagicScriptEngine.addScriptClass(DatabaseQuery.class);
@@ -93,6 +107,14 @@ public class WebUIController {
 
 	public void setMagicApiService(ApiServiceProvider magicApiService) {
 		this.magicApiService = magicApiService;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	/**
@@ -187,6 +209,23 @@ public class WebUIController {
 			logger.error("查询接口列表失败", e);
 			return new JsonBean<>(-1, e.getMessage());
 		}
+	}
+
+	/**
+	 * 登录
+	 */
+	@RequestMapping("/login")
+	@ResponseBody
+	public JsonBean<Boolean> login(String username, String password, HttpServletRequest request, HttpServletResponse response) {
+		if (username != null && password != null && Objects.equals(username, this.username) && Objects.equals(password, this.password)) {
+			Cookie cookie = new Cookie(tokenKey, MD5Utils.encrypt(String.format("%s||%s", username, password)));
+			cookie.setHttpOnly(true);
+			response.addCookie(cookie);
+			return new JsonBean<>(true);
+		} else if (allowVisit(request, null)) {
+			return new JsonBean<>(true);
+		}
+		return new JsonBean<>(false);
 	}
 
 	/**
@@ -353,8 +392,8 @@ public class WebUIController {
 				return ResponseEntity.ok(new JsonBean<>(entity.getBody()));
 			}
 			return ResponseEntity.ok(new JsonBean<>(convertToBase64(entity.getBody())));
-		} else if(result instanceof ResponseFunctions.NullValue){
-			return new JsonBean<>(1,"empty.");
+		} else if (result instanceof ResponseFunctions.NullValue) {
+			return new JsonBean<>(1, "empty.");
 		}
 		return new JsonBean<>(resultProvider.buildResult(result));
 	}
@@ -502,6 +541,20 @@ public class WebUIController {
 	 * 判断是否有权限访问按钮
 	 */
 	private boolean allowVisit(HttpServletRequest request, RequestInterceptor.Authorization authorization) {
+		if (authorization == null) {
+			if (this.username != null && this.password != null) {
+				Cookie[] cookies = request.getCookies();
+				if (cookies != null) {
+					for (Cookie cookie : cookies) {
+						if (tokenKey.equals(cookie.getName())) {
+							return cookie.getValue().equals(MD5Utils.encrypt(String.format("%s||%s",username,password)));
+						}
+					}
+				}
+				return false;
+			}
+			return true;
+		}
 		for (RequestInterceptor requestInterceptor : requestInterceptors) {
 			if (!requestInterceptor.allowVisit(request, authorization)) {
 				return false;

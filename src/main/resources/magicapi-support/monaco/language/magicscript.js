@@ -332,6 +332,8 @@ var Parser = {
     scriptClass: {},
     extensions : {},
     importClass : [],
+    importPackages : [],
+    autoImportClass : null,
     tokenize: function (source) {
         var stream = new CharacterStream(source, 0, source.length);
         var tokens = [];
@@ -566,8 +568,22 @@ var Parser = {
     },
     parse: function (stream) {
         try{
+            if(!Parser.autoImportClass){
+                Parser.autoImportClass = {};
+                for(var m =0,l = Parser.importClass.length;m<l;m++){
+                    var className = Parser.importClass[m];
+                    for(var i=0,len = Parser.importPackages.length;i<len;i++){
+                        if(className.indexOf(Parser.importPackages[i]) == 0){
+                            Parser.autoImportClass[className.substring(className.lastIndexOf('.') + 1)] = className;
+                        }
+                    }
+                }
+            }
             var vars = {
             };
+            for(var key in Parser.autoImportClass){
+                vars[key] = Parser.autoImportClass[key];
+            }
             for(var key in  Parser.scriptClass){
                 if(key.indexOf('.') == -1){
                     var target = Parser.scriptClass[key];

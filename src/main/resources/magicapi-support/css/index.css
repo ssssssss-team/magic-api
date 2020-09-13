@@ -541,6 +541,10 @@ ul li {
     z-index: 999999;
     text-align: center;
 }
+.dialog-wrapper.shade{
+    background: rgba(0,0,0,0.6);
+}
+
 .dialog-wrapper:before {
     content: '';
     display: inline-block;
