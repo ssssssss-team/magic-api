@@ -42,8 +42,8 @@ public class MagicAPIProperties {
 	private String autoImportModule = "db";
 
 	/**
-	 * 可自动导入的包（目前只支持结尾以.*结尾的通配符），多个用","分隔
-	 * @since 0.3.5
+	 * 可自动导入的包（目前只支持以.*结尾的通配符），多个用","分隔
+	 * @since 0.4.0
 	 */
 	private String autoImportPackage = "java.lang.*,java.util.*";
 
