@@ -11,7 +11,6 @@ var MagicEditor = {
         this.debugSessionId = null;
         this.defaultRequestValue = '{\r\n\t"request" : {\r\n\t\t"message" : "Hello MagicAPI!"\r\n\t},\r\n\t"path" : {\r\n\t\t"id" : "123456"\r\n\t},\r\n\t"body" : {\r\n\t\t"id" : "123456"\r\n\t},\r\n\t"header" : {\r\n\t\t"token" : "tokenValue"\r\n\t},\r\n\t"cookie" : {\r\n\t\t"cookieName" : "cookieValue"\r\n\t},\r\n\t"session" : {\r\n\t\t"userId" : "123"\r\n\t}\r\n}';
         this.initMTA();
-        this.loadAPI();
         this.initShortKey();
         this.initSkin();
         this.initLeftToobarContainer();
@@ -83,9 +82,12 @@ var MagicEditor = {
                                     _this.alert('登录','登录失败,用户名或密码不正确');
                                     return false;
                                 }
+                                _this.loadAPI();
                             }
                         }]
                     })
+                }else{
+                    _this.loadAPI();
                 }
             }
         })
