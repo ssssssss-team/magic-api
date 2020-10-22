@@ -7,7 +7,7 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.ssssssss.magicapi.cache.SqlCache;
-import org.ssssssss.magicapi.config.DynamicDataSource;
+import org.ssssssss.magicapi.config.MagicDynamicDataSource;
 import org.ssssssss.magicapi.config.DynamicDataSource.DataSourceNode;
 import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.magicapi.dialect.Dialect;
@@ -37,7 +37,7 @@ import java.util.function.Function;
 public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements MagicModule {
 
 	@UnableCall
-	private DynamicDataSource dynamicDataSource;
+	private MagicDynamicDataSource dynamicDataSource;
 
 	@UnableCall
 	private DataSourceNode dataSourceNode;
@@ -64,7 +64,7 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 
 	}
 
-	public DatabaseQuery(DynamicDataSource dynamicDataSource) {
+	public DatabaseQuery(MagicDynamicDataSource dynamicDataSource) {
 		this.dynamicDataSource = dynamicDataSource;
 		this.dataSourceNode = dynamicDataSource.getDataSource();
 	}
@@ -85,7 +85,7 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	}
 
 	@UnableCall
-	public void setDynamicDataSource(DynamicDataSource dynamicDataSource) {
+	public void setDynamicDataSource(MagicDynamicDataSource dynamicDataSource) {
 		this.dynamicDataSource = dynamicDataSource;
 	}
 

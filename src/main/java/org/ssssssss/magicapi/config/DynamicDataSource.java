@@ -13,6 +13,7 @@ import java.util.*;
 /**
  * 动态数据源
  */
+@Deprecated
 public class DynamicDataSource {
 
     private static Logger logger = LoggerFactory.getLogger(DynamicDataSource.class);
