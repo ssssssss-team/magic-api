@@ -21,7 +21,7 @@ public class DialectUtils {
     public static Dialect getDialectFromUrl(String fromUrl) {
         Dialect dialect = dialectMap.get(fromUrl);
         if (dialect == null && !dialectMap.containsKey(fromUrl)) {
-            if (fromUrl.contains(":mysql:") || fromUrl.contains(":cobar:") || fromUrl.contains("jdbc:mariadb:")) {
+            if (fromUrl.contains(":mysql:") || fromUrl.contains(":cobar:") || fromUrl.contains("jdbc:mariadb:") || fromUrl.contains(":clickhouse:")) {
                 dialect = new MySQLDialect();
             } else if (fromUrl.contains(":oracle:")) {
                 dialect = new OracleDialect();
