@@ -1523,7 +1523,7 @@ require(['vs/editor/editor.main'], function() {
                 [/[;,.]/, 'delimiter'],
                 [/"([^"\\]|\\.)*$/, 'string.invalid'],
                 [/'([^'\\]|\\.)*$/, 'string.invalid'],
-                [/""/, 'string.multi', '@string_multi'],
+                [/"""/, 'string.multi', '@string_multi'],
                 [/"/, 'string', '@string_double'],
                 [/'/, 'string', '@string_single'],
             ],
