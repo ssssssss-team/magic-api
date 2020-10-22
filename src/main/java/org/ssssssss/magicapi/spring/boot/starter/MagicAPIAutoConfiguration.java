@@ -229,7 +229,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 * 注入数据库查询模块
 	 */
 	@Bean
-	public DatabaseQuery databaseQuery(DynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
+	public DatabaseQuery databaseQuery(MagicDynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
 		RowMapper<Map<String, Object>> rowMapper;
 		// 下划线转驼峰命名
 		if (properties.isMapUnderscoreToCamelCase()) {
@@ -373,9 +373,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 * 注入动态数据源
 	 */
 	@Bean
-	@ConditionalOnMissingBean(DynamicDataSource.class)
-	public DynamicDataSource dynamicDataSource(DataSource dataSource) {
-		DynamicDataSource dynamicDataSource = new DynamicDataSource();
+	@ConditionalOnMissingBean(MagicDynamicDataSource.class)
+	public MagicDynamicDataSource magicDynamicDataSource(DataSource dataSource) {
+		MagicDynamicDataSource dynamicDataSource = new MagicDynamicDataSource();
 		dynamicDataSource.put(dataSource);
 		return dynamicDataSource;
 	}
