@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.ssssssss.magicapi.context.HeaderContext;
 import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.functions.DatabaseQuery;
 import org.ssssssss.magicapi.functions.ResponseFunctions;
@@ -337,7 +338,7 @@ public class WebUIController {
 				context.putMapIntoContext((Map<String, Object>) request.get("path"));
 				context.set("cookie", request.get("cookie"));
 				context.set("session", request.get("session"));
-				context.set("header", request.get("header"));
+				context.set("header", new HeaderContext(servletRequest));
 				context.set("body", request.get("body"));
 			} catch (Exception e) {
 				return new JsonBean<>(0, "请求参数填写错误", resultProvider.buildResult(0, "请求参数填写错误"));

@@ -495,6 +495,7 @@ var MagicEditor = {
     ajax : function(options){
         $.ajax({
             url : options.url,
+            headers : options.headers,
             async : options.async,
             type : 'post',
             dataType : 'json',
@@ -569,6 +570,7 @@ var MagicEditor = {
             var _this = this;
             this.ajax({
                 url : 'continue',
+                headers : _this.requestHeaders,
                 data : {
                     id : this.debugSessionId,
                     breakpoints : _this.getBreakPoints().join(','),
@@ -660,6 +662,8 @@ var MagicEditor = {
         var request = _this.requestEditor.getValue();
         try{
             request = JSON.parse(request);
+            _this.requestHeaders = request.header;
+            delete request.header;
             if(typeof request != 'object'){
                 _this.setStatusBar('请求参数有误！');
                 _this.alert('运行测试','请求参数有误！');
@@ -697,6 +701,7 @@ var MagicEditor = {
             $('.button-continue,.button-step-over').addClass('disabled');
             _this.ajax({
                 url : 'test',
+                headers : _this.requestHeaders,
                 data : JSON.stringify(request),
                 contentType : 'application/json;charset=utf-8',
                 success : function(data,json,xhr){
