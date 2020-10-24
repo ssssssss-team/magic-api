@@ -356,6 +356,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		SecurityConfig securityConfig = properties.getSecurityConfig();
 		controller.setUsername(securityConfig.getUsername());
 		controller.setPassword(securityConfig.getPassword());
+
+		// 向页面传递配置信息时不传递用户名密码，增强安全性
+		securityConfig.setUsername(null);
+		securityConfig.setPassword(null);
+
 		// 构建UI请求处理器
 		String base = properties.getWeb();
 		Method[] methods = WebUIController.class.getDeclaredMethods();
