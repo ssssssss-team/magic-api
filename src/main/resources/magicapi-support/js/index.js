@@ -627,8 +627,10 @@ var MagicEditor = {
         this.$output.scrollTop(this.$output[0].scrollHeight);
     },
     createConsole : function(callback){
-        var source = new EventSource('console');
         var _this = this;
+        var source = new EventSourcePolyfill('console',{
+            headers : _this.requestHeaders
+        });
         source.onerror = function(){
             source.close();
         }
