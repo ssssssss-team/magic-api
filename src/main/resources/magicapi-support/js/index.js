@@ -61,6 +61,7 @@ var MagicEditor = {
                         content : '<label style="width:80px;text-align: right;display: inline-block">用户名：</label><input type="text" name="username" autocomplete="off"/><div style="height:2px;"></div><label style="width:80px;text-align: right;display: inline-block">密码：</label><input type="password" name="password" autocomplete="off"/>',
                         replace : false,
                         allowClose : false,
+                        autoClose : false,
                         buttons : [{
                             name : '登录',
                             click : function($dom){
@@ -943,7 +944,7 @@ var MagicEditor = {
                 _this.createGroup();
                 e.preventDefault();
             }else if(e.keyCode == 27 || e.keyCode == 13){ //Enter or Esc
-                $('.dialog-wrapper').remove();
+                $('.dialog-wrapper:not(.disabled-auto-close)').remove();
             }
         })
     },
@@ -1426,6 +1427,9 @@ var MagicEditor = {
         }
         $dialog.append($buttons);
         var $wrapper = $('<div/>').addClass('dialog-wrapper').append($dialog);
+        if(!options.autoClose){
+            $wrapper.addClass("disabled-auto-close")
+        }
         if(options.shade){
             $wrapper.addClass("shade")
         }
