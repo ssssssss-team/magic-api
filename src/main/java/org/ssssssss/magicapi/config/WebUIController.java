@@ -356,7 +356,7 @@ public class WebUIController {
 					});
 					context.onStart(() -> {
 						RequestContext.setRequestAttribute(servletRequest, response);
-						MDC.put(MagicLoggerContext.MAGIC_CONSOLE_SESSION, sessionId.toString());
+						MagicLoggerContext.SESSION.set(sessionId.toString());
 						logger.info("Create Console Session : {}", sessionId);
 					});
 				}

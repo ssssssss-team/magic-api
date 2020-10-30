@@ -11,9 +11,9 @@ public interface MagicLoggerContext {
 
 	String LOGGER_NAME = "MagicAPI";
 
-	String MAGIC_CONSOLE_SESSION = "MagicConsoleSession";
-
 	Map<String, SseEmitter> emitterMap = new ConcurrentHashMap<>();
+
+	ThreadLocal<String> SESSION = new InheritableThreadLocal<>();
 
 	/**
 	 * 创建sseEmitter推送
@@ -31,7 +31,7 @@ public interface MagicLoggerContext {
 	 */
 	static void remove(String sessionId){
 		SseEmitter sseEmitter = emitterMap.remove(sessionId);
-		MDC.remove(MAGIC_CONSOLE_SESSION);
+		SESSION.remove();
 		if(sseEmitter != null){
 			try {
 				sseEmitter.send(SseEmitter.event().data(sessionId).name("close"));
@@ -47,7 +47,7 @@ public interface MagicLoggerContext {
 	 */
 	default void println(LogInfo logInfo){
 		// 从MDC中获取SessionId
-		String sessionId = MDC.get(MAGIC_CONSOLE_SESSION);
+		String sessionId = SESSION.get();
 		if(sessionId != null){
 			SseEmitter sseEmitter = emitterMap.get(sessionId);
 			if(sseEmitter != null){
