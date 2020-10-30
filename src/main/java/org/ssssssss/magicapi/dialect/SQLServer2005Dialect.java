@@ -1,11 +1,11 @@
 package org.ssssssss.magicapi.dialect;
 
 import org.apache.commons.lang3.StringUtils;
-import org.ssssssss.magicapi.functions.DatabaseQuery;
+import org.ssssssss.magicapi.functions.BoundSql;
 
 public class SQLServer2005Dialect implements Dialect {
     @Override
-    public String getPageSql(String sql, DatabaseQuery.BoundSql boundSql, long offset, long limit) {
+    public String getPageSql(String sql, BoundSql boundSql, long offset, long limit) {
         StringBuilder pagingBuilder = new StringBuilder();
         String orderby = getOrderByPart(sql);
         String distinctStr = "";

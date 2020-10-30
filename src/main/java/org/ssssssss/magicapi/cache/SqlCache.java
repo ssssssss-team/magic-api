@@ -1,7 +1,7 @@
 package org.ssssssss.magicapi.cache;
 
+import org.ssssssss.magicapi.functions.BoundSql;
 import org.ssssssss.magicapi.utils.MD5Utils;
-import org.ssssssss.magicapi.functions.DatabaseQuery;
 
 import java.util.Arrays;
 
@@ -13,7 +13,7 @@ public interface SqlCache {
     /**
      * 计算key
      */
-    default String buildSqlCacheKey(DatabaseQuery.BoundSql boundSql) {
+    default String buildSqlCacheKey(BoundSql boundSql) {
         return MD5Utils.encrypt(boundSql.getSql() + ":" + Arrays.toString(boundSql.getParameters()));
     }
 

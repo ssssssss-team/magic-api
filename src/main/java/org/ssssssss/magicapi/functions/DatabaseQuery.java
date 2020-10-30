@@ -1,14 +1,13 @@
 package org.ssssssss.magicapi.functions;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.ssssssss.magicapi.cache.SqlCache;
-import org.ssssssss.magicapi.config.MagicDynamicDataSource;
 import org.ssssssss.magicapi.config.DynamicDataSource.DataSourceNode;
+import org.ssssssss.magicapi.config.MagicDynamicDataSource;
 import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.magicapi.dialect.Dialect;
 import org.ssssssss.magicapi.dialect.DialectUtils;
@@ -18,17 +17,13 @@ import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.annotation.UnableCall;
-import org.ssssssss.script.functions.StreamExtension;
-import org.ssssssss.script.parsing.GenericTokenParser;
-import org.ssssssss.script.parsing.Parser;
-import org.ssssssss.script.parsing.TokenStream;
-import org.ssssssss.script.parsing.Tokenizer;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -372,119 +367,10 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().queryForObject(boundSql.getSql(), boundSql.getParameters(), Object.class), boundSql));
 	}
 
-	private static Tokenizer tokenizer = new Tokenizer();
-
-	private static GenericTokenParser concatTokenParser = new GenericTokenParser("${", "}", false);
-
-	private static GenericTokenParser replaceTokenParser = new GenericTokenParser("#{", "}", true);
-
-	private static GenericTokenParser ifTokenParser = new GenericTokenParser("?{", "}", true);
-
-	private static GenericTokenParser ifParamTokenParser = new GenericTokenParser("?{", ",", true);
-
 	@UnableCall
 	@Override
 	public String getModuleName() {
 		return "db";
-	}
-
-	public static class BoundSql {
-		private String sql;
-		private List<Object> parameters = new ArrayList<>();
-		private String cacheKey;
-
-
-		BoundSql(String sql) {
-			MagicScriptContext context = MagicScriptContext.get();
-			// 处理?{}参数
-			this.sql = ifTokenParser.parse(sql.trim(), text -> {
-				AtomicBoolean ifTrue = new AtomicBoolean(false);
-				String val = ifParamTokenParser.parse("?{" + text, param -> {
-					Object result = Parser.parseExpression(new TokenStream(tokenizer.tokenize(param))).evaluate(context);
-					//如果是String则判断是否是空,否则和判断值是否为true
-					if (result != null) {
-						if (result instanceof String) {
-							ifTrue.set(!result.toString().isEmpty());
-						} else {
-							ifTrue.set(!Objects.equals(false, result));
-						}
-					}
-					return null;
-				});
-				if (ifTrue.get()) {
-					return val;
-				}
-				return "";
-			});
-			// 处理${}参数
-			this.sql = concatTokenParser.parse(this.sql, text -> String.valueOf(Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context)));
-			// 处理#{}参数
-			this.sql = replaceTokenParser.parse(this.sql, text -> {
-				Object value = Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context);
-				try {
-					//对集合自动展开
-					List<Object> objects = StreamExtension.arrayLikeToList(value);
-					StringBuilder sb = new StringBuilder();
-					for (int i = 0, size = objects.size(); i < size; i++) {
-						sb.append("?");
-						if (i + 1 < size) {
-							sb.append(",");
-						}
-						parameters.add(objects.get(i));
-					}
-					return sb.toString();
-				} catch (Exception e) {
-					parameters.add(value);
-					return "?";
-				}
-			});
-		}
-
-		/**
-		 * 添加SQL参数
-		 */
-		public void addParameter(Object value) {
-			parameters.add(value);
-		}
-
-		/**
-		 * 获取要执行的SQL
-		 */
-		public String getSql() {
-			return sql;
-		}
-
-		/**
-		 * 获取要执行的参数
-		 */
-		public Object[] getParameters() {
-			return parameters.toArray();
-		}
-
-		/**
-		 * 清空缓存key
-		 */
-		public BoundSql removeCacheKey() {
-			this.cacheKey = null;
-			return this;
-		}
-
-		/**
-		 * 获取缓存key
-		 */
-		public String getCacheKey(SqlCache sqlCache) {
-			if (cacheKey == null) {
-				cacheKey = sqlCache.buildSqlCacheKey(this);
-			}
-			return cacheKey;
-		}
-
-		/**
-		 * 获取缓存值
-		 */
-		public <T> Optional<T> getCacheValue(SqlCache sqlCache, String cacheName) {
-			return Optional.ofNullable(cacheName == null ? null : sqlCache.get(cacheName, getCacheKey(sqlCache)));
-		}
 	}
 
 }

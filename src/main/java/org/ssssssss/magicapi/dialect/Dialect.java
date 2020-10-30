@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.dialect;
 
-import org.ssssssss.magicapi.functions.DatabaseQuery;
+
+import org.ssssssss.magicapi.functions.BoundSql;
 
 public interface Dialect {
 
@@ -14,5 +15,5 @@ public interface Dialect {
     /**
      * 获取分页sql
      */
-    String getPageSql(String sql, DatabaseQuery.BoundSql boundSql, long offset, long limit);
+    String getPageSql(String sql, BoundSql boundSql, long offset, long limit);
 }
