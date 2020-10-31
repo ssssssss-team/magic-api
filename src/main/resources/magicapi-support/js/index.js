@@ -498,11 +498,11 @@ var MagicEditor = {
             url : options.url,
             headers : options.headers,
             async : options.async,
-            type : 'post',
+            type : options.type || 'post',
             dataType : 'json',
             contentType : options.contentType,
             data : options.data,
-            success : function(json,data,xhr){
+            success : options.successd || function(json,data,xhr){
                 if(json.code == 1){
                     options&&options.success(json.data,json,xhr);
                 }else{
@@ -570,18 +570,16 @@ var MagicEditor = {
             $('.button-continue,.button-step-over').addClass('disabled');
             var _this = this;
             this.ajax({
-                url : 'continue',
-                headers : _this.requestHeaders,
-                data : {
-                    id : this.debugSessionId,
-                    breakpoints : _this.getBreakPoints().join(','),
-                    step : step ? '1' : '0'
+                url : _this.requestURL,
+                type : _this.requestMethod,
+                headers : {
+                    "Magic-Request-Session" : this.debugSessionId,
+                    "Magic-Request-Continue" : true,
+                    "Magic-Request-Breakpoints" : this.getBreakPoints().join(','),
+                    "Magic-Request-Step-Into" : step ? '1' : '0'
                 },
-                success : function(data,json,xhr){
-                    _this.convertResult(json.code,json.message,json,xhr);
-                },
-                exception : function(code,message,json){
-                    return _this.convertResult(code,message,json);
+                successd : function(json,status,xhr){
+                    _this.convertResult(json,xhr);
                 },
                 error : function(){
                     $('.button-run').removeClass('disabled');
@@ -662,10 +660,17 @@ var MagicEditor = {
         if($('.button-run').hasClass('disabled')){
             return;
         }
+        var prefix = $("input[name=prefix]").val();
+        var path = $("input[name=path]").val();
+        var host = location.href.substring(0,location.href.indexOf(_this.config.web)).replace(/(\/+$)/g,'');
+        if(_this.config.prefix){
+            host = host + '/' + _this.config.prefix.replace(/(^\/+)|(\/+$)/g,'');
+        }
+        var url = host + ('/' +prefix + '/' + path).replace(/\/+/g,'/');
         var request = _this.requestEditor.getValue();
         try{
             request = JSON.parse(request);
-            _this.requestHeaders = request.header;
+            _this.requestHeaders = request.header || {};
             delete request.header;
             if(typeof request != 'object'){
                 _this.setStatusBar('请求参数有误！');
@@ -677,41 +682,47 @@ var MagicEditor = {
             _this.alert('运行测试','请求参数有误！');
             return;
         }
-        var options = _this.optionsEditor.getValue();
-        try{
-            options = JSON.parse(options);
-            if(typeof options != 'object'){
-                _this.setStatusBar('接口选项有误！');
-                _this.alert('运行测试','接口选项有误！');
-                return;
+        if(request.path){
+            for(var key in request.path){
+                url = url.replace('{' + key + '}',request.path[key]);
             }
-        }catch(e){
-            _this.setStatusBar('接口选项有误！');
-            _this.alert('运行测试','接口选项有误！');
-            return;
         }
-
         _this.setStatusBar('开始测试...');
         _this.createConsole(function(sessionId){
             _this.report('run');
             request.script = _this.scriptEditor.getValue();
             var breakpoints = _this.getBreakPoints();
-            request.breakpoints = breakpoints;
-            request.sessionId = sessionId;
-            request.options = options;
+            _this.requestHeaders['Magic-Request-Session'] = sessionId;
+            _this.requestHeaders['Magic-Request-Breakpoints'] = breakpoints.join(',');
             _this.resetDebugContent();
             $('.button-run').addClass('disabled');
             $('.button-continue,.button-step-over').addClass('disabled');
+            var isRequestBody = request&&request.body&&(Array.isArray(request.body) || Object.getOwnPropertyNames(request.body).length >0);
+            var requestData;
+            if(isRequestBody){
+                if(request.request){
+                    var params = [];
+                    for(var key in request.request){
+                        params.push(key + '=' + request.request[key]);
+                    }
+                    if(params.length > 0){
+                        url = url + "?" + params.join("&");
+                    }
+                }
+            }else{
+                requestData = request.request;
+            }
+            _this.requestURL = url;
+            _this.requestMethod = $('input[name=method]').val();
+            var contentType = isRequestBody ? 'application/json;charset=utf-8' : undefined;
             _this.ajax({
-                url : 'test',
+                url : _this.requestURL,
+                type : _this.requestMethod,
                 headers : _this.requestHeaders,
-                data : JSON.stringify(request),
-                contentType : 'application/json;charset=utf-8',
-                success : function(data,json,xhr){
-                    _this.convertResult(json.code,json.message,json,xhr);
-                },
-                exception : function(code,message,json){
-                    return _this.convertResult(code,message,json);
+                data : isRequestBody ? JSON.stringify(request.body) : requestData,
+                contentType : contentType,
+                successd : function(json,status,xhr){
+                    _this.convertResult(json,xhr);
                 },
                 error : function(){
                     $('.button-run').removeClass('disabled');
@@ -781,84 +792,90 @@ var MagicEditor = {
             }
         })
     },
-    convertResult : function(code,message,json,xhr){
-        this.debugSessionId = null;
-        this.resetDebugContent();
-        this.debugDecorations&&this.scriptEditor&&this.scriptEditor.deltaDecorations(this.debugDecorations,[]);
-        this.debugDecorations = null;
-        var _this = this;
-        var ret = undefined;
-        if(code === -1000){
-            MagicEditor.setStatusBar('脚本执行出错..');
-            MagicEditor.report('script_error');
+    convertResult : function(json,xhr){
+        var outputJson;
+        if(xhr && 'true' == xhr.getResponseHeader('Response-With-Magic-API')){
+            var code = json.code;
+            var message = json.message;
+            this.debugSessionId = null;
+            this.resetDebugContent();
+            this.debugDecorations&&this.scriptEditor&&this.scriptEditor.deltaDecorations(this.debugDecorations,[]);
+            this.debugDecorations = null;
+            var _this = this;
+            var ret = undefined;
+            if(code === -1000){
+                MagicEditor.setStatusBar('脚本执行出错..');
+                MagicEditor.report('script_error');
+                $(".button-run").removeClass('disabled');
+                $('.button-continue,.button-step-over').addClass('disabled');
+                this.navigateTo(2);
+                if (json.body) {
+                    var line = json.body;
+                    var range = new monaco.Range(line[0], line[2], line[1], line[3] + 1);
+                    var decorations = this.scriptEditor&&this.scriptEditor.deltaDecorations([],[{
+                        range: range,
+                        options : {
+                            hoverMessage : {
+                                value : message
+                            },
+                            inlineClassName : 'squiggly-error',
+                        }
+                    }])
+                    this.scriptEditor.revealRangeInCenter(range);
+                    this.scriptEditor.focus();
+                    setTimeout(function(){
+                        _this.scriptEditor&&_this.scriptEditor.deltaDecorations(decorations,[])
+                    },10000)
+                }
+                ret = false;
+            }else if(code === 1000){ // debug断点
+                $(".button-run").addClass('disabled');
+                $('.button-continue,.button-step-over').removeClass('disabled');
+                this.navigateTo(3);
+                this.debugIn(message, json.body);
+                return false;
+            }
+            MagicEditor.setStatusBar('脚本执行完毕');
             $(".button-run").removeClass('disabled');
             $('.button-continue,.button-step-over').addClass('disabled');
-            this.navigateTo(2);
-            if (json.body) {
-                var line = json.body;
-                var range = new monaco.Range(line[0], line[2], line[1], line[3] + 1);
-                var decorations = this.scriptEditor&&this.scriptEditor.deltaDecorations([],[{
-                    range: range,
-                    options : {
-                        hoverMessage : {
-                            value : message
-                        },
-                        inlineClassName : 'squiggly-error',
-                    }
-                }])
-                this.scriptEditor.revealRangeInCenter(range);
-                this.scriptEditor.focus();
-                setTimeout(function(){
-                    _this.scriptEditor&&_this.scriptEditor.deltaDecorations(decorations,[])
-                },10000)
+            this.navigateTo(2)
+            var contentType = xhr&&xhr.getResponseHeader('ma-content-type');
+            if(contentType == 'application/octet-stream'){  //文件下载
+                var disposition = xhr.getResponseHeader('ma-content-disposition');
+                var filename = 'output';
+                if(disposition){
+                    filename = decodeURIComponent(disposition.substring(disposition.indexOf('filename=') + 9));
+                }
+                outputJson = this.formatJson({
+                    filename : filename
+                });
+                var a = document.createElement("a");
+                a.download = filename;
+                var bstr = atob(json.data);
+                var n = bstr.length;
+                var u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                a.href = window.URL.createObjectURL(new Blob([u8arr]));
+                a.click();
+                MagicEditor.report('output_blob');
+            }else if(contentType && contentType.indexOf('image') == 0){    //image开头
+                outputJson = this.formatJson(json.data);
+                this.createDialog({
+                    title : '图片结果',
+                    content : '<p align="center"><img  src="data:'+contentType+';base64,'+json.data+'"></p>',
+                    replace : false,
+                    buttons : [{name : 'OK'}]
+                })
+                MagicEditor.report('output_image');
+            }else{
+                outputJson = this.formatJson(json.data);
             }
-            ret = false;
-        }else if(code === 1000){ // debug断点
-            $(".button-run").addClass('disabled');
-            $('.button-continue,.button-step-over').removeClass('disabled');
-            this.navigateTo(3);
-            this.debugIn(message, json.body);
-            return false;
-        }
-        MagicEditor.setStatusBar('脚本执行完毕');
-        $(".button-run").removeClass('disabled');
-        $('.button-continue,.button-step-over').addClass('disabled');
-        this.navigateTo(2)
-        var outputJson;
-        var contentType = xhr&&xhr.getResponseHeader('ma-content-type');
-        if(contentType == 'application/octet-stream'){  //文件下载
-            var disposition = xhr.getResponseHeader('ma-content-disposition');
-            var filename = 'output';
-            if(disposition){
-                filename = decodeURIComponent(disposition.substring(disposition.indexOf('filename=') + 9));
-            }
-            outputJson = this.formatJson({
-                filename : filename
-            });
-            var a = document.createElement("a");
-            a.download = filename;
-            var bstr = atob(json.data);
-            var n = bstr.length;
-            var u8arr = new Uint8Array(n);
-            while (n--) {
-                u8arr[n] = bstr.charCodeAt(n);
-            }
-            a.href = window.URL.createObjectURL(new Blob([u8arr]));
-            a.click();
-            MagicEditor.report('output_blob');
-        }else if(contentType && contentType.indexOf('image') == 0){    //image开头
-            outputJson = this.formatJson(json.data);
-            this.createDialog({
-                title : '图片结果',
-                content : '<p align="center"><img  src="data:'+contentType+';base64,'+json.data+'"></p>',
-                replace : false,
-                buttons : [{name : 'OK'}]
-            })
-            MagicEditor.report('output_image');
         }else{
-            outputJson = this.formatJson(json.data);
+            this.navigateTo(2);
+            outputJson = this.formatJson(json);
         }
-
         this.outputJson = outputJson;
         this.resultEditor.setValue(outputJson);
         return ret;
