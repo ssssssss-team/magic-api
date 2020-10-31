@@ -918,7 +918,7 @@ var Parser = {
         } else if (stream.match(TokenType.LongLiteral, false)) {
             return new AST.TypeLiteral('long', stream.expect(TokenType.LongLiteral).getSpan());
         } else if (stream.match(TokenType.DecimalLiteral, false)) {
-            return new AST.TypeLiteral('BigDecimal', stream.expect(TokenType.LongLiteral).getSpan());
+            return new AST.TypeLiteral('BigDecimal', stream.expect(TokenType.DecimalLiteral).getSpan());
         } else if (stream.match(TokenType.NullLiteral, false)) {
             return new AST.TypeLiteral('null', stream.expect(TokenType.NullLiteral).getSpan());
         } else {
