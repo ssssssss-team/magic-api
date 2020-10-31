@@ -39,8 +39,8 @@ import org.ssssssss.magicapi.provider.impl.DefaultMagicAPIService;
 import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
 import org.ssssssss.magicapi.provider.impl.DefaultResultProvider;
 import org.ssssssss.magicapi.utils.ClassScanner;
-import org.ssssssss.script.MagicPackageLoader;
 import org.ssssssss.script.MagicModuleLoader;
+import org.ssssssss.script.MagicPackageLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.functions.ExtensionMethod;
@@ -77,6 +77,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	public MagicAPIAutoConfiguration(MagicAPIProperties properties) {
 		this.properties = properties;
+		setupSpringSecurity();
 	}
 
 	private String redirectIndex(HttpServletRequest request) {
@@ -213,16 +214,41 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		requestHandler.setHttpMessageConverters(httpMessageConverters);
 		requestHandler.setResultProvider(resultProvider);
 		requestHandler.setThrowException(properties.isThrowException());
+
+		WebUIController webUIController = createWebUIController(resultProvider, apiServiceProvider, mappingHandlerMapping);
+
+		requestHandler.setWebUIController(webUIController);
+		requestHandler.setDebugTimeout(properties.getDebugConfig().getTimeout());
+
 		mappingHandlerMapping.setHandler(requestHandler);
 		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
 		mappingHandlerMapping.setMagicApiService(apiServiceProvider);
 		// 设置拦截器
-		setupRequestInterceptor(createWebUIController(resultProvider, apiServiceProvider, mappingHandlerMapping), requestHandler);
+		setupRequestInterceptor(webUIController, requestHandler);
 		// 注册所有映射
 		mappingHandlerMapping.registerAllMapping();
 		// 自动刷新
 		mappingHandlerMapping.enableRefresh(properties.getRefreshInterval());
 		return requestHandler;
+	}
+
+	private void setupSpringSecurity(){
+		Class<?> clazz = null;
+		try {
+			clazz = Class.forName("org.springframework.security.core.context.SecurityContextHolder");
+		} catch (ClassNotFoundException ignored) {
+
+		}
+		if(clazz != null){
+			try {
+				Method method = clazz.getDeclaredMethod("setStrategyName", String.class);
+				method.setAccessible(true);
+				method.invoke(clazz,"MODE_INHERITABLETHREADLOCAL");
+				logger.info("自动适配 Spring Security 成功");
+			} catch (Exception ignored) {
+				logger.info("自动适配 Spring Security 失败");
+			}
+		}
 	}
 
 	/**
@@ -349,8 +375,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			return null;
 		}
 		WebUIController controller = new WebUIController();
-		controller.setResultProvider(resultProvider);
-		controller.setDebugTimeout(properties.getDebugConfig().getTimeout());
 		controller.setMagicApiService(apiServiceProvider);
 		controller.setMappingHandlerMapping(mappingHandlerMapping);
 		SecurityConfig securityConfig = properties.getSecurityConfig();
