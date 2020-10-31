@@ -9,7 +9,7 @@ var MagicEditor = {
         this.apiId = null;
         this.apiList = [];
         this.debugSessionId = null;
-        this.defaultRequestValue = '{\r\n\t"request" : {\r\n\t\t"message" : "Hello MagicAPI!"\r\n\t},\r\n\t"path" : {\r\n\t\t"id" : "123456"\r\n\t},\r\n\t"body" : {\r\n\t\t"id" : "123456"\r\n\t},\r\n\t"header" : {\r\n\t\t"token" : "tokenValue"\r\n\t},\r\n\t"cookie" : {\r\n\t\t"cookieName" : "cookieValue"\r\n\t},\r\n\t"session" : {\r\n\t\t"userId" : "123"\r\n\t}\r\n}';
+        this.defaultRequestValue = '{\r\n\t"request" : {\r\n\t\t"message" : "Hello MagicAPI!"\r\n\t},\r\n\t"path" : {\r\n\t\t"id" : "123456"\r\n\t},\r\n\t"header" : {\r\n\t\t"token" : "tokenValue"\r\n\t}';
         this.initMTA();
         this.initShortKey();
         this.initSkin();
