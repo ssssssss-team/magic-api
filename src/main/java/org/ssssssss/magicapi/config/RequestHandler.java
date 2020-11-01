@@ -60,12 +60,18 @@ public class RequestHandler {
 	 */
 	private ResultProvider resultProvider;
 
-	private final String HEADER_REQUEST_SESSION = "Magic-Request-Session";
-	private final String HEADER_REQUEST_BREAKPOINTS = "Magic-Request-Breakpoints";
-	private final String HEADER_REQUEST_CONTINUE = "Magic-Request-Continue";
-	private final String HEADER_REQUEST_STEP_INTO = "Magic-Request-Step-Into";
-	private final String HEADER_RESPONSE_WITH_MAGIC_API = "Response-With-Magic-API";
 	private WebUIController webUIController;
+
+	private final String HEADER_REQUEST_SESSION = "Magic-Request-Session";
+
+	private final String HEADER_REQUEST_BREAKPOINTS = "Magic-Request-Breakpoints";
+
+	private final String HEADER_REQUEST_CONTINUE = "Magic-Request-Continue";
+
+	private final String HEADER_REQUEST_STEP_INTO = "Magic-Request-Step-Into";
+
+	private final String HEADER_RESPONSE_WITH_MAGIC_API = "Response-With-Magic-API";
+
 	/**
 	 * debug 超时时间
 	 */

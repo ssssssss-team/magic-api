@@ -573,7 +573,7 @@ var Parser = {
                 for(var m =0,l = Parser.importClass.length;m<l;m++){
                     var className = Parser.importClass[m];
                     for(var i=0,len = Parser.importPackages.length;i<len;i++){
-                        if(className.indexOf(Parser.importPackages[i]) == 0){
+                        if(className.indexOf(Parser.importPackages[i]) == 0 && className.indexOf(".",Parser.importPackages[i].length) == -1){
                             Parser.autoImportClass[className.substring(className.lastIndexOf('.') + 1)] = className;
                         }
                     }
@@ -1320,6 +1320,17 @@ require(['vs/editor/editor.main'], function() {
             '}'
         ].join('\n')
     }];
+    var findEnums = function(className){
+        var target = Parser.scriptClass[className];
+        var enums = [];
+        if(target){
+            enums = target.enums || [];
+            if(target.superClass){
+                enums = enums.concat(findEnums(target.superClass));
+            }
+        }
+        return enums;
+    }
     var findAttributes = function(className){
         var target = Parser.scriptClass[className];
         var attributes = [];
@@ -1479,6 +1490,19 @@ require(['vs/editor/editor.main'], function() {
                 try{
                     var className = Parser.parse(new TokenStream(Parser.tokenize(input)));
                     if (className) {
+                        var enums = findEnums(className);
+                        if(enums){
+                            for (var j = 0; j < enums.length; j++) {
+                                var value = enums[j];
+                                suggestions.push({
+                                    label: value,
+                                    kind: monaco.languages.CompletionItemKind.Enum,
+                                    detail: value + ":" + value,
+                                    insertText: value,
+                                    sortText: ' ~~~' + value
+                                })
+                            }
+                        }
                         var attributes = findAttributes(className);
                         if (attributes) {
                             for (var j = 0; j < attributes.length; j++) {
@@ -1491,7 +1515,9 @@ require(['vs/editor/editor.main'], function() {
                                     sortText: ' ~~' + attribute.name
                                 })
                             }
-                            var methods = findMethods(className);
+                        }
+                        var methods = findMethods(className);
+                        if(methods){
                             var mmap = {};
                             for (var j = 0; j < methods.length; j++) {
                                 var method = methods[j];
@@ -1511,6 +1537,7 @@ require(['vs/editor/editor.main'], function() {
                         }
                     }
                 }catch (e) {
+                    console.log(e);
                 }
             } else {
                 suggestions = defaultSuggestions;
