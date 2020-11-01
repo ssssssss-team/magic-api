@@ -1349,7 +1349,7 @@ var MagicEditor = {
                 enabled : false
             },
             language: 'magicscript',
-            folding : false,
+            folding : true,
             lineDecorationsWidth : 35,
             theme : theme,
         })
@@ -1359,7 +1359,7 @@ var MagicEditor = {
                 enabled : false
             },
             language: 'json',
-            folding : false,
+            folding : true,
             fixedOverflowWidgets :true,
             theme : theme
         })
@@ -1369,7 +1369,7 @@ var MagicEditor = {
                 enabled : false
             },
             language: 'json',
-            folding : false,
+            folding : true,
             fixedOverflowWidgets :true,
             theme : theme
         })
@@ -1379,7 +1379,7 @@ var MagicEditor = {
                 enabled : false
             },
             language: 'json',
-            folding : false,
+            folding : true,
             readOnly : true,
             fixedOverflowWidgets : true,
             theme : theme

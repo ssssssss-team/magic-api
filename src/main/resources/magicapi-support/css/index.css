@@ -54,6 +54,9 @@ ul li {
 ::-webkit-scrollbar-corner {
     background: rgba(221, 221, 221, .3);
 }
+.monaco-editor .margin-view-overlays .codicon-chevron-down, .monaco-editor .margin-view-overlays .codicon-chevron-right{
+    margin-left: 12px !important;
+}
 
 .top-toolbar-container,
 .footer-container {
