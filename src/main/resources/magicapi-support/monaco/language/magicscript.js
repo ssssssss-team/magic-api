@@ -600,8 +600,9 @@ var Parser = {
                 if (token.type == TokenType.Identifier && token.getText() == 'var') {
                     var varName = stream.consume().getText();
                     if (stream.match(TokenType.Assignment, true)) {
+                        var isAsync = stream.match("async", true);
                         var value = this.parseStatement(stream);
-                        vars[varName] = value.getJavaType(vars);
+                        vars[varName] = isAsync ? "java.util.concurrent.Future" : value.getJavaType(vars);
                         if (!stream.hasMore()) {
                             expression = value;
                         }
@@ -666,7 +667,9 @@ var Parser = {
             result = this.parseForStatement(tokens);
         } else if (tokens.match("continue", false)) {
             result = new AST.Continue(tokens.consume().getSpan());
-        } else if (tokens.match("break", false)) {
+        } else if (tokens.match("async", false)) {
+            result = this.parseAsync(tokens);
+        }  else if (tokens.match("break", false)) {
             result = new AST.Break(tokens.consume().getSpan());
         } else {
             result = this.parseExpression(tokens, expectRightCurly);
@@ -676,6 +679,13 @@ var Parser = {
             ;
         }
         return result;
+    },
+    parseAsync : function(stream){
+        var opening = stream.expect("async").getSpan();
+        var expression = this.parseExpression(stream);
+        if (expression instanceof AST.MethodCall || expression instanceof AST.FunctionCall || expression instanceof AST.LambdaFunction) {
+            return new AST.AsyncCall();
+        }
     },
     parseReturn : function(stream){
         stream.expect("return");
@@ -777,6 +787,9 @@ var Parser = {
         return this.parseTernaryOperator(stream, expectRightCurly);
     },
     parseTernaryOperator: function (stream, expectRightCurly) {
+        if (stream.match("async", false)) {
+            return this.parseAsync(stream);
+        }
         var condition = this.parseBinaryOperator(stream, 0, expectRightCurly);
         if (stream.match(TokenType.Questionmark, true)) {
             var trueExpression = this.parseTernaryOperator(stream, expectRightCurly);
@@ -997,6 +1010,11 @@ var Parser = {
     }
 }
 var AST = {
+    AsyncCall : function(){
+        this.getJavaType = function () {
+            return 'java.util.concurrent.Future';
+        }
+    },
     TypeLiteral: function (type) {
         this.type = type;
         this.getJavaType = function () {
