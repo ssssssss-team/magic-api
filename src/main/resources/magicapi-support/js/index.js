@@ -697,7 +697,8 @@ var MagicEditor = {
             _this.resetDebugContent();
             $('.button-run').addClass('disabled');
             $('.button-continue,.button-step-over').addClass('disabled');
-            var isRequestBody = request&&request.body&&(Array.isArray(request.body) || Object.getOwnPropertyNames(request.body).length >0);
+            _this.requestMethod = $('input[name=method]').val();
+            var isRequestBody = _this.requestMethod != 'GET' && request&&request.body&&(Array.isArray(request.body) || Object.getOwnPropertyNames(request.body).length >0);
             var requestData;
             if(isRequestBody){
                 if(request.request){
@@ -713,7 +714,6 @@ var MagicEditor = {
                 requestData = request.request;
             }
             _this.requestURL = url;
-            _this.requestMethod = $('input[name=method]').val();
             var contentType = isRequestBody ? 'application/json;charset=utf-8' : undefined;
             _this.ajax({
                 url : _this.requestURL,
