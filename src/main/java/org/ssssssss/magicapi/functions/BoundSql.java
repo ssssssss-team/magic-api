@@ -7,10 +7,10 @@ import org.ssssssss.script.parsing.GenericTokenParser;
 import org.ssssssss.script.parsing.Parser;
 import org.ssssssss.script.parsing.TokenStream;
 import org.ssssssss.script.parsing.Tokenizer;
+import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -39,15 +39,7 @@ public class BoundSql {
 		this.sql = ifTokenParser.parse(sql.trim(), text -> {
 			AtomicBoolean ifTrue = new AtomicBoolean(false);
 			String val = ifParamTokenParser.parse("?{" + text, param -> {
-				Object result = Parser.parseExpression(new TokenStream(tokenizer.tokenize(param))).evaluate(context);
-				//如果是String则判断是否是空,否则和判断值是否为true
-				if (result != null) {
-					if (result instanceof String) {
-						ifTrue.set(!result.toString().isEmpty());
-					} else {
-						ifTrue.set(!Objects.equals(false, result));
-					}
-				}
+				ifTrue.set(BooleanLiteral.isTrue(Parser.parseExpression(new TokenStream(tokenizer.tokenize(param))).evaluate(context)));
 				return null;
 			});
 			if (ifTrue.get()) {
