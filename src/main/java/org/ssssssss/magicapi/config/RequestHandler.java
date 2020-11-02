@@ -149,6 +149,7 @@ public class RequestHandler {
 	private Object invokeContinueRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String sessionId = getRequestedSessionId(request);
 		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(sessionId);
+		response.addHeader(HEADER_RESPONSE_WITH_MAGIC_API, "true");
 		if (context == null) {
 			return new JsonBean<>(0, "debug session not found!", resultProvider.buildResult(0, "debug session not found!"));
 		}
@@ -174,12 +175,8 @@ public class RequestHandler {
 			// 初始化debug操作
 			initializeDebug(context, request, response);
 			Object result = executeScript(info.getScript(), context);
+			response.addHeader(HEADER_RESPONSE_WITH_MAGIC_API, "true");
 			if (context.isRunning()) {
-				return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result), result);
-			} else if (context.isException()) {    //判断是否出现异常
-				return resolveThrowable((Throwable) context.getReturnValue(), response);
-			}
-			if (context.isRunning()) {    //判断是否执行完毕
 				return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result), result);
 			} else if (context.isException()) {    //判断是否出现异常
 				return resolveThrowable((Throwable) context.getReturnValue(), response);
@@ -231,7 +228,6 @@ public class RequestHandler {
 	 * 转换请求结果
 	 */
 	private Object convertResult(Object result, HttpServletResponse response) throws IOException {
-		response.addHeader(HEADER_RESPONSE_WITH_MAGIC_API, "true");
 		if (result instanceof ResponseEntity) {
 			ResponseEntity entity = (ResponseEntity) result;
 			for (Map.Entry<String, List<String>> entry : entity.getHeaders().entrySet()) {
@@ -272,7 +268,6 @@ public class RequestHandler {
 	 * 解决异常
 	 */
 	private JsonBean<Object> resolveThrowable(Throwable root, HttpServletResponse response) {
-		response.addHeader(HEADER_RESPONSE_WITH_MAGIC_API, "true");
 		MagicScriptException se = null;
 		Throwable parent = root;
 		do {
