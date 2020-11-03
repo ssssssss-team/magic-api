@@ -1386,7 +1386,10 @@ var MagicEditor = {
         })
         var _this = this;
         this.scriptEditor.onMouseDown(function(e){
-            if (e.target.detail && e.target.detail.offsetX && e.target.detail.offsetX >= 0 && e.target.detail.offsetX <= 60) {
+            if($(e.target.element).hasClass("codicon")){
+                return;
+            }
+            if (e.target.detail && e.target.detail.offsetX && e.target.detail.offsetX >= 0 && e.target.detail.offsetX <= 90) {
                 var line = e.target.position.lineNumber;
                 if (_this.scriptEditor.getModel().getLineContent(line).trim() === '') {
                     return
