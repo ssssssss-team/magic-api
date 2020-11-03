@@ -204,11 +204,18 @@ public class RequestHandler {
 			// 对返回结果包装处理
 			return response(result);
 		} catch (Throwable root) {
+			Throwable parent = root;
+			do {
+				if (parent instanceof MagicScriptAssertException) {
+					MagicScriptAssertException sae = (MagicScriptAssertException) parent;
+					return resultProvider.buildResult(sae.getCode(), sae.getMessage());
+				}
+			} while ((parent = parent.getCause()) != null);
 			if (throwException) {
 				throw root;
 			}
 			logger.error("接口请求出错", root);
-			return response(root);
+			return resultProvider.buildResult(-1, "系统内部出现错误");
 		} finally {
 			RequestContext.remove();
 		}
