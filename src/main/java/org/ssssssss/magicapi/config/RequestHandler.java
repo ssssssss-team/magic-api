@@ -174,8 +174,8 @@ public class RequestHandler {
 		try {
 			// 初始化debug操作
 			initializeDebug(context, request, response);
-			Object result = executeScript(info.getScript(), context);
 			response.addHeader(HEADER_RESPONSE_WITH_MAGIC_API, "true");
+			Object result = executeScript(info.getScript(), context);
 			if (context.isRunning()) {
 				return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result), result);
 			} else if (context.isException()) {    //判断是否出现异常
