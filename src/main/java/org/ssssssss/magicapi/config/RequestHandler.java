@@ -214,7 +214,7 @@ public class RequestHandler {
 			if (throwException) {
 				throw root;
 			}
-			logger.error("接口请求出错", root);
+			logger.error("接口{}请求出错", request.getRequestURI(),root);
 			return resultProvider.buildResult(-1, "系统内部出现错误");
 		} finally {
 			RequestContext.remove();
