@@ -569,15 +569,15 @@ var MagicEditor = {
             MagicEditor.resetDebugContent();
             $('.button-continue,.button-step-over').addClass('disabled');
             var _this = this;
+            var headers = _this.requestHeaders || {};
+            headers['Magic-Request-Session'] = this.debugSessionId;
+            headers['Magic-Request-Continue'] = true;
+            headers['Magic-Request-Breakpoints'] = this.getBreakPoints().join(',');
+            headers['Magic-Request-Step-Into'] = step ? '1' : '0';
             this.ajax({
                 url : _this.requestURL,
                 type : _this.requestMethod,
-                headers : {
-                    "Magic-Request-Session" : this.debugSessionId,
-                    "Magic-Request-Continue" : true,
-                    "Magic-Request-Breakpoints" : this.getBreakPoints().join(','),
-                    "Magic-Request-Step-Into" : step ? '1' : '0'
-                },
+                headers : headers,
                 successd : function(json,status,xhr){
                     _this.convertResult(json,xhr);
                 },
