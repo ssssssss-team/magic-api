@@ -105,10 +105,14 @@ public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> im
 
 	@Override
 	public ApiInfo backupInfo(String apiId, Long timestamp) {
-		String selectOne = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_api_info_his where id = ? and api_update_time = ? limit 1";
-		ApiInfo info = template.queryForObject(selectOne, this, apiId, timestamp);
-		unwrap(info);
-		return info;
+		String selectOne = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_api_info_his where id = ? and api_update_time = ?";
+		List<ApiInfo> list = template.query(selectOne, this, apiId, timestamp);
+		if(list != null && !list.isEmpty()){
+			ApiInfo info = list.get(0);
+			unwrap(info);
+			return info;
+		}
+		return null;
 	}
 
 	@Override
