@@ -200,6 +200,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 										 @Autowired(required = false) List<ExtensionMethod> extensionMethods, //自定义的类型扩展
 										 @Autowired(required = false) List<HttpMessageConverter<?>> httpMessageConverters,
 										 ApiServiceProvider apiServiceProvider,
+										 MagicDynamicDataSource magicDynamicDataSource,
 										 // url 映射
 										 MappingHandlerMapping mappingHandlerMapping,
 										 // JSON结果转换
@@ -215,7 +216,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		requestHandler.setResultProvider(resultProvider);
 		requestHandler.setThrowException(properties.isThrowException());
 
-		WebUIController webUIController = createWebUIController(resultProvider, apiServiceProvider, mappingHandlerMapping);
+		WebUIController webUIController = createWebUIController(apiServiceProvider, mappingHandlerMapping);
+		webUIController.setMagicDynamicDataSource(magicDynamicDataSource);
 
 		requestHandler.setWebUIController(webUIController);
 		requestHandler.setDebugTimeout(properties.getDebugConfig().getTimeout());
@@ -232,18 +234,18 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return requestHandler;
 	}
 
-	private void setupSpringSecurity(){
+	private void setupSpringSecurity() {
 		Class<?> clazz = null;
 		try {
 			clazz = Class.forName("org.springframework.security.core.context.SecurityContextHolder");
 		} catch (ClassNotFoundException ignored) {
 
 		}
-		if(clazz != null){
+		if (clazz != null) {
 			try {
 				Method method = clazz.getDeclaredMethod("setStrategyName", String.class);
 				method.setAccessible(true);
-				method.invoke(clazz,"MODE_INHERITABLETHREADLOCAL");
+				method.invoke(clazz, "MODE_INHERITABLETHREADLOCAL");
 				logger.info("自动适配 Spring Security 成功");
 			} catch (Exception ignored) {
 				logger.info("自动适配 Spring Security 失败");
@@ -370,7 +372,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	/**
 	 * 创建UI对应的后台Controller
 	 */
-	private WebUIController createWebUIController(ResultProvider resultProvider, ApiServiceProvider apiServiceProvider, MappingHandlerMapping mappingHandlerMapping) {
+	private WebUIController createWebUIController(ApiServiceProvider apiServiceProvider, MappingHandlerMapping mappingHandlerMapping) {
 		if (properties.getWeb() == null) {    //	判断是否开启了UI界面
 			return null;
 		}
