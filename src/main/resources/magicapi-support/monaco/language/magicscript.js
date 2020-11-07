@@ -1360,15 +1360,13 @@ require(['vs/editor/editor.main'], function() {
                 method.insertText = method.name;
                 if (method.parameters.length > begin) {
                     var params = [];
-                    var params1 = [];
                     var params2 = [];
                     for (var j = begin; j < method.parameters.length; j++) {
                         params.push('${' + (j + 1 - begin) + ':' + method.parameters[j].name + '}');
-                        params1.push(method.parameters[j].name);
                         params2.push(Parser.getSimpleClass(method.parameters[j].type) + " " + method.parameters[j].name);
                     }
                     if (!method.comment) {
-                        method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '(' + params1.join(',') + ')';
+                        method.comment = Parser.getSimpleClass(method.returnType) + ':' + method.name + '(' + params2.join(',') + ')';
                     }
                     method.sortText = padding(sort,10) + method.name;
                     method.fullName = method.name + '(' + params2.join(', ') + ')';
