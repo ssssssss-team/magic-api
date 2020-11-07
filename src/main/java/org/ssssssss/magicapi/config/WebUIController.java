@@ -47,6 +47,11 @@ public class WebUIController {
 	private List<RequestInterceptor> requestInterceptors = new ArrayList<>();
 
 	/**
+	 * 动态数据源
+	 */
+	private MagicDynamicDataSource magicDynamicDataSource;
+
+	/**
 	 * 用户名
 	 */
 	private String username;
@@ -62,6 +67,10 @@ public class WebUIController {
 		// 给前端添加代码提示
 		MagicScriptEngine.addScriptClass(DatabaseQuery.class);
 		MagicScriptEngine.addScriptClass(MagicAPIService.class);
+	}
+
+	public void setMagicDynamicDataSource(MagicDynamicDataSource magicDynamicDataSource) {
+		this.magicDynamicDataSource = magicDynamicDataSource;
 	}
 
 	public void addRequestInterceptor(RequestInterceptor requestInterceptor) {
@@ -203,6 +212,14 @@ public class WebUIController {
 	public JsonBean<Map<String, Map<String, ScriptClass>>> classes() {
 		Map<String, ScriptClass> classMap = MagicScriptEngine.getScriptClassMap();
 		classMap.putAll(MagicModuleLoader.getModules());
+		ScriptClass db = classMap.get(DatabaseQuery.class.getName());
+		if (db != null) {
+			List<ScriptClass.ScriptAttribute> attributes =  new ArrayList<>();
+			// 给与前台动态数据源提示
+			magicDynamicDataSource.datasources().stream().filter(StringUtils::isNotBlank)
+					.forEach(item -> attributes.add(new ScriptClass.ScriptAttribute("db", item)));
+			db.setAttributes(attributes);
+		}
 		Map<String, Map<String, ScriptClass>> values = new HashMap<>();
 		values.put("classes", classMap);
 		values.put("extensions", MagicScriptEngine.getExtensionScriptClass());
