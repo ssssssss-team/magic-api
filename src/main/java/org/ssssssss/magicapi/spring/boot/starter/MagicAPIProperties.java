@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @ConfigurationProperties(prefix = "magic-api")
@@ -45,7 +46,7 @@ public class MagicAPIProperties {
 	 * 可自动导入的包（目前只支持以.*结尾的通配符），多个用","分隔
 	 * @since 0.4.0
 	 */
-	private String autoImportPackage = "java.lang.*,java.util.*";
+	private String autoImportPackage;
 
 	/**
 	 * 自动刷新间隔，单位为秒，默认不开启
@@ -63,6 +64,12 @@ public class MagicAPIProperties {
 	 * 驼峰命名转换
 	 */
 	private boolean mapUnderscoreToCamelCase = true;
+
+	/**
+	 * 线程核心数，需要>0，<=0时采用默认配置，即CPU核心数 * 2
+	 * @since 0.4.5
+	 */
+	private int threadPoolExecutorSize = 0;
 
 
 	@NestedConfigurationProperty
@@ -217,6 +224,17 @@ public class MagicAPIProperties {
 	}
 
 	public List<String> getAutoImportPackageList() {
+		if(autoImportPackage == null){
+			return Collections.emptyList();
+		}
 		return Arrays.asList(autoImportPackage.replaceAll("\\s","").split(","));
+	}
+
+	public int getThreadPoolExecutorSize() {
+		return threadPoolExecutorSize;
+	}
+
+	public void setThreadPoolExecutorSize(int threadPoolExecutorSize) {
+		this.threadPoolExecutorSize = threadPoolExecutorSize;
 	}
 }

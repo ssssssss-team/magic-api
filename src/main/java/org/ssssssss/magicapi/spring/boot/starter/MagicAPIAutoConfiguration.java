@@ -45,6 +45,7 @@ import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.functions.ExtensionMethod;
 import org.ssssssss.script.interpreter.AbstractReflection;
+import org.ssssssss.script.parsing.ast.AsyncCall;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
@@ -78,6 +79,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	public MagicAPIAutoConfiguration(MagicAPIProperties properties) {
 		this.properties = properties;
 		setupSpringSecurity();
+		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 	}
 
 	private String redirectIndex(HttpServletRequest request) {
