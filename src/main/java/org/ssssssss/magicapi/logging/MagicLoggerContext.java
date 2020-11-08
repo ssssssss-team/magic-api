@@ -1,7 +1,8 @@
 package org.ssssssss.magicapi.logging;
 
-import org.slf4j.MDC;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.MagicScriptDebugContext;
 
 import java.io.IOException;
 import java.util.Map;
@@ -46,8 +47,14 @@ public interface MagicLoggerContext {
 	 * @param logInfo 日志信息
 	 */
 	default void println(LogInfo logInfo){
-		// 从MDC中获取SessionId
-		String sessionId = SESSION.get();
+		// 获取SessionId
+		MagicScriptContext context = MagicScriptContext.get();
+		String sessionId;
+		if(context instanceof MagicScriptDebugContext){
+			sessionId = ((MagicScriptDebugContext) context).getId();
+		}else{
+			sessionId = SESSION.get();
+		}
 		if(sessionId != null){
 			SseEmitter sseEmitter = emitterMap.get(sessionId);
 			if(sseEmitter != null){
