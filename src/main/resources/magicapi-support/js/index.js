@@ -1233,9 +1233,25 @@ var MagicEditor = {
         localStorage&&localStorage.removeItem(key);
     },
     bindEditorShortKey : function(editor){
+        editor.addAction({
+            id: "editor.action.triggerSuggest.extension",
+            label: "触发代码提示",
+            precondition: "!suggestWidgetVisible && !markersNavigationVisible && !parameterHintsVisible && !findWidgetVisible",
+            run : function(){
+                editor.trigger(null, 'editor.action.triggerSuggest', {})
+            }
+        })
         // Alt + / 代码提示
         editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.US_SLASH,function(){
-            editor.trigger(null, 'editor.action.triggerSuggest', {})
+            var triggerParameterHints = editor.getAction('editor.action.triggerParameterHints');
+            var triggerSuggest = editor.getAction('editor.action.triggerSuggest.extension');
+            triggerParameterHints.run().then(function(){
+                setTimeout(function(){
+                    if(triggerSuggest.isSupported()){
+                        triggerSuggest.run();
+                    }
+                },0)
+            });
         },'!findWidgetVisible && !inreferenceSearchEditor && !editorHasSelection');
         // Ctrl + Shift + U 转大写
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_U,function(){

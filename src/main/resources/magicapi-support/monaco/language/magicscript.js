@@ -1381,6 +1381,7 @@ require(['vs/editor/editor.main'], function() {
                     }
                     method.signature = method.name;
                 }
+                method.extension = begin == 1;
                 methods.push(method);
             }
         }
@@ -1401,6 +1402,88 @@ require(['vs/editor/editor.main'], function() {
         }
         return methods;
     }
+    var triggerIndex = 0;
+    monaco.languages.registerSignatureHelpProvider('magicscript', {
+        signatureHelpRetriggerCharacters : ['(',','],
+        signatureHelpTriggerCharacters : ['(',','],
+        provideSignatureHelp : function(model,position,token,context){
+            if(context.activeSignatureHelp){
+                var helper = context.activeSignatureHelp;
+                helper.activeSignature += 1;
+                if(helper.activeSignature == helper.signatures.length){
+                    helper.activeSignature = 0;
+                }
+                return {
+                    dispose : function(){
+                    },
+                    value : helper
+                }
+            }
+            var value = model.getValueInRange({
+                startLineNumber: 1,
+                startColumn: 1,
+                endLineNumber: position.lineNumber,
+                endColumn: position.column
+            });
+            var line =  model.getValueInRange({
+                startLineNumber: position.lineNumber,
+                startColumn: 1,
+                endLineNumber: position.lineNumber,
+                endColumn: position.column
+            });
+            var endDot = value.charAt(value.length - 1) == '.';
+            var input = ''
+            if(endDot){
+                return;
+            }else if(value.indexOf('.') > 1){
+                input = value.substring(0,value.lastIndexOf('.'));
+            }
+            try {
+                var className = Parser.parse(new TokenStream(Parser.tokenize(input)));
+                var methods = findMethods(className);
+                if(methods){
+                   var name = value.substring(input.length + 1,value.indexOf('(',input.length + 1));
+                   var signatures = [];
+                   for(var i=0,len = methods.length;i<len;i++){
+                        var method = methods[i];
+                        if(method.name == name){
+                            var document = [];
+                            for(var j= (method.extension ? 1 : 0);j<method.parameters.length;j++){
+                                var param = method.parameters[j];
+                                document.push('- ' + param.name + '：' + (param.comment || param.type));
+                            }
+                            signatures.push({
+                                label : method.fullName,
+                                documentation : {
+                                    value : method.comment
+                                },
+                                parameters : [{
+                                    label : 'param1',
+                                    documentation : {
+                                        value : document.join('\r\n')
+                                    }
+                                }]
+                            });
+                        }
+                   }
+                   if(signatures.length > 0){
+                       return {
+                           dispose : function(){
+                           },
+                           value : {
+                               activeParameter : 0,
+                               activeSignature : 0,
+                               signatures : signatures
+                           }
+                       }
+                   }
+                }
+            }catch(e){
+                console.log(e);
+            }
+
+        }
+    });
     monaco.languages.registerCompletionItemProvider('magicscript',{
         provideCompletionItems: function (model, position) {
             var value = model.getValueInRange({
