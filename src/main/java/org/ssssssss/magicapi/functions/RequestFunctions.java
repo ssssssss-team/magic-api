@@ -4,6 +4,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartRequest;
 import org.springframework.web.util.WebUtils;
 import org.ssssssss.magicapi.context.RequestContext;
+import org.ssssssss.script.annotation.Comment;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -21,7 +22,8 @@ public class RequestFunctions {
 	 *
 	 * @param name 参数名
 	 */
-	public MultipartFile getFile(String name) {
+	@Comment("获取文件")
+	public MultipartFile getFile(@Comment("参数名") String name) {
 		MultipartRequest request = getMultipartHttpServletRequest();
 		return request == null ? null : request.getFile(name);
 	}
@@ -31,7 +33,8 @@ public class RequestFunctions {
 	 *
 	 * @param name 参数名
 	 */
-	public List<MultipartFile> getFiles(String name) {
+	@Comment("获取多个文件")
+	public List<MultipartFile> getFiles(@Comment("参数名") String name) {
 		MultipartRequest request = getMultipartHttpServletRequest();
 		return request == null ? null : request.getFiles(name);
 	}
@@ -41,7 +44,8 @@ public class RequestFunctions {
 	 *
 	 * @param name 参数名
 	 */
-	public List<String> getValues(String name) {
+	@Comment("根据请求参数名获取值")
+	public List<String> getValues(@Comment("参数名") String name) {
 		HttpServletRequest request = get();
 		if (request != null) {
 			String[] values = request.getParameterValues(name);
@@ -55,7 +59,8 @@ public class RequestFunctions {
 	 *
 	 * @param name 参数名
 	 */
-	public List<String> getHeaders(String name) {
+	@Comment("根据header名获取值")
+	public List<String> getHeaders(@Comment("header名") String name) {
 		HttpServletRequest request = get();
 		if (request != null) {
 			Enumeration<String> headers = request.getHeaders(name);

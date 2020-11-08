@@ -4,6 +4,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.annotation.UnableCall;
 
 /**
@@ -28,6 +29,7 @@ public class Transaction {
 	/**
 	 * 回滚事务
 	 */
+	@Comment("回滚事务")
 	public void rollback(){
 		this.dataSourceTransactionManager.rollback(this.transactionStatus);
 	}
@@ -35,6 +37,7 @@ public class Transaction {
 	/**
 	 * 提交事务
 	 */
+	@Comment("提交事务")
 	public void commit(){
 		this.dataSourceTransactionManager.commit(this.transactionStatus);
 	}

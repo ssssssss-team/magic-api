@@ -16,6 +16,7 @@ import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.annotation.UnableCall;
 
 import java.sql.Connection;
@@ -119,10 +120,12 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 
 	/**
 	 * 开启事务，在一个回调中进行操作
-	 * @param function	回调函数
+	 *
+	 * @param function 回调函数
 	 * @return
 	 */
-	public Object transaction(Function<?, ?> function) {
+	@Comment("开启事务，并在回调中处理")
+	public Object transaction(@Comment("回调函数，如：()=>{....}") Function<?, ?> function) {
 		Transaction transaction = transaction();    //创建事务
 		try {
 			Object val = function.apply(null);
@@ -136,15 +139,18 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 
 	/**
 	 * 开启事务，手动提交和回滚
+	 *
 	 * @return
 	 */
+	@Comment("开启事务，返回事务对象")
 	public Transaction transaction() {
 		return new Transaction(this.dataSourceNode.getDataSourceTransactionManager());
 	}
 
 	/**
 	 * 添加至缓存
-	 * @param value	缓存名
+	 *
+	 * @param value 缓存名
 	 */
 	@UnableCall
 	private <T> T putCacheValue(T value, BoundSql boundSql) {
@@ -156,11 +162,13 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 
 	/**
 	 * 使用缓存
-	 * @param cacheName	缓存名
-	 * @param ttl 过期时间
+	 *
+	 * @param cacheName 缓存名
+	 * @param ttl       过期时间
 	 * @return
 	 */
-	public DatabaseQuery cache(String cacheName, long ttl) {
+	@Comment("使用缓存")
+	public DatabaseQuery cache(@Comment("缓存名") String cacheName, @Comment("过期时间") long ttl) {
 		if (cacheName == null) {
 			return this;
 		}
@@ -172,10 +180,12 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 
 	/**
 	 * 使用缓存（采用默认缓存时间）
-	 * @param cacheName	缓冲名
+	 *
+	 * @param cacheName 缓冲名
 	 * @return
 	 */
-	public DatabaseQuery cache(String cacheName) {
+	@Comment("使用缓存，过期时间采用默认配置")
+	public DatabaseQuery cache(@Comment("缓存名") String cacheName) {
 		return cache(cacheName, 0);
 	}
 
@@ -197,7 +207,8 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	/**
 	 * 查询List
 	 */
-	public List<Map<String, Object>> select(String sql) {
+	@Comment("查询SQL，返回List类型结果")
+	public List<Map<String, Object>> select(@Comment("`SQL`语句") String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return (List<Map<String, Object>>) boundSql.getCacheValue(this.sqlCache, this.cacheName)
 				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.rowMapper, boundSql.getParameters()), boundSql));
@@ -206,7 +217,8 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	/**
 	 * 执行update
 	 */
-	public int update(String sql) {
+	@Comment("执行update操作，返回受影响行数")
+	public int update(@Comment("`SQL`语句") String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		int value = dataSourceNode.getJdbcTemplate().update(boundSql.getSql(), boundSql.getParameters());
 		if (this.cacheName != null) {
@@ -282,7 +294,8 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	/**
 	 * 插入并返回主键
 	 */
-	public long insert(String sql){
+	@Comment("执行insert操作，返回插入条数")
+	public long insert(@Comment("`SQL`语句") String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 		dataSourceNode.getJdbcTemplate().update(con -> {
@@ -294,7 +307,7 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 			this.sqlCache.delete(this.cacheName);
 		}
 		Number key = keyHolder.getKey();
-		if(key == null){
+		if (key == null) {
 			return -1;
 		}
 		return key.longValue();
@@ -303,7 +316,8 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	/**
 	 * 分页查询
 	 */
-	public Object page(String sql) {
+	@Comment("执行分页查询，分页条件自动获取")
+	public Object page(@Comment("`SQL`语句") String sql) {
 		Page page = pageProvider.getPage(MagicScriptContext.get());
 		return page(sql, page.getLimit(), page.getOffset());
 	}
@@ -311,7 +325,8 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	/**
 	 * 分页查询（手动传入limit和offset参数）
 	 */
-	public Object page(String sql, long limit, long offset) {
+	@Comment("执行分页查询，分页条件手动传入")
+	public Object page(@Comment("`SQL`语句") String sql, @Comment("限制条数") long limit, @Comment("跳过条数") long offset) {
 		BoundSql boundSql = new BoundSql(sql);
 		Connection connection = null;
 		Dialect dialect;
@@ -340,7 +355,8 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	/**
 	 * 查询int值
 	 */
-	public Integer selectInt(String sql) {
+	@Comment("查询int值，适合单行单列int的结果")
+	public Integer selectInt(@Comment("`SQL`语句") String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return (Integer) boundSql.getCacheValue(this.sqlCache, this.cacheName)
 				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().queryForObject(boundSql.getSql(), boundSql.getParameters(), Integer.class), boundSql));
@@ -349,7 +365,8 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	/**
 	 * 查询Map
 	 */
-	public Map<String, Object> selectOne(String sql) {
+	@Comment("查询单条结果，查不到返回null")
+	public Map<String, Object> selectOne(@Comment("`SQL`语句") String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return (Map<String, Object>) boundSql.getCacheValue(this.sqlCache, this.cacheName)
 				.orElseGet(() -> {
@@ -361,7 +378,8 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	/**
 	 * 查询单行单列的值
 	 */
-	public Object selectValue(String sql) {
+	@Comment("查询单行单列的值")
+	public Object selectValue(@Comment("`SQL`语句") String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return boundSql.getCacheValue(this.sqlCache, this.cacheName)
 				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().queryForObject(boundSql.getSql(), boundSql.getParameters(), Object.class), boundSql));

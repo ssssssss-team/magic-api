@@ -8,6 +8,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.ssssssss.magicapi.provider.ResultProvider;
+import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 
 import javax.servlet.http.Cookie;
@@ -34,7 +35,8 @@ public class ResponseFunctions {
 	 * @param total  条数
 	 * @param values 数据内容
 	 */
-	public Object page(long total, List<Object> values) {
+	@Comment("返回自定义分页结果")
+	public Object page(@Comment("总条数") long total, @Comment("当前结果集") List<Object> values) {
 		return resultProvider.buildPageResult(total, values);
 	}
 
@@ -43,14 +45,16 @@ public class ResponseFunctions {
 	 *
 	 * @param value json内容
 	 */
-	public ResponseEntity json(Object value) {
+	@Comment("自定义返回json内容")
+	public ResponseEntity json(@Comment("返回对象") Object value) {
 		return ResponseEntity.ok(value);
 	}
 
 	/**
 	 * 添加Header
 	 */
-	public void addHeader(String key, String value) {
+	@Comment("添加response header")
+	public void addHeader(@Comment("header名") String key, @Comment("header值") String value) {
 		if (StringUtils.isNotBlank(key)) {
 			HttpServletResponse response = getResponse();
 			if (response != null) {
@@ -62,7 +66,8 @@ public class ResponseFunctions {
 	/**
 	 * 设置header
 	 */
-	public void setHeader(String key, String value) {
+	@Comment("设置response header")
+	public void setHeader(@Comment("header名") String key, @Comment("header值") String value) {
 		if (StringUtils.isNotBlank(key)) {
 			HttpServletResponse response = getResponse();
 			if (response != null) {
@@ -74,7 +79,8 @@ public class ResponseFunctions {
 	/**
 	 * 添加cookie
 	 */
-	public void addCookie(String name, String value) {
+	@Comment("添加Cookie")
+	public void addCookie(@Comment("cookie名") String name, @Comment("cookie值") String value) {
 		if (StringUtils.isNotBlank(name)) {
 			addCookie(new Cookie(name, value));
 		}
@@ -83,7 +89,8 @@ public class ResponseFunctions {
 	/**
 	 * 批量添加cookie
 	 */
-	public void addCookies(Map<String, String> cookies, Map<String, Object> options) {
+	@Comment("批量添加Cookie")
+	public void addCookies(@Comment("Cookies") Map<String, String> cookies, @Comment("Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
 		if (cookies != null) {
 			for (Map.Entry<String, String> entry : cookies.entrySet()) {
 				addCookie(entry.getKey(), entry.getValue(), options);
@@ -94,14 +101,17 @@ public class ResponseFunctions {
 	/**
 	 * 批量添加cookie
 	 */
-	public void addCookies(Map<String, String> cookies) {
+	@Comment("批量添加Cookie")
+	public void addCookies(@Comment("Cookies") Map<String, String> cookies) {
 		addCookies(cookies, null);
 	}
 
 	/**
 	 * 添加cookie
 	 */
-	public void addCookie(String name, String value, Map<String, Object> options) {
+	@Comment("添加Cookie")
+	public void addCookie(@Comment("Cookie名") String name, @Comment("Cookie值") String value,
+						  @Comment("Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
 		if (StringUtils.isNotBlank(name)) {
 			Cookie cookie = new Cookie(name, value);
 			if (options != null) {
@@ -127,14 +137,16 @@ public class ResponseFunctions {
 		}
 	}
 
-	public NullValue end(){
+	@Comment("终止输出，执行此方法后不会对结果进行任何输出及处理")
+	public NullValue end() {
 		return NullValue.INSTANCE;
 	}
 
 	/**
 	 * 添加cookie
 	 */
-	public void addCookie(Cookie cookie) {
+	@Comment("添加Cookie")
+	public void addCookie(@Comment("Cookie对象") Cookie cookie) {
 		if (cookie != null) {
 			HttpServletResponse response = getResponse();
 			if (response != null) {
@@ -157,7 +169,8 @@ public class ResponseFunctions {
 	 * @param value 图片内容
 	 * @param mime  图片类型，image/png,image/jpeg,image/gif
 	 */
-	public ResponseEntity image(Object value, String mime) {
+	@Comment("输出图片")
+	public ResponseEntity image(@Comment("图片内容，如`byte[]`") Object value, @Comment("图片类型，如`image/png`、`image/jpeg`、`image/gif`") String mime) {
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, mime).body(value);
 	}
 
@@ -167,13 +180,14 @@ public class ResponseFunctions {
 	 * @param value    文件内容
 	 * @param filename 文件名
 	 */
-	public ResponseEntity download(Object value, String filename) throws UnsupportedEncodingException {
+	@Comment("文件下载")
+	public ResponseEntity download(@Comment("文件内容，如`byte[]`") Object value, @Comment("文件名") String filename) throws UnsupportedEncodingException {
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncoder.encode(filename, "UTF-8"))
 				.body(value);
 	}
 
-	public static class NullValue{
+	public static class NullValue {
 		static final NullValue INSTANCE = new NullValue();
 	}
 }

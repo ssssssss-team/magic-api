@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.functions;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import org.bson.Document;
+import org.ssssssss.script.annotation.Comment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Map;
  */
 public class MongoFindIterableExtension {
 
+	@Comment("结果转为List")
 	public static List<Map<String, Object>> list(FindIterable<Document> iterable) {
 		MongoCursor<Document> cursor = iterable.iterator();
 		List<Map<String, Object>> result = new ArrayList<>();
