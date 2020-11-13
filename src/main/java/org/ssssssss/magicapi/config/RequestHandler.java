@@ -165,7 +165,7 @@ public class RequestHandler {
 		if (context.isRunning()) {    //判断是否执行完毕
 			return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId()), context.getDebugInfo());
 		} else if (context.isException()) {
-			return resolveThrowable((Throwable) context.getReturnValue(), response);
+			return resolveThrowable((Throwable) context.getReturnValue());
 		}
 		return convertResult(context.getReturnValue(), response);
 	}
@@ -179,7 +179,7 @@ public class RequestHandler {
 			if (context.isRunning()) {
 				return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result), result);
 			} else if (context.isException()) {    //判断是否出现异常
-				return resolveThrowable((Throwable) context.getReturnValue(), response);
+				return resolveThrowable((Throwable) context.getReturnValue());
 			}
 			Object value = result;
 			// 执行后置拦截器
@@ -188,7 +188,7 @@ public class RequestHandler {
 			}
 			return convertResult(result, response);
 		} catch (Exception e) {
-			return resolveThrowable(e, response);
+			return resolveThrowable(e);
 		}
 	}
 
@@ -274,7 +274,7 @@ public class RequestHandler {
 	/**
 	 * 解决异常
 	 */
-	private JsonBean<Object> resolveThrowable(Throwable root, HttpServletResponse response) {
+	private JsonBean<Object> resolveThrowable(Throwable root) {
 		MagicScriptException se = null;
 		Throwable parent = root;
 		do {
