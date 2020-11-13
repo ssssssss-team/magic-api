@@ -4,9 +4,6 @@ import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.functions.StreamExtension;
 import org.ssssssss.script.parsing.GenericTokenParser;
-import org.ssssssss.script.parsing.Parser;
-import org.ssssssss.script.parsing.TokenStream;
-import org.ssssssss.script.parsing.Tokenizer;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
 import java.util.ArrayList;
@@ -15,8 +12,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BoundSql {
-
-	private static final Tokenizer tokenizer = new Tokenizer();
 
 	private static final GenericTokenParser concatTokenParser = new GenericTokenParser("${", "}", false);
 
@@ -39,7 +34,7 @@ public class BoundSql {
 		this.sql = ifTokenParser.parse(sql.trim(), text -> {
 			AtomicBoolean ifTrue = new AtomicBoolean(false);
 			String val = ifParamTokenParser.parse("?{" + text, param -> {
-				ifTrue.set(BooleanLiteral.isTrue(Parser.parseExpression(new TokenStream(tokenizer.tokenize(param))).evaluate(context)));
+				ifTrue.set(BooleanLiteral.isTrue(context.eval(param)));
 				return null;
 			});
 			if (ifTrue.get()) {
@@ -48,10 +43,10 @@ public class BoundSql {
 			return "";
 		});
 		// 处理${}参数
-		this.sql = concatTokenParser.parse(this.sql, text -> String.valueOf(Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context)));
+		this.sql = concatTokenParser.parse(this.sql, text -> String.valueOf(context.eval(text)));
 		// 处理#{}参数
 		this.sql = replaceTokenParser.parse(this.sql, text -> {
-			Object value = Parser.parseExpression(new TokenStream(tokenizer.tokenize(text))).evaluate(context);
+			Object value = context.eval(text);
 			try {
 				//对集合自动展开
 				List<Object> objects = StreamExtension.arrayLikeToList(value);
@@ -69,6 +64,7 @@ public class BoundSql {
 				return "?";
 			}
 		});
+		this.sql = this.sql == null ? null : this.sql.trim();
 	}
 
 	/**
