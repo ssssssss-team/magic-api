@@ -25,7 +25,7 @@ var MagicEditor = {
         var _this = this;
         $.getJSON('config.json',function(data){
             _this.config = data;
-            Parser.importPackages = _this.config.autoImportPackage.replace(/\\s/g,'').replace(/\*/g,'').split(',');
+            Parser.importPackages = ['java.util.','java.lang.'].concat((_this.config.autoImportPackage||'').replace(/\\s/g,'').replace(/\*/g,'').split(','));
         })
     },
     initSkin : function(){
