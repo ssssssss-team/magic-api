@@ -43,7 +43,7 @@
 <dependency>
 	<groupId>org.ssssssss</groupId>
 	<artifactId>magic-api-spring-boot-starter</artifactId>
-    <version>0.4.5</version>
+    <version>0.4.6</version>
 </dependency>
 ```
 ## 修改application.properties
