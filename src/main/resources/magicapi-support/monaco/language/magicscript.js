@@ -1431,18 +1431,24 @@ require(['vs/editor/editor.main'], function() {
                 endLineNumber: position.lineNumber,
                 endColumn: position.column
             });
-            var endDot = value.charAt(value.length - 1) == '.';
+            var char = value.charAt(value.length - 1);
             var input = ''
-            if(endDot){
+            if(char != '('){
                 return;
-            }else if(value.indexOf('.') > 1){
-                input = value.substring(0,value.lastIndexOf('.'));
             }
+            input = value.substring(0,value.lastIndexOf('('));
             try {
-                var className = Parser.parse(new TokenStream(Parser.tokenize(input)));
+                var tokens = Parser.tokenize(input);
+                var tokenLen = tokens.length;
+                if(tokenLen == 0 || tokens[tokenLen - 1].getTokenType() != TokenType.Identifier){
+                    return;
+                }
+                var token = tokens.pop();
+                tokens.pop();
+                var className = Parser.parse(new TokenStream(tokens));
                 var methods = findMethods(className);
                 if(methods){
-                   var name = value.substring(input.length + 1,value.indexOf('(',input.length + 1));
+                   var name = token.getText();
                    var signatures = [];
                    for(var i=0,len = methods.length;i<len;i++){
                         var method = methods[i];
@@ -1561,15 +1567,28 @@ require(['vs/editor/editor.main'], function() {
                     }
                 }
             }else if (value.length > 1) {
-                var endDot = value.charAt(value.length - 1) == '.';
-                var input = ''
-                if(endDot){
-                    input = value.substring(0, value.length - 1);
-                }else if(value.indexOf('.') > 1){
-                    input = value.substring(0,value.lastIndexOf('.'));
-                }
+                var input = value;
                 try{
-                    var className = Parser.parse(new TokenStream(Parser.tokenize(input)));
+                    var tokens = Parser.tokenize(input);
+                    var tokenLen = tokens.length;
+                    if(tokenLen == 0){
+                        return;
+                    }
+                    var tokenType = tokens[tokenLen - 1].getTokenType();
+
+                    if(tokenType == TokenType.Identifier){
+                        if(tokenLen == 1){
+                            return;
+                        }
+                        tokenType = tokens[tokenLen - 2].getTokenType();
+                        tokens.pop();
+                    }
+                    if(tokenType == TokenType.Period){
+                        tokens.pop();
+                    }else {
+                        return;
+                    }
+                    var className = Parser.parse(new TokenStream(tokens));
                     if (className) {
                         var enums = findEnums(className);
                         if(enums){
