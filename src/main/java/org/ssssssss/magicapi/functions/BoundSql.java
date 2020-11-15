@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 public class BoundSql {
 
@@ -20,6 +21,8 @@ public class BoundSql {
 	private static final GenericTokenParser ifTokenParser = new GenericTokenParser("?{", "}", true);
 
 	private static final GenericTokenParser ifParamTokenParser = new GenericTokenParser("?{", ",", true);
+
+	private static final Pattern REPLACE_MULTI_WHITE_LINE = Pattern.compile("(\r?\n(\\s*\r?\n)+)");
 
 	private String sql;
 
@@ -64,7 +67,7 @@ public class BoundSql {
 				return "?";
 			}
 		});
-		this.sql = this.sql == null ? null : this.sql.trim().replaceAll("(\r?\n(\\s*\r?\n)+)","\r\n");
+		this.sql = this.sql == null ? null : REPLACE_MULTI_WHITE_LINE.matcher(this.sql.trim()).replaceAll("\r\n");
 	}
 
 	/**
