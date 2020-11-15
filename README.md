@@ -16,6 +16,9 @@
 
 [特性](#特性) | [快速开始](#快速开始) | [文档/演示](#文档演示) | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图) | [其它开源](#其它开源项目)
 
+# 简介
+magic-api 是一个基于Java的接口快速开发框架，编写接口将通过magic-api提供的UI界面完成，自动映射为HTTP接口，无需定义Controller、Service、Dao、Mapper、XML、VO等Java对象即可完成常见的HTTP API接口开发
+
 # 特性
 - 支持MySQL、MariaDB、Oracle、DB2、PostgreSQL、SQLServer 等多种数据库
 - 支持非关系型数据库Redis、Mongodb
