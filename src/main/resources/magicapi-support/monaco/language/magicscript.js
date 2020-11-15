@@ -191,6 +191,13 @@ var TokenType = {
     Equal: {literal: '==', error: '=='},
     NotEqual: {literal: '!=', error: '!='},
     Assignment: {literal: '=', error: '='},
+    PlusPlus: {literal : '++', error : '++'},
+    MinusMinus: {literal : '--', error : '--'},
+    PlusEqual: {literal : '+=', error : '+='},
+    MinusEqual: {literal : '-=', error : '-='},
+    AsteriskEqual: {literal : '*=', error : '*='},
+    ForwardSlashEqual: {literal : '/=', error : '/='},
+    PercentEqual: {literal : '%=', error : '%='},
     And: {literal: '&&', error: '&&'},
     Or: {literal: '||', error: '||'},
     Xor: {literal: '^', error: '^'},
@@ -802,13 +809,14 @@ var Parser = {
     },
     binaryOperatorPrecedence: [
         [TokenType.Assignment],
+        [TokenType.PlusEqual, TokenType.MinusEqual, TokenType.AsteriskEqual, TokenType.ForwardSlashEqual, TokenType.PercentEqual],
         [TokenType.Or, TokenType.And, TokenType.Xor],
         [TokenType.Equal, TokenType.NotEqual],
         [TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual],
         [TokenType.Plus, TokenType.Minus],
         [TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage]
     ],
-    unaryOperators: [TokenType.Not, TokenType.Plus, TokenType.Minus],
+    unaryOperators: [TokenType.Not, TokenType.PlusPlus, TokenType.MinusMinus, TokenType.Plus, TokenType.Minus],
     parseBinaryOperator: function (stream, level, expectRightCurly) {
         var nextLevel = level + 1;
         var left = nextLevel == this.binaryOperatorPrecedence.length ? this.parseUnaryOperator(stream, expectRightCurly) : this.parseBinaryOperator(stream, nextLevel, expectRightCurly);
@@ -850,7 +858,13 @@ var Parser = {
                 stream.expect(TokenType.RightParantheses);
                 return expression;
             } else {
-                return this.parseAccessOrCallOrLiteral(stream, expectRightCurly);
+                var expression = this.parseAccessOrCallOrLiteral(stream, expectRightCurly);
+                if(expression instanceof AST.MemberAccess || expression instanceof AST.VariableAccess || expression instanceof AST.MapOrArrayAccess){
+                    if (stream.match(false, TokenType.PlusPlus, TokenType.MinusMinus)) {
+                        return new AST.UnaryOperation(stream.consume(),expression);
+                    }
+                }
+                return expression;
             }
         }
     },
@@ -1077,31 +1091,42 @@ var AST = {
         }
     },
     BinaryOperation: function (left, operator, right) {
-        this.getJavaType = function () {
-            if (operator.type == TokenType.Plus) {
-                if (left.type == 'string' || right.type == 'string') {
+        this.getJavaType = function (env) {
+            var lType = left.type;
+            var rType = right.type;
+            if(left.getJavaType){
+                lType = left.getJavaType(env);
+            }
+            if(right.getJavaType){
+                rType = right.getJavaType(env);
+            }
+            if (operator.type == TokenType.Plus || operator.type == TokenType.PlusEqual) {
+                if (lType == 'string' || rType == 'string' || lType == 'java.lang.String' || rType == 'java.lang.String') {
                     return 'java.lang.String';
                 }
             }
-            if (left.type == 'BigDecimal' || right.type == 'BigDecimal') {
+            if(operator.type == TokenType.Equal){
+                return 'java.lang.Boolean';
+            }
+            if (lType == 'BigDecimal' || rType == 'BigDecimal') {
                 return 'java.math.BigDecimal';
             }
-            if (left.type == 'double' || right.type == 'double') {
+            if (lType == 'double' || rType == 'double') {
                 return 'java.lang.Double';
             }
-            if (left.type == 'float' || right.type == 'float') {
+            if (lType == 'float' || rType == 'float') {
                 return 'java.lang.Float';
             }
-            if (left.type == 'long' || right.type == 'long') {
+            if (lType == 'long' || rType == 'long') {
                 return 'java.lang.Long';
             }
-            if (left.type == 'int' || right.type == 'int') {
+            if (lType == 'int' || rType == 'int') {
                 return 'java.lang.Integer';
             }
-            if (left.type == 'short' || right.type == 'short') {
+            if (lType == 'short' || rType == 'short') {
                 return 'java.lang.Short';
             }
-            if (left.type == 'byte' || right.type == 'byte') {
+            if (lType == 'byte' || rType == 'byte') {
                 return 'java.lang.Byte';
             }
             return 'java.lang.Object';
@@ -1215,7 +1240,7 @@ require(['vs/editor/editor.main'], function() {
             lineComment: '//',
             blockComment: ['/*', '*/'],
         },
-        operators: ['<=', '>=', '==', '!=', '+', '-','*', '/', '%', '&','|', '!', '&&', '||', '?', ':', ],
+        operators: ['<=', '>=', '==', '!=', '+', '-','*', '/', '%', '&','|', '!', '&&', '||', '?', ':', '++','--','+=','-=','*=','/='],
         autoClosingPairs: [
             { open: '{', close: '}' },
             { open: '[', close: ']' },
