@@ -45,7 +45,7 @@ import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.functions.ExtensionMethod;
 import org.ssssssss.script.interpreter.AbstractReflection;
-import org.ssssssss.script.parsing.ast.AsyncCall;
+import org.ssssssss.script.parsing.ast.statement.AsyncCall;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
