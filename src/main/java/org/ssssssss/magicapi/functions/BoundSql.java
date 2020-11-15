@@ -64,7 +64,7 @@ public class BoundSql {
 				return "?";
 			}
 		});
-		this.sql = this.sql == null ? null : this.sql.trim();
+		this.sql = this.sql == null ? null : this.sql.trim().replaceAll("(\r?\n(\\s*\r?\n)+)","\r\n");
 	}
 
 	/**
