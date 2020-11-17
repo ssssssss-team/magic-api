@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.ssssssss.magicapi.functions.MongoCollectionExtension;
 import org.ssssssss.magicapi.functions.MongoFindIterableExtension;
 import org.ssssssss.magicapi.functions.MongoFunctions;
-import org.ssssssss.script.interpreter.AbstractReflection;
+import org.ssssssss.script.reflection.AbstractReflection;
 
 /**
  * mongo配置

@@ -42,7 +42,7 @@ import org.ssssssss.script.MagicPackageLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.functions.ExtensionMethod;
-import org.ssssssss.script.interpreter.AbstractReflection;
+import org.ssssssss.script.reflection.AbstractReflection;
 import org.ssssssss.script.parsing.ast.statement.AsyncCall;
 
 import javax.servlet.http.HttpServletRequest;
@@ -260,7 +260,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 * 注入数据库查询模块
 	 */
 	@Bean
-	public DatabaseQuery databaseQuery(MagicDynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
+	public SQLExecutor magicSQLExecutor(MagicDynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
 		RowMapper<Map<String, Object>> rowMapper;
 		// 下划线转驼峰命名
 		if (properties.isMapUnderscoreToCamelCase()) {
@@ -291,12 +291,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		} else {
 			rowMapper = new ColumnMapRowMapper();
 		}
-		DatabaseQuery query = new DatabaseQuery(dynamicDataSource);
-		query.setResultProvider(resultProvider);
-		query.setPageProvider(pageProvider);
-		query.setRowMapper(rowMapper);
-		query.setSqlCache(sqlCache);
-		return query;
+		SQLExecutor sqlExecutor = new SQLExecutor(dynamicDataSource);
+		sqlExecutor.setResultProvider(resultProvider);
+		sqlExecutor.setPageProvider(pageProvider);
+		sqlExecutor.setRowMapper(rowMapper);
+		sqlExecutor.setSqlCache(sqlCache);
+		return sqlExecutor;
 	}
 
 	/**
