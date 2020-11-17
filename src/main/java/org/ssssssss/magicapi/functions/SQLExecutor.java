@@ -30,7 +30,7 @@ import java.util.function.Function;
 /**
  * 数据库查询模块
  */
-public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements MagicModule {
+public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicModule {
 
 	@UnableCall
 	private MagicDynamicDataSource dynamicDataSource;
@@ -56,11 +56,11 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	@UnableCall
 	private long ttl;
 
-	public DatabaseQuery() {
+	public SQLExecutor() {
 
 	}
 
-	public DatabaseQuery(MagicDynamicDataSource dynamicDataSource) {
+	public SQLExecutor(MagicDynamicDataSource dynamicDataSource) {
 		this.dynamicDataSource = dynamicDataSource;
 		this.dataSourceNode = dynamicDataSource.getDataSource();
 	}
@@ -106,16 +106,16 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	}
 
 	@UnableCall
-	public DatabaseQuery cloneQuery() {
-		DatabaseQuery query = new DatabaseQuery();
-		query.setDynamicDataSource(this.dynamicDataSource);
-		query.setDataSourceNode(this.dataSourceNode);
-		query.setPageProvider(this.pageProvider);
-		query.setRowMapper(this.rowMapper);
-		query.setSqlCache(this.sqlCache);
-		query.setTtl(this.ttl);
-		query.setResultProvider(this.resultProvider);
-		return query;
+	public SQLExecutor cloneSQLExecutor() {
+		SQLExecutor sqlExecutor = new SQLExecutor();
+		sqlExecutor.setDynamicDataSource(this.dynamicDataSource);
+		sqlExecutor.setDataSourceNode(this.dataSourceNode);
+		sqlExecutor.setPageProvider(this.pageProvider);
+		sqlExecutor.setRowMapper(this.rowMapper);
+		sqlExecutor.setSqlCache(this.sqlCache);
+		sqlExecutor.setTtl(this.ttl);
+		sqlExecutor.setResultProvider(this.resultProvider);
+		return sqlExecutor;
 	}
 
 	/**
@@ -168,11 +168,11 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	 * @return
 	 */
 	@Comment("使用缓存")
-	public DatabaseQuery cache(@Comment("缓存名") String cacheName, @Comment("过期时间") long ttl) {
+	public SQLExecutor cache(@Comment("缓存名") String cacheName, @Comment("过期时间") long ttl) {
 		if (cacheName == null) {
 			return this;
 		}
-		DatabaseQuery query = cloneQuery();
+		SQLExecutor query = cloneSQLExecutor();
 		query.setCacheName(cacheName);
 		query.setTtl(ttl);
 		return query;
@@ -185,7 +185,7 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	 * @return
 	 */
 	@Comment("使用缓存，过期时间采用默认配置")
-	public DatabaseQuery cache(@Comment("缓存名") String cacheName) {
+	public SQLExecutor cache(@Comment("缓存名") String cacheName) {
 		return cache(cacheName, 0);
 	}
 
@@ -193,14 +193,14 @@ public class DatabaseQuery extends HashMap<String, DatabaseQuery> implements Mag
 	 * 数据源切换
 	 */
 	@Override
-	public DatabaseQuery get(Object key) {
-		DatabaseQuery query = cloneQuery();
+	public SQLExecutor get(Object key) {
+		SQLExecutor sqlExecutor = cloneSQLExecutor();
 		if (key == null) {
-			query.setDataSourceNode(dynamicDataSource.getDataSource());
+			sqlExecutor.setDataSourceNode(dynamicDataSource.getDataSource());
 		} else {
-			query.setDataSourceNode(dynamicDataSource.getDataSource(key.toString()));
+			sqlExecutor.setDataSourceNode(dynamicDataSource.getDataSource(key.toString()));
 		}
-		return query;
+		return sqlExecutor;
 	}
 
 

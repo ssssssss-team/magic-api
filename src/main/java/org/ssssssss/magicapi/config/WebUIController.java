@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import org.ssssssss.magicapi.functions.DatabaseQuery;
+import org.ssssssss.magicapi.functions.SQLExecutor;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
@@ -65,7 +65,7 @@ public class WebUIController {
 
 	public WebUIController() {
 		// 给前端添加代码提示
-		MagicScriptEngine.addScriptClass(DatabaseQuery.class);
+		MagicScriptEngine.addScriptClass(SQLExecutor.class);
 		MagicScriptEngine.addScriptClass(MagicAPIService.class);
 	}
 
@@ -212,7 +212,7 @@ public class WebUIController {
 	public JsonBean<Map<String, Map<String, ScriptClass>>> classes() {
 		Map<String, ScriptClass> classMap = MagicScriptEngine.getScriptClassMap();
 		classMap.putAll(MagicModuleLoader.getModules());
-		ScriptClass db = classMap.get(DatabaseQuery.class.getName());
+		ScriptClass db = classMap.get(SQLExecutor.class.getName());
 		if (db != null) {
 			List<ScriptClass.ScriptAttribute> attributes =  new ArrayList<>();
 			// 给与前台动态数据源提示

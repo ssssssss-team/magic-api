@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * redis模块
  */
-public class RedisFunctions extends HashMap<String, DatabaseQuery> implements MagicModule, DynamicMethod {
+public class RedisFunctions implements MagicModule, DynamicMethod {
 
 	@Override
 	public String getModuleName() {
