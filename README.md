@@ -46,7 +46,7 @@ magic-api 是一个基于Java的接口快速开发框架，编写接口将通过
 <dependency>
 	<groupId>org.ssssssss</groupId>
 	<artifactId>magic-api-spring-boot-starter</artifactId>
-    <version>0.4.6</version>
+    <version>0.4.7</version>
 </dependency>
 ```
 ## 修改application.properties
