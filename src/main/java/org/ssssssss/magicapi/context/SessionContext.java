@@ -18,4 +18,11 @@ public class SessionContext extends HashMap<String,Object> {
     public Object get(Object key) {
         return session != null ? session.getAttribute(key.toString()) : null;
     }
+
+    @Override
+    public Object put(String key, Object value) {
+        Object oldValue = session.getAttribute(key);
+        session.setAttribute(key,value);
+        return oldValue;
+    }
 }
