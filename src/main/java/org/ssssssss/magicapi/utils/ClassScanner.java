@@ -1,49 +1,126 @@
 package org.ssssssss.magicapi.utils;
 
-import sun.misc.Launcher;
 
+import org.ssssssss.script.functions.ObjectConvertExtension;
+
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
 
 public class ClassScanner {
 
 	public static List<String> scan() throws URISyntaxException {
 		ClassLoader loader = Thread.currentThread().getContextClassLoader();
 		Set<String> classes = new HashSet<>();
-		do{
-			if(loader instanceof URLClassLoader){
+		do {
+			if (loader instanceof URLClassLoader) {
 				classes.addAll(scan(((URLClassLoader) loader).getURLs()));
 			}
-		}while ((loader = loader.getParent()) != null);
-		classes.addAll(scan(Launcher.getBootstrapClassPath().getURLs()));
+		} while ((loader = loader.getParent()) != null);
+		classes.addAll(addJavaLibrary());
 		return new ArrayList<>(classes);
 	}
 
 	private static Set<String> scan(URL[] urls) throws URISyntaxException {
 		Set<String> classes = new HashSet<>();
-		if(urls != null){
+		if (urls != null) {
 			for (URL url : urls) {
 				String protocol = url.getProtocol();
-				if("file".equalsIgnoreCase(protocol)){
+				if ("file".equalsIgnoreCase(protocol)) {
 					String path = url.getPath();
 					if (path.toLowerCase().endsWith(".jar")) {
 						classes.addAll(scanJarFile(url));
 					} else {
 						classes.addAll(scanDirectory(new File(url.toURI()), null));
 					}
-				}else if("jar".equalsIgnoreCase(protocol)){
+				} else if ("jar".equalsIgnoreCase(protocol)) {
 					classes.addAll(scanJarFile(url));
 				}
 			}
+		}
+		return classes;
+	}
+
+	private static Set<String> addJavaLibrary() {
+		int version = checkJavaVersion();
+		if (version >= 9) {
+			return addJava9PlusLibrary();
+		}
+		return addJava8Library();
+	}
+
+	private static int checkJavaVersion() {
+		String version = System.getProperty("java.version");
+		int index = version.indexOf(".");
+		if (index > -1) {
+			String first = version.substring(0, index);
+			if (!"1".equals(first)) {
+				return ObjectConvertExtension.asInt(first, -1);
+			} else {
+				int endIndex = version.indexOf(".", index + 1);
+				return ObjectConvertExtension.asInt(version.substring(index + 1, endIndex), -1);
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * jdk 8
+	 */
+	private static Set<String> addJava8Library() {
+		try {
+			// 直接反射调用..
+			Object URLClassPath = Class.forName("sun.misc.Launcher").getMethod("getBootstrapClassPath").invoke(null);
+			return scan((URL[]) URLClassPath.getClass().getMethod("getURLs").invoke(URLClassPath));
+		} catch (Exception ignored) {
+		}
+		return Collections.emptySet();
+	}
+
+	/**
+	 * jdk 9+
+	 */
+	private static Set<String> addJava9PlusLibrary() {
+		Set<String> classes = new HashSet<>();
+		try {
+			//		ModuleLayer.boot().configuration().modules().stream().map(ResolvedModule::reference).forEach(ref -> {
+			//			try (ModuleReader reader = ref.open()) {
+			//				reader.list().forEach(System.out::println);
+			//			} catch (IOException e) {
+			//				e.printStackTrace();
+			//			}
+			//		});
+			Class<?> ModuleLayer = Class.forName("java.lang.ModuleLayer");
+			Object boot = ModuleLayer.getMethod("boot").invoke(null);
+			Object configuration = ModuleLayer.getMethod("configuration").invoke(boot);
+			Class<?> Configuration = Class.forName("java.lang.module.Configuration");
+			//Set<ResolvedModule>
+			Set<?> modules = (Set<?>) Configuration.getMethod("modules").invoke(configuration);
+			Method reference = Class.forName("java.lang.module.ResolvedModule").getMethod("reference");
+			Class<?> ModuleReader = Class.forName("java.lang.module.ModuleReader");
+			Method open = Class.forName("java.lang.module.ModuleReference").getMethod("open");
+			Method list = ModuleReader.getMethod("list");
+			modules.forEach(module -> {
+			});
+			for (Object module : modules) {
+				Object ref = reference.invoke(module);
+				try (Closeable reader = (Closeable) open.invoke(ref)) {
+					@SuppressWarnings("unchecked")
+					Stream<String> stream = (Stream<String>) list.invoke(reader);
+					stream.filter(ClassScanner::isClass).forEach(className -> classes.add(className.substring(0, className.length() - 6).replace("/", ".")));
+				} catch (IOException ignored) {
+				}
+			}
+		} catch (Exception ignored) {
 		}
 		return classes;
 	}
@@ -64,8 +141,8 @@ public class ClassScanner {
 		return classes;
 	}
 
-	private static String filterFullName(String fullName){
-		if(fullName.startsWith("BOOT-INF.classes.")){
+	private static String filterFullName(String fullName) {
+		if (fullName.startsWith("BOOT-INF.classes.")) {
 			fullName = fullName.substring(17);
 		}
 		return fullName;
@@ -73,19 +150,27 @@ public class ClassScanner {
 
 	private static List<String> scanJarFile(URL url) {
 		List<String> classes = new ArrayList<>();
-		try(ZipInputStream zis = new ZipInputStream(url.openStream())){
+		try (ZipInputStream zis = new ZipInputStream(url.openStream())) {
 			ZipEntry entry;
 			while ((entry = zis.getNextEntry()) != null) {
 				if (!entry.getName().contains("META-INF")) {
 					String className = entry.getName();
-					if (className.endsWith(".class") && !className.contains("$")) {
+					if (isClass(className)) {
 						classes.add(filterFullName(className.substring(0, className.length() - 6).replace("/", ".")));
 					}
 				}
 			}
-		}catch (IOException ignored){
+		} catch (IOException ignored) {
 
 		}
 		return classes;
+	}
+
+	private static boolean isClass(String className) {
+		return className.endsWith(".class") && !className.contains("$");
+	}
+
+	public static void main(String[] args) throws URISyntaxException {
+		scan().stream().filter(s -> s.startsWith("java.lang")).sorted().forEach(System.out::println);
 	}
 }
