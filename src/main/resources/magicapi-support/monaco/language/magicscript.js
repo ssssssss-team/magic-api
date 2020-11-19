@@ -1834,6 +1834,7 @@ require(['vs/editor/editor.main'], function() {
         digits: /\d+(_+\d+)*/,
         tokenizer : {
             root : [
+                [/\s+/, 'white'],
                 [/[a-zA-Z_$][\w$]*/,{
                     cases :{
                         "@keywords" : { token : "keywords" },
@@ -1846,9 +1847,9 @@ require(['vs/editor/editor.main'], function() {
                 [/\/\*/, 'comment', '@comment'],
                 [/\/\/.*$/, 'comment'],
                 [/[;,.]/, 'delimiter'],
+                [/"""/, {token: 'string', next: '@string_multi_embedded', nextEmbedded: 'sql'}],
                 [/"([^"\\]|\\.)*$/, 'string.invalid'],
                 [/'([^'\\]|\\.)*$/, 'string.invalid'],
-                [/"""/, 'string.multi', '@string_multi'],
                 [/"/, 'string', '@string_double'],
                 [/'/, 'string', '@string_single'],
             ],
@@ -1866,13 +1867,10 @@ require(['vs/editor/editor.main'], function() {
                 [/\*\//, 'comment.doc', '@pop'],
                 [/[\/*]/, 'comment.doc']
             ],
-            string_multi: [
-                [/"""/, {token: 'string', next: '@pop'}],
-                [/"/, {token: 'string', next: '@string_multi_embedded', nextEmbedded: 'sql'}]
-            ],
             string_multi_embedded: [
-                [/"""/, {token: '@rematch', next: '@pop', nextEmbedded: '@pop'}],
-                [/[^"""]+/, '']
+                [/[^"]+/,''],
+                ['"""', { token: 'string', next: '@pop', nextEmbedded: '@pop' }]
+
             ],
             string_double: [
                 [/[^\\"]+/, 'string'],
