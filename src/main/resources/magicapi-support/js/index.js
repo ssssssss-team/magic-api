@@ -1367,6 +1367,7 @@ var MagicEditor = {
             language: 'magicscript',
             folding : true,
             lineDecorationsWidth : 35,
+            wordWrap : 'on',
             theme : theme,
         })
         this.requestEditor = monaco.editor.create($('.request-editor')[0], {
@@ -1398,7 +1399,8 @@ var MagicEditor = {
             folding : true,
             readOnly : true,
             fixedOverflowWidgets : true,
-            theme : theme
+            theme : theme,
+            wordWrap : 'on'
         })
         var _this = this;
         this.scriptEditor.onMouseDown(function(e){
