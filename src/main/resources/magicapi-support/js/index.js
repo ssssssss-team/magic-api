@@ -1650,11 +1650,11 @@ var MagicEditor = {
         //this.scriptEditor&&this.scriptEditor.setTheme(skin);
     },
     layout : function(){
-        this.scriptEditor&&this.scriptEditor.layout();
-        this.optionsEditor&&this.optionsEditor.layout();
-        this.requestEditor&&this.requestEditor.layout();
-        this.resultEditor&&this.resultEditor.layout();
-        this.diffEditor&&this.diffEditor.layout();
+        this.scriptEditor&&$(this.scriptEditor.getDomNode()).is(":visible")&&this.scriptEditor.layout();
+        this.optionsEditor&&$(this.optionsEditor.getDomNode()).is(":visible")&&this.optionsEditor.layout();
+        this.requestEditor&&$(this.requestEditor.getDomNode()).is(":visible")&&this.requestEditor.layout();
+        this.resultEditor&&$(this.resultEditor.getDomNode()).is(":visible")&&this.resultEditor.layout();
+        this.diffEditor&&$(this.diffEditor.getDomNode()).is(":visible")&&this.diffEditor.layout();
     }
 }
 $(function(){
