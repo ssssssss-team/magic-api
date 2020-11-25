@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,19 +22,16 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.ssssssss.magicapi.adapter.ColumnMapperAdapter;
+import org.ssssssss.magicapi.adapter.DialectAdapter;
 import org.ssssssss.magicapi.cache.DefaultSqlCache;
 import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
+import org.ssssssss.magicapi.dialect.*;
 import org.ssssssss.magicapi.functions.*;
 import org.ssssssss.magicapi.logging.LoggerManager;
-import org.ssssssss.magicapi.provider.ApiServiceProvider;
-import org.ssssssss.magicapi.provider.MagicAPIService;
-import org.ssssssss.magicapi.provider.PageProvider;
-import org.ssssssss.magicapi.provider.ResultProvider;
-import org.ssssssss.magicapi.provider.impl.DefaultApiServiceProvider;
-import org.ssssssss.magicapi.provider.impl.DefaultMagicAPIService;
-import org.ssssssss.magicapi.provider.impl.DefaultPageProvider;
-import org.ssssssss.magicapi.provider.impl.DefaultResultProvider;
+import org.ssssssss.magicapi.provider.*;
+import org.ssssssss.magicapi.provider.impl.*;
 import org.ssssssss.magicapi.utils.ClassScanner;
 import org.ssssssss.script.MagicModuleLoader;
 import org.ssssssss.script.MagicPackageLoader;
@@ -50,6 +46,7 @@ import javax.sql.DataSource;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -71,6 +68,35 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Autowired
 	private ApplicationContext springContext;
+
+	/**
+	 * 定义的模块集合
+	 */
+	@Autowired(required = false)
+	private List<MagicModule> magicModules;
+	/**
+	 * 自定义的类型扩展
+	 */
+	@Autowired(required = false)
+	private List<ExtensionMethod> extensionMethods;
+
+	/**
+	 * 内置的消息转换
+	 */
+	@Autowired(required = false)
+	private List<HttpMessageConverter<?>> httpMessageConverters;
+
+	/**
+	 * 自定义的方言
+	 */
+	@Autowired(required = false)
+	private List<Dialect> dialects;
+
+	/**
+	 *	自定义的列名转换
+	 */
+	@Autowired(required = false)
+	List<ColumnMapperProvider> columnMapperProviders;
 
 	@Autowired
 	private Environment environment;
@@ -181,7 +207,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 */
 	@ConditionalOnMissingBean(ApiServiceProvider.class)
 	@Bean
-	public ApiServiceProvider apiServiceProvider(DynamicDataSource dynamicDataSource) {
+	public ApiServiceProvider apiServiceProvider(MagicDynamicDataSource dynamicDataSource) {
 		logger.info("接口使用数据源：{}", StringUtils.isNotBlank(properties.getDatasource()) ? properties.getDatasource() : "default");
 		return new DefaultApiServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
 	}
@@ -199,10 +225,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 * 注入请求处理器
 	 */
 	@Bean
-	public RequestHandler requestHandler(@Autowired(required = false) List<MagicModule> magicModules, //定义的模块集合
-										 @Autowired(required = false) List<ExtensionMethod> extensionMethods, //自定义的类型扩展
-										 @Autowired(required = false) List<HttpMessageConverter<?>> httpMessageConverters,
-										 ApiServiceProvider apiServiceProvider,
+	public RequestHandler requestHandler(ApiServiceProvider apiServiceProvider,
 										 MagicDynamicDataSource magicDynamicDataSource,
 										 // url 映射
 										 MappingHandlerMapping mappingHandlerMapping,
@@ -220,11 +243,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		requestHandler.setThrowException(properties.isThrowException());
 
 		WebUIController webUIController = createWebUIController(apiServiceProvider, mappingHandlerMapping);
-		webUIController.setMagicDynamicDataSource(magicDynamicDataSource);
-
-		requestHandler.setWebUIController(webUIController);
-		requestHandler.setDebugTimeout(properties.getDebugConfig().getTimeout());
-
+		if(webUIController != null){
+			webUIController.setMagicDynamicDataSource(magicDynamicDataSource);
+			requestHandler.setWebUIController(webUIController);
+			requestHandler.setDebugTimeout(properties.getDebugConfig().getTimeout());
+		}
 		mappingHandlerMapping.setHandler(requestHandler);
 		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
 		mappingHandlerMapping.setMagicApiService(apiServiceProvider);
@@ -261,41 +284,37 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 */
 	@Bean
 	public SQLExecutor magicSQLExecutor(MagicDynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
-		RowMapper<Map<String, Object>> rowMapper;
-		// 下划线转驼峰命名
-		if (properties.isMapUnderscoreToCamelCase()) {
-			logger.info("开启下划线转驼峰命名");
-			rowMapper = new ColumnMapRowMapper() {
-				@Override
-				protected String getColumnKey(String columnName) {
-					if (columnName == null || !columnName.contains("_")) {
-						return columnName;
-					}
-					columnName = columnName.toLowerCase();
-					boolean upperCase = false;
-					StringBuilder sb = new StringBuilder();
-					for (int i = 0; i < columnName.length(); i++) {
-						char ch = columnName.charAt(i);
-						if (ch == '_') {
-							upperCase = true;
-						} else if (upperCase) {
-							sb.append(Character.toUpperCase(ch));
-							upperCase = false;
-						} else {
-							sb.append(ch);
-						}
-					}
-					return sb.toString();
-				}
-			};
-		} else {
-			rowMapper = new ColumnMapRowMapper();
-		}
 		SQLExecutor sqlExecutor = new SQLExecutor(dynamicDataSource);
 		sqlExecutor.setResultProvider(resultProvider);
 		sqlExecutor.setPageProvider(pageProvider);
-		sqlExecutor.setRowMapper(rowMapper);
+		ColumnMapperAdapter columnMapperAdapter = new ColumnMapperAdapter();
+		columnMapperAdapter.setDefault(new DefaultColumnMapperProvider());
+		columnMapperAdapter.add(new CamelColumnMapperProvider());
+		columnMapperAdapter.add(new PascalColumnMapperProvider());
+		columnMapperAdapter.add(new LowerColumnMapperProvider());
+		columnMapperAdapter.add(new UpperColumnMapperProvider());
+		if(this.columnMapperProviders != null){
+			for (ColumnMapperProvider mapperProvider : this.columnMapperProviders) {
+				if(!"default".equals(mapperProvider.name())){
+					columnMapperAdapter.add(mapperProvider);
+				}
+			}
+		}
+		columnMapperAdapter.setDefault(properties.getSqlColumnCase());
+		sqlExecutor.setColumnMapperProvider(columnMapperAdapter);
+		sqlExecutor.setRowMapper(columnMapperAdapter.getDefault());
 		sqlExecutor.setSqlCache(sqlCache);
+		DialectAdapter dialectAdapter = new DialectAdapter();
+		dialectAdapter.add(new MySQLDialect());
+		dialectAdapter.add(new OracleDialect());
+		dialectAdapter.add(new PostgreSQLDialect());
+		dialectAdapter.add(new ClickhouseDialect());
+		dialectAdapter.add(new DB2Dialect());
+		dialectAdapter.add(new SQLServerDialect());
+		dialectAdapter.add(new SQLServer2005Dialect());
+		if(dialects != null){
+			dialects.forEach(dialectAdapter::add);
+		}
 		return sqlExecutor;
 	}
 

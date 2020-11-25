@@ -61,9 +61,10 @@ public class MagicAPIProperties {
 	private boolean allowOverride = false;
 
 	/**
-	 * 驼峰命名转换
+	 * SQL列名转换
+	 * @since 0.5.0
 	 */
-	private boolean mapUnderscoreToCamelCase = true;
+	private String sqlColumnCase = "default";
 
 	/**
 	 * 线程核心数，需要>0，<=0时采用默认配置，即CPU核心数 * 2
@@ -107,12 +108,12 @@ public class MagicAPIProperties {
 		this.web = web;
 	}
 
-	public boolean isMapUnderscoreToCamelCase() {
-		return mapUnderscoreToCamelCase;
+	public String getSqlColumnCase() {
+		return sqlColumnCase;
 	}
 
-	public void setMapUnderscoreToCamelCase(boolean mapUnderscoreToCamelCase) {
-		this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
+	public void setSqlColumnCase(String sqlColumnCase) {
+		this.sqlColumnCase = sqlColumnCase;
 	}
 
 	public boolean isBanner() {
