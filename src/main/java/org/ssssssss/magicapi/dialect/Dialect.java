@@ -6,6 +6,11 @@ import org.ssssssss.magicapi.functions.BoundSql;
 public interface Dialect {
 
     /**
+     * 根据jdbcUrl匹配
+     */
+    boolean match(String jdbcUrl);
+
+    /**
      * 获取查总数的sql
      */
     default String getCountSql(String sql) {

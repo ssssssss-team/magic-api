@@ -5,12 +5,13 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.ssssssss.magicapi.adapter.ColumnMapperAdapter;
+import org.ssssssss.magicapi.adapter.DialectAdapter;
 import org.ssssssss.magicapi.cache.SqlCache;
-import org.ssssssss.magicapi.config.DynamicDataSource.DataSourceNode;
 import org.ssssssss.magicapi.config.MagicDynamicDataSource;
+import org.ssssssss.magicapi.config.MagicDynamicDataSource.DataSourceNode;
 import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.magicapi.dialect.Dialect;
-import org.ssssssss.magicapi.dialect.DialectUtils;
 import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.provider.PageProvider;
@@ -45,6 +46,12 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 	private ResultProvider resultProvider;
 
 	@UnableCall
+	private ColumnMapperAdapter columnMapperAdapter;
+
+	@UnableCall
+	private DialectAdapter dialectAdapter;
+
+	@UnableCall
 	private RowMapper<Map<String, Object>> rowMapper;
 
 	@UnableCall
@@ -76,12 +83,21 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 	}
 
 	@UnableCall
+	public void setColumnMapperProvider(ColumnMapperAdapter columnMapperAdapter) {
+		this.columnMapperAdapter = columnMapperAdapter;
+	}
+
+	@UnableCall
+	public void setDialectAdapter(DialectAdapter dialectAdapter) {
+		this.dialectAdapter = dialectAdapter;
+	}
+
+	@UnableCall
 	public void setRowMapper(RowMapper<Map<String, Object>> rowMapper) {
 		this.rowMapper = rowMapper;
 	}
 
-	@UnableCall
-	public void setDynamicDataSource(MagicDynamicDataSource dynamicDataSource) {
+	private void setDynamicDataSource(MagicDynamicDataSource dynamicDataSource) {
 		this.dynamicDataSource = dynamicDataSource;
 	}
 
@@ -90,31 +106,30 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 		this.sqlCache = sqlCache;
 	}
 
-	@UnableCall
-	public void setDataSourceNode(DataSourceNode dataSourceNode) {
+	private void setDataSourceNode(DataSourceNode dataSourceNode) {
 		this.dataSourceNode = dataSourceNode;
 	}
 
-	@UnableCall
-	public void setCacheName(String cacheName) {
+	private void setCacheName(String cacheName) {
 		this.cacheName = cacheName;
 	}
 
-	@UnableCall
-	public void setTtl(long ttl) {
+	private void setTtl(long ttl) {
 		this.ttl = ttl;
 	}
 
 	@UnableCall
-	public SQLExecutor cloneSQLExecutor() {
+	private SQLExecutor cloneSQLExecutor() {
 		SQLExecutor sqlExecutor = new SQLExecutor();
 		sqlExecutor.setDynamicDataSource(this.dynamicDataSource);
 		sqlExecutor.setDataSourceNode(this.dataSourceNode);
 		sqlExecutor.setPageProvider(this.pageProvider);
+		sqlExecutor.setColumnMapperProvider(this.columnMapperAdapter);
 		sqlExecutor.setRowMapper(this.rowMapper);
 		sqlExecutor.setSqlCache(this.sqlCache);
 		sqlExecutor.setTtl(this.ttl);
 		sqlExecutor.setResultProvider(this.resultProvider);
+		sqlExecutor.setDialectAdapter(this.dialectAdapter);
 		return sqlExecutor;
 	}
 
@@ -187,6 +202,38 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 	@Comment("使用缓存，过期时间采用默认配置")
 	public SQLExecutor cache(@Comment("缓存名") String cacheName) {
 		return cache(cacheName, 0);
+	}
+
+	@Comment("采用驼峰列名")
+	public SQLExecutor camel() {
+		return columnCase("camel");
+	}
+
+	@Comment("采用帕斯卡列名")
+	public SQLExecutor pascal() {
+		return columnCase("pascal");
+	}
+
+	@Comment("采用全小写列名")
+	public SQLExecutor lower() {
+		return columnCase("lower");
+	}
+
+	@Comment("采用全大写列名")
+	public SQLExecutor upper() {
+		return columnCase("upper");
+	}
+
+	@Comment("列名保持原样")
+	public SQLExecutor normal() {
+		return columnCase("default");
+	}
+
+	@Comment("指定列名转换")
+	public SQLExecutor columnCase(String name) {
+		SQLExecutor sqlExecutor = cloneSQLExecutor();
+		sqlExecutor.setRowMapper(this.columnMapperAdapter.get(name));
+		return sqlExecutor;
 	}
 
 	/**
@@ -332,7 +379,7 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 		Dialect dialect;
 		try {
 			connection = dataSourceNode.getJdbcTemplate().getDataSource().getConnection();
-			dialect = DialectUtils.getDialectFromUrl(connection.getMetaData().getURL());
+			dialect = dialectAdapter.getDialectFromUrl(connection.getMetaData().getURL());
 		} catch (Exception e) {
 			throw new MagicAPIException("自动获取数据库方言失败", e);
 		} finally {

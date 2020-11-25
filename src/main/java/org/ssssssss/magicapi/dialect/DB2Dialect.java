@@ -5,6 +5,11 @@ import org.ssssssss.magicapi.functions.BoundSql;
 
 public class DB2Dialect implements Dialect {
     @Override
+    public boolean match(String jdbcUrl) {
+        return jdbcUrl.contains(":db2:");
+    }
+
+    @Override
     public String getPageSql(String sql, BoundSql boundSql, long offset, long limit) {
         boundSql.addParameter(offset + 1);
         boundSql.addParameter(offset + limit);
