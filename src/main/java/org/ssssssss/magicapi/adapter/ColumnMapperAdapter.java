@@ -5,31 +5,47 @@ import org.ssssssss.magicapi.provider.ColumnMapperProvider;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public class ColumnMapperAdapter {
 
-	private Map<String, RowMapper<Map<String, Object>>> mappers = new HashMap<>();
+	private Map<String, RowMapper<Map<String, Object>>> columnMapRowMappers = new HashMap<>();
 
-	private RowMapper<Map<String, Object>> defaultMapper;
+	private Map<String, Function<String, String>> rowMapColumnMappers = new HashMap<>();
+
+	private RowMapper<Map<String, Object>> mapRowColumnMapper;
+
+	private Function<String, String> rowMapColumnMapper;
 
 	public void add(ColumnMapperProvider columnMapperProvider) {
-		mappers.put(columnMapperProvider.name(), columnMapperProvider.getColumnMapRowMapper());
+		columnMapRowMappers.put(columnMapperProvider.name(), columnMapperProvider.getColumnMapRowMapper());
+		rowMapColumnMappers.put(columnMapperProvider.name(), columnMapperProvider.getRowMapColumnMapper());
 	}
 
 	public void setDefault(ColumnMapperProvider columnMapperProvider) {
-		this.defaultMapper = columnMapperProvider.getColumnMapRowMapper();
+		this.mapRowColumnMapper = columnMapperProvider.getColumnMapRowMapper();
+		this.rowMapColumnMapper = columnMapperProvider.getRowMapColumnMapper();
 		add(columnMapperProvider);
 	}
 
 	public void setDefault(String name) {
-		this.defaultMapper = get(name);
+		this.mapRowColumnMapper = getColumnMapRowMapper(name);
+		this.rowMapColumnMapper = getRowMapColumnMapper(name);
 	}
 
-	public RowMapper<Map<String, Object>> getDefault() {
-		return this.defaultMapper;
+	public RowMapper<Map<String, Object>> getDefaultColumnMapRowMapper() {
+		return this.mapRowColumnMapper;
 	}
 
-	public RowMapper<Map<String, Object>> get(String name) {
-		return mappers.getOrDefault(name, defaultMapper);
+	public Function<String, String> getDefaultRowMapColumnMapper() {
+		return this.rowMapColumnMapper;
+	}
+
+	public RowMapper<Map<String, Object>> getColumnMapRowMapper(String name) {
+		return columnMapRowMappers.getOrDefault(name, mapRowColumnMapper);
+	}
+
+	public Function<String, String> getRowMapColumnMapper(String name) {
+		return rowMapColumnMappers.getOrDefault(name, rowMapColumnMapper);
 	}
 }

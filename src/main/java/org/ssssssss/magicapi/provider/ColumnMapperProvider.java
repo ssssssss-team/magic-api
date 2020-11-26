@@ -4,6 +4,7 @@ import org.springframework.jdbc.core.ColumnMapRowMapper;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public interface ColumnMapperProvider {
 
@@ -11,8 +12,16 @@ public interface ColumnMapperProvider {
 
 	String mapping(String columnName);
 
-	default ColumnMapRowMapper getColumnMapRowMapper(){
-		return new ColumnMapRowMapper(){
+	default String unmapping(String name) {
+		return name;
+	}
+
+	default Function<String, String> getRowMapColumnMapper() {
+		return this::mapping;
+	}
+
+	default ColumnMapRowMapper getColumnMapRowMapper() {
+		return new ColumnMapRowMapper() {
 			@Override
 			protected Map<String, Object> createColumnMap(int columnCount) {
 				return new LinkedHashMap<>(columnCount);

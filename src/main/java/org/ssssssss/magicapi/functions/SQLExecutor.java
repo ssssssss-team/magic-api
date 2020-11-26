@@ -52,7 +52,10 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 	private DialectAdapter dialectAdapter;
 
 	@UnableCall
-	private RowMapper<Map<String, Object>> rowMapper;
+	private RowMapper<Map<String, Object>> columnMapRowMapper;
+
+	@UnableCall
+	private Function<String, String> rowMapColumnMapper;
 
 	@UnableCall
 	private SqlCache sqlCache;
@@ -93,8 +96,13 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 	}
 
 	@UnableCall
-	public void setRowMapper(RowMapper<Map<String, Object>> rowMapper) {
-		this.rowMapper = rowMapper;
+	public void setColumnMapRowMapper(RowMapper<Map<String, Object>> columnMapRowMapper) {
+		this.columnMapRowMapper = columnMapRowMapper;
+	}
+
+	@UnableCall
+	public void setRowMapColumnMapper(Function<String, String> rowMapColumnMapper) {
+		this.rowMapColumnMapper = rowMapColumnMapper;
 	}
 
 	private void setDynamicDataSource(MagicDynamicDataSource dynamicDataSource) {
@@ -125,7 +133,8 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 		sqlExecutor.setDataSourceNode(this.dataSourceNode);
 		sqlExecutor.setPageProvider(this.pageProvider);
 		sqlExecutor.setColumnMapperProvider(this.columnMapperAdapter);
-		sqlExecutor.setRowMapper(this.rowMapper);
+		sqlExecutor.setColumnMapRowMapper(this.columnMapRowMapper);
+		sqlExecutor.setRowMapColumnMapper(this.rowMapColumnMapper);
 		sqlExecutor.setSqlCache(this.sqlCache);
 		sqlExecutor.setTtl(this.ttl);
 		sqlExecutor.setResultProvider(this.resultProvider);
@@ -232,7 +241,8 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 	@Comment("指定列名转换")
 	public SQLExecutor columnCase(String name) {
 		SQLExecutor sqlExecutor = cloneSQLExecutor();
-		sqlExecutor.setRowMapper(this.columnMapperAdapter.get(name));
+		sqlExecutor.setColumnMapRowMapper(this.columnMapperAdapter.getColumnMapRowMapper(name));
+		sqlExecutor.setRowMapColumnMapper(this.columnMapperAdapter.getRowMapColumnMapper(name));
 		return sqlExecutor;
 	}
 
@@ -258,7 +268,7 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 	public List<Map<String, Object>> select(@Comment("`SQL`语句") String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		return (List<Map<String, Object>>) boundSql.getCacheValue(this.sqlCache, this.cacheName)
-				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.rowMapper, boundSql.getParameters()), boundSql));
+				.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.columnMapRowMapper, boundSql.getParameters()), boundSql));
 	}
 
 	/**
@@ -394,7 +404,7 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 		if (count > 0) {
 			String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, offset, limit);
 			list = (List<Object>) boundSql.removeCacheKey().getCacheValue(this.sqlCache, this.cacheName)
-					.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().query(pageSql, this.rowMapper, boundSql.getParameters()), boundSql));
+					.orElseGet(() -> putCacheValue(dataSourceNode.getJdbcTemplate().query(pageSql, this.columnMapRowMapper, boundSql.getParameters()), boundSql));
 		}
 		return resultProvider.buildPageResult(count, list);
 	}
@@ -417,7 +427,7 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 		BoundSql boundSql = new BoundSql(sql);
 		return (Map<String, Object>) boundSql.getCacheValue(this.sqlCache, this.cacheName)
 				.orElseGet(() -> {
-					List<Map<String, Object>> list = dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.rowMapper, boundSql.getParameters());
+					List<Map<String, Object>> list = dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.columnMapRowMapper, boundSql.getParameters());
 					return list != null && list.size() > 0 ? list.get(0) : null;
 				});
 	}

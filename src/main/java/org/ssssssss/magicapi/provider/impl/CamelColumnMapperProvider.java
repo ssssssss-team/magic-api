@@ -33,4 +33,17 @@ public class CamelColumnMapperProvider implements ColumnMapperProvider {
 		}
 		return sb.toString();
 	}
+
+	@Override
+	public String unmapping(String name) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < name.length(); i++) {
+			char ch = name.charAt(i);
+			if (Character.isUpperCase(ch)) {
+				sb.append("_");
+			}
+			sb.append(Character.toLowerCase(ch));
+		}
+		return sb.toString();
+	}
 }
