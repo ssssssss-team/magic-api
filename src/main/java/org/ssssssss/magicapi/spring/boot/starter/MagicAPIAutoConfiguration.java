@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -38,15 +37,13 @@ import org.ssssssss.script.MagicPackageLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.functions.ExtensionMethod;
-import org.ssssssss.script.reflection.AbstractReflection;
 import org.ssssssss.script.parsing.ast.statement.AsyncCall;
+import org.ssssssss.script.reflection.AbstractReflection;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -93,7 +90,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	private List<Dialect> dialects;
 
 	/**
-	 *	自定义的列名转换
+	 * 自定义的列名转换
 	 */
 	@Autowired(required = false)
 	List<ColumnMapperProvider> columnMapperProviders;
@@ -243,7 +240,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		requestHandler.setThrowException(properties.isThrowException());
 
 		WebUIController webUIController = createWebUIController(apiServiceProvider, mappingHandlerMapping);
-		if(webUIController != null){
+		if (webUIController != null) {
 			webUIController.setMagicDynamicDataSource(magicDynamicDataSource);
 			requestHandler.setWebUIController(webUIController);
 			requestHandler.setDebugTimeout(properties.getDebugConfig().getTimeout());
@@ -293,16 +290,17 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		columnMapperAdapter.add(new PascalColumnMapperProvider());
 		columnMapperAdapter.add(new LowerColumnMapperProvider());
 		columnMapperAdapter.add(new UpperColumnMapperProvider());
-		if(this.columnMapperProviders != null){
+		if (this.columnMapperProviders != null) {
 			for (ColumnMapperProvider mapperProvider : this.columnMapperProviders) {
-				if(!"default".equals(mapperProvider.name())){
+				if (!"default".equals(mapperProvider.name())) {
 					columnMapperAdapter.add(mapperProvider);
 				}
 			}
 		}
 		columnMapperAdapter.setDefault(properties.getSqlColumnCase());
 		sqlExecutor.setColumnMapperProvider(columnMapperAdapter);
-		sqlExecutor.setRowMapper(columnMapperAdapter.getDefault());
+		sqlExecutor.setColumnMapRowMapper(columnMapperAdapter.getDefaultColumnMapRowMapper());
+		sqlExecutor.setRowMapColumnMapper(columnMapperAdapter.getDefaultRowMapColumnMapper());
 		sqlExecutor.setSqlCache(sqlCache);
 		DialectAdapter dialectAdapter = new DialectAdapter();
 		dialectAdapter.add(new MySQLDialect());
@@ -312,7 +310,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		dialectAdapter.add(new DB2Dialect());
 		dialectAdapter.add(new SQLServerDialect());
 		dialectAdapter.add(new SQLServer2005Dialect());
-		if(dialects != null){
+		if (dialects != null) {
 			dialects.forEach(dialectAdapter::add);
 		}
 		return sqlExecutor;
