@@ -17,6 +17,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
@@ -27,8 +30,9 @@ import org.ssssssss.magicapi.cache.DefaultSqlCache;
 import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.dialect.*;
-import org.ssssssss.magicapi.functions.*;
+import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.logging.LoggerManager;
+import org.ssssssss.magicapi.modules.*;
 import org.ssssssss.magicapi.provider.*;
 import org.ssssssss.magicapi.provider.impl.*;
 import org.ssssssss.magicapi.utils.ClassScanner;
@@ -41,6 +45,7 @@ import org.ssssssss.script.parsing.ast.statement.AsyncCall;
 import org.ssssssss.script.reflection.AbstractReflection;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -151,6 +156,37 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		}
 	}
 
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		String web = properties.getWeb();
+		if (web != null) {
+			registry.addInterceptor(new HandlerInterceptor(){
+				@Override
+				public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+					if(handler instanceof HandlerMethod){
+						handler = ((HandlerMethod) handler).getBean();
+						if(handler instanceof RequestHandler || handler instanceof WebUIController || handler instanceof MagicAPIAutoConfiguration){
+							String value = request.getHeader("Origin");
+							if(StringUtils.isNotBlank(value)){
+								response.setHeader("Access-Control-Allow-Origin",value);
+								response.setHeader("Access-Control-Allow-Credentials","true");
+							}
+							value = request.getHeader("Access-Control-Request-Headers");
+							if(StringUtils.isNotBlank(value)){
+								response.setHeader("Access-Control-Allow-Headers",value);
+							}
+							value = request.getHeader("Access-Control-Request-Method");
+							if(StringUtils.isNotBlank(value)){
+								response.setHeader("Access-Control-Allow-Method",value);
+							}
+						}
+					}
+					return true;
+				}
+			}).addPathPatterns("/**");
+		}
+	}
+
 	@ConditionalOnMissingBean(PageProvider.class)
 	@Bean
 	public PageProvider pageProvider() {
@@ -210,9 +246,16 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	/**
+	 * 注入分组存储service
+	 */
+	@Bean
+	public GroupServiceProvider GroupServiceProvider(MagicDynamicDataSource dynamicDataSource) {
+		return new DefaultGroupServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
+	}
+
+	/**
 	 * 注入API调用Service
 	 */
-	@ConditionalOnMissingBean(MagicAPIService.class)
 	@Bean
 	public MagicAPIService magicAPIService(MappingHandlerMapping mappingHandlerMapping, ResultProvider resultProvider) {
 		return new DefaultMagicAPIService(mappingHandlerMapping, resultProvider, properties.isThrowException());
@@ -223,6 +266,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 */
 	@Bean
 	public RequestHandler requestHandler(ApiServiceProvider apiServiceProvider,
+										 GroupServiceProvider groupServiceProvider,
 										 MagicDynamicDataSource magicDynamicDataSource,
 										 // url 映射
 										 MappingHandlerMapping mappingHandlerMapping,
@@ -239,7 +283,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		requestHandler.setResultProvider(resultProvider);
 		requestHandler.setThrowException(properties.isThrowException());
 
-		WebUIController webUIController = createWebUIController(apiServiceProvider, mappingHandlerMapping);
+		WebUIController webUIController = createWebUIController(apiServiceProvider, groupServiceProvider, mappingHandlerMapping);
 		if (webUIController != null) {
 			webUIController.setMagicDynamicDataSource(magicDynamicDataSource);
 			requestHandler.setWebUIController(webUIController);
@@ -248,6 +292,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		mappingHandlerMapping.setHandler(requestHandler);
 		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
 		mappingHandlerMapping.setMagicApiService(apiServiceProvider);
+		mappingHandlerMapping.setGroupServiceProvider(groupServiceProvider);
 		// 设置拦截器
 		setupRequestInterceptor(webUIController, requestHandler);
 		// 注册所有映射
@@ -280,10 +325,10 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 * 注入数据库查询模块
 	 */
 	@Bean
-	public SQLExecutor magicSQLExecutor(MagicDynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
-		SQLExecutor sqlExecutor = new SQLExecutor(dynamicDataSource);
-		sqlExecutor.setResultProvider(resultProvider);
-		sqlExecutor.setPageProvider(pageProvider);
+	public SQLModule magicSqlModule(MagicDynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
+		SQLModule sqlModule = new SQLModule(dynamicDataSource);
+		sqlModule.setResultProvider(resultProvider);
+		sqlModule.setPageProvider(pageProvider);
 		ColumnMapperAdapter columnMapperAdapter = new ColumnMapperAdapter();
 		columnMapperAdapter.setDefault(new DefaultColumnMapperProvider());
 		columnMapperAdapter.add(new CamelColumnMapperProvider());
@@ -298,10 +343,10 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			}
 		}
 		columnMapperAdapter.setDefault(properties.getSqlColumnCase());
-		sqlExecutor.setColumnMapperProvider(columnMapperAdapter);
-		sqlExecutor.setColumnMapRowMapper(columnMapperAdapter.getDefaultColumnMapRowMapper());
-		sqlExecutor.setRowMapColumnMapper(columnMapperAdapter.getDefaultRowMapColumnMapper());
-		sqlExecutor.setSqlCache(sqlCache);
+		sqlModule.setColumnMapperProvider(columnMapperAdapter);
+		sqlModule.setColumnMapRowMapper(columnMapperAdapter.getDefaultColumnMapRowMapper());
+		sqlModule.setRowMapColumnMapper(columnMapperAdapter.getDefaultRowMapColumnMapper());
+		sqlModule.setSqlCache(sqlCache);
 		DialectAdapter dialectAdapter = new DialectAdapter();
 		dialectAdapter.add(new MySQLDialect());
 		dialectAdapter.add(new OracleDialect());
@@ -313,7 +358,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		if (dialects != null) {
 			dialects.forEach(dialectAdapter::add);
 		}
-		return sqlExecutor;
+		return sqlModule;
 	}
 
 	/**
@@ -337,14 +382,14 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		logger.info("注册模块:{} -> {}", "log", Logger.class);
 		MagicModuleLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
 		List<String> importModules = properties.getAutoImportModuleList();
-		logger.info("注册模块:{} -> {}", "env", EnvFunctions.class);
-		MagicModuleLoader.addModule("env", new EnvFunctions(environment));
-		logger.info("注册模块:{} -> {}", "request", RequestFunctions.class);
-		MagicModuleLoader.addModule("request", new RequestFunctions());
-		logger.info("注册模块:{} -> {}", "response", ResponseFunctions.class);
-		MagicModuleLoader.addModule("response", new ResponseFunctions(resultProvider));
-		logger.info("注册模块:{} -> {}", "assert", AssertFunctions.class);
-		MagicModuleLoader.addModule("assert", AssertFunctions.class);
+		logger.info("注册模块:{} -> {}", "env", EnvModule.class);
+		MagicModuleLoader.addModule("env", new EnvModule(environment));
+		logger.info("注册模块:{} -> {}", "request", RequestModule.class);
+		MagicModuleLoader.addModule("request", new RequestModule());
+		logger.info("注册模块:{} -> {}", "response", ResponseModule.class);
+		MagicModuleLoader.addModule("response", new ResponseModule(resultProvider));
+		logger.info("注册模块:{} -> {}", "assert", AssertModule.class);
+		MagicModuleLoader.addModule("assert", AssertModule.class);
 		if (magicModules != null) {
 			for (MagicModule module : magicModules) {
 				logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
@@ -394,12 +439,13 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	/**
 	 * 创建UI对应的后台Controller
 	 */
-	private WebUIController createWebUIController(ApiServiceProvider apiServiceProvider, MappingHandlerMapping mappingHandlerMapping) {
+	private WebUIController createWebUIController(ApiServiceProvider apiServiceProvider, GroupServiceProvider groupServiceProvider, MappingHandlerMapping mappingHandlerMapping) {
 		if (properties.getWeb() == null) {    //	判断是否开启了UI界面
 			return null;
 		}
 		WebUIController controller = new WebUIController();
 		controller.setMagicApiService(apiServiceProvider);
+		controller.setGroupServiceProvider(groupServiceProvider);
 		controller.setMappingHandlerMapping(mappingHandlerMapping);
 		SecurityConfig securityConfig = properties.getSecurityConfig();
 		controller.setUsername(securityConfig.getUsername());

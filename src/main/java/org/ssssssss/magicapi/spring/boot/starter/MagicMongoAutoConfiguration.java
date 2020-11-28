@@ -6,9 +6,9 @@ import com.mongodb.client.MongoCollection;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.ssssssss.magicapi.functions.MongoCollectionExtension;
-import org.ssssssss.magicapi.functions.MongoFindIterableExtension;
-import org.ssssssss.magicapi.functions.MongoFunctions;
+import org.ssssssss.magicapi.modules.MongoCollectionExtension;
+import org.ssssssss.magicapi.modules.MongoFindIterableExtension;
+import org.ssssssss.magicapi.modules.MongoModule;
 import org.ssssssss.script.reflection.AbstractReflection;
 
 /**
@@ -22,9 +22,9 @@ public class MagicMongoAutoConfiguration {
 	 * 注入mongo模块
 	 */
 	@Bean
-	public MongoFunctions mongoFunctions(MongoClient mongoClient) {
+	public MongoModule mongoFunctions(MongoClient mongoClient) {
 		AbstractReflection.getInstance().registerExtensionClass(MongoCollection.class, MongoCollectionExtension.class);
 		AbstractReflection.getInstance().registerExtensionClass(FindIterable.class, MongoFindIterableExtension.class);
-		return new MongoFunctions(mongoClient);
+		return new MongoModule(mongoClient);
 	}
 }

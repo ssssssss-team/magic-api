@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
+import org.ssssssss.magicapi.provider.GroupServiceProvider;
 import org.ssssssss.magicapi.swagger.SwaggerProvider;
 import springfox.documentation.swagger.web.SwaggerResource;
 import springfox.documentation.swagger.web.SwaggerResourcesProvider;
@@ -44,12 +45,13 @@ public class MagicSwaggerConfiguration {
 
 	@Bean
 	@Primary
-	public SwaggerResourcesProvider magicSwaggerResourcesProvider(MappingHandlerMapping handlerMapping) throws NoSuchMethodException {
+	public SwaggerResourcesProvider magicSwaggerResourcesProvider(MappingHandlerMapping handlerMapping, GroupServiceProvider groupServiceProvider) throws NoSuchMethodException {
 		SwaggerConfig config = properties.getSwaggerConfig();
 		RequestMappingInfo requestMappingInfo = RequestMappingInfo.paths(config.getLocation()).build();
 
 		// 构建文档信息
 		SwaggerProvider swaggerProvider = new SwaggerProvider();
+		swaggerProvider.setGroupServiceProvider(groupServiceProvider);
 		swaggerProvider.setMappingHandlerMapping(handlerMapping);
 		swaggerProvider.setTitle(config.getTitle());
 		swaggerProvider.setDescription(config.getDescription());

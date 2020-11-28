@@ -4,7 +4,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.ssssssss.magicapi.functions.RedisFunctions;
+import org.ssssssss.magicapi.modules.RedisModule;
 
 /**
  * redis配置
@@ -17,7 +17,7 @@ public class MagicRedisAutoConfiguration {
 	 * 注入redis模块
 	 */
 	@Bean
-	public RedisFunctions redisFunctions(RedisConnectionFactory connectionFactory) {
-		return new RedisFunctions(connectionFactory);
+	public RedisModule redisFunctions(RedisConnectionFactory connectionFactory) {
+		return new RedisModule(connectionFactory);
 	}
 }
