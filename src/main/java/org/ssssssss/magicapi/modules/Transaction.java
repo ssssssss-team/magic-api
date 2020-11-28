@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.functions;
+package org.ssssssss.magicapi.modules;
 
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.TransactionDefinition;

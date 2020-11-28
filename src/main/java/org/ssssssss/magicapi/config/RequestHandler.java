@@ -18,10 +18,12 @@ import org.ssssssss.magicapi.context.CookieContext;
 import org.ssssssss.magicapi.context.HeaderContext;
 import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.context.SessionContext;
-import org.ssssssss.magicapi.functions.ResponseFunctions;
+import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
+import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.model.JsonBodyBean;
+import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
 import org.ssssssss.script.MagicScript;
@@ -247,7 +249,7 @@ public class RequestHandler {
 				return ResponseEntity.ok(new JsonBean<>(entity.getBody()));
 			}
 			return ResponseEntity.ok(new JsonBean<>(convertToBase64(entity.getBody())));
-		} else if (result instanceof ResponseFunctions.NullValue) {
+		} else if (result instanceof ResponseModule.NullValue) {
 			return new JsonBean<>(1, "empty.");
 		}
 		return new JsonBean<>(resultProvider.buildResult(result));
@@ -379,7 +381,7 @@ public class RequestHandler {
 	private Object response(Object value) {
 		if (value instanceof ResponseEntity) {
 			return value;
-		} else if (value instanceof ResponseFunctions.NullValue) {
+		} else if (value instanceof ResponseModule.NullValue) {
 			return null;
 		}
 		return resultProvider.buildResult(value);

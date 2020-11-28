@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.functions;
+package org.ssssssss.magicapi.modules;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;

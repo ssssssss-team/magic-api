@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.config;
+package org.ssssssss.magicapi.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -38,14 +38,9 @@ public class ApiInfo {
 	private String name;
 
 	/**
-	 * 接口分组名称
+	 * 分组ID
 	 */
-	private String groupName;
-
-	/**
-	 * 分组前缀
-	 */
-	private String groupPrefix;
+	private String groupId;
 
 	/**
 	 * 设置的请求参数
@@ -107,14 +102,6 @@ public class ApiInfo {
 		this.name = name;
 	}
 
-	public void setGroupName(String groupName) {
-		this.groupName = groupName;
-	}
-
-	public String getGroupName() {
-		return groupName;
-	}
-
 	public String getParameter() {
 		return parameter;
 	}
@@ -131,14 +118,13 @@ public class ApiInfo {
 		this.output = output;
 	}
 
-	public String getGroupPrefix() {
-		return groupPrefix;
+	public String getGroupId() {
+		return groupId;
 	}
 
-	public void setGroupPrefix(String groupPrefix) {
-		this.groupPrefix = groupPrefix;
+	public void setGroupId(String groupId) {
+		this.groupId = groupId;
 	}
-
 
 	public Map getOptionMap() {
 		return optionMap;
@@ -178,8 +164,7 @@ public class ApiInfo {
 				Objects.equals(path, apiInfo.path) &&
 				Objects.equals(script, apiInfo.script) &&
 				Objects.equals(name, apiInfo.name) &&
-				Objects.equals(groupName, apiInfo.groupName) &&
-				Objects.equals(groupPrefix, apiInfo.groupPrefix) &&
+				Objects.equals(groupId, apiInfo.groupId) &&
 				Objects.equals(parameter, apiInfo.parameter) &&
 				Objects.equals(option, apiInfo.option) &&
 				Objects.equals(output, apiInfo.output);
@@ -187,6 +172,6 @@ public class ApiInfo {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, method, path, script, name, groupName, groupPrefix, parameter, option, output);
+		return Objects.hash(id, method, path, script, name, groupId, parameter, option, output);
 	}
 }

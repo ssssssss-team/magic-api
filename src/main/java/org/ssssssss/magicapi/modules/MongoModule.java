@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.functions;
+package org.ssssssss.magicapi.modules;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -9,11 +9,11 @@ import java.util.HashMap;
 /**
  * mongo模块
  */
-public class MongoFunctions extends HashMap<String,Object> implements MagicModule {
+public class MongoModule extends HashMap<String, Object> implements MagicModule {
 
 	private MongoClient mongoClient;
 
-	public MongoFunctions(MongoClient mongoClient) {
+	public MongoModule(MongoClient mongoClient) {
 		this.mongoClient = mongoClient;
 	}
 

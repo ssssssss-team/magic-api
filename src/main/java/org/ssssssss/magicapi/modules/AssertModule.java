@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.functions;
+package org.ssssssss.magicapi.modules;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.magicapi.config.MagicModule;
@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 /**
  * 断言模块
  */
-public class AssertFunctions implements MagicModule {
+public class AssertModule implements MagicModule {
 
 	/**
 	 * 判断值不能为null

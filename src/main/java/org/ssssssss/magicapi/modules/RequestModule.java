@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.functions;
+package org.ssssssss.magicapi.modules;
 
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartRequest;
@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * request 模块
  */
-public class RequestFunctions {
+public class RequestModule {
 
 	/**
 	 * 获取文件信息

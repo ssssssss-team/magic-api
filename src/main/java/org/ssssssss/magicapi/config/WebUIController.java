@@ -6,10 +6,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import org.ssssssss.magicapi.functions.SQLExecutor;
+import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
+import org.ssssssss.magicapi.model.ApiInfo;
+import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.JsonBean;
+import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
+import org.ssssssss.magicapi.provider.GroupServiceProvider;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.utils.MD5Utils;
 import org.ssssssss.script.MagicModuleLoader;
@@ -36,9 +40,14 @@ public class WebUIController {
 	private MappingHandlerMapping mappingHandlerMapping;
 
 	/**
-	 * 接口查询service
+	 * 接口查询Service
 	 */
 	private ApiServiceProvider magicApiService;
+
+	/**
+	 * 分组查询Service
+	 */
+	private GroupServiceProvider groupServiceProvider;
 
 
 	/**
@@ -65,8 +74,12 @@ public class WebUIController {
 
 	public WebUIController() {
 		// 给前端添加代码提示
-		MagicScriptEngine.addScriptClass(SQLExecutor.class);
+		MagicScriptEngine.addScriptClass(SQLModule.class);
 		MagicScriptEngine.addScriptClass(MagicAPIService.class);
+	}
+
+	public void setGroupServiceProvider(GroupServiceProvider groupServiceProvider) {
+		this.groupServiceProvider = groupServiceProvider;
 	}
 
 	public void setMagicDynamicDataSource(MagicDynamicDataSource magicDynamicDataSource) {
@@ -93,15 +106,15 @@ public class WebUIController {
 		this.password = password;
 	}
 
+
 	/**
 	 * 删除接口
 	 *
-	 * @param request
-	 * @param id      接口ID
+	 * @param id 接口ID
 	 */
 	@RequestMapping("/delete")
 	@ResponseBody
-	public JsonBean<Boolean> delete(HttpServletRequest request, String id) {
+	public JsonBean<Boolean> delete(String id, HttpServletRequest request) {
 		if (!allowVisit(request, RequestInterceptor.Authorization.DELETE)) {
 			return new JsonBean<>(-10, "无权限执行删除方法");
 		}
@@ -118,28 +131,45 @@ public class WebUIController {
 	}
 
 	/**
-	 * 删除接口分组
-	 *
-	 * @param apiIds    接口ID列表，逗号分隔
-	 * @param groupName 分组名称
+	 * 创建分组
+	 */
+	@RequestMapping("/group/create")
+	@ResponseBody
+	public JsonBean<String> createGroup(Group group, HttpServletRequest request) {
+		if (!allowVisit(request, RequestInterceptor.Authorization.SAVE)) {
+			return new JsonBean<>(-10, "无权限执行保存方法");
+		}
+		if (StringUtils.isBlank(group.getParentId())) {
+			group.setParentId("0");
+		}
+		if (StringUtils.isBlank(group.getName())) {
+			return new JsonBean<>(0, "分组名称不能为空");
+		}
+		if (StringUtils.isBlank(group.getType())) {
+			return new JsonBean<>(0, "分组类型不能为空");
+		}
+		try {
+			groupServiceProvider.insert(group);
+			return new JsonBean<>(group.getId());
+		} catch (Exception e) {
+			logger.error("保存分组出错", e);
+			return new JsonBean<>(-1, e.getMessage());
+		}
+	}
+
+	/**
+	 * 删除分组
 	 */
 	@RequestMapping("/group/delete")
 	@ResponseBody
-	public JsonBean<Boolean> deleteGroup(HttpServletRequest request, String apiIds, String groupName) {
+	public JsonBean<Boolean> deleteGroup(String groupId, HttpServletRequest request) {
 		if (!allowVisit(request, RequestInterceptor.Authorization.DELETE)) {
 			return new JsonBean<>(-10, "无权限执行删除方法");
 		}
 		try {
-			boolean success = this.magicApiService.deleteGroup(groupName);
+			boolean success = this.magicApiService.deleteGroup(groupId) && this.groupServiceProvider.delete(groupId);
 			if (success) {    //删除成功时取消注册
-				if (StringUtils.isNotBlank(apiIds)) {
-					String[] ids = apiIds.split(",");
-					if (ids.length > 0) {
-						for (String id : ids) {
-							mappingHandlerMapping.unregisterMapping(id, true);
-						}
-					}
-				}
+				mappingHandlerMapping.deleteGroup(groupId);
 			}
 			return new JsonBean<>(success);
 		} catch (Exception e) {
@@ -150,25 +180,48 @@ public class WebUIController {
 
 	/**
 	 * 修改分组
-	 *
-	 * @param groupName    分组名称
-	 * @param oldGroupName 原分组名称
-	 * @param prefix       分组前缀
 	 */
 	@RequestMapping("/group/update")
 	@ResponseBody
-	public JsonBean<Boolean> groupUpdate(String groupName, String oldGroupName, String prefix, HttpServletRequest request) {
+	public synchronized JsonBean<Boolean> groupUpdate(Group group, HttpServletRequest request) {
 		if (!allowVisit(request, RequestInterceptor.Authorization.SAVE)) {
 			return new JsonBean<>(-10, "无权限执行删除方法");
 		}
+		if (StringUtils.isBlank(group.getParentId())) {
+			group.setParentId("0");
+		}
+		if (StringUtils.isBlank(group.getName())) {
+			return new JsonBean<>(0, "分组名称不能为空");
+		}
+		if (StringUtils.isBlank(group.getType())) {
+			return new JsonBean<>(0, "分组类型不能为空");
+		}
 		try {
-			boolean success = magicApiService.updateGroup(oldGroupName, groupName, prefix);
-			if (success) {
-				mappingHandlerMapping.updateGroupPrefix(oldGroupName, groupName, prefix);
+			boolean isApiGroup = "1".equals(group.getType());
+			if (!isApiGroup || mappingHandlerMapping.checkGroup(group)) {
+				boolean success = groupServiceProvider.update(group);
+				if (success && isApiGroup) {    // 如果数据库修改成功，则修改接口路径
+					mappingHandlerMapping.updateGroup(group);
+				}
+				return new JsonBean<>(success);
 			}
-			return new JsonBean<>(success);
+			return new JsonBean<>(-20, "修改分组后，接口路径会有冲突，请检查！");
 		} catch (Exception e) {
 			logger.error("修改分组出错", e);
+			return new JsonBean<>(-1, e.getMessage());
+		}
+	}
+
+	/**
+	 * 查询所有分组
+	 */
+	@RequestMapping("/group/list")
+	@ResponseBody
+	public JsonBean<List<Group>> groupList() {
+		try {
+			return new JsonBean<>(groupServiceProvider.groupList());
+		} catch (Exception e) {
+			logger.error("查询分组列表失败", e);
 			return new JsonBean<>(-1, e.getMessage());
 		}
 	}
@@ -212,9 +265,9 @@ public class WebUIController {
 	public JsonBean<Map<String, Map<String, ScriptClass>>> classes() {
 		Map<String, ScriptClass> classMap = MagicScriptEngine.getScriptClassMap();
 		classMap.putAll(MagicModuleLoader.getModules());
-		ScriptClass db = classMap.get(SQLExecutor.class.getName());
+		ScriptClass db = classMap.get(SQLModule.class.getName());
 		if (db != null) {
-			List<ScriptClass.ScriptAttribute> attributes =  new ArrayList<>();
+			List<ScriptClass.ScriptAttribute> attributes = new ArrayList<>();
 			// 给与前台动态数据源提示
 			magicDynamicDataSource.datasources().stream().filter(StringUtils::isNotBlank)
 					.forEach(item -> attributes.add(new ScriptClass.ScriptAttribute("db", item)));
@@ -291,6 +344,30 @@ public class WebUIController {
 	}
 
 	/**
+	 * 移动接口
+	 */
+	@RequestMapping("/api/move")
+	@ResponseBody
+	public JsonBean<Boolean> apiMove(String id, String groupId, HttpServletRequest request) {
+		if (!allowVisit(request, RequestInterceptor.Authorization.SAVE)) {
+			return new JsonBean<>(-10, "无权限执行保存方法");
+		}
+		if (!groupServiceProvider.contains(groupId)) {
+			return new JsonBean<>(0, "找不到分组信息");
+		}
+		try {
+			if (!mappingHandlerMapping.move(id, groupId)) {
+				return new JsonBean<>(0, "移动接口失败！");
+			} else {
+				return new JsonBean<>(magicApiService.move(id, groupId));
+			}
+		} catch (Exception e) {
+			logger.error("移动接口出错", e);
+			return new JsonBean<>(-1, e.getMessage());
+		}
+	}
+
+	/**
 	 * 保存接口
 	 *
 	 * @param info 接口信息
@@ -304,12 +381,6 @@ public class WebUIController {
 		try {
 			if (StringUtils.isBlank(info.getMethod())) {
 				return new JsonBean<>(0, "请求方法不能为空");
-			}
-			if (info.getGroupName() != null && (info.getGroupName().contains("'") || info.getGroupName().contains("\""))) {
-				return new JsonBean<>(0, "分组名不能包含特殊字符' \"");
-			}
-			if (info.getGroupPrefix() != null && (info.getGroupPrefix().contains("'") || info.getGroupPrefix().contains("\""))) {
-				return new JsonBean<>(0, "分组前缀不能包含特殊字符' \"");
 			}
 			if (StringUtils.isBlank(info.getPath())) {
 				return new JsonBean<>(0, "请求路径不能为空");
@@ -325,13 +396,13 @@ public class WebUIController {
 			}
 			if (StringUtils.isBlank(info.getId())) {
 				// 先判断接口是否存在
-				if (magicApiService.exists(info.getGroupPrefix(), info.getMethod(), info.getPath())) {
+				if (magicApiService.exists(info.getGroupId(), info.getMethod(), info.getPath())) {
 					return new JsonBean<>(0, String.format("接口%s:%s已存在", info.getMethod(), info.getPath()));
 				}
 				magicApiService.insert(info);
 			} else {
 				// 先判断接口是否存在
-				if (magicApiService.existsWithoutId(info.getGroupPrefix(), info.getMethod(), info.getPath(), info.getId())) {
+				if (magicApiService.existsWithoutId(info.getGroupId(), info.getMethod(), info.getPath(), info.getId())) {
 					return new JsonBean<>(0, String.format("接口%s:%s已存在", info.getMethod(), info.getPath()));
 				}
 				magicApiService.update(info);

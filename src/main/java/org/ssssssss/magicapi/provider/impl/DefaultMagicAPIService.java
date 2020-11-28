@@ -1,8 +1,8 @@
 package org.ssssssss.magicapi.provider.impl;
 
-import org.ssssssss.magicapi.config.ApiInfo;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.exception.MagicServiceException;
+import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;

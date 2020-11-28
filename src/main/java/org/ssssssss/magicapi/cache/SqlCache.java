@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.cache;
 
-import org.ssssssss.magicapi.functions.BoundSql;
+import org.ssssssss.magicapi.modules.BoundSql;
 import org.ssssssss.magicapi.utils.MD5Utils;
 
 import java.util.Arrays;

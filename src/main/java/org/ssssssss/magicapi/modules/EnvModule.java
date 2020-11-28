@@ -1,14 +1,14 @@
-package org.ssssssss.magicapi.functions;
+package org.ssssssss.magicapi.modules;
 
 import org.springframework.core.env.Environment;
 import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.script.annotation.Comment;
 
-public class EnvFunctions implements MagicModule {
+public class EnvModule implements MagicModule {
 
 	private Environment environment;
 
-	public EnvFunctions(Environment environment) {
+	public EnvModule(Environment environment) {
 		this.environment = environment;
 	}
 

@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.functions;
+package org.ssssssss.magicapi.modules;
 
 import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.script.MagicScriptContext;

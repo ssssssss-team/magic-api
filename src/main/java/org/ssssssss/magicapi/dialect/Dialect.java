@@ -1,7 +1,7 @@
 package org.ssssssss.magicapi.dialect;
 
 
-import org.ssssssss.magicapi.functions.BoundSql;
+import org.ssssssss.magicapi.modules.BoundSql;
 
 public interface Dialect {
 

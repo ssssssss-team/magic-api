@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.functions;
+package org.ssssssss.magicapi.modules;
 
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
@@ -7,13 +7,12 @@ import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.script.functions.DynamicMethod;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
  * redis模块
  */
-public class RedisFunctions implements MagicModule, DynamicMethod {
+public class RedisModule implements MagicModule, DynamicMethod {
 
 	@Override
 	public String getModuleName() {
@@ -22,7 +21,7 @@ public class RedisFunctions implements MagicModule, DynamicMethod {
 
 	private StringRedisTemplate redisTemplate;
 
-	public RedisFunctions(RedisConnectionFactory connectionFactory) {
+	public RedisModule(RedisConnectionFactory connectionFactory) {
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
 	}
 

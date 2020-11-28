@@ -11,7 +11,12 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.ssssssss.magicapi.model.ApiInfo;
+import org.ssssssss.magicapi.model.Group;
+import org.ssssssss.magicapi.model.TreeNode;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
+import org.ssssssss.magicapi.provider.GroupServiceProvider;
+import org.ssssssss.magicapi.utils.PathUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -53,10 +58,21 @@ public class MappingHandlerMapping {
 	 * 接口信息读取
 	 */
 	private ApiServiceProvider magicApiService;
+
+	/**
+	 * 分组信息读取
+	 */
+	private GroupServiceProvider groupServiceProvider;
+
 	/**
 	 * 统一接口前缀
 	 */
 	private String prefix;
+
+	/**
+	 * 接口分组
+	 */
+	private TreeNode<Group> groups;
 
 	/**
 	 * 是否覆盖应用接口
@@ -102,10 +118,9 @@ public class MappingHandlerMapping {
 	 *
 	 * @param requestMethod  请求方法
 	 * @param requestMapping 请求路径
-	 * @return
 	 */
 	public static String buildMappingKey(String requestMethod, String requestMapping) {
-		//TODO 判断 requestMapping 是否已 “/” 开头
+
 		if (!StringUtils.isEmpty(requestMapping) && !requestMapping.startsWith("/")) {
 			requestMapping = "/" + requestMapping;
 		}
@@ -124,8 +139,19 @@ public class MappingHandlerMapping {
 		this.magicApiService = magicApiService;
 	}
 
+	public void setGroupServiceProvider(GroupServiceProvider groupServiceProvider) {
+		this.groupServiceProvider = groupServiceProvider;
+	}
+
 	public List<ApiInfo> getApiInfos() {
 		return apiInfos;
+	}
+
+	/**
+	 * 加载所有分组
+	 */
+	public void loadGroup() {
+		groups = groupServiceProvider.apiGroupList();
 	}
 
 	/**
@@ -133,8 +159,10 @@ public class MappingHandlerMapping {
 	 */
 	public void registerAllMapping() {
 		try {
+			loadGroup();
 			List<ApiInfo> list = magicApiService.listWithScript();
 			if (list != null) {
+				list = list.stream().filter(it -> groupServiceProvider.getFullPath(it.getGroupId()) != null).collect(Collectors.toList());
 				for (ApiInfo info : list) {
 					try {
 						// 当接口存在时，刷新缓存
@@ -169,34 +197,86 @@ public class MappingHandlerMapping {
 		return mappings.get(buildMappingKey(method, requestMapping));
 	}
 
-	public void updateGroupPrefix(String oldGroupName, String newGroupName, String prefix) {
-		for (ApiInfo info : apiInfos) {
-			if (oldGroupName.equals(info.getGroupName())) {
-				unregisterMapping(info.getId(), false);
-				info.setGroupName(newGroupName);
-				info.setGroupPrefix(prefix);
-				registerMapping(info, false);
+	/**
+	 * 检测是否允许修改
+	 */
+	boolean checkGroup(Group group) {
+		Group oldGroup = groups.findNode((item) -> item.getId().equals(group.getId()));
+		// 如果只改了名字，则不做任何操作
+		if (Objects.equals(oldGroup.getParentId(), group.getParentId()) &&
+				Objects.equals(oldGroup.getPath(), group.getPath())) {
+			return true;
+		}
+		// 新的接口分组路径
+		String newPath = groupServiceProvider.getFullPath(group.getParentId()) + "/" + Objects.toString(group.getPath(), "");
+		// 获取要移动的接口
+		List<ApiInfo> infos = apiInfos.stream().filter(info -> Objects.equals(info.getGroupId(), oldGroup.getId())).collect(Collectors.toList());
+
+		// 判断是否有冲突
+		for (ApiInfo info : infos) {
+			String path = getRequestPath(newPath, info.getPath());
+			String mappingKey = buildMappingKey(info.getMethod(), path);
+			if (mappings.containsKey(mappingKey)) {
+				return false;
+			}
+			if (!allowOverride) {
+				Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.requestMappingHandlerMapping.getHandlerMethods();
+				if (handlerMethods != null) {
+					if (handlerMethods.get(getRequestMapping(info.getMethod(), path)) != null) {
+						return false;
+					}
+				}
 			}
 		}
+		return true;
+	}
+
+	/**
+	 * 删除分组
+	 */
+	void deleteGroup(String groupId) {
+		// 找到下级所有分组
+		List<String> groupIds = groups.findNodes((item) -> item.getId().equals(groupId)).stream().map(Group::getId).collect(Collectors.toList());
+		groupIds.add(groupId);
+		// 找到对应的所有接口
+		List<ApiInfo> deleteInfos = apiInfos.stream().filter(info -> groupIds.contains(info.getGroupId())).collect(Collectors.toList());
+		for (ApiInfo info : deleteInfos) {
+			unregisterMapping(info.getId(), true);
+		}
+		// 全部删除
+		apiInfos.removeAll(deleteInfos);
+	}
+
+	/**
+	 * 修改分组
+	 */
+	void updateGroup(Group group) {
+		loadGroup();    // 重新加载分组
+		Group oldGroup = groups.findNode((item) -> item.getId().equals(group.getId()));
+		apiInfos.stream().filter(info -> Objects.equals(info.getGroupId(), oldGroup.getId())).forEach(info -> {
+			unregisterMapping(info.getId(), false);
+			info.setGroupId(group.getId());
+			registerMapping(info, false);
+		});
 	}
 
 	/**
 	 * 判断是否已注册
 	 */
-	public boolean hasRegisterMapping(ApiInfo info) {
+	boolean hasRegisterMapping(ApiInfo info) {
 		if (info.getId() != null) {
 			ApiInfo oldInfo = mappings.get(info.getId());
 			if (oldInfo != null
-					&& Objects.equals(oldInfo.getGroupPrefix(), info.getGroupPrefix())
+					&& Objects.equals(oldInfo.getGroupId(), info.getGroupId())
 					&& Objects.equals(oldInfo.getMethod(), info.getMethod())
 					&& Objects.equals(oldInfo.getPath(), info.getPath())) {
 				return false;
 			}
 		}
-		if(mappings.containsKey(getMappingKey(info))){
+		if (mappings.containsKey(getMappingKey(info))) {
 			return true;
 		}
-		if(!allowOverride){
+		if (!allowOverride) {
 			Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.requestMappingHandlerMapping.getHandlerMethods();
 			if (handlerMethods != null) {
 				return handlerMethods.get(getRequestMapping(info)) != null;
@@ -206,9 +286,22 @@ public class MappingHandlerMapping {
 	}
 
 	/**
+	 * 接口移动
+	 */
+	boolean move(String id, String groupId) {
+		ApiInfo oldInfo = mappings.get(id);
+		if (oldInfo == null) {
+			return false;
+		}
+		oldInfo.setGroupId(groupId);
+		registerMapping(oldInfo, false);
+		return true;
+	}
+
+	/**
 	 * 注册请求映射
 	 */
-	public void registerMapping(ApiInfo info, boolean delete) {
+	void registerMapping(ApiInfo info, boolean delete) {
 		// 先判断是否已注册，如果已注册，则先取消注册在进行注册。
 		ApiInfo oldInfo = mappings.get(info.getId());
 		String newMappingKey = getMappingKey(info);
@@ -219,12 +312,12 @@ public class MappingHandlerMapping {
 				if (!info.equals(oldInfo)) {
 					mappings.put(info.getId(), info);
 					mappings.put(newMappingKey, info);
-					logger.info("刷新接口:{}", info.getName());
+					logger.info("刷新接口:{},{}", info.getName(), newMappingKey);
 				}
 				return;
 			}
 			// URL不一致时，需要取消注册旧接口，重新注册新接口
-			logger.info("取消注册接口:{}", oldInfo.getName());
+			logger.info("取消注册接口:{},{}", oldInfo.getName(), newMappingKey);
 			// 取消注册
 			mappings.remove(oldMappingKey);
 			requestMappingHandlerMapping.unregisterMapping(getRequestMapping(oldInfo));
@@ -232,17 +325,11 @@ public class MappingHandlerMapping {
 		// 注册
 		RequestMappingInfo requestMapping = getRequestMapping(info);
 		// 如果与应用冲突
-		if (requestMappingHandlerMapping.getHandlerMethods().containsKey(requestMapping)) {
-			if (!allowOverride) {
-				// 不允许覆盖
-				logger.error("接口{}与应用冲突，无法注册", info.getName());
-				return;
-			}
-			logger.warn("取消注册应用接口:{}", requestMapping);
-			// 取消注册原接口
-			requestMappingHandlerMapping.unregisterMapping(requestMapping);
+		if (!overrideApplicationMapping(requestMapping)) {
+			logger.error("接口{},{}与应用冲突，无法注册", info.getName(), newMappingKey);
+			return;
 		}
-		logger.info("注册接口:{}", info.getName());
+		logger.info("注册接口:{},{}", info.getName(), newMappingKey);
 		mappings.put(info.getId(), info);
 		mappings.put(newMappingKey, info);
 		requestMappingHandlerMapping.registerMapping(requestMapping, handler, method);
@@ -255,7 +342,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 取消注册请求映射
 	 */
-	public void unregisterMapping(String id, boolean delete) {
+	void unregisterMapping(String id, boolean delete) {
 		ApiInfo info = mappings.remove(id);
 		if (info != null) {
 			logger.info("取消注册接口:{}", info.getName());
@@ -271,35 +358,51 @@ public class MappingHandlerMapping {
 	 * 根据接口信息获取绑定map的key
 	 */
 	private String getMappingKey(ApiInfo info) {
-		return buildMappingKey(info.getMethod(), getRequestPath(info.getGroupPrefix(), info.getPath()));
+		return buildMappingKey(info.getMethod(), getRequestPath(info.getGroupId(), info.getPath()));
 	}
 
 	/**
 	 * 处理前缀
 	 *
-	 * @param groupPrefix 分组前缀
-	 * @param path        请求路径
+	 * @param groupId 分组ID
+	 * @param path    请求路径
 	 */
-	public String getRequestPath(String groupPrefix, String path) {
-		groupPrefix = groupPrefix == null ? "" : groupPrefix;
-		while (groupPrefix.endsWith("/")) {
-			groupPrefix = groupPrefix.substring(0, groupPrefix.length() - 1);
-		}
-		while (path.startsWith("/")) {
-			path = path.substring(1);
-		}
-		path = groupPrefix + "/" + path;
+	public String getRequestPath(String groupId, String path) {
+		path = groupServiceProvider.getFullPath(groupId) + "/" + path;
 		if (prefix != null) {
-			path = prefix + (path.startsWith("/") ? path.substring(1) : path);
+			path = prefix + "/" + path;
 		}
-		return path;
+		return PathUtils.replaceSlash(path);
+	}
+
+	/**
+	 * 覆盖应用接口
+	 */
+	private boolean overrideApplicationMapping(RequestMappingInfo requestMapping) {
+		if (requestMappingHandlerMapping.getHandlerMethods().containsKey(requestMapping)) {
+			if (!allowOverride) {
+				// 不允许覆盖
+				return false;
+			}
+			logger.warn("取消注册应用接口:{}", requestMapping);
+			// 取消注册原接口
+			requestMappingHandlerMapping.unregisterMapping(requestMapping);
+		}
+		return true;
 	}
 
 	/**
 	 * 根据接口信息构建 RequestMappingInfo
 	 */
 	private RequestMappingInfo getRequestMapping(ApiInfo info) {
-		return RequestMappingInfo.paths(getRequestPath(info.getGroupPrefix(), info.getPath())).methods(RequestMethod.valueOf(info.getMethod().toUpperCase())).build();
+		return RequestMappingInfo.paths(getRequestPath(info.getGroupId(), info.getPath())).methods(RequestMethod.valueOf(info.getMethod().toUpperCase())).build();
+	}
+
+	/**
+	 * 根据接口信息构建 RequestMappingInfo
+	 */
+	private RequestMappingInfo getRequestMapping(String method, String path) {
+		return RequestMappingInfo.paths(path).methods(RequestMethod.valueOf(method.toUpperCase())).build();
 	}
 
 	public void enableRefresh(int interval) {

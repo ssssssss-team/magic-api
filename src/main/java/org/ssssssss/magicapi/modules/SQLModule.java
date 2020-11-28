@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.functions;
+package org.ssssssss.magicapi.modules;
 
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
@@ -31,7 +31,7 @@ import java.util.function.Function;
 /**
  * 数据库查询模块
  */
-public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicModule {
+public class SQLModule extends HashMap<String, SQLModule> implements MagicModule {
 
 	@UnableCall
 	private MagicDynamicDataSource dynamicDataSource;
@@ -66,11 +66,11 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 	@UnableCall
 	private long ttl;
 
-	public SQLExecutor() {
+	public SQLModule() {
 
 	}
 
-	public SQLExecutor(MagicDynamicDataSource dynamicDataSource) {
+	public SQLModule(MagicDynamicDataSource dynamicDataSource) {
 		this.dynamicDataSource = dynamicDataSource;
 		this.dataSourceNode = dynamicDataSource.getDataSource();
 	}
@@ -127,19 +127,19 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 	}
 
 	@UnableCall
-	private SQLExecutor cloneSQLExecutor() {
-		SQLExecutor sqlExecutor = new SQLExecutor();
-		sqlExecutor.setDynamicDataSource(this.dynamicDataSource);
-		sqlExecutor.setDataSourceNode(this.dataSourceNode);
-		sqlExecutor.setPageProvider(this.pageProvider);
-		sqlExecutor.setColumnMapperProvider(this.columnMapperAdapter);
-		sqlExecutor.setColumnMapRowMapper(this.columnMapRowMapper);
-		sqlExecutor.setRowMapColumnMapper(this.rowMapColumnMapper);
-		sqlExecutor.setSqlCache(this.sqlCache);
-		sqlExecutor.setTtl(this.ttl);
-		sqlExecutor.setResultProvider(this.resultProvider);
-		sqlExecutor.setDialectAdapter(this.dialectAdapter);
-		return sqlExecutor;
+	private SQLModule cloneSQLModule() {
+		SQLModule sqlModule = new SQLModule();
+		sqlModule.setDynamicDataSource(this.dynamicDataSource);
+		sqlModule.setDataSourceNode(this.dataSourceNode);
+		sqlModule.setPageProvider(this.pageProvider);
+		sqlModule.setColumnMapperProvider(this.columnMapperAdapter);
+		sqlModule.setColumnMapRowMapper(this.columnMapRowMapper);
+		sqlModule.setRowMapColumnMapper(this.rowMapColumnMapper);
+		sqlModule.setSqlCache(this.sqlCache);
+		sqlModule.setTtl(this.ttl);
+		sqlModule.setResultProvider(this.resultProvider);
+		sqlModule.setDialectAdapter(this.dialectAdapter);
+		return sqlModule;
 	}
 
 	/**
@@ -192,14 +192,14 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 	 * @return
 	 */
 	@Comment("使用缓存")
-	public SQLExecutor cache(@Comment("缓存名") String cacheName, @Comment("过期时间") long ttl) {
+	public SQLModule cache(@Comment("缓存名") String cacheName, @Comment("过期时间") long ttl) {
 		if (cacheName == null) {
 			return this;
 		}
-		SQLExecutor query = cloneSQLExecutor();
-		query.setCacheName(cacheName);
-		query.setTtl(ttl);
-		return query;
+		SQLModule sqlModule = cloneSQLModule();
+		sqlModule.setCacheName(cacheName);
+		sqlModule.setTtl(ttl);
+		return sqlModule;
 	}
 
 	/**
@@ -209,55 +209,55 @@ public class SQLExecutor extends HashMap<String, SQLExecutor> implements MagicMo
 	 * @return
 	 */
 	@Comment("使用缓存，过期时间采用默认配置")
-	public SQLExecutor cache(@Comment("缓存名") String cacheName) {
+	public SQLModule cache(@Comment("缓存名") String cacheName) {
 		return cache(cacheName, 0);
 	}
 
 	@Comment("采用驼峰列名")
-	public SQLExecutor camel() {
+	public SQLModule camel() {
 		return columnCase("camel");
 	}
 
 	@Comment("采用帕斯卡列名")
-	public SQLExecutor pascal() {
+	public SQLModule pascal() {
 		return columnCase("pascal");
 	}
 
 	@Comment("采用全小写列名")
-	public SQLExecutor lower() {
+	public SQLModule lower() {
 		return columnCase("lower");
 	}
 
 	@Comment("采用全大写列名")
-	public SQLExecutor upper() {
+	public SQLModule upper() {
 		return columnCase("upper");
 	}
 
 	@Comment("列名保持原样")
-	public SQLExecutor normal() {
+	public SQLModule normal() {
 		return columnCase("default");
 	}
 
 	@Comment("指定列名转换")
-	public SQLExecutor columnCase(String name) {
-		SQLExecutor sqlExecutor = cloneSQLExecutor();
-		sqlExecutor.setColumnMapRowMapper(this.columnMapperAdapter.getColumnMapRowMapper(name));
-		sqlExecutor.setRowMapColumnMapper(this.columnMapperAdapter.getRowMapColumnMapper(name));
-		return sqlExecutor;
+	public SQLModule columnCase(String name) {
+		SQLModule sqlModule = cloneSQLModule();
+		sqlModule.setColumnMapRowMapper(this.columnMapperAdapter.getColumnMapRowMapper(name));
+		sqlModule.setRowMapColumnMapper(this.columnMapperAdapter.getRowMapColumnMapper(name));
+		return sqlModule;
 	}
 
 	/**
 	 * 数据源切换
 	 */
 	@Override
-	public SQLExecutor get(Object key) {
-		SQLExecutor sqlExecutor = cloneSQLExecutor();
+	public SQLModule get(Object key) {
+		SQLModule sqlModule = cloneSQLModule();
 		if (key == null) {
-			sqlExecutor.setDataSourceNode(dynamicDataSource.getDataSource());
+			sqlModule.setDataSourceNode(dynamicDataSource.getDataSource());
 		} else {
-			sqlExecutor.setDataSourceNode(dynamicDataSource.getDataSource(key.toString()));
+			sqlModule.setDataSourceNode(dynamicDataSource.getDataSource(key.toString()));
 		}
-		return sqlExecutor;
+		return sqlModule;
 	}
 
 

@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.functions;
+package org.ssssssss.magicapi.modules;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
@@ -21,11 +21,11 @@ import java.util.Map;
 /**
  * response模块
  */
-public class ResponseFunctions {
+public class ResponseModule {
 
 	private ResultProvider resultProvider;
 
-	public ResponseFunctions(ResultProvider resultProvider) {
+	public ResponseModule(ResultProvider resultProvider) {
 		this.resultProvider = resultProvider;
 	}
 

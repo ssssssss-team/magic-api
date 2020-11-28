@@ -1,5 +1,6 @@
-package org.ssssssss.magicapi.config;
+package org.ssssssss.magicapi.interceptor;
 
+import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.script.MagicScriptContext;
 
 import javax.servlet.http.HttpServletRequest;
