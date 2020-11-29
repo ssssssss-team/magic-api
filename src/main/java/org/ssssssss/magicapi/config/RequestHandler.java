@@ -43,78 +43,15 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RequestHandler {
+public class RequestHandler extends MagicController {
 
 	private static Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 
-	/**
-	 * 请求拦截器
-	 */
-	private List<RequestInterceptor> requestInterceptors = new ArrayList<>();
-
-	/**
-	 * 请求出错时，是否抛出异常
-	 */
-	private boolean throwException = false;
-
-	/**
-	 * 结果处理器
-	 */
 	private ResultProvider resultProvider;
 
-	private WebUIController webUIController;
-
-	private final String HEADER_REQUEST_SESSION = "Magic-Request-Session";
-
-	private final String HEADER_REQUEST_BREAKPOINTS = "Magic-Request-Breakpoints";
-
-	private final String HEADER_REQUEST_CONTINUE = "Magic-Request-Continue";
-
-	private final String HEADER_REQUEST_STEP_INTO = "Magic-Request-Step-Into";
-
-	private final String HEADER_RESPONSE_WITH_MAGIC_API = "Response-With-Magic-API";
-
-	/**
-	 * debug 超时时间
-	 */
-	private int debugTimeout;
-
-	public void setDebugTimeout(int debugTimeout) {
-		this.debugTimeout = debugTimeout;
-	}
-
-	public void setWebUIController(WebUIController webUIController) {
-		this.webUIController = webUIController;
-	}
-
-	public void setResultProvider(ResultProvider resultProvider) {
-		this.resultProvider = resultProvider;
-	}
-
-	public void addRequestInterceptor(RequestInterceptor requestInterceptor) {
-		requestInterceptors.add(requestInterceptor);
-	}
-
-	public void setThrowException(boolean throwException) {
-		this.throwException = throwException;
-	}
-
-	private List<HttpMessageConverter<?>> httpMessageConverters;
-
-	public void setHttpMessageConverters(List<HttpMessageConverter<?>> httpMessageConverters) {
-		this.httpMessageConverters = httpMessageConverters;
-	}
-
-	/**
-	 * 打印banner
-	 */
-	public void printBanner() {
-		System.out.println("  __  __                _           _     ____  ___ ");
-		System.out.println(" |  \\/  |  __ _   __ _ (_)  ___    / \\   |  _ \\|_ _|");
-		System.out.println(" | |\\/| | / _` | / _` || | / __|  / _ \\  | |_) || | ");
-		System.out.println(" | |  | || (_| || (_| || || (__  / ___ \\ |  __/ | | ");
-		System.out.println(" |_|  |_| \\__,_| \\__, ||_| \\___|/_/   \\_\\|_|   |___|");
-		System.out.println("                  |___/                        " + RequestHandler.class.getPackage().getImplementationVersion());
+	public RequestHandler(MagicConfiguration configuration) {
+		super(configuration);
+		this.resultProvider = configuration.getResultProvider();
 	}
 
 	@ResponseBody
@@ -124,7 +61,7 @@ public class RequestHandler {
 		boolean requestedFromTest = isRequestedFromTest(request);
 		ApiInfo info = MappingHandlerMapping.getMappingApiInfo(request);
 		if (requestedFromTest) {
-			if (!webUIController.allowVisit(request, RequestInterceptor.Authorization.RUN)) {
+			if (!allowVisit(request, RequestInterceptor.Authorization.RUN)) {
 				return new JsonBean<>(-10, "无权限执行测试方法");
 			}
 		}
@@ -213,7 +150,7 @@ public class RequestHandler {
 					return resultProvider.buildResult(sae.getCode(), sae.getMessage());
 				}
 			} while ((parent = parent.getCause()) != null);
-			if (throwException) {
+			if (configuration.isThrowException()) {
 				throw root;
 			}
 			logger.error("接口{}请求出错", request.getRequestURI(),root);
@@ -303,7 +240,7 @@ public class RequestHandler {
 		String sessionId = getRequestedSessionId(request);
 		// 设置断点
 		context.setBreakpoints(getRequestedBreakpoints(request));
-		context.setTimeout(this.debugTimeout);
+		context.setTimeout(configuration.getDebugTimeout());
 		context.setId(sessionId);
 		context.onComplete(() -> {
 			logger.info("Close Console Session : {}", sessionId);
@@ -318,7 +255,7 @@ public class RequestHandler {
 	}
 
 	private boolean isRequestedFromTest(HttpServletRequest request) {
-		return webUIController != null && request.getHeader(HEADER_REQUEST_SESSION) != null;
+		return configuration.isEnableWeb() && request.getHeader(HEADER_REQUEST_SESSION) != null;
 	}
 
 	private boolean isRequestedFromContinue(HttpServletRequest request) {
@@ -340,10 +277,10 @@ public class RequestHandler {
 	}
 
 	private Object readRequestBody(HttpServletRequest request) throws IOException {
-		if (httpMessageConverters != null && request.getContentType() != null) {
+		if (configuration.getHttpMessageConverters() != null && request.getContentType() != null) {
 			MediaType mediaType = MediaType.valueOf(request.getContentType());
 			Class clazz = Map.class;
-			for (HttpMessageConverter<?> converter : httpMessageConverters) {
+			for (HttpMessageConverter<?> converter : configuration.getHttpMessageConverters()) {
 				if (converter.canRead(clazz, mediaType)) {
 					return converter.read(clazz, new ServletServerHttpRequest(request));
 				}
@@ -391,7 +328,7 @@ public class RequestHandler {
 	 * 执行后置拦截器
 	 */
 	private Object doPostHandle(ApiInfo info, MagicScriptContext context, Object value) throws Exception {
-		for (RequestInterceptor requestInterceptor : requestInterceptors) {
+		for (RequestInterceptor requestInterceptor : configuration.getRequestInterceptors()) {
 			Object target = requestInterceptor.postHandle(info, context, value);
 			if (target != null) {
 				return target;
@@ -404,7 +341,7 @@ public class RequestHandler {
 	 * 执行前置拦截器
 	 */
 	private Object doPreHandle(ApiInfo info, MagicScriptContext context) throws Exception {
-		for (RequestInterceptor requestInterceptor : requestInterceptors) {
+		for (RequestInterceptor requestInterceptor : configuration.getRequestInterceptors()) {
 			Object value = requestInterceptor.preHandle(info, context);
 			if (value != null) {
 				return value;
@@ -412,4 +349,5 @@ public class RequestHandler {
 		}
 		return null;
 	}
+
 }

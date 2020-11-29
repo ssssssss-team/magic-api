@@ -55,7 +55,12 @@ public class ApiInfo {
 	/**
 	 * 输出结果
 	 */
-	private String output;
+	private String responseBody;
+
+	/**
+	 * 输出Header
+	 */
+	private String responseHeader;
 
 	/**
 	 * 接口选项json->map
@@ -110,12 +115,20 @@ public class ApiInfo {
 		this.parameter = parameter;
 	}
 
-	public String getOutput() {
-		return output;
+	public String getResponseBody() {
+		return responseBody;
 	}
 
-	public void setOutput(String output) {
-		this.output = output;
+	public void setResponseBody(String responseBody) {
+		this.responseBody = responseBody;
+	}
+
+	public String getResponseHeader() {
+		return responseHeader;
+	}
+
+	public void setResponseHeader(String responseHeader) {
+		this.responseHeader = responseHeader;
 	}
 
 	public String getGroupId() {
@@ -138,7 +151,7 @@ public class ApiInfo {
 		return option;
 	}
 
-	public void setOptionValue(String optionValue){
+	public void setOptionValue(String optionValue) {
 		this.setOption(optionValue);
 	}
 
@@ -167,11 +180,12 @@ public class ApiInfo {
 				Objects.equals(groupId, apiInfo.groupId) &&
 				Objects.equals(parameter, apiInfo.parameter) &&
 				Objects.equals(option, apiInfo.option) &&
-				Objects.equals(output, apiInfo.output);
+				Objects.equals(responseBody, apiInfo.responseBody) &&
+				Objects.equals(responseHeader, apiInfo.responseHeader);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, method, path, script, name, groupId, parameter, option, output);
+		return Objects.hash(id, method, path, script, name, groupId, parameter, option, responseBody, responseHeader);
 	}
 }

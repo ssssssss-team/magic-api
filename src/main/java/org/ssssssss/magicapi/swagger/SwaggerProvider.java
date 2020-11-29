@@ -69,7 +69,7 @@ public class SwaggerProvider {
 			SwaggerEntity.Path path = new SwaggerEntity.Path();
 			path.addTag(groupName);
 			try {
-				path.addResponse("200", mapper.readValue(Objects.toString(info.getOutput(), "{}"), Object.class));
+				path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), "{}"), Object.class));
 			} catch (IOException ignored) {
 			}
 			path.addConsume("*/*");

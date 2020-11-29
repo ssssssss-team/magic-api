@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
@@ -47,7 +48,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 请求处理器
 	 */
-	private RequestHandler handler;
+	private Object handler;
 
 	/**
 	 * 请求到达时处理的方法
@@ -131,7 +132,7 @@ public class MappingHandlerMapping {
 		this.requestMappingHandlerMapping = requestMappingHandlerMapping;
 	}
 
-	public void setHandler(RequestHandler handler) {
+	public void setHandler(Object handler) {
 		this.handler = handler;
 	}
 
@@ -332,11 +333,15 @@ public class MappingHandlerMapping {
 		logger.info("注册接口:{},{}", info.getName(), newMappingKey);
 		mappings.put(info.getId(), info);
 		mappings.put(newMappingKey, info);
-		requestMappingHandlerMapping.registerMapping(requestMapping, handler, method);
+		registerMapping(requestMapping, handler, method);
 		if (delete) {   // 刷新缓存
 			apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
 			apiInfos.add(info);
 		}
+	}
+
+	public void registerMapping(RequestMappingInfo requestMapping,Object handler,Method method){
+		requestMappingHandlerMapping.registerMapping(requestMapping, handler, method);
 	}
 
 	/**
