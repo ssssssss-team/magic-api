@@ -450,7 +450,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
-	public void magicController()  {
+	public MagicConfiguration magicConfiguration()  {
 		setupSpringSecurity();
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 		// 设置模块和扩展方法
@@ -467,5 +467,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		mappingHandlerMapping.registerAllMapping();
 		// 自动刷新
 		mappingHandlerMapping.enableRefresh(properties.getRefreshInterval());
+		return configuration;
 	}
 }
