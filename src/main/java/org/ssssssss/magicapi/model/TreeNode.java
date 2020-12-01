@@ -46,7 +46,7 @@ public class TreeNode<T> {
 			if (mapping.apply(item.node)) {
 				return item.node;
 			}
-			T found = findNode(childs, mapping);
+			T found = findNode(item.children, mapping);
 			if (found != null) {
 				return found;
 			}
