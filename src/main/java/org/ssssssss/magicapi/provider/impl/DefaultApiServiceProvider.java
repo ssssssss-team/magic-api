@@ -14,6 +14,7 @@ public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> im
 			"api_name,\n" +
 			"api_group_id,\n" +
 			"api_path,\n" +
+			"api_description,\n" +
 			"api_method";
 
 	private final String SCRIPT_COLUMNS = "api_script,\n" +
@@ -72,23 +73,23 @@ public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> im
 		return template.queryForObject(exists, Integer.class, method, path, groupId) > 0;
 	}
 
-	public boolean existsWithoutId(String groupPrefix, String method, String path, String id) {
-		String existsWithoutId = "select count(*) from magic_api_info where api_method = ? and api_path = ? and api_group_prefix = ? and id !=?";
-		return template.queryForObject(existsWithoutId, Integer.class, method, path, groupPrefix, id) > 0;
+	public boolean existsWithoutId(String groupId, String method, String path, String id) {
+		String existsWithoutId = "select count(*) from magic_api_info where api_method = ? and api_path = ? and api_group_id = ? and id !=?";
+		return template.queryForObject(existsWithoutId, Integer.class, method, path, groupId, id) > 0;
 	}
 
 	public boolean insert(ApiInfo info) {
 		info.setId(UUID.randomUUID().toString().replace("-", ""));
 		wrap(info);
 		long time = System.currentTimeMillis();
-		String insert = "insert into magic_api_info(id,api_method,api_path,api_script,api_name,api_group_id,api_parameter,api_option,api_response_body,api_response_header,api_create_time,api_update_time) values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
-		return template.update(insert, info.getId(), info.getMethod(), info.getPath(), info.getScript(), info.getName(), info.getGroupId(), info.getParameter(), info.getOption(), info.getResponseBody(), info.getResponseHeader(), time, time) > 0;
+		String insert = "insert into magic_api_info(id,api_method,api_path,api_script,api_name,api_group_id,api_parameter,api_description,api_option,api_response_body,api_response_header,api_create_time,api_update_time) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		return template.update(insert, info.getId(), info.getMethod(), info.getPath(), info.getScript(), info.getName(), info.getGroupId(), info.getParameter(), info.getDescription(), info.getOption(), info.getResponseBody(), info.getResponseHeader(), time, time) > 0;
 	}
 
 	public boolean update(ApiInfo info) {
 		wrap(info);
-		String update = "update magic_api_info set api_method = ?,api_path = ?,api_script = ?,api_name = ?,api_group_id = ?,api_parameter = ?,api_option = ?,api_response_body = ?,api_response_header = ?,api_update_time = ? where id = ?";
-		return template.update(update, info.getMethod(), info.getPath(), info.getScript(), info.getName(), info.getGroupId(), info.getParameter(), info.getOption(), info.getResponseBody(), info.getResponseHeader(), System.currentTimeMillis(), info.getId()) > 0;
+		String update = "update magic_api_info set api_method = ?,api_path = ?,api_script = ?,api_name = ?,api_group_id = ?,api_description = ?,api_parameter = ?,api_option = ?,api_response_body = ?,api_response_header = ?,api_update_time = ? where id = ?";
+		return template.update(update, info.getMethod(), info.getPath(), info.getScript(), info.getName(), info.getGroupId(), info.getDescription(), info.getParameter(), info.getOption(), info.getResponseBody(), info.getResponseHeader(), System.currentTimeMillis(), info.getId()) > 0;
 	}
 
 	@Override

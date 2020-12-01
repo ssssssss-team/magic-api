@@ -63,6 +63,11 @@ public class ApiInfo {
 	private String responseHeader;
 
 	/**
+	 * 接口描述
+	 */
+	private String description;
+
+	/**
 	 * 接口选项json->map
 	 */
 	private Map optionMap;
@@ -145,6 +150,14 @@ public class ApiInfo {
 
 	public void setOptionMap(Map optionMap) {
 		this.optionMap = optionMap;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public String getOption() {
