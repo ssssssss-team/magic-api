@@ -53,6 +53,16 @@ public class ApiInfo {
 	private String option;
 
 	/**
+	 * 请求体
+	 */
+	private String requestBody;
+
+	/**
+	 * 请求头
+	 */
+	private String requestHeader;
+
+	/**
 	 * 输出结果
 	 */
 	private String responseBody;
@@ -124,6 +134,23 @@ public class ApiInfo {
 		return responseBody;
 	}
 
+
+	public String getRequestBody() {
+		return requestBody;
+	}
+
+	public void setRequestBody(String requestBody) {
+		this.requestBody = requestBody;
+	}
+
+	public String getRequestHeader() {
+		return requestHeader;
+	}
+
+	public void setRequestHeader(String requestHeader) {
+		this.requestHeader = requestHeader;
+	}
+
 	public void setResponseBody(String responseBody) {
 		this.responseBody = responseBody;
 	}
@@ -193,12 +220,15 @@ public class ApiInfo {
 				Objects.equals(groupId, apiInfo.groupId) &&
 				Objects.equals(parameter, apiInfo.parameter) &&
 				Objects.equals(option, apiInfo.option) &&
+				Objects.equals(requestBody, apiInfo.requestBody) &&
+				Objects.equals(requestHeader, apiInfo.requestHeader) &&
 				Objects.equals(responseBody, apiInfo.responseBody) &&
-				Objects.equals(responseHeader, apiInfo.responseHeader);
+				Objects.equals(responseHeader, apiInfo.responseHeader) &&
+				Objects.equals(description, apiInfo.description);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, method, path, script, name, groupId, parameter, option, responseBody, responseHeader);
+		return Objects.hash(id, method, path, script, name, groupId, parameter, option, requestBody, requestHeader, responseBody, responseHeader, description);
 	}
 }
