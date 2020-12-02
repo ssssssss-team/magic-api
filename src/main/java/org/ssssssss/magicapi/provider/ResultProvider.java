@@ -7,6 +7,7 @@ import org.ssssssss.script.exception.MagicScriptAssertException;
 import org.ssssssss.script.exception.MagicScriptException;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 结果构建接口
@@ -69,7 +70,7 @@ public interface ResultProvider {
 	 * @param total 总数
 	 * @param data  数据内容
 	 */
-	default Object buildPageResult(long total, List<Object> data) {
+	default Object buildPageResult(long total, List<Map<String,Object>> data) {
 		return new PageResult<>(total, data);
 	}
 }

@@ -8,8 +8,8 @@ import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 public class BoundSql {
@@ -28,10 +28,13 @@ public class BoundSql {
 
 	private List<Object> parameters = new ArrayList<>();
 
-	private String cacheKey;
+	private SqlCache sqlCache;
 
+	private String cacheName;
 
-	BoundSql(String sql) {
+	private long ttl;
+
+	BoundSql(String sql){
 		MagicScriptContext context = MagicScriptContext.get();
 		// 处理?{}参数
 		this.sql = ifTokenParser.parse(sql.trim(), text -> {
@@ -70,6 +73,13 @@ public class BoundSql {
 		this.sql = this.sql == null ? null : REPLACE_MULTI_WHITE_LINE.matcher(this.sql.trim()).replaceAll("\r\n");
 	}
 
+	BoundSql(String sql, SqlCache sqlCache, String cacheName, long ttl) {
+		this(sql);
+		this.sqlCache = sqlCache;
+		this.cacheName = cacheName;
+		this.ttl = ttl;
+	}
+
 	/**
 	 * 添加SQL参数
 	 */
@@ -91,28 +101,28 @@ public class BoundSql {
 		return parameters.toArray();
 	}
 
-	/**
-	 * 清空缓存key
-	 */
-	public BoundSql removeCacheKey() {
-		this.cacheKey = null;
-		return this;
-	}
 
 	/**
-	 * 获取缓存key
+	 * 获取缓存值
 	 */
-	public String getCacheKey(SqlCache sqlCache) {
-		if (cacheKey == null) {
-			cacheKey = sqlCache.buildSqlCacheKey(this);
+	<T> T getCacheValue(String sql, Object[] params, Supplier<T> supplier) {
+		if (cacheName == null) {
+			return null;
 		}
-		return cacheKey;
+		String cacheKey = sqlCache.buildSqlCacheKey(sql, params);
+		Object cacheValue = sqlCache.get(cacheName, cacheKey);
+		if (cacheValue != null) {
+			return (T) cacheValue;
+		}
+		T value = supplier.get();
+		sqlCache.put(cacheName, cacheKey, value, ttl);
+		return value;
 	}
 
 	/**
 	 * 获取缓存值
 	 */
-	public <T> Optional<T> getCacheValue(SqlCache sqlCache, String cacheName) {
-		return Optional.ofNullable(cacheName == null ? null : sqlCache.get(cacheName, getCacheKey(sqlCache)));
+	<T> T getCacheValue(Supplier<T> supplier) {
+		return getCacheValue(this.getSql(), this.getParameters(), supplier);
 	}
 }

@@ -5,9 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.ssssssss.magicapi.adapter.DialectAdapter;
+import org.ssssssss.magicapi.dialect.Dialect;
+import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.utils.Assert;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -92,6 +97,8 @@ public class MagicDynamicDataSource {
 
 		private DataSource dataSource;
 
+		private Dialect dialect;
+
 		public DataSourceNode(DataSource dataSource) {
 			this.dataSource = dataSource;
 			this.dataSourceTransactionManager = new DataSourceTransactionManager(this.dataSource);
@@ -104,6 +111,24 @@ public class MagicDynamicDataSource {
 
 		public DataSourceTransactionManager getDataSourceTransactionManager() {
 			return dataSourceTransactionManager;
+		}
+
+		public Dialect getDialect(DialectAdapter dialectAdapter){
+			if(this.dialect == null){
+				Connection connection = null;
+				try {
+					connection = this.dataSource.getConnection();
+					this.dialect = dialectAdapter.getDialectFromUrl(connection.getMetaData().getURL());
+					if(this.dialect == null){
+						throw new MagicAPIException("自动获取数据库方言失败");
+					}
+				} catch (Exception e) {
+					throw new MagicAPIException("自动获取数据库方言失败", e);
+				} finally {
+					DataSourceUtils.releaseConnection(connection, this.dataSource);
+				}
+			}
+			return dialect;
 		}
 	}
 
