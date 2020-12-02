@@ -40,7 +40,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RequestHandler extends MagicController {
@@ -73,7 +76,7 @@ public class RequestHandler extends MagicController {
 
 		Object value;
 		// 执行前置拦截器
-		if ((value = doPreHandle(info, context)) != null) {
+		if ((value = doPreHandle(info, context, request, response)) != null) {
 			return value;
 		}
 		if (requestedFromTest) {
@@ -122,7 +125,7 @@ public class RequestHandler extends MagicController {
 			}
 			Object value = result;
 			// 执行后置拦截器
-			if ((value = doPostHandle(info, context, value)) != null) {
+			if ((value = doPostHandle(info, context, value, request, response)) != null) {
 				return convertResult(value, response);
 			}
 			return convertResult(result, response);
@@ -137,7 +140,7 @@ public class RequestHandler extends MagicController {
 			Object result = executeScript(info.getScript(), context);
 			Object value = result;
 			// 执行后置拦截器
-			if ((value = doPostHandle(info, context, value)) != null) {
+			if ((value = doPostHandle(info, context, value, request, response)) != null) {
 				return value;
 			}
 			// 对返回结果包装处理
@@ -153,7 +156,7 @@ public class RequestHandler extends MagicController {
 			if (configuration.isThrowException()) {
 				throw root;
 			}
-			logger.error("接口{}请求出错", request.getRequestURI(),root);
+			logger.error("接口{}请求出错", request.getRequestURI(), root);
 			return resultProvider.buildResult(-1, "系统内部出现错误");
 		} finally {
 			RequestContext.remove();
@@ -327,9 +330,9 @@ public class RequestHandler extends MagicController {
 	/**
 	 * 执行后置拦截器
 	 */
-	private Object doPostHandle(ApiInfo info, MagicScriptContext context, Object value) throws Exception {
+	private Object doPostHandle(ApiInfo info, MagicScriptContext context, Object value, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		for (RequestInterceptor requestInterceptor : configuration.getRequestInterceptors()) {
-			Object target = requestInterceptor.postHandle(info, context, value);
+			Object target = requestInterceptor.postHandle(info, context, value, request, response);
 			if (target != null) {
 				return target;
 			}
@@ -340,9 +343,9 @@ public class RequestHandler extends MagicController {
 	/**
 	 * 执行前置拦截器
 	 */
-	private Object doPreHandle(ApiInfo info, MagicScriptContext context) throws Exception {
+	private Object doPreHandle(ApiInfo info, MagicScriptContext context, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		for (RequestInterceptor requestInterceptor : configuration.getRequestInterceptors()) {
-			Object value = requestInterceptor.preHandle(info, context);
+			Object value = requestInterceptor.preHandle(info, context, request, response);
 			if (value != null) {
 				return value;
 			}
