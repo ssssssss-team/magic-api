@@ -36,7 +36,7 @@ public class ResponseModule {
 	 * @param values 数据内容
 	 */
 	@Comment("返回自定义分页结果")
-	public Object page(@Comment("总条数") long total, @Comment("当前结果集") List<Object> values) {
+	public Object page(@Comment("总条数") long total, @Comment("当前结果集") List<Map<String,Object>> values) {
 		return resultProvider.buildPageResult(total, values);
 	}
 
@@ -54,63 +54,68 @@ public class ResponseModule {
 	 * 添加Header
 	 */
 	@Comment("添加response header")
-	public void addHeader(@Comment("header名") String key, @Comment("header值") String value) {
+	public ResponseModule addHeader(@Comment("header名") String key, @Comment("header值") String value) {
 		if (StringUtils.isNotBlank(key)) {
 			HttpServletResponse response = getResponse();
 			if (response != null) {
 				response.addHeader(key, value);
 			}
 		}
+		return this;
 	}
 
 	/**
 	 * 设置header
 	 */
 	@Comment("设置response header")
-	public void setHeader(@Comment("header名") String key, @Comment("header值") String value) {
+	public ResponseModule setHeader(@Comment("header名") String key, @Comment("header值") String value) {
 		if (StringUtils.isNotBlank(key)) {
 			HttpServletResponse response = getResponse();
 			if (response != null) {
 				response.setHeader(key, value);
 			}
 		}
+		return this;
 	}
 
 	/**
 	 * 添加cookie
 	 */
 	@Comment("添加Cookie")
-	public void addCookie(@Comment("cookie名") String name, @Comment("cookie值") String value) {
+	public ResponseModule addCookie(@Comment("cookie名") String name, @Comment("cookie值") String value) {
 		if (StringUtils.isNotBlank(name)) {
 			addCookie(new Cookie(name, value));
 		}
+		return this;
 	}
 
 	/**
 	 * 批量添加cookie
 	 */
 	@Comment("批量添加Cookie")
-	public void addCookies(@Comment("Cookies") Map<String, String> cookies, @Comment("Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
+	public ResponseModule addCookies(@Comment("Cookies") Map<String, String> cookies, @Comment("Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
 		if (cookies != null) {
 			for (Map.Entry<String, String> entry : cookies.entrySet()) {
 				addCookie(entry.getKey(), entry.getValue(), options);
 			}
 		}
+		return this;
 	}
 
 	/**
 	 * 批量添加cookie
 	 */
 	@Comment("批量添加Cookie")
-	public void addCookies(@Comment("Cookies") Map<String, String> cookies) {
-		addCookies(cookies, null);
+	public ResponseModule addCookies(@Comment("Cookies") Map<String, String> cookies) {
+		return addCookies(cookies, null);
+
 	}
 
 	/**
 	 * 添加cookie
 	 */
 	@Comment("添加Cookie")
-	public void addCookie(@Comment("Cookie名") String name, @Comment("Cookie值") String value,
+	public ResponseModule addCookie(@Comment("Cookie名") String name, @Comment("Cookie值") String value,
 						  @Comment("Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
 		if (StringUtils.isNotBlank(name)) {
 			Cookie cookie = new Cookie(name, value);
@@ -135,6 +140,7 @@ public class ResponseModule {
 			}
 			addCookie(cookie);
 		}
+		return this;
 	}
 
 	@Comment("终止输出，执行此方法后不会对结果进行任何输出及处理")
@@ -146,13 +152,14 @@ public class ResponseModule {
 	 * 添加cookie
 	 */
 	@Comment("添加Cookie")
-	public void addCookie(@Comment("Cookie对象") Cookie cookie) {
+	public ResponseModule addCookie(@Comment("Cookie对象") Cookie cookie) {
 		if (cookie != null) {
 			HttpServletResponse response = getResponse();
 			if (response != null) {
 				response.addCookie(cookie);
 			}
 		}
+		return this;
 	}
 
 	private HttpServletResponse getResponse() {
