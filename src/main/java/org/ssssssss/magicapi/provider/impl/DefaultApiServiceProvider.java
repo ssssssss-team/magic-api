@@ -67,7 +67,7 @@ public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> im
 
 	@Override
 	public boolean deleteGroup(String groupId) {
-		return template.update("delete from magic_api_info where api_group_id = ?", groupId) > 0;
+		return template.update("delete from magic_api_info where api_group_id = ?", groupId) >= 0;
 	}
 
 	public boolean exists(String groupId, String method, String path) {

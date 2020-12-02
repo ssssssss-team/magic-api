@@ -34,11 +34,12 @@ public class MagicGroupController extends MagicController {
 			return new JsonBean<>(-10, "无权限执行删除方法");
 		}
 		try {
-			boolean success = configuration.getMagicApiService().deleteGroup(groupId) && this.groupServiceProvider.delete(groupId);
+			boolean success = configuration.getMagicApiService().deleteGroup(groupId);
 			if (success) {    //删除成功时取消注册
 				configuration.getMappingHandlerMapping().deleteGroup(groupId);
 			}
-			return new JsonBean<>(success);
+			// 删除分组
+			return new JsonBean<>(this.groupServiceProvider.delete(groupId));
 		} catch (Exception e) {
 			logger.error("删除分组出错", e);
 			return new JsonBean<>(-1, e.getMessage());

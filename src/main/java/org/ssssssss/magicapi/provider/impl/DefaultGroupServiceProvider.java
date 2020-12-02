@@ -36,7 +36,7 @@ public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> im
 
 	@Override
 	public boolean delete(String groupId) {
-		String deleteByGroupId = "delete from magic_api_info where api_group_id = ?";
+		String deleteByGroupId = "delete from magic_group where id = ?";
 		return template.update(deleteByGroupId, groupId) > 0;
 	}
 
