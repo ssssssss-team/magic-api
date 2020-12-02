@@ -171,6 +171,8 @@ public class MagicAPIController extends MagicController {
 				magicApiService.update(info);
 			}
 			magicApiService.backup(info.getId());
+			// 解除包装
+			magicApiService.unwrap(info);
 			// 注册接口
 			configuration.getMappingHandlerMapping().registerMapping(info, true);
 			return new JsonBean<>(info.getId());
