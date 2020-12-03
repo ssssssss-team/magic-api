@@ -9,10 +9,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -115,6 +117,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Autowired
 	ResultProvider resultProvider;
 
+	@Autowired
+	MagicCorsFilter magicCorsFilter;
+
 	private String ALL_CLASS_TXT;
 
 	public MagicAPIAutoConfiguration() {
@@ -169,31 +174,33 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	public void addInterceptors(InterceptorRegistry registry) {
 		String web = properties.getWeb();
 		if (web != null) {
-			registry.addInterceptor(new HandlerInterceptor(){
+			registry.addInterceptor(new HandlerInterceptor() {
 				@Override
 				public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-					if(handler instanceof HandlerMethod){
+					if (handler instanceof HandlerMethod) {
 						handler = ((HandlerMethod) handler).getBean();
-						if(handler instanceof MagicController){
-							String value = request.getHeader("Origin");
-							if(StringUtils.isNotBlank(value)){
-								response.setHeader("Access-Control-Allow-Origin",value);
-								response.setHeader("Access-Control-Allow-Credentials","true");
-							}
-							value = request.getHeader("Access-Control-Request-Headers");
-							if(StringUtils.isNotBlank(value)){
-								response.setHeader("Access-Control-Allow-Headers",value);
-							}
-							value = request.getHeader("Access-Control-Request-Method");
-							if(StringUtils.isNotBlank(value)){
-								response.setHeader("Access-Control-Allow-Method",value);
-							}
-						}
+					}
+					if (handler instanceof MagicController) {
+						magicCorsFilter.process(request, response);
 					}
 					return true;
 				}
 			}).addPathPatterns("/**");
 		}
+	}
+
+	@Bean
+	public FilterRegistrationBean magicCorsFilterRegistrationBean() {
+		FilterRegistrationBean<MagicCorsFilter> registration = new FilterRegistrationBean<>(magicCorsFilter);
+		registration.addUrlPatterns("/*");
+		registration.setName("Magic Cors Filter");
+		registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+		return registration;
+	}
+
+	@Bean
+	public MagicCorsFilter magicCorsFilter() {
+		return new MagicCorsFilter();
 	}
 
 	@ConditionalOnMissingBean(PageProvider.class)
@@ -408,7 +415,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 		// 构建UI请求处理器
 		String base = properties.getWeb();
-		if(base != null){
+		if (base != null) {
 			configuration.setEnableWeb(true);
 			LoggerManager.createMagicAppender();
 			List<MagicController> controllers = Arrays.asList(
@@ -417,7 +424,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 					new MagicWorkbenchController(configuration),
 					new MagicGroupController(configuration)
 			);
-			controllers.forEach(item->{
+			controllers.forEach(item -> {
 				Method[] methods = item.getClass().getDeclaredMethods();
 				for (Method method : methods) {
 					RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
@@ -450,7 +457,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
-	public MagicConfiguration magicConfiguration()  {
+	public MagicConfiguration magicConfiguration() {
 		setupSpringSecurity();
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 		// 设置模块和扩展方法
