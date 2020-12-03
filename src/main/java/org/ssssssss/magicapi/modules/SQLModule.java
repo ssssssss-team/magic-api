@@ -345,6 +345,11 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return boundSql.getCacheValue(() -> dataSourceNode.getJdbcTemplate().queryForObject(boundSql.getSql(), boundSql.getParameters(), Object.class));
 	}
 
+	@Comment("指定table，进行一系列操作")
+	public NamedTable table(String tableName) {
+		return new NamedTable(tableName,this.dataSourceNode);
+	}
+
 	@UnableCall
 	@Override
 	public String getModuleName() {
