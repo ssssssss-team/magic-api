@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 public class MagicController {
 
 
-	final String HEADER_REQUEST_SESSION = "Magic-Request-Session";
+	public static final String HEADER_REQUEST_SESSION = "Magic-Request-Session";
 
 	final String HEADER_REQUEST_BREAKPOINTS = "Magic-Request-Breakpoints";
 

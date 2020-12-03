@@ -3,7 +3,6 @@ package org.ssssssss.magicapi.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
@@ -340,7 +339,7 @@ public class MappingHandlerMapping {
 		}
 	}
 
-	public void registerMapping(RequestMappingInfo requestMapping,Object handler,Method method){
+	public void registerMapping(RequestMappingInfo requestMapping, Object handler, Method method) {
 		requestMappingHandlerMapping.registerMapping(requestMapping, handler, method);
 	}
 
