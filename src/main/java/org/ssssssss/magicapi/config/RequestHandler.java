@@ -6,9 +6,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.InputStreamSource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,10 +42,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RequestHandler extends MagicController {
@@ -117,6 +116,7 @@ public class RequestHandler extends MagicController {
 			// 初始化debug操作
 			initializeDebug(context, request, response);
 			response.addHeader(HEADER_RESPONSE_WITH_MAGIC_API, "true");
+			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
 			Object result = executeScript(info.getScript(), context);
 			if (context.isRunning()) {
 				return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result), result);
@@ -179,12 +179,16 @@ public class RequestHandler extends MagicController {
 	private Object convertResult(Object result, HttpServletResponse response) throws IOException {
 		if (result instanceof ResponseEntity) {
 			ResponseEntity entity = (ResponseEntity) result;
+			List<String> headers = new ArrayList<>();
 			for (Map.Entry<String, List<String>> entry : entity.getHeaders().entrySet()) {
 				String key = entry.getKey();
 				for (String value : entry.getValue()) {
+					headers.add("MA-" + key);
 					response.addHeader("MA-" + key, value);
 				}
 			}
+			headers.add(HEADER_RESPONSE_WITH_MAGIC_API);
+			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, String.join(",", headers));
 			if (entity.getHeaders().isEmpty()) {
 				return ResponseEntity.ok(new JsonBean<>(entity.getBody()));
 			}
@@ -283,10 +287,14 @@ public class RequestHandler extends MagicController {
 		if (configuration.getHttpMessageConverters() != null && request.getContentType() != null) {
 			MediaType mediaType = MediaType.valueOf(request.getContentType());
 			Class clazz = Map.class;
-			for (HttpMessageConverter<?> converter : configuration.getHttpMessageConverters()) {
-				if (converter.canRead(clazz, mediaType)) {
-					return converter.read(clazz, new ServletServerHttpRequest(request));
+			try {
+				for (HttpMessageConverter<?> converter : configuration.getHttpMessageConverters()) {
+					if (converter.canRead(clazz, mediaType)) {
+						return converter.read(clazz, new ServletServerHttpRequest(request));
+					}
 				}
+			}catch (HttpMessageNotReadableException ignored) {
+				return null;
 			}
 		}
 		return null;
