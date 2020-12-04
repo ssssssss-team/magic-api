@@ -2,17 +2,22 @@ package org.ssssssss.magicapi.config;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpFilter;
+import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class MagicCorsFilter extends HttpFilter {
+public class MagicCorsFilter implements Filter {
 
+	@Override
+	public void init(FilterConfig filterConfig) {
+
+	}
+
+	@Override
+	public void destroy() {
+
+	}
 
 	public void process(HttpServletRequest request, HttpServletResponse response) {
 		String value = request.getHeader("Origin");
