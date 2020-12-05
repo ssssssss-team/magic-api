@@ -417,7 +417,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		String base = properties.getWeb();
 		if (base != null) {
 			configuration.setEnableWeb(true);
-			LoggerManager.createMagicAppender();
 			List<MagicController> controllers = Arrays.asList(
 					new MagicAPIController(configuration),
 					new MagicConfigController(configuration),
