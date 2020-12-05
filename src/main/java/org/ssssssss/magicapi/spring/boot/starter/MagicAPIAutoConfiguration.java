@@ -333,6 +333,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		if (dialects != null) {
 			dialects.forEach(dialectAdapter::add);
 		}
+		sqlModule.setDialectAdapter(dialectAdapter);
 		return sqlModule;
 	}
 
