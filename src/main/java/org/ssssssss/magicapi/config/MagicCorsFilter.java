@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.config;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -21,18 +22,14 @@ public class MagicCorsFilter implements Filter {
 
 	public void process(HttpServletRequest request, HttpServletResponse response) {
 		String value = request.getHeader("Origin");
-		response.setHeader("Access-Control-Allow-Origin", StringUtils.isBlank(value) ? "*" : value);
-		response.setHeader("Access-Control-Allow-Credentials", "true");
-		value = request.getHeader("Access-Control-Request-Headers");
+		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, StringUtils.isBlank(value) ? "*" : value);
+		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+		value = request.getHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
 		if (StringUtils.isNotBlank(value)) {
-			response.setHeader("Access-Control-Allow-Headers", value);
+			response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, value);
 		}
-		value = request.getHeader("Access-Control-Request-Method");
-		if (StringUtils.isNotBlank(value)) {
-			response.setHeader("Access-Control-Allow-Method", value);
-		} else {
-			response.setHeader("Access-Control-Allow-Method", "GET,POST,OPTIONS,PUT,DELETE");
-		}
+		value = request.getHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD);
+		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, StringUtils.isBlank(value) ? "GET,POST,OPTIONS,PUT,DELETE" : value);
 	}
 
 	@Override

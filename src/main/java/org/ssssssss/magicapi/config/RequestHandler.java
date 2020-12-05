@@ -79,6 +79,8 @@ public class RequestHandler extends MagicController {
 			return value;
 		}
 		if (requestedFromTest) {
+			response.setHeader(HEADER_RESPONSE_WITH_MAGIC_API, "true");
+			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
 			if (isRequestedFromContinue(request)) {
 				return invokeContinueRequest(request, response);
 			}
@@ -90,14 +92,13 @@ public class RequestHandler extends MagicController {
 	private Object invokeContinueRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
 		String sessionId = getRequestedSessionId(request);
 		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(sessionId);
-		response.addHeader(HEADER_RESPONSE_WITH_MAGIC_API, "true");
 		if (context == null) {
 			return new JsonBean<>(0, "debug session not found!", resultProvider.buildResult(0, "debug session not found!"));
 		}
 		// 重置断点
 		context.setBreakpoints(getRequestedBreakpoints(request));
 		// 步进
-		context.setStepInto("1".equalsIgnoreCase(request.getHeader(HEADER_REQUEST_STEP_INTO)));
+		context.setStepInto("true".equalsIgnoreCase(request.getHeader(HEADER_REQUEST_STEP_INTO)));
 		try {
 			context.singal();    //等待语句执行到断点或执行完毕
 		} catch (InterruptedException e) {
@@ -115,8 +116,6 @@ public class RequestHandler extends MagicController {
 		try {
 			// 初始化debug操作
 			initializeDebug(context, request, response);
-			response.addHeader(HEADER_RESPONSE_WITH_MAGIC_API, "true");
-			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
 			Object result = executeScript(info.getScript(), context);
 			if (context.isRunning()) {
 				return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result), result);
