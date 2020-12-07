@@ -12,12 +12,12 @@ CREATE TABLE `magic_group`  (
 insert into magic_group select md5(uuid()),api_group_name,'1',api_group_prefix,'0','0' from magic_api_info group by api_group_name,api_group_prefix;
 -- 修改字段
 ALTER TABLE `magic_api_info` ADD COLUMN `api_group_id` varchar(32) NULL COMMENT '分组ID' AFTER `api_name`;
-ALTER TABLE `magic_api_info` CHANGE COLUMN `api_output` `api_response_body` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '输出结果' AFTER `api_group_id`, ADD COLUMN `api_response_header` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '输出Header' AFTER `api_response_body`;
-ALTER TABLE `magic_api_info` ADD COLUMN `api_description` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '接口描述' AFTER `api_response_header`;
+ALTER TABLE `magic_api_info` CHANGE COLUMN `api_output` `api_response_body` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '输出结果' AFTER `api_group_id`;
+ALTER TABLE `magic_api_info` ADD COLUMN `api_description` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '接口描述' AFTER `api_response_body`;
 ALTER TABLE `magic_api_info`  ADD COLUMN `api_request_body` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求体' AFTER `api_group_id`, ADD COLUMN `api_request_header` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求Header' AFTER `api_request_body`;
 ALTER TABLE `magic_api_info_his` ADD COLUMN `api_group_id` varchar(32) NULL COMMENT '分组ID' AFTER `api_name`;
-ALTER TABLE `magic_api_info_his` CHANGE COLUMN `api_output` `api_response_body` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '输出结果' AFTER `api_group_id`, ADD COLUMN `api_response_header` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '输出Header' AFTER `api_response_body`;
-ALTER TABLE `magic_api_info_his` ADD COLUMN `api_description` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '接口描述' AFTER `api_response_header`;
+ALTER TABLE `magic_api_info_his` CHANGE COLUMN `api_output` `api_response_body` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '输出结果' AFTER `api_group_id`;
+ALTER TABLE `magic_api_info_his` ADD COLUMN `api_description` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '接口描述' AFTER `api_response_body`;
 ALTER TABLE `magic_api_info_his`  ADD COLUMN `api_request_body` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求体' AFTER `api_group_id`, ADD COLUMN `api_request_header` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '请求Header' AFTER `api_request_body`;
 
 -- 赋值api_group_id字段

@@ -22,7 +22,6 @@ public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> im
 			"api_request_header,\n" +
 			"api_request_body,\n" +
 			"api_response_body,\n" +
-			"api_response_header,\n" +
 			"api_option\n";
 
 	private JdbcTemplate template;
@@ -84,14 +83,14 @@ public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> im
 		info.setId(UUID.randomUUID().toString().replace("-", ""));
 		wrap(info);
 		long time = System.currentTimeMillis();
-		String insert = "insert into magic_api_info(id,api_method,api_path,api_script,api_name,api_group_id,api_parameter,api_description,api_option,api_request_header,api_request_body,api_response_body,api_response_header,api_create_time,api_update_time) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-		return template.update(insert, info.getId(), info.getMethod(), info.getPath(), info.getScript(), info.getName(), info.getGroupId(), info.getParameter(), info.getDescription(), info.getOption(), info.getRequestHeader(), info.getRequestBody(),info.getResponseBody(), info.getResponseHeader(), time, time) > 0;
+		String insert = "insert into magic_api_info(id,api_method,api_path,api_script,api_name,api_group_id,api_parameter,api_description,api_option,api_request_header,api_request_body,api_response_body,api_create_time,api_update_time) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+		return template.update(insert, info.getId(), info.getMethod(), info.getPath(), info.getScript(), info.getName(), info.getGroupId(), info.getParameter(), info.getDescription(), info.getOption(), info.getRequestHeader(), info.getRequestBody(),info.getResponseBody(), time, time) > 0;
 	}
 
 	public boolean update(ApiInfo info) {
 		wrap(info);
-		String update = "update magic_api_info set api_method = ?,api_path = ?,api_script = ?,api_name = ?,api_group_id = ?,api_description = ?,api_parameter = ?,api_option = ?,api_request_header = ?,api_request_body = ?,api_response_body = ?,api_response_header = ?,api_update_time = ? where id = ?";
-		return template.update(update, info.getMethod(), info.getPath(), info.getScript(), info.getName(), info.getGroupId(), info.getDescription(), info.getParameter(), info.getOption(), info.getRequestHeader(), info.getRequestBody(), info.getResponseBody(), info.getResponseHeader(), System.currentTimeMillis(), info.getId()) > 0;
+		String update = "update magic_api_info set api_method = ?,api_path = ?,api_script = ?,api_name = ?,api_group_id = ?,api_description = ?,api_parameter = ?,api_option = ?,api_request_header = ?,api_request_body = ?,api_response_body = ?,api_update_time = ? where id = ?";
+		return template.update(update, info.getMethod(), info.getPath(), info.getScript(), info.getName(), info.getGroupId(), info.getDescription(), info.getParameter(), info.getOption(), info.getRequestHeader(), info.getRequestBody(), info.getResponseBody(), System.currentTimeMillis(), info.getId()) > 0;
 	}
 
 	@Override

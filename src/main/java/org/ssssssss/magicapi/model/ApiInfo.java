@@ -68,11 +68,6 @@ public class ApiInfo {
 	private String responseBody;
 
 	/**
-	 * 输出Header
-	 */
-	private String responseHeader;
-
-	/**
 	 * 接口描述
 	 */
 	private String description;
@@ -155,14 +150,6 @@ public class ApiInfo {
 		this.responseBody = responseBody;
 	}
 
-	public String getResponseHeader() {
-		return responseHeader;
-	}
-
-	public void setResponseHeader(String responseHeader) {
-		this.responseHeader = responseHeader;
-	}
-
 	public String getGroupId() {
 		return groupId;
 	}
@@ -223,12 +210,11 @@ public class ApiInfo {
 				Objects.equals(requestBody, apiInfo.requestBody) &&
 				Objects.equals(requestHeader, apiInfo.requestHeader) &&
 				Objects.equals(responseBody, apiInfo.responseBody) &&
-				Objects.equals(responseHeader, apiInfo.responseHeader) &&
 				Objects.equals(description, apiInfo.description);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, method, path, script, name, groupId, parameter, option, requestBody, requestHeader, responseBody, responseHeader, description);
+		return Objects.hash(id, method, path, script, name, groupId, parameter, option, requestBody, requestHeader, responseBody, description);
 	}
 }
