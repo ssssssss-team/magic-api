@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.spring.boot.starter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.ssssssss.magicapi.config.RequestHandler;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -71,6 +72,11 @@ public class MagicAPIProperties {
 	 * @since 0.4.5
 	 */
 	private int threadPoolExecutorSize = 0;
+
+	/**
+	 * 版本号
+	 */
+	private final String version = RequestHandler.class.getPackage().getImplementationVersion();
 
 
 	@NestedConfigurationProperty
@@ -237,5 +243,9 @@ public class MagicAPIProperties {
 
 	public void setThreadPoolExecutorSize(int threadPoolExecutorSize) {
 		this.threadPoolExecutorSize = threadPoolExecutorSize;
+	}
+
+	public String getVersion() {
+		return version;
 	}
 }
