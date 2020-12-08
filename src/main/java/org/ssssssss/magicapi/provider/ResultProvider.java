@@ -5,9 +5,12 @@ import org.slf4j.LoggerFactory;
 import org.ssssssss.magicapi.model.PageResult;
 import org.ssssssss.script.exception.MagicScriptAssertException;
 import org.ssssssss.script.exception.MagicScriptException;
+import org.ssssssss.script.functions.ObjectConvertExtension;
+import org.ssssssss.script.parsing.ast.statement.Exit;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 结果构建接口
@@ -44,6 +47,13 @@ public interface ResultProvider {
 	 * @param data 数据内容，状态码和状态说明默认为1 "success"
 	 */
 	default Object buildResult(Object data) {
+		if (data instanceof Exit.Value) {
+			Exit.Value exitValue = (Exit.Value) data;
+			Object[] values = exitValue.getValues();
+			int code = values.length > 0 ? ObjectConvertExtension.asInt(values[0], 1) : 1;
+			String message = values.length > 1 ? Objects.toString(values[1], "success") : "success";
+			return buildResult(code, message, values.length > 2 ? values[2] : null);
+		}
 		return buildResult(1, "success", data);
 	}
 
@@ -70,7 +80,7 @@ public interface ResultProvider {
 	 * @param total 总数
 	 * @param data  数据内容
 	 */
-	default Object buildPageResult(long total, List<Map<String,Object>> data) {
+	default Object buildPageResult(long total, List<Map<String, Object>> data) {
 		return new PageResult<>(total, data);
 	}
 }
