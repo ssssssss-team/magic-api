@@ -3,8 +3,8 @@ package org.ssssssss.magicapi.config;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.utils.MD5Utils;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
 
 public class MagicController {
 
@@ -29,18 +29,14 @@ public class MagicController {
 	 * 判断是否有权限访问按钮
 	 */
 	boolean allowVisit(HttpServletRequest request, RequestInterceptor.Authorization authorization) {
-		if (authorization == null) {
-			if (configuration.getUsername()!= null && configuration.getUsername() != null) {
-				Cookie[] cookies = request.getCookies();
-				if (cookies != null) {
-					for (Cookie cookie : cookies) {
-						if (configuration.getTokenKey().equals(cookie.getName())) {
-							return cookie.getValue().equals(MD5Utils.encrypt(String.format("%s||%s", configuration.getUsername(), configuration.getPassword())));
-						}
-					}
-				}
+		if (configuration.getUsername()!= null && configuration.getUsername() != null) {
+			String headerValue = request.getHeader(configuration.getTokenKey());
+			String realValue = MD5Utils.encrypt(String.format("%s||%s", configuration.getUsername(), configuration.getPassword()));
+			if(!Objects.equals(realValue,headerValue)){
 				return false;
 			}
+		}
+		if (authorization == null) {
 			return true;
 		}
 		for (RequestInterceptor requestInterceptor : configuration.getRequestInterceptors()) {

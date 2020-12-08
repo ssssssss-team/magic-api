@@ -63,6 +63,8 @@ public class RequestHandler extends MagicController {
 		boolean requestedFromTest = isRequestedFromTest(request);
 		ApiInfo info = MappingHandlerMapping.getMappingApiInfo(request);
 		if (requestedFromTest) {
+			response.setHeader(HEADER_RESPONSE_WITH_MAGIC_API, "true");
+			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
 			if (!allowVisit(request, RequestInterceptor.Authorization.RUN)) {
 				return new JsonBean<>(-10, "无权限执行测试方法");
 			}
@@ -79,8 +81,6 @@ public class RequestHandler extends MagicController {
 			return value;
 		}
 		if (requestedFromTest) {
-			response.setHeader(HEADER_RESPONSE_WITH_MAGIC_API, "true");
-			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
 			if (isRequestedFromContinue(request)) {
 				return invokeContinueRequest(request, response);
 			}

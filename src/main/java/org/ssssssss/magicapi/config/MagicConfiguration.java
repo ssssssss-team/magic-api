@@ -5,10 +5,7 @@ import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
-import org.ssssssss.magicapi.utils.MD5Utils;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +26,7 @@ public class MagicConfiguration {
 	 */
 	private String password;
 
-	private final String tokenKey = "MAGICTOKEN";
+	private final String tokenKey = "Magic-Token";
 
 	/**
 	 * 拦截器

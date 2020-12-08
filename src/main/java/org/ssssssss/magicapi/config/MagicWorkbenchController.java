@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.config;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -29,9 +30,8 @@ public class MagicWorkbenchController extends MagicController {
 	@ResponseBody
 	public JsonBean<Boolean> login(String username, String password, HttpServletRequest request, HttpServletResponse response) {
 		if (username != null && password != null && Objects.equals(username, configuration.getUsername()) && Objects.equals(password, configuration.getPassword())) {
-			Cookie cookie = new Cookie(configuration.getTokenKey(), MD5Utils.encrypt(String.format("%s||%s", username, password)));
-			cookie.setHttpOnly(true);
-			response.addCookie(cookie);
+			response.setHeader(configuration.getTokenKey(),MD5Utils.encrypt(String.format("%s||%s", username, password)));
+			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, configuration.getTokenKey());
 			return new JsonBean<>(true);
 		} else if (allowVisit(request, null)) {
 			return new JsonBean<>(true);
