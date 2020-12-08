@@ -38,8 +38,12 @@ public class MagicGroupController extends MagicController {
 			if (success) {    //删除成功时取消注册
 				configuration.getMappingHandlerMapping().deleteGroup(groupId);
 			}
+			success = this.groupServiceProvider.delete(groupId);
+			if(success){
+				configuration.getMappingHandlerMapping().loadGroup();
+			}
 			// 删除分组
-			return new JsonBean<>(this.groupServiceProvider.delete(groupId));
+			return new JsonBean<>(success);
 		} catch (Exception e) {
 			logger.error("删除分组出错", e);
 			return new JsonBean<>(-1, e.getMessage());
@@ -114,6 +118,7 @@ public class MagicGroupController extends MagicController {
 		}
 		try {
 			groupServiceProvider.insert(group);
+			configuration.getMappingHandlerMapping().loadGroup();
 			return new JsonBean<>(group.getId());
 		} catch (Exception e) {
 			logger.error("保存分组出错", e);
