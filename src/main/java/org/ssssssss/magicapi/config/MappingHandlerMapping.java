@@ -312,6 +312,9 @@ public class MappingHandlerMapping {
 				if (!info.equals(oldInfo)) {
 					mappings.put(info.getId(), info);
 					mappings.put(newMappingKey, info);
+					if(delete){
+						refreshCache(info);
+					}
 					logger.info("刷新接口:{},{}", info.getName(), newMappingKey);
 				}
 				return;
@@ -334,9 +337,13 @@ public class MappingHandlerMapping {
 		mappings.put(newMappingKey, info);
 		registerMapping(requestMapping, handler, method);
 		if (delete) {   // 刷新缓存
-			apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
-			apiInfos.add(info);
+			refreshCache(info);
 		}
+	}
+
+	private void refreshCache(ApiInfo info){
+		apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
+		apiInfos.add(info);
 	}
 
 	public void registerMapping(RequestMappingInfo requestMapping, Object handler, Method method) {
