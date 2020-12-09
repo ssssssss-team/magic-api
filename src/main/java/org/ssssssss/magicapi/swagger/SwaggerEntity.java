@@ -15,9 +15,9 @@ public class SwaggerEntity {
 
 	private Info info;
 
-	private Set<Tag> tags = new HashSet<>();
+	private Set<Tag> tags = new TreeSet<>(Comparator.comparing(Tag::getName));
 
-	private Map<String,String> definitions = Collections.emptyMap();
+	private Map<String, String> definitions = Collections.emptyMap();
 
 	private Map<String, Map<String, Path>> paths = new HashMap<>();
 
@@ -31,7 +31,7 @@ public class SwaggerEntity {
 
 	public void addPath(String path, String method, Path pathInfo) {
 		Map<String, Path> map = paths.get(path);
-		if(map == null){
+		if (map == null) {
 			map = new HashMap<>();
 			paths.put(path, map);
 		}
@@ -66,7 +66,7 @@ public class SwaggerEntity {
 		this.basePath = basePath;
 	}
 
-	public Map<String,String> getDefinitions() {
+	public Map<String, String> getDefinitions() {
 		return definitions;
 	}
 
@@ -79,7 +79,49 @@ public class SwaggerEntity {
 	}
 
 
-	public static class Info{
+	private static Map<String, Object> doProcessSchema(Object target) {
+		Map<String, Object> result = new HashMap<>(3);
+		result.put("type", getType(target));
+		if (target instanceof List) {
+			List targetList = (List) target;
+			if (targetList.size() > 0) {
+				result.put("items", doProcessSchema(targetList.get(0)));
+			} else {
+				result.put("items", Collections.emptyList());
+			}
+		} else if (target instanceof Map) {
+			Set<Map.Entry> entries = ((Map) target).entrySet();
+			Map<String, Map<String, Object>> properties = new HashMap<>(entries.size());
+			for (Map.Entry entry : entries) {
+				properties.put(Objects.toString(entry.getKey()), doProcessSchema(entry.getValue()));
+			}
+			result.put("properties", properties);
+		} else {
+			result.put("example", target == null ? "": target);
+		}
+		return result;
+	}
+
+	private static String getType(Object object) {
+		if (object instanceof Number) {
+			return "number";
+		}
+		if (object instanceof String) {
+			return "string";
+		}
+		if (object instanceof Boolean) {
+			return "boolean";
+		}
+		if (object instanceof List) {
+			return "array";
+		}
+		if (object instanceof Map) {
+			return "object";
+		}
+		return "string";
+	}
+
+	public static class Info {
 
 		private String description;
 
@@ -135,6 +177,8 @@ public class SwaggerEntity {
 
 		private String summary;
 
+		private String operationId = UUID.randomUUID().toString().replace("-","");
+
 		private List<String> produces = new ArrayList<>();
 
 		private List<String> consumes = new ArrayList<>();
@@ -155,11 +199,19 @@ public class SwaggerEntity {
 			this.parameters.add(parameter);
 		}
 
+		public String getOperationId() {
+			return operationId;
+		}
+
+		public void setOperationId(String operationId) {
+			this.operationId = operationId;
+		}
+
 		public void addResponse(String status, Object object) {
 			Map<String, Object> response = new HashMap<>();
-			response.put("description","OK");
-			response.put("schema",new HashMap<>());
-			response.put("examples",object);
+			response.put("description", "OK");
+			response.put("schema", doProcessSchema(object));
+			response.put("example", object);
 			this.responses.put(status, response);
 		}
 
@@ -167,7 +219,7 @@ public class SwaggerEntity {
 			return tags;
 		}
 
-		public void addTag(String tag){
+		public void addTag(String tag) {
 			this.tags.add(tag);
 		}
 
@@ -226,16 +278,28 @@ public class SwaggerEntity {
 
 		private String type;
 
-		private Map<String,Object> schema;
+		private Map<String, Object> schema;
 
-		private Object examples;
+		private String description;
 
-		public Parameter(String name, String in, String type, Object examples) {
+		public Parameter(String name, String in, String type, String description, Object example) {
 			this.name = name;
 			this.in = in;
 			this.schema = new HashMap<>();
-			this.schema.put("type",type);
-			this.examples = examples;
+			this.schema.put("type", type);
+			this.schema.put("example", example);
+			this.description = description;
+			if ("body".equalsIgnoreCase(in)) {
+				this.schema = doProcessSchema(example);
+			}
+		}
+
+		public String getDescription() {
+			return description;
+		}
+
+		public void setDescription(String description) {
+			this.description = description;
 		}
 
 		public String getName() {
@@ -278,13 +342,6 @@ public class SwaggerEntity {
 			this.schema = schema;
 		}
 
-		public Object getExamples() {
-			return examples;
-		}
-
-		public void setExamples(Object examples) {
-			this.examples = examples;
-		}
 	}
 
 	public static class Tag {
