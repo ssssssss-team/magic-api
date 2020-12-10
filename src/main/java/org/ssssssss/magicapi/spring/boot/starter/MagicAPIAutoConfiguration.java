@@ -33,6 +33,7 @@ import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.dialect.*;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
+import org.ssssssss.magicapi.interceptor.SQLInterceptor;
 import org.ssssssss.magicapi.logging.LoggerManager;
 import org.ssssssss.magicapi.modules.*;
 import org.ssssssss.magicapi.provider.*;
@@ -65,7 +66,10 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	private MagicAPIProperties properties;
 
 	@Autowired(required = false)
-	private List<RequestInterceptor> requestInterceptors;
+	private List<RequestInterceptor> requestInterceptors = Collections.emptyList();
+
+	@Autowired(required = false)
+	private List<SQLInterceptor> sqlInterceptors = Collections.emptyList();
 
 	@Autowired
 	@Lazy
@@ -78,42 +82,46 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 * 定义的模块集合
 	 */
 	@Autowired(required = false)
-	private List<MagicModule> magicModules;
+	private List<MagicModule> magicModules = Collections.emptyList();
 	/**
 	 * 自定义的类型扩展
 	 */
 	@Autowired(required = false)
-	private List<ExtensionMethod> extensionMethods;
+	private List<ExtensionMethod> extensionMethods = Collections.emptyList();
 
 	/**
 	 * 内置的消息转换
 	 */
 	@Autowired(required = false)
-	private List<HttpMessageConverter<?>> httpMessageConverters;
+	private List<HttpMessageConverter<?>> httpMessageConverters = Collections.emptyList();
 
 	/**
 	 * 自定义的方言
 	 */
 	@Autowired(required = false)
-	private List<Dialect> dialects;
+	private List<Dialect> dialects = Collections.emptyList();
 
 	/**
 	 * 自定义的列名转换
 	 */
 	@Autowired(required = false)
-	List<ColumnMapperProvider> columnMapperProviders;
+	List<ColumnMapperProvider> columnMapperProviders = Collections.emptyList();
 
 	@Autowired
 	private Environment environment;
 
 	@Autowired
 	ApiServiceProvider apiServiceProvider;
+
 	@Autowired
 	GroupServiceProvider groupServiceProvider;
+
 	@Autowired
 	MagicDynamicDataSource magicDynamicDataSource;
+
 	@Autowired
 	MappingHandlerMapping mappingHandlerMapping;
+
 	@Autowired
 	ResultProvider resultProvider;
 
@@ -304,17 +312,16 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		SQLModule sqlModule = new SQLModule(dynamicDataSource);
 		sqlModule.setResultProvider(resultProvider);
 		sqlModule.setPageProvider(pageProvider);
+		sqlModule.setSqlInterceptors(sqlInterceptors);
 		ColumnMapperAdapter columnMapperAdapter = new ColumnMapperAdapter();
 		columnMapperAdapter.setDefault(new DefaultColumnMapperProvider());
 		columnMapperAdapter.add(new CamelColumnMapperProvider());
 		columnMapperAdapter.add(new PascalColumnMapperProvider());
 		columnMapperAdapter.add(new LowerColumnMapperProvider());
 		columnMapperAdapter.add(new UpperColumnMapperProvider());
-		if (this.columnMapperProviders != null) {
-			for (ColumnMapperProvider mapperProvider : this.columnMapperProviders) {
-				if (!"default".equals(mapperProvider.name())) {
-					columnMapperAdapter.add(mapperProvider);
-				}
+		for (ColumnMapperProvider mapperProvider : this.columnMapperProviders) {
+			if (!"default".equals(mapperProvider.name())) {
+				columnMapperAdapter.add(mapperProvider);
 			}
 		}
 		columnMapperAdapter.setDefault(properties.getSqlColumnCase());
@@ -330,9 +337,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		dialectAdapter.add(new DB2Dialect());
 		dialectAdapter.add(new SQLServerDialect());
 		dialectAdapter.add(new SQLServer2005Dialect());
-		if (dialects != null) {
-			dialects.forEach(dialectAdapter::add);
-		}
+		dialects.forEach(dialectAdapter::add);
 		sqlModule.setDialectAdapter(dialectAdapter);
 		return sqlModule;
 	}
@@ -366,11 +371,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		MagicModuleLoader.addModule("response", new ResponseModule(resultProvider));
 		logger.info("注册模块:{} -> {}", "assert", AssertModule.class);
 		MagicModuleLoader.addModule("assert", AssertModule.class);
-		if (magicModules != null) {
-			for (MagicModule module : magicModules) {
-				logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
-				MagicModuleLoader.addModule(module.getModuleName(), module);
-			}
+		for (MagicModule module : magicModules) {
+			logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
+			MagicModuleLoader.addModule(module.getModuleName(), module);
 		}
 		Set<String> moduleNames = MagicModuleLoader.getModuleNames();
 		for (String moduleName : moduleNames) {
@@ -384,13 +387,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			logger.info("自动导包：{}", importPackage);
 			MagicPackageLoader.addPackage(importPackage);
 		}
-		if (extensionMethods != null) {
-			for (ExtensionMethod extension : extensionMethods) {
-				List<Class<?>> supports = extension.supports();
-				for (Class<?> support : supports) {
-					logger.info("注册扩展:{} -> {}", support, extension.getClass());
-					AbstractReflection.getInstance().registerExtensionClass(support, extension.getClass());
-				}
+		for (ExtensionMethod extension : extensionMethods) {
+			List<Class<?>> supports = extension.supports();
+			for (Class<?> support : supports) {
+				logger.info("注册扩展:{} -> {}", support, extension.getClass());
+				AbstractReflection.getInstance().registerExtensionClass(support, extension.getClass());
 			}
 		}
 	}
@@ -436,12 +437,10 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			});
 		}
 		// 设置拦截器信息
-		if (this.requestInterceptors != null) {
-			this.requestInterceptors.forEach(interceptor -> {
-				logger.info("注册请求拦截器：{}", interceptor.getClass());
-				configuration.addRequestInterceptor(interceptor);
-			});
-		}
+		this.requestInterceptors.forEach(interceptor -> {
+			logger.info("注册请求拦截器：{}", interceptor.getClass());
+			configuration.addRequestInterceptor(interceptor);
+		});
 		return configuration;
 	}
 
