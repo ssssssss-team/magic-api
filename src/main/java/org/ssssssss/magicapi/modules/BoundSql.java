@@ -107,7 +107,7 @@ public class BoundSql {
 	 */
 	<T> T getCacheValue(String sql, Object[] params, Supplier<T> supplier) {
 		if (cacheName == null) {
-			return null;
+			return supplier.get();
 		}
 		String cacheKey = sqlCache.buildSqlCacheKey(sql, params);
 		Object cacheValue = sqlCache.get(cacheName, cacheKey);
