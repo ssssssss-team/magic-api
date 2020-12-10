@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.modules;
 
 import org.ssssssss.magicapi.cache.SqlCache;
+import org.ssssssss.magicapi.interceptor.SQLInterceptor;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.functions.StreamExtension;
 import org.ssssssss.script.parsing.GenericTokenParser;
@@ -34,7 +35,7 @@ public class BoundSql {
 
 	private long ttl;
 
-	BoundSql(String sql){
+	BoundSql(String sql) {
 		MagicScriptContext context = MagicScriptContext.get();
 		// 处理?{}参数
 		this.sql = ifTokenParser.parse(sql.trim(), text -> {
@@ -80,6 +81,21 @@ public class BoundSql {
 		this.ttl = ttl;
 	}
 
+	private BoundSql() {
+
+	}
+
+	BoundSql copy(String newSql) {
+		BoundSql boundSql = new BoundSql();
+		boundSql.setParameters(new ArrayList<>(this.parameters));
+		boundSql.setSql(this.sql);
+		boundSql.ttl = this.ttl;
+		boundSql.cacheName = this.cacheName;
+		boundSql.sqlCache = this.sqlCache;
+		boundSql.sql = newSql;
+		return boundSql;
+	}
+
 	/**
 	 * 添加SQL参数
 	 */
@@ -95,6 +111,20 @@ public class BoundSql {
 	}
 
 	/**
+	 * 设置要执行的SQL
+	 */
+	public void setSql(String sql) {
+		this.sql = sql;
+	}
+
+	/**
+	 * 设置要执行的参数
+	 */
+	public void setParameters(List<Object> parameters) {
+		this.parameters = parameters;
+	}
+
+	/**
 	 * 获取要执行的参数
 	 */
 	public Object[] getParameters() {
@@ -105,7 +135,7 @@ public class BoundSql {
 	/**
 	 * 获取缓存值
 	 */
-	<T> T getCacheValue(String sql, Object[] params, Supplier<T> supplier) {
+	private <T> T getCacheValue(String sql, Object[] params, Supplier<T> supplier) {
 		if (cacheName == null) {
 			return supplier.get();
 		}
@@ -122,7 +152,8 @@ public class BoundSql {
 	/**
 	 * 获取缓存值
 	 */
-	<T> T getCacheValue(Supplier<T> supplier) {
+	<T> T getCacheValue(List<SQLInterceptor> interceptors, Supplier<T> supplier) {
+		interceptors.forEach(interceptor -> interceptor.preHandle(this));
 		return getCacheValue(this.getSql(), this.getParameters(), supplier);
 	}
 }
