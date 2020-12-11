@@ -1,15 +1,15 @@
-package org.ssssssss.magicapi.config;
+package org.ssssssss.magicapi.controller;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.model.Options;
 import org.ssssssss.magicapi.utils.MD5Utils;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;

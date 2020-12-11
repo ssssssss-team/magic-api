@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
+import org.ssssssss.magicapi.controller.MagicAPIController;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;

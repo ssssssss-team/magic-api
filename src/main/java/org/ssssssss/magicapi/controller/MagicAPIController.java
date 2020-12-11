@@ -1,10 +1,11 @@
-package org.ssssssss.magicapi.config;
+package org.ssssssss.magicapi.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.JsonBean;

@@ -1,12 +1,13 @@
-package org.ssssssss.magicapi.config;
+package org.ssssssss.magicapi.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.magicapi.provider.MagicAPIService;
-import org.ssssssss.script.MagicModuleLoader;
+import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.ScriptClass;
 
@@ -31,7 +32,7 @@ public class MagicConfigController extends MagicController {
 	@ResponseBody
 	public JsonBean<Map<String, Map<String, ScriptClass>>> classes() {
 		Map<String, ScriptClass> classMap = MagicScriptEngine.getScriptClassMap();
-		classMap.putAll(MagicModuleLoader.getModules());
+		classMap.putAll(MagicResourceLoader.getModules());
 		ScriptClass db = classMap.get(SQLModule.class.getName());
 		if (db != null) {
 			List<ScriptClass.ScriptAttribute> attributes = new ArrayList<>();

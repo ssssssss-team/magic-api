@@ -1,8 +1,11 @@
 package org.ssssssss.magicapi.config;
 
 import org.springframework.http.converter.HttpMessageConverter;
+import org.ssssssss.magicapi.controller.MagicDynamicDataSource;
+import org.ssssssss.magicapi.controller.RequestHandler;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
+import org.ssssssss.magicapi.provider.FunctionServiceProvider;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
 
@@ -42,6 +45,11 @@ public class MagicConfiguration {
 	 * 分组查询Service
 	 */
 	private GroupServiceProvider groupServiceProvider;
+
+	/**
+	 * 函数查询Service
+	 */
+	private FunctionServiceProvider functionServiceProvider;
 
 	/**
 	 * 动态数据源
@@ -165,6 +173,14 @@ public class MagicConfiguration {
 
 	public boolean isEnableWeb() {
 		return enableWeb;
+	}
+
+	public FunctionServiceProvider getFunctionServiceProvider() {
+		return functionServiceProvider;
+	}
+
+	public void setFunctionServiceProvider(FunctionServiceProvider functionServiceProvider) {
+		this.functionServiceProvider = functionServiceProvider;
 	}
 
 	/**

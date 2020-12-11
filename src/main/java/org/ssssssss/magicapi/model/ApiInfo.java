@@ -10,8 +10,6 @@ import java.util.Objects;
  */
 public class ApiInfo {
 
-	public static final String WRAP_REQUEST_PARAMETER = "wrap_request_parameter";
-
 	/**
 	 * 接口ID
 	 */

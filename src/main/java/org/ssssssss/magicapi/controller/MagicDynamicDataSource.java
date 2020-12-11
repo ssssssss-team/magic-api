@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.config;
+package org.ssssssss.magicapi.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -67,7 +67,6 @@ public class MagicDynamicDataSource {
 
 	/**
 	 * 获取默认数据源
-	 * @return
 	 */
 	public MagicDynamicDataSource.DataSourceNode getDataSource() {
 		return getDataSource(null);
@@ -99,7 +98,7 @@ public class MagicDynamicDataSource {
 
 		private Dialect dialect;
 
-		public DataSourceNode(DataSource dataSource) {
+		DataSourceNode(DataSource dataSource) {
 			this.dataSource = dataSource;
 			this.dataSourceTransactionManager = new DataSourceTransactionManager(this.dataSource);
 			this.jdbcTemplate = new JdbcTemplate(dataSource);

@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.config;
+package org.ssssssss.magicapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
+import org.ssssssss.magicapi.config.MagicConfiguration;
+import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.context.CookieContext;
 import org.ssssssss.magicapi.context.HeaderContext;
 import org.ssssssss.magicapi.context.RequestContext;
@@ -25,6 +27,7 @@ import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.model.JsonBodyBean;
+import org.ssssssss.magicapi.model.Options;
 import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
@@ -305,7 +308,7 @@ public class RequestHandler extends MagicController {
 	private MagicScriptContext createMagicScriptContext(ApiInfo info, HttpServletRequest request, Map<String, Object> pathVariables, Map<String, Object> parameters) throws IOException {
 		// 构建脚本上下文
 		MagicScriptContext context = isRequestedFromTest(request) ? new MagicScriptDebugContext() : new MagicScriptContext();
-		Object wrap = info.getOptionValue(ApiInfo.WRAP_REQUEST_PARAMETER);
+		Object wrap = info.getOptionValue(Options.WRAP_REQUEST_PARAMETERS.getValue());
 		if (wrap != null && StringUtils.isNotBlank(wrap.toString())) {
 			context.set(wrap.toString(), parameters);
 		}

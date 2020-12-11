@@ -1,5 +1,6 @@
-package org.ssssssss.magicapi.config;
+package org.ssssssss.magicapi.controller;
 
+import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.utils.MD5Utils;
 
@@ -21,7 +22,7 @@ public class MagicController {
 
 	MagicConfiguration configuration;
 
-	public MagicController(MagicConfiguration configuration) {
+	MagicController(MagicConfiguration configuration) {
 		this.configuration = configuration;
 	}
 
@@ -29,14 +30,12 @@ public class MagicController {
 	 * 判断是否有权限访问按钮
 	 */
 	boolean allowVisit(HttpServletRequest request, RequestInterceptor.Authorization authorization) {
-		if (configuration.getUsername()!= null && configuration.getUsername() != null) {
-			String headerValue = request.getHeader(configuration.getTokenKey());
-			String realValue = MD5Utils.encrypt(String.format("%s||%s", configuration.getUsername(), configuration.getPassword()));
-			if(!Objects.equals(realValue,headerValue)){
-				return false;
-			}
-		}
 		if (authorization == null) {
+			if (configuration.getUsername() != null && configuration.getPassword() != null) {
+				String headerValue = request.getHeader(configuration.getTokenKey());
+				String realValue = MD5Utils.encrypt(String.format("%s||%s", configuration.getUsername(), configuration.getPassword()));
+				return Objects.equals(realValue, headerValue);
+			}
 			return true;
 		}
 		for (RequestInterceptor requestInterceptor : configuration.getRequestInterceptors()) {

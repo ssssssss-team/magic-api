@@ -11,6 +11,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.ssssssss.magicapi.controller.RequestHandler;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.TreeNode;
@@ -109,7 +110,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 根据绑定的key获取接口信息
 	 */
-	public static ApiInfo getMappingApiInfo(String key) {
+	private static ApiInfo getMappingApiInfo(String key) {
 		return mappings.get(key);
 	}
 
@@ -119,7 +120,7 @@ public class MappingHandlerMapping {
 	 * @param requestMethod  请求方法
 	 * @param requestMapping 请求路径
 	 */
-	public static String buildMappingKey(String requestMethod, String requestMapping) {
+	private static String buildMappingKey(String requestMethod, String requestMapping) {
 
 		if (!StringUtils.isEmpty(requestMapping) && !requestMapping.startsWith("/")) {
 			requestMapping = "/" + requestMapping;
@@ -150,7 +151,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 加载所有分组
 	 */
-	synchronized  void loadGroup() {
+	public synchronized void loadGroup() {
 		groups = groupServiceProvider.apiGroupList();
 	}
 
@@ -200,7 +201,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 检测是否允许修改
 	 */
-	boolean checkGroup(Group group) {
+	public boolean checkGroup(Group group) {
 		Group oldGroup = groups.findNode((item) -> item.getId().equals(group.getId()));
 		// 如果只改了名字，则不做任何操作
 		if (Objects.equals(oldGroup.getParentId(), group.getParentId()) &&
@@ -234,7 +235,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 删除分组
 	 */
-	void deleteGroup(String groupId) {
+	public void deleteGroup(String groupId) {
 		// 找到下级所有分组
 		List<String> groupIds = groups.findNodes((item) -> item.getId().equals(groupId)).stream().map(Group::getId).collect(Collectors.toList());
 		groupIds.add(groupId);
@@ -250,7 +251,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 修改分组
 	 */
-	void updateGroup(Group group) {
+	public void updateGroup(Group group) {
 		loadGroup();    // 重新加载分组
 		Group oldGroup = groups.findNode((item) -> item.getId().equals(group.getId()));
 		apiInfos.stream().filter(info -> Objects.equals(info.getGroupId(), oldGroup.getId())).forEach(info -> {
@@ -263,7 +264,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 判断是否已注册
 	 */
-	boolean hasRegisterMapping(ApiInfo info) {
+	public boolean hasRegisterMapping(ApiInfo info) {
 		if (info.getId() != null) {
 			ApiInfo oldInfo = mappings.get(info.getId());
 			if (oldInfo != null
@@ -288,7 +289,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 接口移动
 	 */
-	boolean move(String id, String groupId) {
+	public boolean move(String id, String groupId) {
 		ApiInfo oldInfo = mappings.get(id);
 		if (oldInfo == null) {
 			return false;
@@ -301,7 +302,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 注册请求映射
 	 */
-	void registerMapping(ApiInfo info, boolean delete) {
+	public void registerMapping(ApiInfo info, boolean delete) {
 		// 先判断是否已注册，如果已注册，则先取消注册在进行注册。
 		ApiInfo oldInfo = mappings.get(info.getId());
 		String newMappingKey = getMappingKey(info);
@@ -346,14 +347,14 @@ public class MappingHandlerMapping {
 		apiInfos.add(info);
 	}
 
-	public void registerMapping(RequestMappingInfo requestMapping, Object handler, Method method) {
+	private void registerMapping(RequestMappingInfo requestMapping, Object handler, Method method) {
 		requestMappingHandlerMapping.registerMapping(requestMapping, handler, method);
 	}
 
 	/**
 	 * 取消注册请求映射
 	 */
-	void unregisterMapping(String id, boolean delete) {
+	public void unregisterMapping(String id, boolean delete) {
 		ApiInfo info = mappings.remove(id);
 		if (info != null) {
 			logger.info("取消注册接口:{}", info.getName());
