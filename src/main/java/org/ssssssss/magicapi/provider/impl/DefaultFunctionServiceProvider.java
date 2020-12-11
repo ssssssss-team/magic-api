@@ -88,8 +88,8 @@ public class DefaultFunctionServiceProvider extends BeanPropertyRowMapper<Functi
 	}
 
 	@Override
-	public boolean deleteGroup(String groupId) {
-		return template.update("delete from magic_function where function_group_id = ?", groupId) >= 0;
+	public boolean deleteGroup(List<String> groupIds) {
+		return false;
 	}
 
 	@Override

@@ -5,8 +5,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> implements ApiServiceProvider {
 
@@ -65,8 +68,9 @@ public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> im
 	}
 
 	@Override
-	public boolean deleteGroup(String groupId) {
-		return template.update("delete from magic_api_info where api_group_id = ?", groupId) >= 0;
+	public boolean deleteGroup(List<String> groupIds) {
+		List<Object[]> params = groupIds.stream().map(groupId -> new Object[]{groupId}).collect(Collectors.toList());
+		return Arrays.stream(template.batchUpdate("delete from magic_api_info where api_group_id = ?",params)).sum() >= 0;
 	}
 
 	public boolean exists(String groupId, String method, String path) {

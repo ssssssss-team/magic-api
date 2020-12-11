@@ -33,22 +33,19 @@ public class TreeNode<T> {
 		this.children = children;
 	}
 
-	public List<T> findNodes(Function<T, Boolean> mapping) {
-		return findNodes(this.children, mapping);
+
+	public TreeNode<T> findTreeNode(Function<T, Boolean> mapping){
+		return findTreeNode(this.children, mapping);
 	}
 
-	public T findNode(Function<T, Boolean> mapping) {
-		return findNode(this.children, mapping);
-	}
-
-	private T findNode(List<TreeNode<T>> childs, Function<T, Boolean> mapping) {
-		for (TreeNode<T> item : childs) {
-			if (mapping.apply(item.node)) {
-				return item.node;
+	private TreeNode<T> findTreeNode(List<TreeNode<T>> childs, Function<T, Boolean> mapping) {
+		for (TreeNode<T> child : childs) {
+			if (mapping.apply(child.getNode())) {
+				return child;
 			}
-			T found = findNode(item.children, mapping);
-			if (found != null) {
-				return found;
+			TreeNode<T> node = findTreeNode(child.children, mapping);
+			if(node != null){
+				return node;
 			}
 		}
 		return null;
@@ -58,26 +55,15 @@ public class TreeNode<T> {
 		node.children.add(this);
 	}
 
-	private List<T> findNodes(List<TreeNode<T>> childs, Function<T, Boolean> mapping) {
-		List<T> nodes = new ArrayList<>();
-		childs.forEach(item -> {
-			if (mapping.apply(item.getNode())) {
-				nodes.add(item.getNode());
-			}
-			nodes.addAll(findNodes(item.children, mapping));
-		});
-		return nodes;
-	}
-
 	public List<T> flat() {
-		return flat(this.children);
+		return flat(this);
 	}
 
-	private List<T> flat(List<TreeNode<T>> childs) {
+	private List<T> flat(TreeNode<T> node) {
 		List<T> result = new ArrayList<>();
-		for (TreeNode<T> item : childs) {
-			result.add(item.getNode());
-			result.addAll(flat(childs));
+		result.add(node.getNode());
+		for (TreeNode<T> item : node.getChildren()) {
+			result.addAll(flat(item));
 		}
 		return result;
 	}

@@ -9,10 +9,12 @@ import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.JsonBean;
+import org.ssssssss.magicapi.model.TreeNode;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MagicGroupController extends MagicController {
 
@@ -35,15 +37,23 @@ public class MagicGroupController extends MagicController {
 			return new JsonBean<>(-10, "无权限执行删除方法");
 		}
 		try {
-			boolean success = configuration.getMagicApiService().deleteGroup(groupId);
-			if (success) {    //删除成功时取消注册
-				configuration.getMappingHandlerMapping().deleteGroup(groupId);
+			TreeNode<Group> treeNode = configuration.getGroupServiceProvider().apiGroupList().findTreeNode(group -> group.getId().equals(groupId));
+			if (treeNode == null) {
+				return new JsonBean<>(0, "分组不存在!");
 			}
-			success = this.groupServiceProvider.delete(groupId);
-			if(success){
-				configuration.getMappingHandlerMapping().loadGroup();
+			List<String> groupIds = treeNode.flat().stream().map(Group::getId).collect(Collectors.toList());
+			// 删除接口
+			boolean success = configuration.getMagicApiService().deleteGroup(groupIds);
+			if (success) {
+				// 取消注册
+				configuration.getMappingHandlerMapping().deleteGroup(groupIds);
+				// 删除分组
+				success = this.groupServiceProvider.delete(groupId);
+				if (success) {
+					// 重新加载分组
+					configuration.getMappingHandlerMapping().loadGroup();
+				}
 			}
-			// 删除分组
 			return new JsonBean<>(success);
 		} catch (Exception e) {
 			logger.error("删除分组出错", e);

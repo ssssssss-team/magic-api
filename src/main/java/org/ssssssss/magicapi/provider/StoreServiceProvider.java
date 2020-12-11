@@ -74,7 +74,7 @@ public interface StoreServiceProvider<T> {
 	/**
 	 * 根据组ID删除
 	 */
-	boolean deleteGroup(String groupId);
+	boolean deleteGroup(List<String> groupIds);
 
 	/**
 	 * 包装接口信息（可用于加密）

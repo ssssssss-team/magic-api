@@ -202,7 +202,7 @@ public class MappingHandlerMapping {
 	 * 检测是否允许修改
 	 */
 	public boolean checkGroup(Group group) {
-		Group oldGroup = groups.findNode((item) -> item.getId().equals(group.getId()));
+		Group oldGroup = groups.findTreeNode((item) -> item.getId().equals(group.getId())).getNode();
 		// 如果只改了名字，则不做任何操作
 		if (Objects.equals(oldGroup.getParentId(), group.getParentId()) &&
 				Objects.equals(oldGroup.getPath(), group.getPath())) {
@@ -215,7 +215,7 @@ public class MappingHandlerMapping {
 
 		// 判断是否有冲突
 		for (ApiInfo info : infos) {
-			String path = getRequestPath(newPath, info.getPath());
+			String path = concatPath(newPath, info.getPath());
 			String mappingKey = buildMappingKey(info.getMethod(), path);
 			if (mappings.containsKey(mappingKey)) {
 				return false;
@@ -235,10 +235,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 删除分组
 	 */
-	public void deleteGroup(String groupId) {
-		// 找到下级所有分组
-		List<String> groupIds = groups.findNodes((item) -> item.getId().equals(groupId)).stream().map(Group::getId).collect(Collectors.toList());
-		groupIds.add(groupId);
+	public void deleteGroup(List<String> groupIds) {
 		// 找到对应的所有接口
 		List<ApiInfo> deleteInfos = apiInfos.stream().filter(info -> groupIds.contains(info.getGroupId())).collect(Collectors.toList());
 		for (ApiInfo info : deleteInfos) {
@@ -253,7 +250,7 @@ public class MappingHandlerMapping {
 	 */
 	public void updateGroup(Group group) {
 		loadGroup();    // 重新加载分组
-		Group oldGroup = groups.findNode((item) -> item.getId().equals(group.getId()));
+		Group oldGroup = groups.findTreeNode((item) -> item.getId().equals(group.getId())).getNode();
 		apiInfos.stream().filter(info -> Objects.equals(info.getGroupId(), oldGroup.getId())).forEach(info -> {
 			unregisterMapping(info.getId(), false);
 			info.setGroupId(group.getId());
@@ -313,7 +310,7 @@ public class MappingHandlerMapping {
 				if (!info.equals(oldInfo)) {
 					mappings.put(info.getId(), info);
 					mappings.put(newMappingKey, info);
-					if(delete){
+					if (delete) {
 						refreshCache(info);
 					}
 					logger.info("刷新接口:{},{}", info.getName(), newMappingKey);
@@ -342,7 +339,7 @@ public class MappingHandlerMapping {
 		}
 	}
 
-	private void refreshCache(ApiInfo info){
+	private void refreshCache(ApiInfo info) {
 		apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
 		apiInfos.add(info);
 	}
@@ -380,7 +377,12 @@ public class MappingHandlerMapping {
 	 * @param path    请求路径
 	 */
 	public String getRequestPath(String groupId, String path) {
-		path = groupServiceProvider.getFullPath(groupId) + "/" + path;
+		return concatPath(groupServiceProvider.getFullPath(groupId), path);
+
+	}
+
+	private String concatPath(String groupPath, String path) {
+		path = groupPath + "/" + path;
 		if (prefix != null) {
 			path = prefix + "/" + path;
 		}
