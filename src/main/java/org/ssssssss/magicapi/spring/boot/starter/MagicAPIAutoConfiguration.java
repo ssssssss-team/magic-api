@@ -31,6 +31,7 @@ import org.ssssssss.magicapi.adapter.DialectAdapter;
 import org.ssssssss.magicapi.cache.DefaultSqlCache;
 import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
+import org.ssssssss.magicapi.controller.*;
 import org.ssssssss.magicapi.dialect.*;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.interceptor.SQLInterceptor;
@@ -39,8 +40,7 @@ import org.ssssssss.magicapi.modules.*;
 import org.ssssssss.magicapi.provider.*;
 import org.ssssssss.magicapi.provider.impl.*;
 import org.ssssssss.magicapi.utils.ClassScanner;
-import org.ssssssss.script.MagicModuleLoader;
-import org.ssssssss.script.MagicPackageLoader;
+import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.functions.ExtensionMethod;
@@ -115,6 +115,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Autowired
 	GroupServiceProvider groupServiceProvider;
+
+	@Autowired
+	FunctionServiceProvider functionServiceProvider;
 
 	@Autowired
 	MagicDynamicDataSource magicDynamicDataSource;
@@ -259,6 +262,22 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return handlerMapping;
 	}
 
+
+	@Bean
+	@ConditionalOnMissingBean(FunctionServiceProvider.class)
+	public FunctionServiceProvider functionServiceProvider(MagicDynamicDataSource dynamicDataSource){
+		return new DefaultFunctionServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
+	}
+
+	/**
+	 * 注入分组存储service
+	 */
+	@Bean
+	@ConditionalOnMissingBean(GroupServiceProvider.class)
+	public GroupServiceProvider groupServiceProvider(MagicDynamicDataSource dynamicDataSource) {
+		return new DefaultGroupServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
+	}
+
 	/**
 	 * 注入接口存储service
 	 */
@@ -269,13 +288,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return new DefaultApiServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
 	}
 
-	/**
-	 * 注入分组存储service
-	 */
-	@Bean
-	public GroupServiceProvider GroupServiceProvider(MagicDynamicDataSource dynamicDataSource) {
-		return new DefaultGroupServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
-	}
+
 
 	/**
 	 * 注入API调用Service
@@ -337,6 +350,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		dialectAdapter.add(new DB2Dialect());
 		dialectAdapter.add(new SQLServerDialect());
 		dialectAdapter.add(new SQLServer2005Dialect());
+		dialectAdapter.add(new DmDialect());
 		dialects.forEach(dialectAdapter::add);
 		sqlModule.setDialectAdapter(dialectAdapter);
 		return sqlModule;
@@ -347,7 +361,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 */
 	private void setupMagicModules(ResultProvider resultProvider, List<MagicModule> magicModules, List<ExtensionMethod> extensionMethods) {
 		// 设置脚本import时 class加载策略
-		MagicModuleLoader.setClassLoader((className) -> {
+		MagicResourceLoader.setClassLoader((className) -> {
 			try {
 				return springContext.getBean(className);
 			} catch (Exception e) {
@@ -361,31 +375,31 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			}
 		});
 		logger.info("注册模块:{} -> {}", "log", Logger.class);
-		MagicModuleLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
+		MagicResourceLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
 		List<String> importModules = properties.getAutoImportModuleList();
 		logger.info("注册模块:{} -> {}", "env", EnvModule.class);
-		MagicModuleLoader.addModule("env", new EnvModule(environment));
+		MagicResourceLoader.addModule("env", new EnvModule(environment));
 		logger.info("注册模块:{} -> {}", "request", RequestModule.class);
-		MagicModuleLoader.addModule("request", new RequestModule());
+		MagicResourceLoader.addModule("request", new RequestModule());
 		logger.info("注册模块:{} -> {}", "response", ResponseModule.class);
-		MagicModuleLoader.addModule("response", new ResponseModule(resultProvider));
+		MagicResourceLoader.addModule("response", new ResponseModule(resultProvider));
 		logger.info("注册模块:{} -> {}", "assert", AssertModule.class);
-		MagicModuleLoader.addModule("assert", AssertModule.class);
+		MagicResourceLoader.addModule("assert", AssertModule.class);
 		for (MagicModule module : magicModules) {
 			logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
-			MagicModuleLoader.addModule(module.getModuleName(), module);
+			MagicResourceLoader.addModule(module.getModuleName(), module);
 		}
-		Set<String> moduleNames = MagicModuleLoader.getModuleNames();
+		Set<String> moduleNames = MagicResourceLoader.getModuleNames();
 		for (String moduleName : moduleNames) {
 			if (importModules.contains(moduleName)) {
 				logger.info("自动导入模块：{}", moduleName);
-				MagicScriptEngine.addDefaultImport(moduleName, MagicModuleLoader.loadModule(moduleName));
+				MagicScriptEngine.addDefaultImport(moduleName, MagicResourceLoader.loadModule(moduleName));
 			}
 		}
 		List<String> importPackages = properties.getAutoImportPackageList();
 		for (String importPackage : importPackages) {
 			logger.info("自动导包：{}", importPackage);
-			MagicPackageLoader.addPackage(importPackage);
+			MagicResourceLoader.addPackage(importPackage);
 		}
 		for (ExtensionMethod extension : extensionMethods) {
 			List<Class<?>> supports = extension.supports();
@@ -397,11 +411,28 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	}
 
 
-	private MagicConfiguration createMagicConfiguration(ApiServiceProvider apiServiceProvider, GroupServiceProvider groupServiceProvider, MappingHandlerMapping mappingHandlerMapping) {
+	/**
+	 * 注入动态数据源
+	 */
+	@Bean
+	@ConditionalOnMissingBean(MagicDynamicDataSource.class)
+	public MagicDynamicDataSource magicDynamicDataSource(DataSource dataSource) {
+		MagicDynamicDataSource dynamicDataSource = new MagicDynamicDataSource();
+		dynamicDataSource.put(dataSource);
+		return dynamicDataSource;
+	}
+
+	@Bean
+	public MagicConfiguration magicConfiguration() {
+		setupSpringSecurity();
+		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
+		// 设置模块和扩展方法
+		setupMagicModules(resultProvider, magicModules, extensionMethods);
 		MagicConfiguration configuration = new MagicConfiguration();
 		configuration.setMagicApiService(apiServiceProvider);
 		configuration.setGroupServiceProvider(groupServiceProvider);
 		configuration.setMappingHandlerMapping(mappingHandlerMapping);
+		configuration.setFunctionServiceProvider(functionServiceProvider);
 		SecurityConfig securityConfig = properties.getSecurityConfig();
 		configuration.setUsername(securityConfig.getUsername());
 		configuration.setPassword(securityConfig.getPassword());
@@ -441,27 +472,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			logger.info("注册请求拦截器：{}", interceptor.getClass());
 			configuration.addRequestInterceptor(interceptor);
 		});
-		return configuration;
-	}
 
-	/**
-	 * 注入动态数据源
-	 */
-	@Bean
-	@ConditionalOnMissingBean(MagicDynamicDataSource.class)
-	public MagicDynamicDataSource magicDynamicDataSource(DataSource dataSource) {
-		MagicDynamicDataSource dynamicDataSource = new MagicDynamicDataSource();
-		dynamicDataSource.put(dataSource);
-		return dynamicDataSource;
-	}
-
-	@Bean
-	public MagicConfiguration magicConfiguration() {
-		setupSpringSecurity();
-		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
-		// 设置模块和扩展方法
-		setupMagicModules(resultProvider, magicModules, extensionMethods);
-		MagicConfiguration configuration = createMagicConfiguration(apiServiceProvider, groupServiceProvider, mappingHandlerMapping);
 		if (this.properties.isBanner()) {
 			configuration.printBanner();
 		}
