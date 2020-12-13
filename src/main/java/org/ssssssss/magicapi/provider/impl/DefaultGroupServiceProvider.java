@@ -31,7 +31,7 @@ public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> im
 	@Override
 	public boolean update(Group group) {
 		String updateGroup = "update magic_group set group_name = ?,group_path=?,parent_id = ? where id = ?";
-		return template.update(updateGroup, group.getName(), group.getPath(), group.getParentId(), group.getId()) > 0;
+		return template.update(updateGroup, group.getName(), group.getPath(), group.getParentId(), group.getId()) >= 0;
 	}
 
 	@Override

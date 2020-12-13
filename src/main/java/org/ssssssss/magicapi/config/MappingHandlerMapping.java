@@ -36,7 +36,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 已缓存的映射信息
 	 */
-	private static Map<String, ApiInfo> mappings = new ConcurrentHashMap<>();
+	private static Map<String, MappingNode> mappings = new ConcurrentHashMap<>();
 
 	private static Logger logger = LoggerFactory.getLogger(MappingHandlerMapping.class);
 
@@ -111,7 +111,7 @@ public class MappingHandlerMapping {
 	 * 根据绑定的key获取接口信息
 	 */
 	private static ApiInfo getMappingApiInfo(String key) {
-		return mappings.get(key);
+		return mappings.get(key).getInfo();
 	}
 
 	/**
@@ -195,41 +195,52 @@ public class MappingHandlerMapping {
 	 * @param requestMapping 请求路径
 	 */
 	public ApiInfo getApiInfo(String method, String requestMapping) {
-		return mappings.get(buildMappingKey(method, requestMapping));
+		MappingNode mappingNode = mappings.get(buildMappingKey(method, requestMapping));
+		return mappingNode == null ? null : mappingNode.getInfo();
+	}
+
+	private boolean hasConflict(TreeNode<Group> group, String newPath) {
+		// 获取要移动的接口
+		List<ApiInfo> infos = apiInfos.stream().filter(info -> Objects.equals(info.getGroupId(), group.getNode().getId())).collect(Collectors.toList());
+		String groupPath = Objects.toString(group.getNode().getPath(), "");
+		// 判断是否有冲突
+		for (ApiInfo info : infos) {
+			String path = concatPath(newPath, groupPath + "/" + info.getPath());
+			String mappingKey = buildMappingKey(info.getMethod(), path);
+			if (mappings.containsKey(mappingKey)) {
+				return true;
+			}
+			if (!allowOverride) {
+				Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.requestMappingHandlerMapping.getHandlerMethods();
+				if (handlerMethods != null) {
+					if (handlerMethods.get(getRequestMapping(info.getMethod(), path)) != null) {
+						return true;
+					}
+				}
+			}
+		}
+		for (TreeNode<Group> child : group.getChildren()) {
+			if (hasConflict(child, newPath + "/" + groupPath)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
 	 * 检测是否允许修改
 	 */
 	public boolean checkGroup(Group group) {
-		Group oldGroup = groups.findTreeNode((item) -> item.getId().equals(group.getId())).getNode();
+		TreeNode<Group> oldTree = groups.findTreeNode((item) -> item.getId().equals(group.getId()));
 		// 如果只改了名字，则不做任何操作
-		if (Objects.equals(oldGroup.getParentId(), group.getParentId()) &&
-				Objects.equals(oldGroup.getPath(), group.getPath())) {
+		if (Objects.equals(oldTree.getNode().getParentId(), group.getParentId()) &&
+				Objects.equals(oldTree.getNode().getPath(), group.getPath())) {
 			return true;
 		}
 		// 新的接口分组路径
-		String newPath = groupServiceProvider.getFullPath(group.getParentId()) + "/" + Objects.toString(group.getPath(), "");
-		// 获取要移动的接口
-		List<ApiInfo> infos = apiInfos.stream().filter(info -> Objects.equals(info.getGroupId(), oldGroup.getId())).collect(Collectors.toList());
-
-		// 判断是否有冲突
-		for (ApiInfo info : infos) {
-			String path = concatPath(newPath, info.getPath());
-			String mappingKey = buildMappingKey(info.getMethod(), path);
-			if (mappings.containsKey(mappingKey)) {
-				return false;
-			}
-			if (!allowOverride) {
-				Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.requestMappingHandlerMapping.getHandlerMethods();
-				if (handlerMethods != null) {
-					if (handlerMethods.get(getRequestMapping(info.getMethod(), path)) != null) {
-						return false;
-					}
-				}
-			}
-		}
-		return true;
+		String newPath = groupServiceProvider.getFullPath(group.getParentId());
+		// 检测冲突
+		return !hasConflict(oldTree, newPath);
 	}
 
 	/**
@@ -250,12 +261,21 @@ public class MappingHandlerMapping {
 	 */
 	public void updateGroup(Group group) {
 		loadGroup();    // 重新加载分组
-		Group oldGroup = groups.findTreeNode((item) -> item.getId().equals(group.getId())).getNode();
-		apiInfos.stream().filter(info -> Objects.equals(info.getGroupId(), oldGroup.getId())).forEach(info -> {
+		TreeNode<Group> groupTreeNode = groups.findTreeNode((item) -> item.getId().equals(group.getId()));
+		recurseUpdateGroup(groupTreeNode, true);
+	}
+
+	private void recurseUpdateGroup(TreeNode<Group> node, boolean updateGroupId) {
+		apiInfos.stream().filter(info -> Objects.equals(info.getGroupId(), node.getNode().getId())).forEach(info -> {
 			unregisterMapping(info.getId(), false);
-			info.setGroupId(group.getId());
+			if (updateGroupId) {
+				info.setGroupId(node.getNode().getId());
+			}
 			registerMapping(info, false);
 		});
+		for (TreeNode<Group> child : node.getChildren()) {
+			recurseUpdateGroup(child, false);
+		}
 	}
 
 	/**
@@ -263,7 +283,8 @@ public class MappingHandlerMapping {
 	 */
 	public boolean hasRegisterMapping(ApiInfo info) {
 		if (info.getId() != null) {
-			ApiInfo oldInfo = mappings.get(info.getId());
+			MappingNode mappingNode = mappings.get(info.getId());
+			ApiInfo oldInfo = mappingNode == null ? null : mappingNode.getInfo();
 			if (oldInfo != null
 					&& Objects.equals(oldInfo.getGroupId(), info.getGroupId())
 					&& Objects.equals(oldInfo.getMethod(), info.getMethod())
@@ -271,7 +292,11 @@ public class MappingHandlerMapping {
 				return false;
 			}
 		}
-		if (mappings.containsKey(getMappingKey(info))) {
+		String mappingKey = getMappingKey(info);
+		if (mappings.containsKey(mappingKey)) {
+			if(mappings.get(mappingKey).getInfo().getId().equals(info.getId())){
+				return false;
+			}
 			return true;
 		}
 		if (!allowOverride) {
@@ -287,12 +312,17 @@ public class MappingHandlerMapping {
 	 * 接口移动
 	 */
 	public boolean move(String id, String groupId) {
-		ApiInfo oldInfo = mappings.get(id);
-		if (oldInfo == null) {
+		MappingNode mappingNode = mappings.get(id);
+		if (mappingNode == null) {
 			return false;
 		}
-		oldInfo.setGroupId(groupId);
-		registerMapping(oldInfo, false);
+		ApiInfo copy = mappingNode.getInfo().copy();
+		copy.setGroupId(groupId);
+		if (hasRegisterMapping(copy)) {
+			return false;
+		}
+		unregisterMapping(id,true);
+		registerMapping(copy, true);
 		return true;
 	}
 
@@ -301,15 +331,20 @@ public class MappingHandlerMapping {
 	 */
 	public void registerMapping(ApiInfo info, boolean delete) {
 		// 先判断是否已注册，如果已注册，则先取消注册在进行注册。
-		ApiInfo oldInfo = mappings.get(info.getId());
+		MappingNode mappingNode = mappings.get(info.getId());
+		ApiInfo oldInfo = mappingNode == null ? null : mappingNode.getInfo();
+		if(mappingNode == null){
+			mappingNode = new MappingNode(info);
+		}
 		String newMappingKey = getMappingKey(info);
+		mappingNode.setMappingKey(newMappingKey);
 		if (oldInfo != null) {
 			String oldMappingKey = getMappingKey(oldInfo);
 			// URL 路径一致时，刷新脚本内容即可
 			if (Objects.equals(oldMappingKey, newMappingKey)) {
 				if (!info.equals(oldInfo)) {
-					mappings.put(info.getId(), info);
-					mappings.put(newMappingKey, info);
+					mappingNode.setInfo(info);
+					mappings.get(newMappingKey).setInfo(info);
 					if (delete) {
 						refreshCache(info);
 					}
@@ -325,14 +360,15 @@ public class MappingHandlerMapping {
 		}
 		// 注册
 		RequestMappingInfo requestMapping = getRequestMapping(info);
+		mappingNode.setRequestMappingInfo(requestMapping);
 		// 如果与应用冲突
 		if (!overrideApplicationMapping(requestMapping)) {
 			logger.error("接口{},{}与应用冲突，无法注册", info.getName(), newMappingKey);
 			return;
 		}
 		logger.info("注册接口:{},{}", info.getName(), newMappingKey);
-		mappings.put(info.getId(), info);
-		mappings.put(newMappingKey, info);
+		mappings.put(info.getId(), mappingNode);
+		mappings.put(newMappingKey, mappingNode);
 		registerMapping(requestMapping, handler, method);
 		if (delete) {   // 刷新缓存
 			refreshCache(info);
@@ -352,11 +388,12 @@ public class MappingHandlerMapping {
 	 * 取消注册请求映射
 	 */
 	public void unregisterMapping(String id, boolean delete) {
-		ApiInfo info = mappings.remove(id);
-		if (info != null) {
+		MappingNode mappingNode = mappings.remove(id);
+		if (mappingNode != null) {
+			ApiInfo info = mappingNode.getInfo();
 			logger.info("取消注册接口:{}", info.getName());
-			mappings.remove(getMappingKey(info));
-			requestMappingHandlerMapping.unregisterMapping(getRequestMapping(info));
+			mappings.remove(mappingNode.getMappingKey());
+			requestMappingHandlerMapping.unregisterMapping(mappingNode.getRequestMappingInfo());
 			if (delete) {   //刷新缓存
 				apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
 			}
@@ -423,6 +460,43 @@ public class MappingHandlerMapping {
 		if (interval > 0) {
 			logger.info("启动自动刷新magic-api");
 			Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this::registerAllMapping, interval, interval, TimeUnit.SECONDS);
+		}
+	}
+
+	static class MappingNode{
+
+		private ApiInfo info;
+
+		private String mappingKey;
+
+		private RequestMappingInfo requestMappingInfo;
+
+		public MappingNode(ApiInfo info) {
+			this.info = info;
+		}
+
+		public ApiInfo getInfo() {
+			return info;
+		}
+
+		public void setInfo(ApiInfo info) {
+			this.info = info;
+		}
+
+		public String getMappingKey() {
+			return mappingKey;
+		}
+
+		public void setMappingKey(String mappingKey) {
+			this.mappingKey = mappingKey;
+		}
+
+		public RequestMappingInfo getRequestMappingInfo() {
+			return requestMappingInfo;
+		}
+
+		public void setRequestMappingInfo(RequestMappingInfo requestMappingInfo) {
+			this.requestMappingInfo = requestMappingInfo;
 		}
 	}
 }

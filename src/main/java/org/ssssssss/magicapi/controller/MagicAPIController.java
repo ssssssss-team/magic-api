@@ -121,7 +121,7 @@ public class MagicAPIController extends MagicController {
 		}
 		try {
 			if (!configuration.getMappingHandlerMapping().move(id, groupId)) {
-				return new JsonBean<>(0, "移动接口失败！");
+				return new JsonBean<>(0, "该路径已被映射,请换一个请求方法或路径");
 			} else {
 				return new JsonBean<>(magicApiService.move(id, groupId));
 			}

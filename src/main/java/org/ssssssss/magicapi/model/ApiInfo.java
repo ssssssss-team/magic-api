@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 
 import java.util.Map;
 import java.util.Objects;
@@ -74,6 +75,7 @@ public class ApiInfo {
 	 * 接口选项json->map
 	 */
 	private Map optionMap;
+
 
 	public String getId() {
 		return id;
@@ -188,6 +190,7 @@ public class ApiInfo {
 		}
 	}
 
+
 	public Object getOptionValue(String key) {
 		return this.optionMap != null ? this.optionMap.get(key) : null;
 	}
@@ -211,8 +214,26 @@ public class ApiInfo {
 				Objects.equals(description, apiInfo.description);
 	}
 
+
 	@Override
 	public int hashCode() {
 		return Objects.hash(id, method, path, script, name, groupId, parameter, option, requestBody, requestHeader, responseBody, description);
+	}
+
+	public ApiInfo copy() {
+		ApiInfo info = new ApiInfo();
+		info.setId(this.id);
+		info.setMethod(this.method);
+		info.setName(this.name);
+		info.setPath(this.path);
+		info.setScript(this.script);
+		info.setGroupId(this.groupId);
+		info.setParameter(parameter);
+		info.setOption(this.option);
+		info.setRequestBody(this.requestBody);
+		info.setRequestHeader(this.requestHeader);
+		info.setResponseBody(this.responseBody);
+		info.setDescription(this.description);
+		return info;
 	}
 }
