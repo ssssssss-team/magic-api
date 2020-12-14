@@ -168,7 +168,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			// 当开启了UI界面时，收集日志
 			LoggerManager.createMagicAppender();
 			// 配置静态资源路径
-			registry.addResourceHandler(web + "/**").addResourceLocations("classpath:/magicapi-support/");
+			registry.addResourceHandler(web + "/**").addResourceLocations("classpath:/magic-editor/");
 			try {
 				// 默认首页设置
 				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(web).build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("redirectIndex", HttpServletRequest.class));

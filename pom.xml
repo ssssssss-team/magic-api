@@ -42,6 +42,11 @@
             <version>0.5.0</version>
         </dependency>
         <dependency>
+            <groupId>org.ssssssss</groupId>
+            <artifactId>magic-editor</artifactId>
+            <version>0.5.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
