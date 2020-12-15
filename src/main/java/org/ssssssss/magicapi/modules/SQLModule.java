@@ -322,7 +322,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		List<Map<String, Object>> list = null;
 		if (count > 0) {
 			String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, offset, limit);
-			BoundSql pageBoundSql = boundSql.copy(dialect.getCountSql(boundSql.getSql()));
+			BoundSql pageBoundSql = boundSql.copy(pageSql);
 			list = pageBoundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), this.columnMapRowMapper, pageBoundSql.getParameters()));
 		}
 		return resultProvider.buildPageResult(count, list);
