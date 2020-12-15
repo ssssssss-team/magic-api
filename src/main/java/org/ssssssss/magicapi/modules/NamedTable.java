@@ -1,7 +1,7 @@
 package org.ssssssss.magicapi.modules;
 
 import org.apache.commons.lang3.StringUtils;
-import org.ssssssss.magicapi.controller.MagicDynamicDataSource.DataSourceNode;
+import org.ssssssss.magicapi.config.MagicDynamicDataSource.DataSourceNode;
 import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.script.annotation.UnableCall;
 

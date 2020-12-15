@@ -1,7 +1,6 @@
 package org.ssssssss.magicapi.config;
 
 import org.springframework.http.converter.HttpMessageConverter;
-import org.ssssssss.magicapi.controller.MagicDynamicDataSource;
 import org.ssssssss.magicapi.controller.RequestHandler;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
