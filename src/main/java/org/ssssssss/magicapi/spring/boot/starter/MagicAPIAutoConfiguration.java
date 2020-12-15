@@ -79,11 +79,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	private ApplicationContext springContext;
 
 	/**
-	 * 定义的模块集合
-	 */
-	@Autowired(required = false)
-	private List<MagicModule> magicModules = Collections.emptyList();
-	/**
 	 * 自定义的类型扩展
 	 */
 	@Autowired(required = false)
@@ -423,7 +418,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
-	public MagicConfiguration magicConfiguration() {
+	public MagicConfiguration magicConfiguration(@Autowired List<MagicModule> magicModules) {
 		setupSpringSecurity();
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 		// 设置模块和扩展方法
