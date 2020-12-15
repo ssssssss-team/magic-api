@@ -353,7 +353,7 @@ public class MappingHandlerMapping {
 				return;
 			}
 			// URL不一致时，需要取消注册旧接口，重新注册新接口
-			logger.info("取消注册接口:{},{}", oldInfo.getName(), newMappingKey);
+			logger.info("取消注册接口:{},{}", oldInfo.getName(), oldMappingKey);
 			// 取消注册
 			mappings.remove(oldMappingKey);
 			requestMappingHandlerMapping.unregisterMapping(getRequestMapping(oldInfo));
@@ -361,6 +361,7 @@ public class MappingHandlerMapping {
 		// 注册
 		RequestMappingInfo requestMapping = getRequestMapping(info);
 		mappingNode.setRequestMappingInfo(requestMapping);
+		mappingNode.setInfo(info);
 		// 如果与应用冲突
 		if (!overrideApplicationMapping(requestMapping)) {
 			logger.error("接口{},{}与应用冲突，无法注册", info.getName(), newMappingKey);
