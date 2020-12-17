@@ -202,10 +202,9 @@ public class MappingHandlerMapping {
 	private boolean hasConflict(TreeNode<Group> group, String newPath) {
 		// 获取要移动的接口
 		List<ApiInfo> infos = apiInfos.stream().filter(info -> Objects.equals(info.getGroupId(), group.getNode().getId())).collect(Collectors.toList());
-		String groupPath = Objects.toString(group.getNode().getPath(), "");
 		// 判断是否有冲突
 		for (ApiInfo info : infos) {
-			String path = concatPath(newPath, groupPath + "/" + info.getPath());
+			String path = concatPath(newPath,  "/" + info.getPath());
 			String mappingKey = buildMappingKey(info.getMethod(), path);
 			if (mappings.containsKey(mappingKey)) {
 				return true;
@@ -220,7 +219,7 @@ public class MappingHandlerMapping {
 			}
 		}
 		for (TreeNode<Group> child : group.getChildren()) {
-			if (hasConflict(child, newPath + "/" + groupPath)) {
+			if (hasConflict(child, newPath + "/" + Objects.toString(child.getNode().getPath(), ""))) {
 				return true;
 			}
 		}
@@ -240,7 +239,7 @@ public class MappingHandlerMapping {
 		// 新的接口分组路径
 		String newPath = groupServiceProvider.getFullPath(group.getParentId());
 		// 检测冲突
-		return !hasConflict(oldTree, newPath);
+		return !hasConflict(oldTree, newPath + "/" + Objects.toString(group.getPath(),""));
 	}
 
 	/**
