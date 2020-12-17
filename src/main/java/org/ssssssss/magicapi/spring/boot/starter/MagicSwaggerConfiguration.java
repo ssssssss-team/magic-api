@@ -17,6 +17,7 @@ import org.ssssssss.magicapi.swagger.SwaggerProvider;
 import springfox.documentation.swagger.web.SwaggerResource;
 import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
+import javax.servlet.ServletContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class MagicSwaggerConfiguration {
 
 	@Bean
 	@Primary
-	public SwaggerResourcesProvider magicSwaggerResourcesProvider(MappingHandlerMapping handlerMapping, GroupServiceProvider groupServiceProvider) throws NoSuchMethodException {
+	public SwaggerResourcesProvider magicSwaggerResourcesProvider(MappingHandlerMapping handlerMapping, GroupServiceProvider groupServiceProvider, ServletContext servletContext) throws NoSuchMethodException {
 		SwaggerConfig config = properties.getSwaggerConfig();
 		RequestMappingInfo requestMappingInfo = RequestMappingInfo.paths(config.getLocation()).build();
 
@@ -56,6 +57,8 @@ public class MagicSwaggerConfiguration {
 		swaggerProvider.setTitle(config.getTitle());
 		swaggerProvider.setDescription(config.getDescription());
 		swaggerProvider.setVersion(config.getVersion());
+		swaggerProvider.setBasePath(servletContext.getContextPath());
+
 
 		// 注册swagger.json
 		requestMappingHandlerMapping.registerMapping(requestMappingInfo, swaggerProvider, SwaggerProvider.class.getDeclaredMethod("swaggerJson"));
