@@ -32,6 +32,11 @@ public class SwaggerProvider {
 	 */
 	private String version;
 
+	/**
+	 * 基础路径
+	 */
+	private String basePath;
+
 	private GroupServiceProvider groupServiceProvider;
 
 	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
@@ -54,12 +59,17 @@ public class SwaggerProvider {
 		this.version = version;
 	}
 
+	public void setBasePath(String basePath) {
+		this.basePath = basePath;
+	}
+
 	@ResponseBody
 	public SwaggerEntity swaggerJson() {
 		List<ApiInfo> infos = mappingHandlerMapping.getApiInfos();
 		SwaggerEntity swaggerEntity = new SwaggerEntity();
 		SwaggerEntity.License license = new SwaggerEntity.License("MIT", "https://gitee.com/ssssssss-team/magic-api/blob/master/LICENSE");
 		swaggerEntity.setInfo(new SwaggerEntity.Info(this.description, this.version, this.title, license));
+		swaggerEntity.setBasePath(this.basePath);
 		ObjectMapper mapper = new ObjectMapper();
 		for (ApiInfo info : infos) {
 			String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/","-");
