@@ -47,7 +47,7 @@ magic-api 是一个基于Java的接口快速开发框架，编写接口将通过
 <dependency>
 	<groupId>org.ssssssss</groupId>
 	<artifactId>magic-api-spring-boot-starter</artifactId>
-    <version>0.5.3</version>
+    <version>0.5.4</version>
 </dependency>
 ```
 ## 修改application.properties
@@ -78,14 +78,18 @@ spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 # 项目截图
 
 ## 整体截图
-![整体截图](https://images.gitee.com/uploads/images/2020/0712/100237_961e4f06_297689.png "full.png")
+![整体截图](https://images.gitee.com/uploads/images/2020/1220/143206_a056da00_297689.png "full.png")
 ## 切换主题
-![切换皮肤](https://images.gitee.com/uploads/images/2020/0712/100518_d2dab01b_297689.png "skin.png")
+![切换皮肤](https://images.gitee.com/uploads/images/2020/1220/143305_955ad124_297689.png "skin.png")
 ## 代码提示
-![代码提示](https://images.gitee.com/uploads/images/2020/0712/100307_e6f161f2_297689.gif "completion.gif")
+![代码提示](https://images.gitee.com/uploads/images/2020/1220/143322_966caf97_297689.gif "completion.gif")
 ## DEBUG
-![DEBUG](https://images.gitee.com/uploads/images/2020/0712/100339_f049bf43_297689.gif "debug.gif")
+![DEBUG](https://images.gitee.com/uploads/images/2020/1220/143340_b2d83a49_297689.gif "debug.gif")
+## 历史记录
+![历史记录](https://images.gitee.com/uploads/images/2020/1220/143412_d8414820_297689.png "version.png")
 
 # 其它开源项目
 - [magic-api](https://gitee.com/ssssssss-team/magic-api)
+- [magic-script，基于Java实现的脚本引擎](https://gitee.com/ssssssss-team/magic-script)
+- [magic-editor，本项目的前端UI](https://gitee.com/ssssssss-team/magic-editor)
 - [spider-flow，新一代爬虫平台，以图形化方式定义爬虫流程，不写代码即可完成爬虫](https://gitee.com/ssssssss-team/spider-flow)
