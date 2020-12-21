@@ -5,6 +5,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,6 +24,7 @@ import org.ssssssss.magicapi.context.HeaderContext;
 import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.context.SessionContext;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
+import org.ssssssss.magicapi.logging.LogInfo;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.JsonBean;
@@ -252,6 +254,9 @@ public class RequestHandler extends MagicController {
 		context.setTimeout(configuration.getDebugTimeout());
 		context.setId(sessionId);
 		context.onComplete(() -> {
+			if (context.isException()) {
+				MagicLoggerContext.println(new LogInfo(Level.ERROR.name().toLowerCase(), "执行脚本出错", (Throwable) context.getReturnValue()));
+			}
 			logger.info("Close Console Session : {}", sessionId);
 			RequestContext.remove();
 			MagicLoggerContext.remove(sessionId);
@@ -295,7 +300,7 @@ public class RequestHandler extends MagicController {
 						return converter.read(clazz, new ServletServerHttpRequest(request));
 					}
 				}
-			}catch (HttpMessageNotReadableException ignored) {
+			} catch (HttpMessageNotReadableException ignored) {
 				return null;
 			}
 		}

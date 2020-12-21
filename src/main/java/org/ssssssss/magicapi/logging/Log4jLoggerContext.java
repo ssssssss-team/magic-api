@@ -32,7 +32,7 @@ public class Log4jLoggerContext implements MagicLoggerContext {
             if (throwableInformation != null) {
                 logInfo.setThrowable(throwableInformation.getThrowable());
             }
-            println(logInfo);
+            MagicLoggerContext.println(logInfo);
         }
 
         @Override

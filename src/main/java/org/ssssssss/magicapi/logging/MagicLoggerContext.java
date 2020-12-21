@@ -46,7 +46,7 @@ public interface MagicLoggerContext {
 	 * 打印日志
 	 * @param logInfo 日志信息
 	 */
-	default void println(LogInfo logInfo){
+	static void println(LogInfo logInfo){
 		// 获取SessionId
 		MagicScriptContext context = MagicScriptContext.get();
 		String sessionId;

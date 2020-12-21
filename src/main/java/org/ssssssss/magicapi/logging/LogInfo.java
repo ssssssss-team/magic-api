@@ -17,6 +17,15 @@ public class LogInfo {
 
 	private String throwable;
 
+	public LogInfo() {
+	}
+
+	public LogInfo(String level, String message, Throwable throwable) {
+		this.level = level;
+		this.message = message;
+		this.setThrowable(throwable);
+	}
+
 	public String getLevel() {
 		return level;
 	}

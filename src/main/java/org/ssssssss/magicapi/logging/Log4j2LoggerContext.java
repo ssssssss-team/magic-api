@@ -52,7 +52,7 @@ public class Log4j2LoggerContext implements MagicLoggerContext{
 			if(throwableProxy != null){
 				logInfo.setThrowable(throwableProxy.getThrowable());
 			}
-			println(logInfo);
+			MagicLoggerContext.println(logInfo);
 		}
 	}
 }
