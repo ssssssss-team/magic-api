@@ -46,6 +46,7 @@ import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.functions.ExtensionMethod;
 import org.ssssssss.script.parsing.ast.statement.AsyncCall;
 import org.ssssssss.script.reflection.AbstractReflection;
+import org.ssssssss.script.reflection.JavaReflection;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -101,6 +102,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 */
 	@Autowired(required = false)
 	List<ColumnMapperProvider> columnMapperProviders = Collections.emptyList();
+
+	/**
+	 * 自定义的函数
+	 */
+	@Autowired(required = false)
+	List<MagicFunction> magicFunctions = Collections.emptyList();
 
 	@Autowired
 	private Environment environment;
@@ -436,7 +443,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		configuration.setResultProvider(resultProvider);
 		configuration.setThrowException(properties.isThrowException());
 		configuration.setMagicDynamicDataSource(magicDynamicDataSource);
-
+		// 注册函数
+		this.magicFunctions.forEach(function -> JavaReflection.registerFunctionClass(function.getClass()));
 		// 向页面传递配置信息时不传递用户名密码，增强安全性
 		securityConfig.setUsername(null);
 		securityConfig.setPassword(null);
