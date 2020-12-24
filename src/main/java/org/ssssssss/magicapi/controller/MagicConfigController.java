@@ -30,7 +30,7 @@ public class MagicConfigController extends MagicController {
 	 */
 	@RequestMapping("/classes")
 	@ResponseBody
-	public JsonBean<Map<String, Map<String, ScriptClass>>> classes() {
+	public JsonBean<Map<String, Object>> classes() {
 		Map<String, ScriptClass> classMap = MagicScriptEngine.getScriptClassMap();
 		classMap.putAll(MagicResourceLoader.getModules());
 		ScriptClass db = classMap.get(SQLModule.class.getName());
@@ -41,9 +41,10 @@ public class MagicConfigController extends MagicController {
 					.forEach(item -> attributes.add(new ScriptClass.ScriptAttribute("db", item)));
 			db.setAttributes(attributes);
 		}
-		Map<String, Map<String, ScriptClass>> values = new HashMap<>();
+		Map<String, Object> values = new HashMap<>();
 		values.put("classes", classMap);
 		values.put("extensions", MagicScriptEngine.getExtensionScriptClass());
+		values.put("functions", MagicScriptEngine.getFunctions());
 		return new JsonBean<>(values);
 	}
 
