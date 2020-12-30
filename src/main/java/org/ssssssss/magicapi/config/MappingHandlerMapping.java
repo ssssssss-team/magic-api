@@ -195,7 +195,7 @@ public class MappingHandlerMapping {
 	 * @param requestMapping 请求路径
 	 */
 	public ApiInfo getApiInfo(String method, String requestMapping) {
-		MappingNode mappingNode = mappings.get(buildMappingKey(method, requestMapping));
+		MappingNode mappingNode = mappings.get(buildMappingKey(method, concatPath("", requestMapping)));
 		return mappingNode == null ? null : mappingNode.getInfo();
 	}
 
@@ -239,7 +239,7 @@ public class MappingHandlerMapping {
 		// 新的接口分组路径
 		String newPath = groupServiceProvider.getFullPath(group.getParentId());
 		// 检测冲突
-		return !hasConflict(oldTree, newPath + "/" + Objects.toString(group.getPath(),""));
+		return !hasConflict(oldTree, newPath + "/" + Objects.toString(group.getPath(), ""));
 	}
 
 	/**
@@ -293,7 +293,7 @@ public class MappingHandlerMapping {
 		}
 		String mappingKey = getMappingKey(info);
 		if (mappings.containsKey(mappingKey)) {
-			if(mappings.get(mappingKey).getInfo().getId().equals(info.getId())){
+			if (mappings.get(mappingKey).getInfo().getId().equals(info.getId())) {
 				return false;
 			}
 			return true;
@@ -320,7 +320,7 @@ public class MappingHandlerMapping {
 		if (hasRegisterMapping(copy)) {
 			return false;
 		}
-		unregisterMapping(id,true);
+		unregisterMapping(id, true);
 		registerMapping(copy, true);
 		return true;
 	}
@@ -332,7 +332,7 @@ public class MappingHandlerMapping {
 		// 先判断是否已注册，如果已注册，则先取消注册在进行注册。
 		MappingNode mappingNode = mappings.get(info.getId());
 		ApiInfo oldInfo = mappingNode == null ? null : mappingNode.getInfo();
-		if(mappingNode == null){
+		if (mappingNode == null) {
 			mappingNode = new MappingNode(info);
 		}
 		String newMappingKey = getMappingKey(info);
@@ -423,7 +423,11 @@ public class MappingHandlerMapping {
 		if (prefix != null) {
 			path = prefix + "/" + path;
 		}
-		return PathUtils.replaceSlash(path);
+		path = PathUtils.replaceSlash(path);
+		if (path.startsWith("/")) {
+			return path.substring(1);
+		}
+		return path;
 	}
 
 	/**
@@ -463,7 +467,7 @@ public class MappingHandlerMapping {
 		}
 	}
 
-	static class MappingNode{
+	static class MappingNode {
 
 		private ApiInfo info;
 
