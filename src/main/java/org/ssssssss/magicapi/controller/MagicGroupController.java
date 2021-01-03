@@ -14,6 +14,7 @@ import org.ssssssss.magicapi.provider.GroupServiceProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class MagicGroupController extends MagicController {
@@ -153,7 +154,11 @@ public class MagicGroupController extends MagicController {
 		}
 		try {
 			groupServiceProvider.insert(group);
-			configuration.getMappingHandlerMapping().loadGroup();
+			if (Objects.equals(group.getType(), "1")) {
+				configuration.getMappingHandlerMapping().loadGroup();
+			} else {
+				configuration.getMagicFunctionManager().loadGroup();
+			}
 			return new JsonBean<>(group.getId());
 		} catch (Exception e) {
 			logger.error("保存分组出错", e);

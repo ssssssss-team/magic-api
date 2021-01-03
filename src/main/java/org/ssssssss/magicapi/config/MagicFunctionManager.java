@@ -44,13 +44,19 @@ public class MagicFunctionManager {
 			if (info != null) {
 				List<String> parameterNames = info.getParameterNames();
 				return (Function<Object[], Object>) objects -> {
-					MagicScriptContext functionContext = new MagicScriptContext(MagicScriptContext.get().getRootVariables());
-					if (objects != null) {
-						for (int i = 0, len = objects.length, size = parameterNames.size(); i < len && i < size; i++) {
-							functionContext.set(parameterNames.get(i), objects[i]);
+					MagicScriptContext context = MagicScriptContext.get();
+					try {
+						MagicScriptContext functionContext = new MagicScriptContext(context.getRootVariables());
+						MagicScriptContext.set(functionContext);
+						if (objects != null) {
+							for (int i = 0, len = objects.length, size = parameterNames.size(); i < len && i < size; i++) {
+								functionContext.set(parameterNames.get(i), objects[i]);
+							}
 						}
+						return ScriptManager.executeScript(info.getScript(), functionContext);
+					} finally {
+						MagicScriptContext.set(context);
 					}
-					return ScriptManager.executeScript(info.getScript(), functionContext);
 				};
 			}
 			return null;
