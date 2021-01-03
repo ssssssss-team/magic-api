@@ -33,7 +33,6 @@ import org.ssssssss.magicapi.model.Options;
 import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.exception.MagicScriptAssertException;
@@ -41,8 +40,6 @@ import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Span;
 
-import javax.script.ScriptContext;
-import javax.script.SimpleScriptContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -83,6 +80,10 @@ public class RequestHandler extends MagicController {
 		Object value;
 		// 执行前置拦截器
 		if ((value = doPreHandle(info, context, request, response)) != null) {
+			if (requestedFromTest) {
+				// 修正前端显示，当拦截器返回时，原样输出显示
+				response.setHeader(HEADER_RESPONSE_WITH_MAGIC_API, "false");
+			}
 			return value;
 		}
 		if (requestedFromTest) {
@@ -121,7 +122,7 @@ public class RequestHandler extends MagicController {
 		try {
 			// 初始化debug操作
 			initializeDebug(context, request, response);
-			Object result = executeScript(info.getScript(), context);
+			Object result = ScriptManager.executeScript(info.getScript(), context);
 			if (context.isRunning()) {
 				return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result), result);
 			} else if (context.isException()) {    //判断是否出现异常
@@ -130,7 +131,10 @@ public class RequestHandler extends MagicController {
 			Object value = result;
 			// 执行后置拦截器
 			if ((value = doPostHandle(info, context, value, request, response)) != null) {
-				return convertResult(value, response);
+				// 修正前端显示，当拦截器返回时，原样输出显示
+				response.setHeader(HEADER_RESPONSE_WITH_MAGIC_API, "false");
+				// 后置拦截器不包裹
+				return value;
 			}
 			return convertResult(result, response);
 		} catch (Exception e) {
@@ -141,7 +145,7 @@ public class RequestHandler extends MagicController {
 	private Object invokeRequest(ApiInfo info, MagicScriptContext context, HttpServletRequest request, HttpServletResponse response) throws Throwable {
 		try {
 			RequestContext.setRequestAttribute(request, response);
-			Object result = executeScript(info.getScript(), context);
+			Object result = ScriptManager.executeScript(info.getScript(), context);
 			Object value = result;
 			// 执行后置拦截器
 			if ((value = doPostHandle(info, context, value, request, response)) != null) {
@@ -165,16 +169,6 @@ public class RequestHandler extends MagicController {
 		} finally {
 			RequestContext.remove();
 		}
-	}
-
-	/**
-	 * 执行脚本
-	 */
-	private Object executeScript(String script, MagicScriptContext context) {
-		SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
-		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, context, ScriptContext.ENGINE_SCOPE);
-		// 执行脚本
-		return ScriptManager.compile("MagicScript", script).eval(simpleScriptContext);
 	}
 
 	/**

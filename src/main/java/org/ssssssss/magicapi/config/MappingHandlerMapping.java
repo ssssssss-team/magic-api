@@ -152,7 +152,7 @@ public class MappingHandlerMapping {
 	 * 加载所有分组
 	 */
 	public synchronized void loadGroup() {
-		groups = groupServiceProvider.apiGroupList();
+		groups = groupServiceProvider.apiGroupTree();
 	}
 
 	/**

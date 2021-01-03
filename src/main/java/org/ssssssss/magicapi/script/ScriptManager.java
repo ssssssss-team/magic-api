@@ -3,10 +3,12 @@ package org.ssssssss.magicapi.script;
 import org.ssssssss.magicapi.cache.DefaultSqlCache;
 import org.ssssssss.magicapi.utils.MD5Utils;
 import org.ssssssss.script.MagicScript;
+import org.ssssssss.script.MagicScriptContext;
 
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
+import javax.script.SimpleScriptContext;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +35,16 @@ public class ScriptManager {
 			compileCache.put("default", key, magicScript, -1);
 		}
 		return magicScript;
+	}
+
+	/**
+	 * 执行脚本
+	 */
+	public static Object executeScript(String script, MagicScriptContext context) {
+		SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
+		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, context, ScriptContext.ENGINE_SCOPE);
+		// 执行脚本
+		return compile("MagicScript", script).eval(simpleScriptContext);
 	}
 
 	public static ScriptEngine getEngine(String engine){

@@ -19,6 +19,11 @@ public class MagicConfiguration {
 	private MappingHandlerMapping mappingHandlerMapping;
 
 	/**
+	 * 函数管理
+	 */
+	private MagicFunctionManager magicFunctionManager;
+
+	/**
 	 * 用户名
 	 */
 	private String username;
@@ -180,6 +185,14 @@ public class MagicConfiguration {
 
 	public void setFunctionServiceProvider(FunctionServiceProvider functionServiceProvider) {
 		this.functionServiceProvider = functionServiceProvider;
+	}
+
+	public MagicFunctionManager getMagicFunctionManager() {
+		return magicFunctionManager;
+	}
+
+	public void setMagicFunctionManager(MagicFunctionManager magicFunctionManager) {
+		this.magicFunctionManager = magicFunctionManager;
 	}
 
 	/**

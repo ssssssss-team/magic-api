@@ -116,7 +116,7 @@ public class MagicAPIController extends MagicController {
 		if (!allowVisit(request, RequestInterceptor.Authorization.SAVE)) {
 			return new JsonBean<>(-10, "无权限执行保存方法");
 		}
-		if (!configuration.getGroupServiceProvider().contains(groupId)) {
+		if (!configuration.getGroupServiceProvider().containsApiGroup(groupId)) {
 			return new JsonBean<>(0, "找不到分组信息");
 		}
 		try {

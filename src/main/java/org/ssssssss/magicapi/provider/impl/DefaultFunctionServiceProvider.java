@@ -6,15 +6,19 @@ import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.FunctionInfo;
 import org.ssssssss.magicapi.provider.FunctionServiceProvider;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class DefaultFunctionServiceProvider extends BeanPropertyRowMapper<FunctionInfo> implements FunctionServiceProvider {
 
 	private final String COMMON_COLUMNS = "id,\n" +
 			"function_name,\n" +
 			"function_group_id,\n" +
-			"function_arguments,\n" +
+			"function_path,\n" +
+			"function_parameter,\n" +
+			"function_return_type,\n" +
 			"function_description,\n" +
 			"function_create_time,\n" +
 			"function_update_time";
@@ -24,6 +28,7 @@ public class DefaultFunctionServiceProvider extends BeanPropertyRowMapper<Functi
 	private JdbcTemplate template;
 
 	public DefaultFunctionServiceProvider(JdbcTemplate template) {
+		super(FunctionInfo.class);
 		this.template = template;
 	}
 
@@ -31,16 +36,16 @@ public class DefaultFunctionServiceProvider extends BeanPropertyRowMapper<Functi
 	public boolean insert(FunctionInfo info) {
 		info.setId(UUID.randomUUID().toString().replace("-", ""));
 		wrap(info);
-		String insert = String.format("insert into magic_function(%s,%s) values(?,?,?,?,?,?,?,?)", COMMON_COLUMNS, SCRIPT_COLUMNS);
+		String insert = String.format("insert into magic_function(%s,%s) values(?,?,?,?,?,?,?,?,?,?)", COMMON_COLUMNS, SCRIPT_COLUMNS);
 		long time = System.currentTimeMillis();
-		return template.update(insert, info.getId(), info.getName(), info.getGroupId(), info.getArguments(), info.getDescription(), info.getScript(), time, time) > 0;
+		return template.update(insert, info.getId(), info.getName(), info.getGroupId(), info.getPath(), info.getParameter(), info.getReturnType(), info.getDescription(), time, time, info.getScript()) > 0;
 	}
 
 	@Override
 	public boolean update(FunctionInfo info) {
 		wrap(info);
-		String update = "update magic_function set function_name = ?,function_arguments = ?,function_script = ?,function_description = ?,function_group_id = ?,function_update_time = ? where id = ?";
-		return template.update(update, info.getName(), info.getArguments(), info.getScript(), info.getDescription(), info.getGroupId(), System.currentTimeMillis(), info.getId()) > 0;
+		String update = "update magic_function set function_name = ?,function_parameter = ?,function_return_type = ?, function_script = ?,function_description = ?,function_path = ?,function_group_id = ?,function_update_time = ? where id = ?";
+		return template.update(update, info.getName(), info.getParameter(), info.getReturnType(), info.getScript(), info.getDescription(), info.getPath(), info.getGroupId(), System.currentTimeMillis(), info.getId()) > 0;
 	}
 
 	@Override
@@ -65,13 +70,20 @@ public class DefaultFunctionServiceProvider extends BeanPropertyRowMapper<Functi
 
 	@Override
 	public List<FunctionInfo> list() {
-		String selectList = "select " + COMMON_COLUMNS + " from magic_api_info order by api_update_time desc";
+		String selectList = "select " + COMMON_COLUMNS + " from magic_function order by function_update_time desc";
 		return template.query(selectList, this);
 	}
 
 	@Override
 	public List<FunctionInfo> listWithScript() {
-		return null;
+		String selectListWithScript = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_function";
+		List<FunctionInfo> infos = template.query(selectListWithScript, this);
+		if (infos != null) {
+			for (FunctionInfo info : infos) {
+				unwrap(info);
+			}
+		}
+		return infos;
 	}
 
 	@Override
@@ -84,16 +96,28 @@ public class DefaultFunctionServiceProvider extends BeanPropertyRowMapper<Functi
 
 	@Override
 	public boolean move(String id, String groupId) {
-		return false;
+		return template.update("update magic_function SET function_group_id = ? where id = ?", groupId, id) > 0;
 	}
 
 	@Override
 	public boolean deleteGroup(List<String> groupIds) {
-		return false;
+		List<Object[]> params = groupIds.stream().map(groupId -> new Object[]{groupId}).collect(Collectors.toList());
+		return Arrays.stream(template.batchUpdate("delete from magic_function where function_group_id = ?", params)).sum() >= 0;
 	}
 
 	@Override
 	protected String lowerCaseName(String name) {
 		return super.lowerCaseName(name).replace("function_", "");
 	}
+
+	@Override
+	public boolean exists(String path, String groupId) {
+		return template.queryForObject("select count(*) from magic_function where function_group_id = ? and function_path = ?", Integer.class, groupId, path) > 0;
+	}
+
+	@Override
+	public boolean existsWithoutId(String path, String groupId, String id) {
+		return template.queryForObject("select count(*) from magic_function where function_group_id = ? and function_path = ? and id != ?", Integer.class, groupId, path, id) > 0;
+	}
+
 }

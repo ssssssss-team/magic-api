@@ -37,21 +37,38 @@ public class MagicGroupController extends MagicController {
 			return new JsonBean<>(-10, "无权限执行删除方法");
 		}
 		try {
-			TreeNode<Group> treeNode = configuration.getGroupServiceProvider().apiGroupList().findTreeNode(group -> group.getId().equals(groupId));
+			boolean isApi = true;
+			TreeNode<Group> treeNode = configuration.getGroupServiceProvider().apiGroupTree().findTreeNode(group -> group.getId().equals(groupId));
 			if (treeNode == null) {
-				return new JsonBean<>(0, "分组不存在!");
+				treeNode = configuration.getGroupServiceProvider().functionGroupTree().findTreeNode(group -> group.getId().equals(groupId));
+				if (treeNode == null) {
+					return new JsonBean<>(0, "分组不存在!");
+				}
+				isApi = false;
 			}
 			List<String> groupIds = treeNode.flat().stream().map(Group::getId).collect(Collectors.toList());
-			// 删除接口
-			boolean success = configuration.getMagicApiService().deleteGroup(groupIds);
-			if (success) {
-				// 取消注册
-				configuration.getMappingHandlerMapping().deleteGroup(groupIds);
-				// 删除分组
-				success = this.groupServiceProvider.delete(groupId);
-				if (success) {
-					// 重新加载分组
-					configuration.getMappingHandlerMapping().loadGroup();
+			boolean success;
+			if (isApi) {
+				// 删除接口
+				if (success = configuration.getMagicApiService().deleteGroup(groupIds)) {
+					// 取消注册
+					configuration.getMappingHandlerMapping().deleteGroup(groupIds);
+					// 删除分组
+					if (success = this.groupServiceProvider.delete(groupId)) {
+						// 重新加载分组
+						configuration.getMappingHandlerMapping().loadGroup();
+					}
+				}
+			} else {
+				// 删除函数
+				if (success = configuration.getFunctionServiceProvider().deleteGroup(groupIds)) {
+					// 取消注册
+					configuration.getMagicFunctionManager().deleteGroup(groupIds);
+					// 删除分组
+					if (success = this.groupServiceProvider.delete(groupId)) {
+						// 重新加载分组
+						configuration.getMagicFunctionManager().loadGroup();
+					}
 				}
 			}
 			return new JsonBean<>(success);
@@ -81,14 +98,21 @@ public class MagicGroupController extends MagicController {
 		}
 		try {
 			boolean isApiGroup = "1".equals(group.getType());
-			if (!isApiGroup || configuration.getMappingHandlerMapping().checkGroup(group)) {
+			boolean isFunctionGroup = "2".equals(group.getType());
+			if (isApiGroup && configuration.getMappingHandlerMapping().checkGroup(group)) {
 				boolean success = groupServiceProvider.update(group);
-				if (success && isApiGroup) {    // 如果数据库修改成功，则修改接口路径
+				if (success) {    // 如果数据库修改成功，则修改接口路径
 					configuration.getMappingHandlerMapping().updateGroup(group);
 				}
 				return new JsonBean<>(success);
+			} else if (isFunctionGroup && configuration.getMagicFunctionManager().checkGroup(group)) {
+				boolean success = groupServiceProvider.update(group);
+				if (success) {    // 如果数据库修改成功，则修改接口路径
+					configuration.getMagicFunctionManager().updateGroup(group);
+				}
+				return new JsonBean<>(success);
 			}
-			return new JsonBean<>(-20, "修改分组后，接口路径会有冲突，请检查！");
+			return new JsonBean<>(-20, "修改分组后，路径会有冲突，请检查！");
 		} catch (Exception e) {
 			logger.error("修改分组出错", e);
 			return new JsonBean<>(-1, e.getMessage());
@@ -100,9 +124,9 @@ public class MagicGroupController extends MagicController {
 	 */
 	@RequestMapping("/group/list")
 	@ResponseBody
-	public JsonBean<List<Group>> groupList() {
+	public JsonBean<List<Group>> groupList(String type) {
 		try {
-			return new JsonBean<>(groupServiceProvider.groupList());
+			return new JsonBean<>(groupServiceProvider.groupList(type));
 		} catch (Exception e) {
 			logger.error("查询分组列表失败", e);
 			return new JsonBean<>(-1, e.getMessage());

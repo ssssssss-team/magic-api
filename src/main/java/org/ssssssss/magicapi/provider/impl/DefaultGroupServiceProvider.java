@@ -14,7 +14,9 @@ public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> im
 
 	private JdbcTemplate template;
 
-	private Map<String, Group> cacheTree = new HashMap<>();
+	private Map<String, Group> cacheApiTree = new HashMap<>();
+
+	private Map<String, Group> cacheFunctionTree = new HashMap<>();
 
 	public DefaultGroupServiceProvider(JdbcTemplate template) {
 		super(Group.class);
@@ -41,32 +43,34 @@ public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> im
 	}
 
 	@Override
-	public boolean contains(String groupId) {
-		return "0".equals(groupId) || cacheTree.containsKey(groupId);
+	public boolean containsApiGroup(String groupId) {
+		return "0".equals(groupId) || cacheApiTree.containsKey(groupId);
 	}
 
 	@Override
-	public TreeNode<Group> apiGroupList() {
-		List<Group> groups = template.query("select * from magic_group where group_type = '1' ", this);
-		TreeNode<Group> root = new TreeNode<>();
-		root.setNode(new Group("0", "root"));
-		convertToTree(groups, root);
-		Map<String, Group> groupMap = new HashMap<>();
-		groups.forEach(group -> groupMap.put(group.getId(), group));
-		cacheTree = groupMap;
-		return root;
+	public TreeNode<Group> apiGroupTree() {
+		List<Group> groups = template.query("select * from magic_group where group_type = '1'", this);
+		cacheApiTree = groups.stream().collect(Collectors.toMap(Group::getId, value -> value));
+		return convertToTree(groups);
 	}
 
 	@Override
-	public List<Group> groupList() {
-		return template.query("select * from magic_group",this);
+	public TreeNode<Group> functionGroupTree() {
+		List<Group> groups = template.query("select * from magic_group where group_type = '2'", this);
+		cacheFunctionTree = groups.stream().collect(Collectors.toMap(Group::getId, value -> value));
+		return convertToTree(groups);
+	}
+
+	@Override
+	public List<Group> groupList(String type) {
+		return template.query("select * from magic_group where group_type = ?", this, type);
 	}
 
 	@Override
 	public String getFullPath(String groupId) {
 		StringBuilder path = new StringBuilder();
 		Group group;
-		while ((group = cacheTree.get(groupId)) != null) {
+		while ((group = cacheFunctionTree.getOrDefault(groupId, cacheApiTree.get(groupId))) != null) {
 			path.insert(0, '/' + Objects.toString(group.getPath(), ""));
 			groupId = group.getParentId();
 		}
@@ -84,7 +88,7 @@ public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> im
 		}
 		StringBuilder name = new StringBuilder();
 		Group group;
-		while ((group = cacheTree.get(groupId)) != null) {
+		while ((group = cacheFunctionTree.getOrDefault(groupId, cacheApiTree.get(groupId))) != null) {
 			name.insert(0, '/' + group.getName());
 			groupId = group.getParentId();
 		}
@@ -93,6 +97,13 @@ public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> im
 			return null;
 		}
 		return name.substring(1);
+	}
+
+	private TreeNode<Group> convertToTree(List<Group> groups) {
+		TreeNode<Group> root = new TreeNode<>();
+		root.setNode(new Group("0", "root"));
+		convertToTree(groups, root);
+		return root;
 	}
 
 	private void convertToTree(List<Group> groups, TreeNode<Group> current) {

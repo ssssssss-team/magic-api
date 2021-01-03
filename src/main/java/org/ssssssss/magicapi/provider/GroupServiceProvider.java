@@ -25,17 +25,22 @@ public interface GroupServiceProvider {
 	/**
 	 * 是否有该分组
 	 */
-	boolean contains(String groupId);
+	boolean containsApiGroup(String groupId);
 
 	/**
 	 * 接口分组列表
 	 */
-	TreeNode<Group> apiGroupList();
+	TreeNode<Group> apiGroupTree();
+
+	/**
+	 * 函数分组列表
+	 */
+	TreeNode<Group> functionGroupTree();
 
 	/**
 	 * 分组列表
 	 */
-	List<Group> groupList();
+	List<Group> groupList(String type);
 
 	/**
 	 * 根据分组Id获取分组路径

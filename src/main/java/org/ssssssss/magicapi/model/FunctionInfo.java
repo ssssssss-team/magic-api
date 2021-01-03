@@ -1,10 +1,19 @@
 package org.ssssssss.magicapi.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class FunctionInfo {
 
 	private String id;
 
 	private String name;
+
+	private String path;
 
 	private String groupId;
 
@@ -12,7 +21,13 @@ public class FunctionInfo {
 
 	private String description;
 
-	private String arguments;
+	private String parameter;
+
+	private String returnType;
+
+	private String mappingPath;
+
+	private List<String> parameterNames = Collections.emptyList();
 
 	public String getId() {
 		return id;
@@ -54,11 +69,45 @@ public class FunctionInfo {
 		this.description = description;
 	}
 
-	public String getArguments() {
-		return arguments;
+	public String getParameter() {
+		return parameter;
 	}
 
-	public void setArguments(String arguments) {
-		this.arguments = arguments;
+	public void setParameter(String parameter) {
+		this.parameter = parameter;
+		try {
+			this.parameterNames = new ObjectMapper().readTree(parameter).findValues("name")
+					.stream().map(JsonNode::asText)
+					.collect(Collectors.toList());
+		} catch (Throwable ignored) {
+		}
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
+	}
+
+	public String getMappingPath() {
+		return mappingPath;
+	}
+
+	public void setMappingPath(String mappingPath) {
+		this.mappingPath = mappingPath;
+	}
+
+	public List<String> getParameterNames() {
+		return parameterNames;
+	}
+
+	public String getReturnType() {
+		return returnType;
+	}
+
+	public void setReturnType(String returnType) {
+		this.returnType = returnType;
 	}
 }
