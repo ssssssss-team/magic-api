@@ -267,7 +267,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	@ConditionalOnMissingBean(FunctionServiceProvider.class)
-	public FunctionServiceProvider functionServiceProvider(MagicDynamicDataSource dynamicDataSource){
+	public FunctionServiceProvider functionServiceProvider(MagicDynamicDataSource dynamicDataSource) {
 		return new DefaultFunctionServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
 	}
 
@@ -289,7 +289,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		logger.info("接口使用数据源：{}", StringUtils.isNotBlank(properties.getDatasource()) ? properties.getDatasource() : "default");
 		return new DefaultApiServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
 	}
-
 
 
 	/**
@@ -457,7 +456,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 					new MagicAPIController(configuration),
 					new MagicConfigController(configuration),
 					new MagicWorkbenchController(configuration),
-					new MagicGroupController(configuration)
+					new MagicGroupController(configuration),
+					new MagicFunctionController(configuration)
 			);
 			controllers.forEach(item -> {
 				Method[] methods = item.getClass().getDeclaredMethods();
@@ -479,6 +479,14 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		if (this.properties.isBanner()) {
 			configuration.printBanner();
 		}
+		MagicFunctionManager magicFunctionManager = new MagicFunctionManager(groupServiceProvider, functionServiceProvider);
+		configuration.setMagicFunctionManager(magicFunctionManager);
+		// 注册函数加载器
+		magicFunctionManager.registerFunctionLoader();
+		// 注册所有函数
+		magicFunctionManager.registerAllFunction();
+		// 自动刷新
+		magicFunctionManager.enableRefresh(properties.getRefreshInterval());
 		mappingHandlerMapping.setHandler(new RequestHandler(configuration));
 		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
 		mappingHandlerMapping.setMagicApiService(apiServiceProvider);
