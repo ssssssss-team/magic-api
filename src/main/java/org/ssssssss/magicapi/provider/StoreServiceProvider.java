@@ -1,15 +1,11 @@
 package org.ssssssss.magicapi.provider;
 
-import org.ssssssss.magicapi.model.ApiInfo;
-
 import java.util.List;
 
 public interface StoreServiceProvider<T> {
 
 	/**
 	 * 添加接口信息
-	 *
-	 * @param info 接口信息
 	 */
 	boolean insert(T info);
 
@@ -20,10 +16,8 @@ public interface StoreServiceProvider<T> {
 
 	/**
 	 * 备份历史记录
-	 *
-	 * @param apiId 接口ID
 	 */
-	void backup(String apiId);
+	void backup(String id);
 
 
 	/**
@@ -39,7 +33,7 @@ public interface StoreServiceProvider<T> {
 	 * @param id        ID
 	 * @param timestamp 时间戳
 	 */
-	ApiInfo backupInfo(String id, Long timestamp);
+	T backupInfo(String id, Long timestamp);
 
 	/**
 	 * 删除接口

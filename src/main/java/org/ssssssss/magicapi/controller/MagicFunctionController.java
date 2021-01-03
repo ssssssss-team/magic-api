@@ -68,6 +68,19 @@ public class MagicFunctionController extends MagicController {
 		}
 	}
 
+	@RequestMapping("/function/backup/get")
+	@ResponseBody
+	public JsonBean<FunctionInfo> backups(String id, Long timestamp) {
+		return new JsonBean<>(functionService.backupInfo(id, timestamp));
+	}
+
+	@RequestMapping("/function/backups")
+	@ResponseBody
+	public JsonBean<List<Long>> backups(String id) {
+		return new JsonBean<>(functionService.backupList(id));
+	}
+
+
 	@RequestMapping("/function/save")
 	@ResponseBody
 	public JsonBean<String> save(FunctionInfo functionInfo, HttpServletRequest request) {
@@ -98,6 +111,7 @@ public class MagicFunctionController extends MagicController {
 				}
 				functionService.update(functionInfo);
 			}
+			functionService.backup(functionInfo.getId());
 			// 解除包装
 			functionService.unwrap(functionInfo);
 			configuration.getMagicFunctionManager().register(functionInfo);

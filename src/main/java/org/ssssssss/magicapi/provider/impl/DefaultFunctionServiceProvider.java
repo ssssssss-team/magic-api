@@ -2,7 +2,6 @@ package org.ssssssss.magicapi.provider.impl;
 
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.FunctionInfo;
 import org.ssssssss.magicapi.provider.FunctionServiceProvider;
 
@@ -49,17 +48,25 @@ public class DefaultFunctionServiceProvider extends BeanPropertyRowMapper<Functi
 	}
 
 	@Override
-	public void backup(String apiId) {
-
+	public void backup(String functionId) {
+		String backupSql = "insert into magic_function_his select * from magic_function where id = ?";
+		template.update(backupSql, functionId);
 	}
 
 	@Override
 	public List<Long> backupList(String id) {
-		return null;
+		return template.queryForList("select function_update_time from magic_function_his where id = ? order by function_update_time desc", Long.class, id);
 	}
 
 	@Override
-	public ApiInfo backupInfo(String id, Long timestamp) {
+	public FunctionInfo backupInfo(String id, Long timestamp) {
+		String selectOne = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_function_his where id = ? and function_update_time = ?";
+		List<FunctionInfo> list = template.query(selectOne, this, id, timestamp);
+		if (list != null && !list.isEmpty()) {
+			FunctionInfo info = list.get(0);
+			unwrap(info);
+			return info;
+		}
 		return null;
 	}
 
