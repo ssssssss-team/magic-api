@@ -106,13 +106,19 @@ public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> im
 		return root;
 	}
 
-	private void convertToTree(List<Group> groups, TreeNode<Group> current) {
-		List<TreeNode<Group>> treeNodes = groups.stream()
-				.filter(it -> current.getNode().getId().equals(it.getParentId()))
-				.map(TreeNode::new)
-				.collect(Collectors.toList());
-		current.setChildren(treeNodes);
-		treeNodes.forEach(it -> convertToTree(groups, it));
+	private void convertToTree(List<Group> remains, TreeNode<Group> current) {
+		Group temp;
+		List<TreeNode<Group>> childNodes = new LinkedList<>();
+		Iterator<Group> iterator = remains.iterator();
+		while (iterator.hasNext()){
+			temp = iterator.next();
+			if (current.getNode().getId().equals(temp.getParentId())) {
+				childNodes.add(new TreeNode<>(temp));
+				iterator.remove();
+			}
+		}
+		current.setChildren(childNodes);
+		childNodes.forEach(it -> convertToTree(remains, it));
 	}
 
 	@Override
