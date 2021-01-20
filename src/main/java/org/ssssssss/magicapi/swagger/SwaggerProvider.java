@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
-import org.ssssssss.magicapi.utils.PathUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -74,7 +73,7 @@ public class SwaggerProvider {
 		ObjectMapper mapper = new ObjectMapper();
 		for (ApiInfo info : infos) {
 			String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
-			String requestPath = PathUtils.replaceSlash(groupServiceProvider.getFullPath(info.getGroupId()) + "/" + info.getPath());
+			String requestPath = "/" + mappingHandlerMapping.getRequestPath(info.getGroupId(), info.getPath());
 			swaggerEntity.addTag(groupName, Objects.toString(info.getDescription(), requestPath));
 			SwaggerEntity.Path path = new SwaggerEntity.Path();
 			path.addTag(groupName);
