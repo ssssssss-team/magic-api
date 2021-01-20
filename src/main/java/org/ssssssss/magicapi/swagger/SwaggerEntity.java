@@ -30,11 +30,7 @@ public class SwaggerEntity {
 	}
 
 	public void addPath(String path, String method, Path pathInfo) {
-		Map<String, Path> map = paths.get(path);
-		if (map == null) {
-			map = new HashMap<>();
-			paths.put(path, map);
-		}
+		Map<String, Path> map = paths.computeIfAbsent(path, k -> new HashMap<>());
 		map.put(method.toLowerCase(), pathInfo);
 	}
 

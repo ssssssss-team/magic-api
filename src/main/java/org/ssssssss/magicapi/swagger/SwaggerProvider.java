@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
+import org.ssssssss.magicapi.utils.PathUtils;
 
 import java.io.IOException;
 import java.util.*;
@@ -72,20 +73,21 @@ public class SwaggerProvider {
 		swaggerEntity.setBasePath(this.basePath);
 		ObjectMapper mapper = new ObjectMapper();
 		for (ApiInfo info : infos) {
-			String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/","-");
-			swaggerEntity.addTag(groupName, groupServiceProvider.getFullPath(info.getGroupId()));
+			String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
+			String requestPath = PathUtils.replaceSlash(groupServiceProvider.getFullPath(info.getGroupId()) + "/" + info.getPath());
+			swaggerEntity.addTag(groupName, Objects.toString(info.getDescription(), requestPath));
 			SwaggerEntity.Path path = new SwaggerEntity.Path();
 			path.addTag(groupName);
 			try {
-				parseParameters(mapper,info).forEach(path::addParameter);
-				path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), "{}"),Object.class));
+				parseParameters(mapper, info).forEach(path::addParameter);
+				path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), "{}"), Object.class));
 			} catch (Exception ignored) {
 			}
 			path.addConsume("*/*");
 			path.addProduce("application/json");
 			path.setSummary(info.getName());
 
-			swaggerEntity.addPath(mappingHandlerMapping.getRequestPath(info.getGroupId(), info.getPath()), info.getMethod(), path);
+			swaggerEntity.addPath(requestPath, info.getMethod(), path);
 		}
 		return swaggerEntity;
 	}
