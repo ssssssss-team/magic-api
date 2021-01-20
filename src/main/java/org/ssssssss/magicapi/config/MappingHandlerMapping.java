@@ -293,10 +293,7 @@ public class MappingHandlerMapping {
 		}
 		String mappingKey = getMappingKey(info);
 		if (mappings.containsKey(mappingKey)) {
-			if (mappings.get(mappingKey).getInfo().getId().equals(info.getId())) {
-				return false;
-			}
-			return true;
+			return !mappings.get(mappingKey).getInfo().getId().equals(info.getId());
 		}
 		if (!allowOverride) {
 			Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.requestMappingHandlerMapping.getHandlerMethods();
@@ -331,14 +328,10 @@ public class MappingHandlerMapping {
 	public void registerMapping(ApiInfo info, boolean delete) {
 		// 先判断是否已注册，如果已注册，则先取消注册在进行注册。
 		MappingNode mappingNode = mappings.get(info.getId());
-		ApiInfo oldInfo = mappingNode == null ? null : mappingNode.getInfo();
-		if (mappingNode == null) {
-			mappingNode = new MappingNode(info);
-		}
 		String newMappingKey = getMappingKey(info);
-		mappingNode.setMappingKey(newMappingKey);
-		if (oldInfo != null) {
-			String oldMappingKey = getMappingKey(oldInfo);
+		if (mappingNode != null) {
+			ApiInfo oldInfo = mappingNode.getInfo();
+			String oldMappingKey = mappingNode.getMappingKey();
 			// URL 路径一致时，刷新脚本内容即可
 			if (Objects.equals(oldMappingKey, newMappingKey)) {
 				if (!info.equals(oldInfo)) {
@@ -357,6 +350,8 @@ public class MappingHandlerMapping {
 			mappings.remove(oldMappingKey);
 			requestMappingHandlerMapping.unregisterMapping(getRequestMapping(oldInfo));
 		}
+		mappingNode = new MappingNode(info);
+		mappingNode.setMappingKey(newMappingKey);
 		// 注册
 		RequestMappingInfo requestMapping = getRequestMapping(info);
 		mappingNode.setRequestMappingInfo(requestMapping);
