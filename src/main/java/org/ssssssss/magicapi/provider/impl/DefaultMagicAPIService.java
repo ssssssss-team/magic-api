@@ -49,11 +49,22 @@ public class DefaultMagicAPIService implements MagicAPIService {
 	}
 
 	private Object execute(ApiInfo info, Map<String, Object> context) {
+
+		// 获取原上下文
+		final MagicScriptContext magicScriptContext = MagicScriptContext.get();
+
 		MagicScriptContext scriptContext = new MagicScriptContext();
 		scriptContext.putMapIntoContext(context);
 		SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
 		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, scriptContext, ScriptContext.ENGINE_SCOPE);
-		return ScriptManager.compile("MagicScript", info.getScript()).eval(simpleScriptContext);
+		final Object evalVal;
+		try {
+			evalVal = ScriptManager.compile("MagicScript", info.getScript()).eval(simpleScriptContext);
+		} finally {
+			// 恢复原接口上下文，修复当前调完其它接口后原接口上下文丢失的问题
+			MagicScriptContext.set(magicScriptContext);
+		}
+		return evalVal;
 	}
 
 	@Override
