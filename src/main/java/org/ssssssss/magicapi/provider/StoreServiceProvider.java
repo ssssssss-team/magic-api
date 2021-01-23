@@ -1,5 +1,7 @@
 package org.ssssssss.magicapi.provider;
 
+import org.ssssssss.magicapi.model.SynchronizeRequest;
+
 import java.util.List;
 
 public interface StoreServiceProvider<T> {
@@ -49,6 +51,11 @@ public interface StoreServiceProvider<T> {
 	 * 查询所有（内部使用，需要带Script）
 	 */
 	List<T> listWithScript();
+
+	/**
+	 * 查询带有id,名字，请求访问，路径，修改时间的集合
+	 */
+	List<SynchronizeRequest.Info> listForSync(String groupId, String id);
 
 	/**
 	 * 查询接口详情（主要给页面使用）

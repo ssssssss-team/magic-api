@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.provider.impl;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.ssssssss.magicapi.model.FunctionInfo;
+import org.ssssssss.magicapi.model.SynchronizeRequest;
 import org.ssssssss.magicapi.provider.FunctionServiceProvider;
 
 import java.util.Arrays;
@@ -85,12 +86,15 @@ public class DefaultFunctionServiceProvider extends BeanPropertyRowMapper<Functi
 	public List<FunctionInfo> listWithScript() {
 		String selectListWithScript = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_function";
 		List<FunctionInfo> infos = template.query(selectListWithScript, this);
-		if (infos != null) {
-			for (FunctionInfo info : infos) {
-				unwrap(info);
-			}
+		for (FunctionInfo info : infos) {
+			unwrap(info);
 		}
 		return infos;
+	}
+
+	@Override
+	public List<SynchronizeRequest.Info> listForSync(String groupId, String id) {
+		return null;
 	}
 
 	@Override

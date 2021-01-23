@@ -169,9 +169,17 @@ public class MagicAPIController extends MagicController {
 				if (magicApiService.existsWithoutId(info.getGroupId(), info.getMethod(), info.getPath(), info.getId())) {
 					return new JsonBean<>(0, String.format("接口%s:%s已存在", info.getMethod(), info.getPath()));
 				}
-				magicApiService.update(info);
+				configuration.getMappingHandlerMapping().getApiInfos().stream()
+						.filter(it -> it.getId().equals(info.getId()))
+						.findFirst()
+						.ifPresent(it -> {
+							// 有变化时才修改
+							if (!it.equals(info)) {
+								magicApiService.update(info);
+								magicApiService.backup(info.getId());
+							}
+						});
 			}
-			magicApiService.backup(info.getId());
 			// 解除包装
 			magicApiService.unwrap(info);
 			// 注册接口

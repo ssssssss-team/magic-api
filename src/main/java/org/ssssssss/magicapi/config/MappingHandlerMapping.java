@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
@@ -27,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 请求映射
@@ -204,7 +206,7 @@ public class MappingHandlerMapping {
 		List<ApiInfo> infos = apiInfos.stream().filter(info -> Objects.equals(info.getGroupId(), group.getNode().getId())).collect(Collectors.toList());
 		// 判断是否有冲突
 		for (ApiInfo info : infos) {
-			String path = concatPath(newPath,  "/" + info.getPath());
+			String path = concatPath(newPath, "/" + info.getPath());
 			String mappingKey = buildMappingKey(info.getMethod(), path);
 			if (mappings.containsKey(mappingKey)) {
 				return true;
@@ -411,6 +413,17 @@ public class MappingHandlerMapping {
 	public String getRequestPath(String groupId, String path) {
 		return concatPath(groupServiceProvider.getFullPath(groupId), path);
 
+	}
+
+	public void registerController(Object target, String base) {
+		Method[] methods = target.getClass().getDeclaredMethods();
+		for (Method method : methods) {
+			RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
+			if (requestMapping != null) {
+				String[] paths = Stream.of(requestMapping.value()).map(value -> base + value).toArray(String[]::new);
+				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(paths).build(), target, method);
+			}
+		}
 	}
 
 	private String concatPath(String groupPath, String path) {

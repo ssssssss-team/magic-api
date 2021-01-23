@@ -1,15 +1,17 @@
 package org.ssssssss.magicapi.provider.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.ssssssss.magicapi.model.ApiInfo;
+import org.ssssssss.magicapi.model.SynchronizeRequest;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> implements ApiServiceProvider {
 
@@ -55,6 +57,24 @@ public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> im
 		return infos;
 	}
 
+	@Override
+	public List<SynchronizeRequest.Info> listForSync(String groupId, String id) {
+		String sql = "select id,api_group_id,api_name,api_method,api_path,api_update_time from magic_api_info";
+		List<String> parameters = new ArrayList<>();
+		if (StringUtils.isNotBlank(groupId) || StringUtils.isNotBlank(id)) {
+			sql += " where 1=1 ";
+			if (StringUtils.isNotBlank(groupId)) {
+				sql += " and api_group_id = ?";
+				parameters.add(groupId);
+			}
+			if (StringUtils.isNotBlank(id)) {
+				sql += " and id = ?";
+				parameters.add(id);
+			}
+		}
+		return template.query(sql, this, parameters.toArray()).stream().map(SynchronizeRequest.Info::from).collect(Collectors.toList());
+	}
+
 	public ApiInfo get(String id) {
 		String selectOne = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_api_info where id = ?";
 		ApiInfo info = template.queryForObject(selectOne, this, id);
@@ -70,7 +90,7 @@ public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> im
 	@Override
 	public boolean deleteGroup(List<String> groupIds) {
 		List<Object[]> params = groupIds.stream().map(groupId -> new Object[]{groupId}).collect(Collectors.toList());
-		return Arrays.stream(template.batchUpdate("delete from magic_api_info where api_group_id = ?",params)).sum() >= 0;
+		return Arrays.stream(template.batchUpdate("delete from magic_api_info where api_group_id = ?", params)).sum() >= 0;
 	}
 
 	public boolean exists(String groupId, String method, String path) {
@@ -88,7 +108,7 @@ public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> im
 		wrap(info);
 		long time = System.currentTimeMillis();
 		String insert = "insert into magic_api_info(id,api_method,api_path,api_script,api_name,api_group_id,api_parameter,api_description,api_option,api_request_header,api_request_body,api_response_body,api_create_time,api_update_time) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-		return template.update(insert, info.getId(), info.getMethod(), info.getPath(), info.getScript(), info.getName(), info.getGroupId(), info.getParameter(), info.getDescription(), info.getOption(), info.getRequestHeader(), info.getRequestBody(),info.getResponseBody(), time, time) > 0;
+		return template.update(insert, info.getId(), info.getMethod(), info.getPath(), info.getScript(), info.getName(), info.getGroupId(), info.getParameter(), info.getDescription(), info.getOption(), info.getRequestHeader(), info.getRequestBody(), info.getResponseBody(), time, time) > 0;
 	}
 
 	public boolean update(ApiInfo info) {

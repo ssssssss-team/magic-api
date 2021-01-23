@@ -79,6 +79,8 @@ public class MagicConfiguration {
 
 	private boolean enableWeb = false;
 
+	private SyncConfig syncConfig;
+
 	public void setEnableWeb(boolean enableWeb) {
 		this.enableWeb = enableWeb;
 	}
@@ -193,6 +195,14 @@ public class MagicConfiguration {
 
 	public void setMagicFunctionManager(MagicFunctionManager magicFunctionManager) {
 		this.magicFunctionManager = magicFunctionManager;
+	}
+
+	public SyncConfig getSyncConfig() {
+		return syncConfig;
+	}
+
+	public void setSyncConfig(SyncConfig syncConfig) {
+		this.syncConfig = syncConfig;
 	}
 
 	/**

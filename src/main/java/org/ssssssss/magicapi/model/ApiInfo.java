@@ -1,7 +1,6 @@
 package org.ssssssss.magicapi.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 
 import java.util.Map;
 import java.util.Objects;
@@ -70,6 +69,11 @@ public class ApiInfo {
 	 * 接口描述
 	 */
 	private String description;
+
+	/**
+	 * 最后更新时间
+	 */
+	private Long updateTime;
 
 	/**
 	 * 接口选项json->map
@@ -193,6 +197,14 @@ public class ApiInfo {
 
 	public Object getOptionValue(String key) {
 		return this.optionMap != null ? this.optionMap.get(key) : null;
+	}
+
+	public Long getUpdateTime() {
+		return updateTime;
+	}
+
+	public void setUpdateTime(Long updateTime) {
+		this.updateTime = updateTime;
 	}
 
 	@Override

@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 public interface RequestInterceptor {
 
 	enum Authorization {
-		SAVE, DETAIL, RUN, DELETE,
+		SAVE, DETAIL, RUN, DELETE, SYNC, PULL, PUSH
 	}
 
 	/**
@@ -38,7 +38,7 @@ public interface RequestInterceptor {
 	 * @param value 即将要返回到页面的值
 	 * @return 返回到页面的对象, 当返回null时执行后续拦截器，否则直接返回该值，不执行后续拦截器
 	 */
-	default Object postHandle(ApiInfo info, MagicScriptContext context, Object value,HttpServletRequest request,HttpServletResponse response) throws Exception {
+	default Object postHandle(ApiInfo info, MagicScriptContext context, Object value, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		return null;
 	}
 
