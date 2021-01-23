@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.spring.boot.starter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.ssssssss.magicapi.config.SyncConfig;
 import org.ssssssss.magicapi.controller.RequestHandler;
 
 import java.util.Arrays;
@@ -93,6 +94,9 @@ public class MagicAPIProperties {
 
 	@NestedConfigurationProperty
 	private SwaggerConfig swaggerConfig = new SwaggerConfig();
+
+	@NestedConfigurationProperty
+	private SyncConfig syncConfig = new SyncConfig();
 
 	public String getWeb() {
 		if (StringUtils.isBlank(web)) {
@@ -247,5 +251,13 @@ public class MagicAPIProperties {
 
 	public String getVersion() {
 		return version;
+	}
+
+	public SyncConfig getSyncConfig() {
+		return syncConfig;
+	}
+
+	public void setSyncConfig(SyncConfig syncConfig) {
+		this.syncConfig = syncConfig;
 	}
 }

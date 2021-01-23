@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -53,7 +52,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Configuration
 @ConditionalOnClass({DataSource.class, RequestMappingHandlerMapping.class})
@@ -448,27 +446,23 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		securityConfig.setUsername(null);
 		securityConfig.setPassword(null);
 
+		configuration.setSyncConfig(properties.getSyncConfig());
 		// 构建UI请求处理器
 		String base = properties.getWeb();
+		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
+		if (StringUtils.isNotBlank(properties.getSyncConfig().getSecret())) {
+			mappingHandlerMapping.registerController(new SynchronizeController(configuration), "");
+		}
 		if (base != null) {
 			configuration.setEnableWeb(true);
-			List<MagicController> controllers = Arrays.asList(
+			List<MagicController> controllers = new ArrayList<>(Arrays.asList(
 					new MagicAPIController(configuration),
 					new MagicConfigController(configuration),
 					new MagicWorkbenchController(configuration),
 					new MagicGroupController(configuration),
 					new MagicFunctionController(configuration)
-			);
-			controllers.forEach(item -> {
-				Method[] methods = item.getClass().getDeclaredMethods();
-				for (Method method : methods) {
-					RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
-					if (requestMapping != null) {
-						String[] paths = Stream.of(requestMapping.value()).map(value -> base + value).toArray(String[]::new);
-						requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(paths).build(), item, method);
-					}
-				}
-			});
+			));
+			controllers.forEach(item -> mappingHandlerMapping.registerController(item, base));
 		}
 		// 设置拦截器信息
 		this.requestInterceptors.forEach(interceptor -> {
@@ -488,7 +482,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		// 自动刷新
 		magicFunctionManager.enableRefresh(properties.getRefreshInterval());
 		mappingHandlerMapping.setHandler(new RequestHandler(configuration));
-		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
 		mappingHandlerMapping.setMagicApiService(apiServiceProvider);
 		mappingHandlerMapping.setGroupServiceProvider(groupServiceProvider);
 		// 注册所有映射
@@ -497,4 +490,5 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		mappingHandlerMapping.enableRefresh(properties.getRefreshInterval());
 		return configuration;
 	}
+
 }
