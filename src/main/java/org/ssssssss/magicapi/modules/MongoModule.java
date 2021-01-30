@@ -1,9 +1,16 @@
 package org.ssssssss.magicapi.modules;
 
-import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
+import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.ssssssss.magicapi.config.MagicModule;
+import org.ssssssss.script.reflection.AbstractReflection;
+import org.ssssssss.script.reflection.JavaInvoker;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 
 /**
@@ -11,18 +18,33 @@ import java.util.HashMap;
  */
 public class MongoModule extends HashMap<String, Object> implements MagicModule {
 
-	private MongoClient mongoClient;
+	private MongoTemplate mongoTemplate;
 
-	public MongoModule(MongoClient mongoClient) {
-		this.mongoClient = mongoClient;
+	private JavaInvoker<Method> invoker;
+
+	public MongoModule(MongoTemplate mongoTemplate) {
+		this.mongoTemplate = mongoTemplate;
+		MongoDbFactory factory = mongoTemplate.getMongoDbFactory();
+		invoker = AbstractReflection.getInstance().getMethod(factory, "getDb", StringUtils.EMPTY);
+		if (invoker == null) {
+			invoker = AbstractReflection.getInstance().getMethod(factory, "getMongoDatabase", StringUtils.EMPTY);
+		}
 	}
 
 	@Override
-	public Object get(Object database) {
-		return database == null ? null : new HashMap<String, MongoCollection>(){
+	public Object get(Object databaseName) {
+		return databaseName == null ? null : new HashMap<String, MongoCollection<Document>>() {
 			@Override
-			public MongoCollection get(Object collection) {
-				return collection == null ? null : mongoClient.getDatabase(database.toString()).getCollection(collection.toString());
+			public MongoCollection<Document> get(Object collection) {
+				if (collection == null) {
+					return null;
+				}
+				try {
+					MongoDatabase database = (MongoDatabase) invoker.invoke0(mongoTemplate.getMongoDbFactory(), null, databaseName.toString());
+					return database.getCollection(collection.toString());
+				} catch (Throwable throwable) {
+					throw new RuntimeException(throwable);
+				}
 			}
 		};
 	}

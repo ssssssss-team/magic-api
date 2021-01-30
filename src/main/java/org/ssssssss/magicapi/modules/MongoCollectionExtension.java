@@ -63,7 +63,7 @@ public class MongoCollectionExtension {
 
 	@Comment("查询数量")
 	public static long count(MongoCollection<Document> collection, @Comment("查询") Map<String, Object> query) {
-		return collection.count(new Document(query));
+		return collection.countDocuments(new Document(query));
 	}
 
 	@Comment("批量删除，返回删除条数")
