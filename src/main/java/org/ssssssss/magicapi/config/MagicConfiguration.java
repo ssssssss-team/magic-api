@@ -33,6 +33,11 @@ public class MagicConfiguration {
 	 */
 	private String password;
 
+	/**
+	 * 编辑器配置文件
+	 */
+	private String editorConfig;
+
 	private final String tokenKey = "Magic-Token";
 
 	/**
@@ -193,6 +198,14 @@ public class MagicConfiguration {
 
 	public void setMagicFunctionManager(MagicFunctionManager magicFunctionManager) {
 		this.magicFunctionManager = magicFunctionManager;
+	}
+
+	public String getEditorConfig() {
+		return editorConfig;
+	}
+
+	public void setEditorConfig(String editorConfig) {
+		this.editorConfig = editorConfig;
 	}
 
 	/**

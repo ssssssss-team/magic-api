@@ -1,6 +1,9 @@
 package org.ssssssss.magicapi.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -12,12 +15,17 @@ import org.ssssssss.magicapi.utils.MD5Utils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MagicWorkbenchController extends MagicController {
+
+	private static Logger logger = LoggerFactory.getLogger(MagicWorkbenchController.class);
 
 	public MagicWorkbenchController(MagicConfiguration configuration) {
 		super(configuration);
@@ -55,5 +63,19 @@ public class MagicWorkbenchController extends MagicController {
 	@ResponseBody
 	public JsonBean<List<Map<String, String>>> options() {
 		return new JsonBean<>(Stream.of(Options.values()).map(item -> Collections.singletonMap(item.getValue(), item.getName())).collect(Collectors.toList()));
+	}
+
+	@RequestMapping(value = "/config-js", produces = "application/javascript")
+	@ResponseBody
+	public Object configjs() {
+		if (configuration.getEditorConfig() != null) {
+			try {
+				File file = ResourceUtils.getFile(configuration.getEditorConfig());
+				return Files.readAllBytes(Paths.get(file.toURI()));
+			} catch (IOException e) {
+				logger.warn("读取编辑器配置文件{}失败", configuration.getEditorConfig());
+			}
+		}
+		return "var MAGIC_EDITOR_CONFIG = {}";
 	}
 }

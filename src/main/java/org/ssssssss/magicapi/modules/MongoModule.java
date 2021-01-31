@@ -4,7 +4,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
-import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.script.reflection.AbstractReflection;
@@ -18,13 +17,13 @@ import java.util.HashMap;
  */
 public class MongoModule extends HashMap<String, Object> implements MagicModule {
 
-	private MongoTemplate mongoTemplate;
+	private final MongoTemplate mongoTemplate;
 
 	private JavaInvoker<Method> invoker;
 
 	public MongoModule(MongoTemplate mongoTemplate) {
 		this.mongoTemplate = mongoTemplate;
-		MongoDbFactory factory = mongoTemplate.getMongoDbFactory();
+		Object factory = mongoTemplate.getMongoDbFactory();
 		invoker = AbstractReflection.getInstance().getMethod(factory, "getDb", StringUtils.EMPTY);
 		if (invoker == null) {
 			invoker = AbstractReflection.getInstance().getMethod(factory, "getMongoDatabase", StringUtils.EMPTY);
