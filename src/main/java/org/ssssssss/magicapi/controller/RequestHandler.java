@@ -88,14 +88,14 @@ public class RequestHandler extends MagicController {
 		}
 		if (requestedFromTest) {
 			if (isRequestedFromContinue(request)) {
-				return invokeContinueRequest(request, response);
+				return invokeContinueRequest(info, request, response);
 			}
 			return invokeTestRequest(info, (MagicScriptDebugContext) context, request, response);
 		}
 		return invokeRequest(info, context, request, response);
 	}
 
-	private Object invokeContinueRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
+	private Object invokeContinueRequest(ApiInfo info, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		String sessionId = getRequestedSessionId(request);
 		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(sessionId);
 		if (context == null) {
@@ -114,6 +114,14 @@ public class RequestHandler extends MagicController {
 			return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId()), context.getDebugInfo());
 		} else if (context.isException()) {
 			return resolveThrowable((Throwable) context.getReturnValue());
+		}
+		Object value = context.getReturnValue();
+		// 执行后置拦截器
+		if ((value = doPostHandle(info, context, value, request, response)) != null) {
+			// 修正前端显示，当拦截器返回时，原样输出显示
+			response.setHeader(HEADER_RESPONSE_WITH_MAGIC_API, "false");
+			// 后置拦截器不包裹
+			return value;
 		}
 		return convertResult(context.getReturnValue(), response);
 	}
@@ -287,7 +295,7 @@ public class RequestHandler extends MagicController {
 	private Object readRequestBody(HttpServletRequest request) throws IOException {
 		if (configuration.getHttpMessageConverters() != null && request.getContentType() != null) {
 			MediaType mediaType = MediaType.valueOf(request.getContentType());
-			Class clazz = Map.class;
+			Class clazz = Object.class;
 			try {
 				for (HttpMessageConverter<?> converter : configuration.getHttpMessageConverters()) {
 					if (converter.canRead(clazz, mediaType)) {
