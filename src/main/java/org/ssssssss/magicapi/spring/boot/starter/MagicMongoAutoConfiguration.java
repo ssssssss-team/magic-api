@@ -18,10 +18,6 @@ import org.ssssssss.script.reflection.AbstractReflection;
 @ConditionalOnBean(MongoTemplate.class)
 public class MagicMongoAutoConfiguration {
 
-	public MagicMongoAutoConfiguration() {
-		System.out.println("123");
-	}
-
 	/**
 	 * 注入mongo模块
 	 */

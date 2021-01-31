@@ -69,9 +69,17 @@ public class MagicAPIProperties {
 
 	/**
 	 * 线程核心数，需要>0，<=0时采用默认配置，即CPU核心数 * 2
+	 *
 	 * @since 0.4.5
 	 */
 	private int threadPoolExecutorSize = 0;
+
+	/**
+	 * 编辑器配置文件路径(js)
+	 *
+	 * @since 0.6.1
+	 */
+	private String editorConfig;
 
 	/**
 	 * 版本号
@@ -93,6 +101,14 @@ public class MagicAPIProperties {
 
 	@NestedConfigurationProperty
 	private SwaggerConfig swaggerConfig = new SwaggerConfig();
+
+	public String getEditorConfig() {
+		return editorConfig;
+	}
+
+	public void setEditorConfig(String editorConfig) {
+		this.editorConfig = editorConfig;
+	}
 
 	public String getWeb() {
 		if (StringUtils.isBlank(web)) {

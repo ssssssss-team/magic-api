@@ -442,6 +442,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		configuration.setResultProvider(resultProvider);
 		configuration.setThrowException(properties.isThrowException());
 		configuration.setMagicDynamicDataSource(magicDynamicDataSource);
+		configuration.setEditorConfig(properties.getEditorConfig());
 		// 注册函数
 		this.magicFunctions.forEach(function -> JavaReflection.registerFunctionClass(function.getClass()));
 		// 向页面传递配置信息时不传递用户名密码，增强安全性
@@ -465,7 +466,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 					RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
 					if (requestMapping != null) {
 						String[] paths = Stream.of(requestMapping.value()).map(value -> base + value).toArray(String[]::new);
-						requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(paths).build(), item, method);
+						RequestMappingInfo mappingInfo = RequestMappingInfo.paths(paths).produces(requestMapping.produces()).build();
+						requestMappingHandlerMapping.registerMapping(mappingInfo, item, method);
 					}
 				}
 			});
