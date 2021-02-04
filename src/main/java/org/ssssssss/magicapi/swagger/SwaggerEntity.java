@@ -274,28 +274,24 @@ public class SwaggerEntity {
 
 		private String type;
 
-		private Map<String, Object> schema;
+		private Object schema;
 
 		private String description;
+
+		private Object example;
 
 		public Parameter(String name, String in, String type, String description, Object example) {
 			this.name = name;
 			this.in = in;
-			this.schema = new HashMap<>();
-			this.schema.put("type", type);
-			this.schema.put("example", example);
 			this.description = description;
 			if ("body".equalsIgnoreCase(in)) {
+				Map<String, Object> schema = new HashMap<>();
+				schema.put("type", type);
+				schema.put("example", example);
 				this.schema = doProcessSchema(example);
+			} else {
+				this.example = example;
 			}
-		}
-
-		public String getDescription() {
-			return description;
-		}
-
-		public void setDescription(String description) {
-			this.description = description;
 		}
 
 		public String getName() {
@@ -334,10 +330,25 @@ public class SwaggerEntity {
 			return schema;
 		}
 
-		public void setSchema(Map<String, Object> schema) {
+		public void setSchema(Object schema) {
 			this.schema = schema;
 		}
 
+		public String getDescription() {
+			return description;
+		}
+
+		public void setDescription(String description) {
+			this.description = description;
+		}
+
+		public Object getExample() {
+			return example;
+		}
+
+		public void setExample(Object example) {
+			this.example = example;
+		}
 	}
 
 	public static class Tag {
