@@ -1,9 +1,9 @@
 package org.ssssssss.magicapi.controller;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.ResourceUtils;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,12 +23,17 @@ import org.ssssssss.magicapi.utils.MD5Utils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MagicWorkbenchController extends MagicController {
+
+	private static Logger logger = LoggerFactory.getLogger(MagicWorkbenchController.class);
 
 	private RestTemplate restTemplate = new RestTemplate();
 
@@ -133,4 +138,18 @@ public class MagicWorkbenchController extends MagicController {
 		}).getBody();
 	}
 
+
+	@RequestMapping(value = "/config-js", produces = "application/javascript")
+	@ResponseBody
+	public Object configjs() {
+		if (configuration.getEditorConfig() != null) {
+			try {
+				File file = ResourceUtils.getFile(configuration.getEditorConfig());
+				return Files.readAllBytes(Paths.get(file.toURI()));
+			} catch (IOException e) {
+				logger.warn("读取编辑器配置文件{}失败", configuration.getEditorConfig());
+			}
+		}
+		return "var MAGIC_EDITOR_CONFIG = {}";
+	}
 }

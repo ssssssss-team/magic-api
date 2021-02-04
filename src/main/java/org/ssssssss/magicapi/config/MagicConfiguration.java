@@ -33,6 +33,11 @@ public class MagicConfiguration {
 	 */
 	private String password;
 
+	/**
+	 * 编辑器配置文件
+	 */
+	private String editorConfig;
+
 	private final String tokenKey = "Magic-Token";
 
 	/**
@@ -78,8 +83,6 @@ public class MagicConfiguration {
 	private int debugTimeout;
 
 	private boolean enableWeb = false;
-
-	private SyncConfig syncConfig;
 
 	public void setEnableWeb(boolean enableWeb) {
 		this.enableWeb = enableWeb;
@@ -203,6 +206,14 @@ public class MagicConfiguration {
 
 	public void setSyncConfig(SyncConfig syncConfig) {
 		this.syncConfig = syncConfig;
+	}
+
+	public String getEditorConfig() {
+		return editorConfig;
+	}
+
+	public void setEditorConfig(String editorConfig) {
+		this.editorConfig = editorConfig;
 	}
 
 	/**
