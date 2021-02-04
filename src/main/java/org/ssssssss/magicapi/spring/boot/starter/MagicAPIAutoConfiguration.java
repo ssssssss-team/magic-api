@@ -440,6 +440,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		configuration.setResultProvider(resultProvider);
 		configuration.setThrowException(properties.isThrowException());
 		configuration.setMagicDynamicDataSource(magicDynamicDataSource);
+		configuration.setEditorConfig(properties.getEditorConfig());
 		// 注册函数
 		this.magicFunctions.forEach(function -> JavaReflection.registerFunctionClass(function.getClass()));
 		// 向页面传递配置信息时不传递用户名密码，增强安全性
@@ -463,6 +464,18 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 					new MagicFunctionController(configuration)
 			));
 			controllers.forEach(item -> mappingHandlerMapping.registerController(item, base));
+			);
+			controllers.forEach(item -> {
+				Method[] methods = item.getClass().getDeclaredMethods();
+				for (Method method : methods) {
+					RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
+					if (requestMapping != null) {
+						String[] paths = Stream.of(requestMapping.value()).map(value -> base + value).toArray(String[]::new);
+						RequestMappingInfo mappingInfo = RequestMappingInfo.paths(paths).produces(requestMapping.produces()).build();
+						requestMappingHandlerMapping.registerMapping(mappingInfo, item, method);
+					}
+				}
+			});
 		}
 		// 设置拦截器信息
 		this.requestInterceptors.forEach(interceptor -> {

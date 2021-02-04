@@ -75,6 +75,13 @@ public class MagicAPIProperties {
 	private int threadPoolExecutorSize = 0;
 
 	/**
+	 * 编辑器配置文件路径(js)
+	 *
+	 * @since 0.6.1
+	 */
+	private String editorConfig;
+
+	/**
 	 * 版本号
 	 */
 	private final String version = RequestHandler.class.getPackage().getImplementationVersion();
@@ -97,6 +104,14 @@ public class MagicAPIProperties {
 
 	@NestedConfigurationProperty
 	private SyncConfig syncConfig = new SyncConfig();
+
+	public String getEditorConfig() {
+		return editorConfig;
+	}
+
+	public void setEditorConfig(String editorConfig) {
+		this.editorConfig = editorConfig;
+	}
 
 	public String getWeb() {
 		if (StringUtils.isBlank(web)) {
@@ -251,13 +266,5 @@ public class MagicAPIProperties {
 
 	public String getVersion() {
 		return version;
-	}
-
-	public SyncConfig getSyncConfig() {
-		return syncConfig;
-	}
-
-	public void setSyncConfig(SyncConfig syncConfig) {
-		this.syncConfig = syncConfig;
 	}
 }
