@@ -1,13 +1,10 @@
 package org.ssssssss.magicapi.provider.impl;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.ssssssss.magicapi.model.ApiInfo;
-import org.ssssssss.magicapi.model.SynchronizeRequest;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -49,30 +46,10 @@ public class DefaultApiServiceProvider extends BeanPropertyRowMapper<ApiInfo> im
 	public List<ApiInfo> listWithScript() {
 		String selectListWithScript = "select " + COMMON_COLUMNS + "," + SCRIPT_COLUMNS + " from magic_api_info";
 		List<ApiInfo> infos = template.query(selectListWithScript, this);
-		if (infos != null) {
-			for (ApiInfo info : infos) {
-				unwrap(info);
-			}
+		for (ApiInfo info : infos) {
+			unwrap(info);
 		}
 		return infos;
-	}
-
-	@Override
-	public List<SynchronizeRequest.Info> listForSync(String groupId, String id) {
-		String sql = "select id,api_group_id,api_name,api_method,api_path,api_update_time from magic_api_info";
-		List<String> parameters = new ArrayList<>();
-		if (StringUtils.isNotBlank(groupId) || StringUtils.isNotBlank(id)) {
-			sql += " where 1=1 ";
-			if (StringUtils.isNotBlank(groupId)) {
-				sql += " and api_group_id = ?";
-				parameters.add(groupId);
-			}
-			if (StringUtils.isNotBlank(id)) {
-				sql += " and id = ?";
-				parameters.add(id);
-			}
-		}
-		return template.query(sql, this, parameters.toArray()).stream().map(SynchronizeRequest.Info::from).collect(Collectors.toList());
 	}
 
 	public ApiInfo get(String id) {

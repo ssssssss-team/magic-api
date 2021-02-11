@@ -200,14 +200,6 @@ public class MagicConfiguration {
 		this.magicFunctionManager = magicFunctionManager;
 	}
 
-	public SyncConfig getSyncConfig() {
-		return syncConfig;
-	}
-
-	public void setSyncConfig(SyncConfig syncConfig) {
-		this.syncConfig = syncConfig;
-	}
-
 	public String getEditorConfig() {
 		return editorConfig;
 	}
