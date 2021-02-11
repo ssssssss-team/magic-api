@@ -23,8 +23,8 @@ public class MagicMongoAutoConfiguration {
 	 */
 	@Bean
 	public MongoModule mongoFunctions(MongoTemplate mongoTemplate) {
-		AbstractReflection.getInstance().registerExtensionClass(MongoCollection.class, MongoCollectionExtension.class);
-		AbstractReflection.getInstance().registerExtensionClass(FindIterable.class, MongoFindIterableExtension.class);
+		AbstractReflection.getInstance().registerMethodExtension(MongoCollection.class, new MongoCollectionExtension());
+		AbstractReflection.getInstance().registerMethodExtension(FindIterable.class, new MongoFindIterableExtension());
 		return new MongoModule(mongoTemplate);
 	}
 }

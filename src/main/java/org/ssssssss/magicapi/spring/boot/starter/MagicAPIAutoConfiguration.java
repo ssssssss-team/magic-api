@@ -59,7 +59,7 @@ import java.util.*;
 @EnableConfigurationProperties(MagicAPIProperties.class)
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
-	private static Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
+	private static final Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
 
 	@Autowired
 	private MagicAPIProperties properties;
@@ -404,7 +404,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			List<Class<?>> supports = extension.supports();
 			for (Class<?> support : supports) {
 				logger.info("注册扩展:{} -> {}", support, extension.getClass());
-				AbstractReflection.getInstance().registerExtensionClass(support, extension.getClass());
+				AbstractReflection.getInstance().registerMethodExtension(support, extension);
 			}
 		}
 	}
@@ -442,18 +442,14 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		configuration.setMagicDynamicDataSource(magicDynamicDataSource);
 		configuration.setEditorConfig(properties.getEditorConfig());
 		// 注册函数
-		this.magicFunctions.forEach(function -> JavaReflection.registerFunctionClass(function.getClass()));
+		this.magicFunctions.forEach(JavaReflection::registerFunction);
 		// 向页面传递配置信息时不传递用户名密码，增强安全性
 		securityConfig.setUsername(null);
 		securityConfig.setPassword(null);
 
-		configuration.setSyncConfig(properties.getSyncConfig());
 		// 构建UI请求处理器
 		String base = properties.getWeb();
 		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
-		if (StringUtils.isNotBlank(properties.getSyncConfig().getSecret())) {
-			mappingHandlerMapping.registerController(new SynchronizeController(configuration), "");
-		}
 		if (base != null) {
 			configuration.setEnableWeb(true);
 			List<MagicController> controllers = new ArrayList<>(Arrays.asList(
@@ -464,18 +460,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 					new MagicFunctionController(configuration)
 			));
 			controllers.forEach(item -> mappingHandlerMapping.registerController(item, base));
-			);
-			controllers.forEach(item -> {
-				Method[] methods = item.getClass().getDeclaredMethods();
-				for (Method method : methods) {
-					RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
-					if (requestMapping != null) {
-						String[] paths = Stream.of(requestMapping.value()).map(value -> base + value).toArray(String[]::new);
-						RequestMappingInfo mappingInfo = RequestMappingInfo.paths(paths).produces(requestMapping.produces()).build();
-						requestMappingHandlerMapping.registerMapping(mappingInfo, item, method);
-					}
-				}
-			});
 		}
 		// 设置拦截器信息
 		this.requestInterceptors.forEach(interceptor -> {
