@@ -1,7 +1,9 @@
 package org.ssssssss.magicapi.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -76,10 +78,9 @@ public class ApiInfo {
 	private Long updateTime;
 
 	/**
-	 * 接口选项json->map
+	 * 接口选项json
 	 */
-	private Map optionMap;
-
+	private JsonNode jsonNode;
 
 	public String getId() {
 		return id;
@@ -162,12 +163,18 @@ public class ApiInfo {
 		this.groupId = groupId;
 	}
 
-	public Map getOptionMap() {
-		return optionMap;
-	}
-
-	public void setOptionMap(Map optionMap) {
-		this.optionMap = optionMap;
+	public Map<String, Object> getOptionMap() {
+		Map<String, Object> map = new HashMap<>();
+		if (this.jsonNode == null) {
+			return null;
+		} else if (this.jsonNode.isArray()) {
+			for (JsonNode node : this.jsonNode) {
+				map.put(node.get("name").asText(), node.get("value").asText());
+			}
+		} else {
+			this.jsonNode.fieldNames().forEachRemaining(it -> map.put(it, this.jsonNode.get(it)));
+		}
+		return map;
 	}
 
 	public String getDescription() {
@@ -189,14 +196,26 @@ public class ApiInfo {
 	public void setOption(String option) {
 		this.option = option;
 		try {
-			this.optionMap = new ObjectMapper().readValue(option, Map.class);
+			this.jsonNode = new ObjectMapper().readTree(option);
 		} catch (Throwable ignored) {
 		}
 	}
 
 
 	public Object getOptionValue(String key) {
-		return this.optionMap != null ? this.optionMap.get(key) : null;
+		if (this.jsonNode == null) {
+			return null;
+		}
+		if (this.jsonNode.isArray()) {
+			for (JsonNode node : this.jsonNode) {
+				if (node.isObject() && Objects.equals(key, node.get("name").asText())) {
+					return node.get("value").asText();
+				}
+			}
+		} else if (this.jsonNode.isObject()) {
+			return this.jsonNode.get(key).asText();
+		}
+		return null;
 	}
 
 	public Long getUpdateTime() {
