@@ -54,6 +54,10 @@ public class BoundSql {
 		// 处理#{}参数
 		this.sql = replaceTokenParser.parse(this.sql, text -> {
 			Object value = context.eval(text);
+			if (value == null) {
+				parameters.add(null);
+				return "?";
+			}
 			try {
 				//对集合自动展开
 				List<Object> objects = StreamExtension.arrayLikeToList(value);
