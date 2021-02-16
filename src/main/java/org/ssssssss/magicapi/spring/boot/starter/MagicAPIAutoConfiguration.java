@@ -167,7 +167,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	public Resource magicWorkspaceResource() throws IOException {
-		return ResourceAdapter.getResource(properties.getWorkspace());
+		Resource resource = ResourceAdapter.getResource(properties.getWorkspace());
+		logger.info("magic-api工作目录:{}",resource.getAbsolutePath());
+		return resource;
 	}
 
 	@Override
