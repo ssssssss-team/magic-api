@@ -30,10 +30,9 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	public boolean insert(Group group) {
 		group.setId(UUID.randomUUID().toString().replace("-", ""));
 		Resource directory = this.getGroupResource(group.getParentId());
-		directory = directory == null ? this.getGroupResource(group.getType(),group.getName()) : directory;
-		Resource resource = directory.getResource(group.getName());
-		if (!resource.exists() && resource.mkdir()) {
-			resource = resource.getResource(metabase);
+		directory = directory == null ? this.getGroupResource(group.getType(),group.getName()) : directory.getResource(group.getName());
+		if (!directory.exists() && directory.mkdir()) {
+			Resource resource = directory.getResource(metabase);
 			if (resource.write(JsonUtils.toJsonString(group))) {
 				mappings.put(group.getId(), resource);
 				return true;

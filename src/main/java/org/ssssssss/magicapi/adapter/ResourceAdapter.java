@@ -150,6 +150,11 @@ public abstract class ResourceAdapter {
 		}
 
 		@Override
+		public String getAbsolutePath(){
+			return this.file.getAbsolutePath();
+		}
+
+		@Override
 		public String toString() {
 			return String.format("file resource [%s]", this.file.getAbsolutePath());
 		}
@@ -245,6 +250,11 @@ public abstract class ResourceAdapter {
 							.collect(Collectors.toList()))
 					)
 					.collect(Collectors.toList());
+		}
+
+		@Override
+		public String getAbsolutePath() {
+			return this.jarFile.getName() + "/" + this.entryName;
 		}
 
 		@Override

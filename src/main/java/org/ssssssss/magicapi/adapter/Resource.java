@@ -85,4 +85,6 @@ public interface Resource {
 
 	List<Resource> files(String suffix);
 
+	String getAbsolutePath();
+
 }
