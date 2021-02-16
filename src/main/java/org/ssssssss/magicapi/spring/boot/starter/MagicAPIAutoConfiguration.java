@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -27,6 +28,8 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.ssssssss.magicapi.adapter.ColumnMapperAdapter;
 import org.ssssssss.magicapi.adapter.DialectAdapter;
+import org.ssssssss.magicapi.adapter.Resource;
+import org.ssssssss.magicapi.adapter.ResourceAdapter;
 import org.ssssssss.magicapi.cache.DefaultSqlCache;
 import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
@@ -50,11 +53,12 @@ import org.ssssssss.script.reflection.JavaReflection;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
 
 @Configuration
-@ConditionalOnClass({DataSource.class, RequestMappingHandlerMapping.class})
+@ConditionalOnClass({RequestMappingHandlerMapping.class})
 @AutoConfigureAfter({DataSourceAutoConfiguration.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
@@ -119,7 +123,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Autowired
 	FunctionServiceProvider functionServiceProvider;
 
-	@Autowired
+	@Autowired(required = false)
 	MagicDynamicDataSource magicDynamicDataSource;
 
 	@Autowired
@@ -159,6 +163,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			}
 		}
 		return ALL_CLASS_TXT;
+	}
+
+	@Bean
+	public Resource magicWorkspaceResource() throws IOException {
+		return ResourceAdapter.getResource(properties.getWorkspace());
 	}
 
 	@Override
@@ -265,8 +274,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	@ConditionalOnMissingBean(FunctionServiceProvider.class)
-	public FunctionServiceProvider functionServiceProvider(MagicDynamicDataSource dynamicDataSource) {
-		return new DefaultFunctionServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
+	public FunctionServiceProvider functionServiceProvider(GroupServiceProvider groupServiceProvider,Resource magicWorkspaceResource) {
+		return new DefaultFunctionServiceProvider(groupServiceProvider, magicWorkspaceResource);
 	}
 
 	/**
@@ -274,8 +283,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 */
 	@Bean
 	@ConditionalOnMissingBean(GroupServiceProvider.class)
-	public GroupServiceProvider groupServiceProvider(MagicDynamicDataSource dynamicDataSource) {
-		return new DefaultGroupServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
+	public GroupServiceProvider groupServiceProvider(Resource magicWorkspaceResource) {
+		return new DefaultGroupServiceProvider(magicWorkspaceResource);
 	}
 
 	/**
@@ -283,9 +292,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 */
 	@ConditionalOnMissingBean(ApiServiceProvider.class)
 	@Bean
-	public ApiServiceProvider apiServiceProvider(MagicDynamicDataSource dynamicDataSource) {
-		logger.info("接口使用数据源：{}", StringUtils.isNotBlank(properties.getDatasource()) ? properties.getDatasource() : "default");
-		return new DefaultApiServiceProvider(dynamicDataSource.getDataSource(properties.getDatasource()).getJdbcTemplate());
+	public ApiServiceProvider apiServiceProvider(GroupServiceProvider groupServiceProvider,Resource magicWorkspaceResource) {
+		return new DefaultApiServiceProvider(groupServiceProvider, magicWorkspaceResource);
 	}
 
 
@@ -320,6 +328,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 * 注入数据库查询模块
 	 */
 	@Bean
+	@ConditionalOnBean({MagicDynamicDataSource.class})
 	public SQLModule magicSqlModule(MagicDynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
 		SQLModule sqlModule = new SQLModule(dynamicDataSource);
 		sqlModule.setResultProvider(resultProvider);
@@ -415,6 +424,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 */
 	@Bean
 	@ConditionalOnMissingBean(MagicDynamicDataSource.class)
+	@ConditionalOnBean({DataSource.class})
 	public MagicDynamicDataSource magicDynamicDataSource(DataSource dataSource) {
 		MagicDynamicDataSource dynamicDataSource = new MagicDynamicDataSource();
 		dynamicDataSource.put(dataSource);
@@ -423,6 +433,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	public MagicConfiguration magicConfiguration(@Autowired List<MagicModule> magicModules) {
+		logger.info("magic-api workspace:{}",properties.getWorkspace());
 		setupSpringSecurity();
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 		// 设置模块和扩展方法

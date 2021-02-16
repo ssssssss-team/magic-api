@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.spring.boot.starter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.ssssssss.magicapi.controller.RequestHandler;
@@ -33,9 +34,10 @@ public class MagicAPIProperties {
 	private boolean throwException = false;
 
 	/**
-	 * 接口保存的数据源
+	 * 数据保存的工作空间
+	 * @since 0.7.0
 	 */
-	private String datasource;
+	private String workspace = "/data/magic-api";
 
 	/**
 	 * 自动导入的模块,多个用","分隔
@@ -193,12 +195,12 @@ public class MagicAPIProperties {
 		this.prefix = prefix;
 	}
 
-	public String getDatasource() {
-		return datasource;
+	public String getWorkspace() {
+		return workspace;
 	}
 
-	public void setDatasource(String datasource) {
-		this.datasource = datasource;
+	public void setWorkspace(String workspace) {
+		this.workspace = workspace;
 	}
 
 	public SwaggerConfig getSwaggerConfig() {
