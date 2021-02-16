@@ -1,10 +1,8 @@
 package org.ssssssss.magicapi.logging;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.List;
 
 /**
  * 打印的日志信息

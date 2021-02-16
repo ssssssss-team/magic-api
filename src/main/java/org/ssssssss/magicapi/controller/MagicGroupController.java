@@ -54,22 +54,18 @@ public class MagicGroupController extends MagicController {
 				if (success = configuration.getMagicApiService().deleteGroup(groupIds)) {
 					// 取消注册
 					configuration.getMappingHandlerMapping().deleteGroup(groupIds);
-					// 删除分组
-					if (success = this.groupServiceProvider.delete(groupId)) {
-						// 重新加载分组
-						configuration.getMappingHandlerMapping().loadGroup();
-					}
+					groupIds.forEach(configuration.getGroupServiceProvider()::delete);
+					// 重新加载分组
+					configuration.getMappingHandlerMapping().loadGroup();
 				}
 			} else {
 				// 删除函数
 				if (success = configuration.getFunctionServiceProvider().deleteGroup(groupIds)) {
 					// 取消注册
 					configuration.getMagicFunctionManager().deleteGroup(groupIds);
-					// 删除分组
-					if (success = this.groupServiceProvider.delete(groupId)) {
-						// 重新加载分组
-						configuration.getMagicFunctionManager().loadGroup();
-					}
+					groupIds.forEach(configuration.getGroupServiceProvider()::delete);
+					// 重新加载分组
+					configuration.getMagicFunctionManager().loadGroup();
 				}
 			}
 			return new JsonBean<>(success);
@@ -101,17 +97,19 @@ public class MagicGroupController extends MagicController {
 			boolean isApiGroup = "1".equals(group.getType());
 			boolean isFunctionGroup = "2".equals(group.getType());
 			if (isApiGroup && configuration.getMappingHandlerMapping().checkGroup(group)) {
-				boolean success = groupServiceProvider.update(group);
-				if (success) {    // 如果数据库修改成功，则修改接口路径
+				if (groupServiceProvider.update(group)) {    // 如果数据库修改成功，则修改接口路径
 					configuration.getMappingHandlerMapping().updateGroup(group);
+				}else{
+					return new JsonBean<>(0, "修改分组失败,同一组下分组名称不能重复且不能包含特殊字符。");
 				}
-				return new JsonBean<>(success);
+				return new JsonBean<>(true);
 			} else if (isFunctionGroup && configuration.getMagicFunctionManager().checkGroup(group)) {
-				boolean success = groupServiceProvider.update(group);
-				if (success) {    // 如果数据库修改成功，则修改接口路径
+				if (groupServiceProvider.update(group)) {    // 如果数据库修改成功，则修改接口路径
 					configuration.getMagicFunctionManager().updateGroup(group);
+				}else{
+					return new JsonBean<>(0, "修改分组失败,同一组下分组名称不能重复且不能包含特殊字符。");
 				}
-				return new JsonBean<>(success);
+				return new JsonBean<>(true);
 			}
 			return new JsonBean<>(-20, "修改分组后，路径会有冲突，请检查！");
 		} catch (Exception e) {
@@ -153,13 +151,16 @@ public class MagicGroupController extends MagicController {
 			return new JsonBean<>(0, "分组类型不能为空");
 		}
 		try {
-			groupServiceProvider.insert(group);
-			if (Objects.equals(group.getType(), "1")) {
-				configuration.getMappingHandlerMapping().loadGroup();
-			} else {
-				configuration.getMagicFunctionManager().loadGroup();
+			if(groupServiceProvider.insert(group)){
+				if (Objects.equals(group.getType(), "1")) {
+					configuration.getMappingHandlerMapping().loadGroup();
+				} else {
+					configuration.getMagicFunctionManager().loadGroup();
+				}
+				return new JsonBean<>(group.getId());
+			}else {
+				return new JsonBean<>(-1,"保存分组失败,同一组下分组名称不能重复且不能包含特殊字符。");
 			}
-			return new JsonBean<>(group.getId());
 		} catch (Exception e) {
 			logger.error("保存分组出错", e);
 			return new JsonBean<>(-1, e.getMessage());

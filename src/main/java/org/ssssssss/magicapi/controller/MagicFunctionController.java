@@ -57,6 +57,9 @@ public class MagicFunctionController extends MagicController {
 			return new JsonBean<>(-10, "无权限执行移动函数");
 		}
 		try {
+			if (!functionService.allowMove(id, groupId)) {
+				return new JsonBean<>(0, "移动后名称会重复，请修改名称后在试。");
+			}
 			if (!configuration.getMagicFunctionManager().move(id, groupId)) {
 				return new JsonBean<>(0, "该路径已被映射,请换一个路径");
 			} else {
@@ -66,18 +69,6 @@ public class MagicFunctionController extends MagicController {
 			logger.error("移动函数出错", e);
 			return new JsonBean<>(-1, e.getMessage());
 		}
-	}
-
-	@RequestMapping("/function/backup/get")
-	@ResponseBody
-	public JsonBean<FunctionInfo> backups(String id, Long timestamp) {
-		return new JsonBean<>(functionService.backupInfo(id, timestamp));
-	}
-
-	@RequestMapping("/function/backups")
-	@ResponseBody
-	public JsonBean<List<Long>> backups(String id) {
-		return new JsonBean<>(functionService.backupList(id));
 	}
 
 
@@ -104,16 +95,17 @@ public class MagicFunctionController extends MagicController {
 				if (functionService.exists(functionInfo.getPath(), functionInfo.getGroupId())) {
 					return new JsonBean<>(0, String.format("函数%s已存在", functionInfo.getPath()));
 				}
-				functionService.insert(functionInfo);
+				if(!functionService.insert(functionInfo)){
+					return new JsonBean<>(0, "保存失败,请检查函数名称是否重复且不能包含特殊字符。");
+				}
 			} else {
 				if (functionService.existsWithoutId(functionInfo.getPath(), functionInfo.getGroupId(), functionInfo.getId())) {
 					return new JsonBean<>(0, String.format("函数%s已存在", functionInfo.getPath()));
 				}
-				functionService.update(functionInfo);
+				if(!functionService.update(functionInfo)){
+					return new JsonBean<>(0, "保存失败,请检查函数名称是否重复且不能包含特殊字符。");
+				}
 			}
-			functionService.backup(functionInfo.getId());
-			// 解除包装
-			functionService.unwrap(functionInfo);
 			configuration.getMagicFunctionManager().register(functionInfo);
 			return new JsonBean<>(functionInfo.getId());
 		} catch (Exception e) {

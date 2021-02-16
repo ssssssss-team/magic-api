@@ -1,9 +1,11 @@
 package org.ssssssss.magicapi.provider;
 
+import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.TreeNode;
 
 import java.util.List;
+
 
 public interface GroupServiceProvider {
 
@@ -51,4 +53,6 @@ public interface GroupServiceProvider {
 	 * 根据分组Id获取分组名称
 	 */
 	String getFullName(String groupId);
+
+	Resource getGroupResource(String groupId);
 }

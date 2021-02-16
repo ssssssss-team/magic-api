@@ -7,17 +7,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class FunctionInfo {
-
-	private String id;
-
-	private String name;
+public class FunctionInfo extends MagicEntity {
 
 	private String path;
-
-	private String groupId;
-
-	private String script;
 
 	private String description;
 
@@ -28,38 +20,6 @@ public class FunctionInfo {
 	private String mappingPath;
 
 	private List<String> parameterNames = Collections.emptyList();
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getGroupId() {
-		return groupId;
-	}
-
-	public void setGroupId(String groupId) {
-		this.groupId = groupId;
-	}
-
-	public String getScript() {
-		return script;
-	}
-
-	public void setScript(String script) {
-		this.script = script;
-	}
 
 	public String getDescription() {
 		return description;
@@ -110,4 +70,6 @@ public class FunctionInfo {
 	public void setReturnType(String returnType) {
 		this.returnType = returnType;
 	}
+
+
 }

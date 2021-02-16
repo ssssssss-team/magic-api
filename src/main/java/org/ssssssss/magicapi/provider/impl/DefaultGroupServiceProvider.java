@@ -1,45 +1,71 @@
 package org.ssssssss.magicapi.provider.impl;
 
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.TreeNode;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
+import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.magicapi.utils.PathUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> implements GroupServiceProvider {
-
-	private JdbcTemplate template;
+public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	private Map<String, Group> cacheApiTree = new HashMap<>();
 
 	private Map<String, Group> cacheFunctionTree = new HashMap<>();
 
-	public DefaultGroupServiceProvider(JdbcTemplate template) {
-		super(Group.class);
-		this.template = template;
+	private final Map<String, Resource> mappings = new HashMap<>();
+
+	private final Resource workspace;
+
+	private String metabase = "group.json";
+
+	public DefaultGroupServiceProvider(Resource workspace) {
+		this.workspace = workspace;
 	}
 
 	@Override
 	public boolean insert(Group group) {
 		group.setId(UUID.randomUUID().toString().replace("-", ""));
-		String insertGroup = "insert into magic_group(id,group_name,group_type,group_path,parent_id) values(?,?,?,?,?)";
-		return template.update(insertGroup, group.getId(), group.getName(), group.getType(), group.getPath(), group.getParentId()) > 0;
+		Resource directory = this.getGroupResource(group.getParentId());
+		directory = directory == null ? this.getGroupResource(group.getType(),group.getName()) : directory;
+		Resource resource = directory.getResource(group.getName());
+		if (!resource.exists() && resource.mkdir()) {
+			resource = resource.getResource(metabase);
+			if (resource.write(JsonUtils.toJsonString(group))) {
+				mappings.put(group.getId(), resource);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private Resource getGroupResource(String type, String name) {
+		return this.workspace.getResource("1".equals(type) ? "api" : "function").getResource(name);
 	}
 
 	@Override
 	public boolean update(Group group) {
-		String updateGroup = "update magic_group set group_name = ?,group_path=?,parent_id = ? where id = ?";
-		return template.update(updateGroup, group.getName(), group.getPath(), group.getParentId(), group.getId()) >= 0;
+		Resource oldResource = this.getGroupResource(group.getId());
+		Resource newResource = this.getGroupResource(group.getParentId());
+		newResource = newResource == null ? getGroupResource(group.getType(),group.getName()) : newResource.getResource(group.getName());
+		// 重命名或移动目录
+		if(oldResource.renameTo(newResource)){
+			Resource target = newResource.getResource(metabase);
+			if (target.write(JsonUtils.toJsonString(group))) {
+				mappings.put(group.getId(), target);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
 	public boolean delete(String groupId) {
-		String deleteByGroupId = "delete from magic_group where id = ?";
-		return template.update(deleteByGroupId, groupId) > 0;
+		mappings.remove(groupId);
+		return true;
 	}
 
 	@Override
@@ -49,21 +75,28 @@ public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> im
 
 	@Override
 	public TreeNode<Group> apiGroupTree() {
-		List<Group> groups = template.query("select * from magic_group where group_type = '1'", this);
+		List<Group> groups = groupList("1");
 		cacheApiTree = groups.stream().collect(Collectors.toMap(Group::getId, value -> value));
 		return convertToTree(groups);
 	}
 
 	@Override
 	public TreeNode<Group> functionGroupTree() {
-		List<Group> groups = template.query("select * from magic_group where group_type = '2'", this);
+		List<Group> groups = groupList("2");
 		cacheFunctionTree = groups.stream().collect(Collectors.toMap(Group::getId, value -> value));
 		return convertToTree(groups);
 	}
 
 	@Override
 	public List<Group> groupList(String type) {
-		return template.query("select * from magic_group where group_type = ?", this, type);
+		Resource resource = this.workspace.getResource("1".equals(type) ? "api" : "function");
+		return resource.dirs().stream().map(it -> it.getResource(metabase)).filter(Resource::exists)
+				.map(it -> {
+					Group group = JsonUtils.readValue(it.read(), Group.class);
+					mappings.put(group.getId(), it);
+					return group;
+				})
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -99,6 +132,14 @@ public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> im
 		return name.substring(1);
 	}
 
+	@Override
+	public Resource getGroupResource(String groupId) {
+		if (groupId == null || "0".equals(groupId)) {
+			return null;
+		}
+		return mappings.get(groupId).parent();
+	}
+
 	private TreeNode<Group> convertToTree(List<Group> groups) {
 		TreeNode<Group> root = new TreeNode<>();
 		root.setNode(new Group("0", "root"));
@@ -110,7 +151,7 @@ public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> im
 		Group temp;
 		List<TreeNode<Group>> childNodes = new LinkedList<>();
 		Iterator<Group> iterator = remains.iterator();
-		while (iterator.hasNext()){
+		while (iterator.hasNext()) {
 			temp = iterator.next();
 			if (current.getNode().getId().equals(temp.getParentId())) {
 				childNodes.add(new TreeNode<>(temp));
@@ -119,10 +160,5 @@ public class DefaultGroupServiceProvider extends BeanPropertyRowMapper<Group> im
 		}
 		current.setChildren(childNodes);
 		childNodes.forEach(it -> convertToTree(remains, it));
-	}
-
-	@Override
-	protected String lowerCaseName(String name) {
-		return super.lowerCaseName(name).replace("group_", "");
 	}
 }

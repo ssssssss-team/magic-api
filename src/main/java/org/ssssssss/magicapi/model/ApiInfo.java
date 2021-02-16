@@ -10,12 +10,7 @@ import java.util.Objects;
 /**
  * 接口信息
  */
-public class ApiInfo {
-
-	/**
-	 * 接口ID
-	 */
-	private String id;
+public class ApiInfo extends MagicEntity{
 
 	/**
 	 * 请求方法
@@ -26,21 +21,6 @@ public class ApiInfo {
 	 * 请求路径
 	 */
 	private String path;
-
-	/**
-	 * 脚本内容
-	 */
-	private String script;
-
-	/**
-	 * 接口名称
-	 */
-	private String name;
-
-	/**
-	 * 分组ID
-	 */
-	private String groupId;
 
 	/**
 	 * 设置的请求参数
@@ -73,22 +53,10 @@ public class ApiInfo {
 	private String description;
 
 	/**
-	 * 最后更新时间
-	 */
-	private Long updateTime;
-
-	/**
 	 * 接口选项json
 	 */
 	private JsonNode jsonNode;
 
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
 
 	public String getMethod() {
 		return method;
@@ -104,22 +72,6 @@ public class ApiInfo {
 
 	public void setPath(String path) {
 		this.path = path;
-	}
-
-	public String getScript() {
-		return script;
-	}
-
-	public void setScript(String script) {
-		this.script = script;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
 	}
 
 	public String getParameter() {
@@ -153,14 +105,6 @@ public class ApiInfo {
 
 	public void setResponseBody(String responseBody) {
 		this.responseBody = responseBody;
-	}
-
-	public String getGroupId() {
-		return groupId;
-	}
-
-	public void setGroupId(String groupId) {
-		this.groupId = groupId;
 	}
 
 	public Map<String, Object> getOptionMap() {
@@ -216,14 +160,6 @@ public class ApiInfo {
 			return this.jsonNode.get(key).asText();
 		}
 		return null;
-	}
-
-	public Long getUpdateTime() {
-		return updateTime;
-	}
-
-	public void setUpdateTime(Long updateTime) {
-		this.updateTime = updateTime;
 	}
 
 	@Override

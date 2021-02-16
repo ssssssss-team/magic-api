@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
+import org.ssssssss.magicapi.config.MagicDynamicDataSource;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.magicapi.provider.MagicAPIService;
@@ -34,10 +35,11 @@ public class MagicConfigController extends MagicController {
 		Map<String, ScriptClass> classMap = MagicScriptEngine.getScriptClassMap();
 		classMap.putAll(MagicResourceLoader.getModules());
 		ScriptClass db = classMap.get(SQLModule.class.getName());
-		if (db != null) {
+		MagicDynamicDataSource datasource = configuration.getMagicDynamicDataSource();
+		if (db != null && datasource != null) {
 			List<ScriptClass.ScriptAttribute> attributes = new ArrayList<>();
 			// 给与前台动态数据源提示
-			configuration.getMagicDynamicDataSource().datasources().stream().filter(StringUtils::isNotBlank)
+			datasource.datasources().stream().filter(StringUtils::isNotBlank)
 					.forEach(item -> attributes.add(new ScriptClass.ScriptAttribute("db", item)));
 			db.setAttributes(attributes);
 		}

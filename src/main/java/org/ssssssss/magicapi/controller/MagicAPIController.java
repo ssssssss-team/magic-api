@@ -13,6 +13,7 @@ import org.ssssssss.magicapi.provider.ApiServiceProvider;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 接口相关操作
@@ -85,29 +86,6 @@ public class MagicAPIController extends MagicController {
 	}
 
 	/**
-	 * 查询历史记录
-	 *
-	 * @param id 接口ID
-	 */
-	@RequestMapping("/backups")
-	@ResponseBody
-	public JsonBean<List<Long>> backups(String id) {
-		return new JsonBean<>(magicApiService.backupList(id));
-	}
-
-	/**
-	 * 获取历史记录
-	 *
-	 * @param id        接口ID
-	 * @param timestamp 时间点
-	 */
-	@RequestMapping("/backup/get")
-	@ResponseBody
-	public JsonBean<ApiInfo> backups(String id, Long timestamp) {
-		return new JsonBean<>(magicApiService.backupInfo(id, timestamp));
-	}
-
-	/**
 	 * 移动接口
 	 */
 	@RequestMapping("/api/move")
@@ -120,6 +98,9 @@ public class MagicAPIController extends MagicController {
 			return new JsonBean<>(0, "找不到分组信息");
 		}
 		try {
+			if (!magicApiService.allowMove(id, groupId)) {
+				return new JsonBean<>(0, "移动后名称会重复，请修改名称后在试。");
+			}
 			if (!configuration.getMappingHandlerMapping().move(id, groupId)) {
 				return new JsonBean<>(0, "该路径已被映射,请换一个请求方法或路径");
 			} else {
@@ -163,25 +144,21 @@ public class MagicAPIController extends MagicController {
 				if (magicApiService.exists(info.getGroupId(), info.getMethod(), info.getPath())) {
 					return new JsonBean<>(0, String.format("接口%s:%s已存在", info.getMethod(), info.getPath()));
 				}
-				magicApiService.insert(info);
+				if (!magicApiService.insert(info)) {
+					return new JsonBean<>(0, "保存失败,请检查接口名称是否重复且不能包含特殊字符。");
+				}
 			} else {
 				// 先判断接口是否存在
 				if (magicApiService.existsWithoutId(info.getGroupId(), info.getMethod(), info.getPath(), info.getId())) {
 					return new JsonBean<>(0, String.format("接口%s:%s已存在", info.getMethod(), info.getPath()));
 				}
-				configuration.getMappingHandlerMapping().getApiInfos().stream()
+				Optional<ApiInfo> optional = configuration.getMappingHandlerMapping().getApiInfos().stream()
 						.filter(it -> it.getId().equals(info.getId()))
-						.findFirst()
-						.ifPresent(it -> {
-							// 有变化时才修改
-							if (!it.equals(info)) {
-								magicApiService.update(info);
-								magicApiService.backup(info.getId());
-							}
-						});
+						.findFirst();
+				if (optional.isPresent() && !optional.get().equals(info) && !magicApiService.update(info)) {
+					return new JsonBean<>(0, "保存失败,请检查接口名称是否重复且不能包含特殊字符。");
+				}
 			}
-			// 解除包装
-			magicApiService.unwrap(info);
 			// 注册接口
 			configuration.getMappingHandlerMapping().registerMapping(info, true);
 			return new JsonBean<>(info.getId());
