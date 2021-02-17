@@ -4,6 +4,7 @@ import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.model.MagicEntity;
 import org.ssssssss.magicapi.utils.JsonUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -183,7 +184,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	}
 
 	public T deserialize(byte[] data){
-		String content = new String(data);
+		String content = new String(data, StandardCharsets.UTF_8);
 		int index = content.indexOf(separator);
 		if (index > -1) {
 			T info = JsonUtils.readValue(content.substring(0, index), clazz);

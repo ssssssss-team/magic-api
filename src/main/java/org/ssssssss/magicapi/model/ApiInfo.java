@@ -15,7 +15,7 @@ public class ApiInfo extends MagicEntity{
 	/**
 	 * 请求方法
 	 */
-	private String method;
+	private String method = "GET";
 
 	/**
 	 * 请求路径

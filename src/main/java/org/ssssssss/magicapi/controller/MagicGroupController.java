@@ -34,6 +34,9 @@ public class MagicGroupController extends MagicController {
 	@RequestMapping("/group/delete")
 	@ResponseBody
 	public JsonBean<Boolean> deleteGroup(String groupId, HttpServletRequest request) {
+		if(configuration.getWorkspace().readonly()){
+			return new JsonBean<>(0, "当前为只读模式,无法删除");
+		}
 		if (!allowVisit(request, RequestInterceptor.Authorization.DELETE)) {
 			return new JsonBean<>(-10, "无权限执行删除方法");
 		}
@@ -81,6 +84,9 @@ public class MagicGroupController extends MagicController {
 	@RequestMapping("/group/update")
 	@ResponseBody
 	public synchronized JsonBean<Boolean> groupUpdate(Group group, HttpServletRequest request) {
+		if(configuration.getWorkspace().readonly()){
+			return new JsonBean<>(0, "当前为只读模式,无法修改");
+		}
 		if (!allowVisit(request, RequestInterceptor.Authorization.SAVE)) {
 			return new JsonBean<>(-10, "无权限执行删除方法");
 		}
@@ -138,6 +144,9 @@ public class MagicGroupController extends MagicController {
 	@RequestMapping("/group/create")
 	@ResponseBody
 	public JsonBean<String> createGroup(Group group, HttpServletRequest request) {
+		if(configuration.getWorkspace().readonly()){
+			return new JsonBean<>(0, "当前为只读模式,无法创建");
+		}
 		if (!allowVisit(request, RequestInterceptor.Authorization.SAVE)) {
 			return new JsonBean<>(-10, "无权限执行保存方法");
 		}

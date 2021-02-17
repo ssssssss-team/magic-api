@@ -123,11 +123,10 @@ public class MappingHandlerMapping {
 	 * @param requestMapping 请求路径
 	 */
 	private static String buildMappingKey(String requestMethod, String requestMapping) {
-
 		if (!StringUtils.isEmpty(requestMapping) && !requestMapping.startsWith("/")) {
 			requestMapping = "/" + requestMapping;
 		}
-		return requestMethod.toUpperCase() + ":" + requestMapping;
+		return Objects.toString(requestMethod, "GET").toUpperCase() + ":" + requestMapping;
 	}
 
 	public void setRequestMappingHandlerMapping(RequestMappingHandlerMapping requestMappingHandlerMapping) {

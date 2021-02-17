@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.config;
 
 import org.springframework.http.converter.HttpMessageConverter;
+import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.controller.RequestHandler;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
@@ -74,6 +75,8 @@ public class MagicConfiguration {
 	 * 结果处理器
 	 */
 	private ResultProvider resultProvider;
+
+	private Resource workspace;
 
 	private List<HttpMessageConverter<?>> httpMessageConverters = new ArrayList<>();
 
@@ -206,6 +209,14 @@ public class MagicConfiguration {
 
 	public void setEditorConfig(String editorConfig) {
 		this.editorConfig = editorConfig;
+	}
+
+	public Resource getWorkspace() {
+		return workspace;
+	}
+
+	public void setWorkspace(Resource workspace) {
+		this.workspace = workspace;
 	}
 
 	/**

@@ -169,8 +169,4 @@ public class ClassScanner {
 	private static boolean isClass(String className) {
 		return className.endsWith(".class") && !className.contains("$");
 	}
-
-	public static void main(String[] args) throws URISyntaxException {
-		scan().stream().filter(s -> s.startsWith("java.lang")).sorted().forEach(System.out::println);
-	}
 }

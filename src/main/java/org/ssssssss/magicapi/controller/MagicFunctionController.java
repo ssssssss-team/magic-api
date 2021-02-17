@@ -53,6 +53,9 @@ public class MagicFunctionController extends MagicController {
 	@RequestMapping("/function/move")
 	@ResponseBody
 	public JsonBean<Boolean> move(String id, String groupId, HttpServletRequest request) {
+		if(configuration.getWorkspace().readonly()){
+			return new JsonBean<>(0, "当前为只读模式,无法移动");
+		}
 		if (!allowVisit(request, RequestInterceptor.Authorization.SAVE)) {
 			return new JsonBean<>(-10, "无权限执行移动函数");
 		}
@@ -75,6 +78,9 @@ public class MagicFunctionController extends MagicController {
 	@RequestMapping("/function/save")
 	@ResponseBody
 	public JsonBean<String> save(FunctionInfo functionInfo, HttpServletRequest request) {
+		if(configuration.getWorkspace().readonly()){
+			return new JsonBean<>(0, "当前为只读模式,无法保存");
+		}
 		if (!allowVisit(request, RequestInterceptor.Authorization.SAVE)) {
 			return new JsonBean<>(-10, "无权限执行保存方法");
 		}
@@ -117,6 +123,9 @@ public class MagicFunctionController extends MagicController {
 	@RequestMapping("/function/delete")
 	@ResponseBody
 	public JsonBean<Boolean> delete(String id, HttpServletRequest request) {
+		if(configuration.getWorkspace().readonly()){
+			return new JsonBean<>(0, "当前为只读模式,无法删除");
+		}
 		if (!allowVisit(request, RequestInterceptor.Authorization.DELETE)) {
 			return new JsonBean<>(-10, "无权限执行删除方法");
 		}

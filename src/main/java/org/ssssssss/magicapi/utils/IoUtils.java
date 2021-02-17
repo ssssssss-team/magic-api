@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.utils;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,7 @@ public class IoUtils {
 					list.addAll(subDirs(false, files[i]));
 				}
 			}
-			if(!isRoot){
+			if (!isRoot) {
 				list.add(file);
 			}
 		}
@@ -51,7 +52,7 @@ public class IoUtils {
 	}
 
 	public static String string(File file) {
-		return new String(bytes(file));
+		return new String(bytes(file), StandardCharsets.UTF_8);
 	}
 
 	public static byte[] bytes(InputStream inputStream) {
@@ -59,8 +60,8 @@ public class IoUtils {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			byte[] buf = new byte[4096];
 			int len = -1;
-			while((len = inputStream.read(buf,0,buf.length)) != -1){
-				baos.write(buf,0,len);
+			while ((len = inputStream.read(buf, 0, buf.length)) != -1) {
+				baos.write(buf, 0, len);
 			}
 			return baos.toByteArray();
 		} catch (IOException e) {
@@ -69,19 +70,19 @@ public class IoUtils {
 	}
 
 	public static String string(InputStream inputStream) {
-		try(BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))){
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 			StringBuilder result = new StringBuilder();
 			String line;
 			boolean flag = false;
 			while ((line = reader.readLine()) != null) {
-				if(flag){
+				if (flag) {
 					result.append("\r\n");
 				}
 				result.append(line);
 				flag = true;
 			}
 			return result.toString();
-		}catch(IOException e){
+		} catch (IOException e) {
 			return "";
 		}
 	}
@@ -103,7 +104,7 @@ public class IoUtils {
 	}
 
 	public static boolean delete(File file) {
-		if(file == null){
+		if (file == null) {
 			return true;
 		}
 		if (file.isDirectory()) {
@@ -116,7 +117,7 @@ public class IoUtils {
 				}
 			}
 		}
-		if(!file.exists()){
+		if (!file.exists()) {
 			return true;
 		}
 		return file.delete();

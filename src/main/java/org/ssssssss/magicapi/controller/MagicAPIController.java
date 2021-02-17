@@ -37,6 +37,9 @@ public class MagicAPIController extends MagicController {
 	@RequestMapping("/delete")
 	@ResponseBody
 	public JsonBean<Boolean> delete(String id, HttpServletRequest request) {
+		if(configuration.getWorkspace().readonly()){
+			return new JsonBean<>(0, "当前为只读模式,无法删除");
+		}
 		if (!allowVisit(request, RequestInterceptor.Authorization.DELETE)) {
 			return new JsonBean<>(-10, "无权限执行删除方法");
 		}
@@ -91,6 +94,9 @@ public class MagicAPIController extends MagicController {
 	@RequestMapping("/api/move")
 	@ResponseBody
 	public JsonBean<Boolean> apiMove(String id, String groupId, HttpServletRequest request) {
+		if(configuration.getWorkspace().readonly()){
+			return new JsonBean<>(0, "当前为只读模式,无法移动");
+		}
 		if (!allowVisit(request, RequestInterceptor.Authorization.SAVE)) {
 			return new JsonBean<>(-10, "无权限执行保存方法");
 		}
@@ -120,6 +126,9 @@ public class MagicAPIController extends MagicController {
 	@RequestMapping("/save")
 	@ResponseBody
 	public JsonBean<String> save(HttpServletRequest request, ApiInfo info) {
+		if(configuration.getWorkspace().readonly()){
+			return new JsonBean<>(0, "当前为只读模式,无法保存");
+		}
 		if (!allowVisit(request, RequestInterceptor.Authorization.SAVE)) {
 			return new JsonBean<>(-10, "无权限执行保存方法");
 		}
