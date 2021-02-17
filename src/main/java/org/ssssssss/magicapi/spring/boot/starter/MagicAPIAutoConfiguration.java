@@ -434,8 +434,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
-	public MagicConfiguration magicConfiguration(@Autowired List<MagicModule> magicModules) {
-		logger.info("magic-api workspace:{}",properties.getWorkspace());
+	public MagicConfiguration magicConfiguration(@Autowired List<MagicModule> magicModules,@Autowired  Resource magicWorkspaceResource) {
 		setupSpringSecurity();
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 		// 设置模块和扩展方法
@@ -454,6 +453,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		configuration.setThrowException(properties.isThrowException());
 		configuration.setMagicDynamicDataSource(magicDynamicDataSource);
 		configuration.setEditorConfig(properties.getEditorConfig());
+		configuration.setWorkspace(magicWorkspaceResource);
 		// 注册函数
 		this.magicFunctions.forEach(JavaReflection::registerFunction);
 		// 向页面传递配置信息时不传递用户名密码，增强安全性
