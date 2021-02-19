@@ -50,6 +50,18 @@ public class MagicFunctionController extends MagicController {
 		}
 	}
 
+	@RequestMapping("/function/backup/get")
+	@ResponseBody
+	public JsonBean<FunctionInfo> backups(String id, Long timestamp) {
+		return new JsonBean<>(functionService.backupInfo(id, timestamp));
+	}
+
+	@RequestMapping("/function/backups")
+	@ResponseBody
+	public JsonBean<List<Long>> backups(String id) {
+		return new JsonBean<>(functionService.backupList(id));
+	}
+
 	@RequestMapping("/function/move")
 	@ResponseBody
 	public JsonBean<Boolean> move(String id, String groupId, HttpServletRequest request) {
@@ -111,6 +123,7 @@ public class MagicFunctionController extends MagicController {
 				if(!functionService.update(functionInfo)){
 					return new JsonBean<>(0, "保存失败,请检查函数名称是否重复且不能包含特殊字符。");
 				}
+				functionService.backup(functionInfo);
 			}
 			configuration.getMagicFunctionManager().register(functionInfo);
 			return new JsonBean<>(functionInfo.getId());

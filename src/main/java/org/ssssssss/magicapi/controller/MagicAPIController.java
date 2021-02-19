@@ -89,6 +89,29 @@ public class MagicAPIController extends MagicController {
 	}
 
 	/**
+	 * 查询历史记录
+	 *
+	 * @param id 接口ID
+	 */
+	@RequestMapping("/backups")
+	@ResponseBody
+	public JsonBean<List<Long>> backups(String id) {
+		return new JsonBean<>(magicApiService.backupList(id));
+	}
+
+	/**
+	 * 获取历史记录
+	 *
+	 * @param id        接口ID
+	 * @param timestamp 时间点
+	 */
+	@RequestMapping("/backup/get")
+	@ResponseBody
+	public JsonBean<ApiInfo> backups(String id, Long timestamp) {
+		return new JsonBean<>(magicApiService.backupInfo(id, timestamp));
+	}
+
+	/**
 	 * 移动接口
 	 */
 	@RequestMapping("/api/move")
@@ -164,8 +187,11 @@ public class MagicAPIController extends MagicController {
 				Optional<ApiInfo> optional = configuration.getMappingHandlerMapping().getApiInfos().stream()
 						.filter(it -> it.getId().equals(info.getId()))
 						.findFirst();
-				if (optional.isPresent() && !optional.get().equals(info) && !magicApiService.update(info)) {
-					return new JsonBean<>(0, "保存失败,请检查接口名称是否重复且不能包含特殊字符。");
+				if (optional.isPresent() && !optional.get().equals(info)) {
+					if(!magicApiService.update(info)){
+						return new JsonBean<>(0, "保存失败,请检查接口名称是否重复且不能包含特殊字符。");
+					}
+					magicApiService.backup(info);
 				}
 			}
 			// 注册接口

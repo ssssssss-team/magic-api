@@ -17,6 +17,8 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 
 	protected Resource workspace;
 
+	protected Resource backupResource;
+
 	protected Map<String, Resource> mappings = new HashMap<>();
 
 	protected Map<String, T> infos = new HashMap<>();
@@ -29,38 +31,82 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		this.clazz = clazz;
 		this.workspace = workspace;
 		this.groupServiceProvider = groupServiceProvider;
+		this.backupResource = this.workspace.parent().getResource("backups");
 	}
+
+
 	/**
 	 * 添加
 	 */
-	public boolean insert(T info){
+	public boolean insert(T info) {
 		info.setId(UUID.randomUUID().toString().replace("-", ""));
 		info.setUpdateTime(System.currentTimeMillis());
 		info.setCreateTime(info.getUpdateTime());
 		Resource dest = groupServiceProvider.getGroupResource(info.getGroupId()).getResource(info.getName() + ".ms");
-		if(!dest.exists() && dest.write(serialize(info))){
-			mappings.put(info.getId(),dest);
-			infos.put(info.getId(),info);
+		if (!dest.exists() && dest.write(serialize(info))) {
+			mappings.put(info.getId(), dest);
+			infos.put(info.getId(), info);
 			return true;
 		}
 		return false;
 	}
 
 	/**
+	 * 备份历史记录
+	 */
+	public boolean backup(T info) {
+		Resource directory = this.backupResource.getResource(info.getId());
+		if(!directory.readonly() && (directory.exists() || directory.mkdir())){
+			Resource resource = directory.getResource(String.format("%s.ms", System.currentTimeMillis()));
+			return resource.write(serialize(info));
+		}
+		return false;
+	}
+
+
+	/**
+	 * 查询历史记录
+	 *
+	 * @return 时间戳列表
+	 */
+	public List<Long> backupList(String id) {
+		Resource directory = this.backupResource.getResource(id);
+		List<Resource> resources = directory.files(".ms");
+		return resources.stream().map(it -> Long.valueOf(it.name().replace(".ms",""))).collect(Collectors.toList());
+	}
+
+	/**
+	 * 查询历史记录详情
+	 *
+	 * @param id        ID
+	 * @param timestamp 时间戳
+	 */
+	public T backupInfo(String id, Long timestamp) {
+		Resource directory = this.backupResource.getResource(id);
+		if(directory.exists()){
+			Resource resource = directory.getResource(String.format("%s.ms", timestamp));
+			if(resource.exists()){
+				return deserialize(resource.read());
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * 修改
 	 */
-	public boolean update(T info){
+	public boolean update(T info) {
 		Resource dest = groupServiceProvider.getGroupResource(info.getGroupId()).getResource(info.getName() + ".ms");
 		Resource src = mappings.get(info.getId());
-		if(!src.name().equals(dest.name())){
-			if(dest.exists()){
+		if (!src.name().equals(dest.name())) {
+			if (dest.exists()) {
 				return false;
 			}
 			src.renameTo(dest);
 		}
-		if(dest.write(serialize(info))){
-			mappings.put(info.getId(),dest);
-			infos.put(info.getId(),info);
+		if (dest.write(serialize(info))) {
+			mappings.put(info.getId(), dest);
+			infos.put(info.getId(), info);
 			return true;
 		}
 		return false;
@@ -69,7 +115,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	/**
 	 * 删除
 	 */
-	public boolean delete(String id){
+	public boolean delete(String id) {
 		Resource resource = mappings.get(id);
 		if (resource != null && resource.delete()) {
 			mappings.remove(id);
@@ -82,7 +128,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	/**
 	 * 查询所有（提供给页面,无需带script）
 	 */
-	public List<T> list(){
+	public List<T> list() {
 		List<T> infos = listWithScript();
 		infos.forEach(info -> info.setScript(null));
 		return infos;
@@ -91,7 +137,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	/**
 	 * 查询所有（内部使用，需要带Script）
 	 */
-	public List<T> listWithScript(){
+	public List<T> listWithScript() {
 		List<Resource> resources = workspace.files(".ms");
 		Map<String, Resource> mappings = new HashMap<>();
 		Map<String, T> infos = new HashMap<>();
@@ -111,16 +157,16 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	 *
 	 * @param id ID
 	 */
-	public T get(String id){
+	public T get(String id) {
 		return infos.get(id);
 	}
 
 	/**
 	 * 判断是否允许移动
 	 */
-	public boolean allowMove(String id, String groupId){
+	public boolean allowMove(String id, String groupId) {
 		Resource resource = mappings.get(id);
-		if(resource == null){
+		if (resource == null) {
 			return false;
 		}
 		return !resource.readonly() && !groupServiceProvider.getGroupResource(groupId).getResource(resource.name()).exists();
@@ -132,11 +178,11 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	 * @param id      接口ID
 	 * @param groupId 分组ID
 	 */
-	public boolean move(String id, String groupId){
+	public boolean move(String id, String groupId) {
 		Resource dest = groupServiceProvider.getGroupResource(groupId);
 		Resource src = mappings.get(id);
 		dest = dest.getResource(src.name());
-		if(dest.exists()){
+		if (dest.exists()) {
 			return false;
 		}
 		T info = infos.get(id);
@@ -149,7 +195,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	/**
 	 * 根据组ID删除
 	 */
-	public boolean deleteGroup(List<String> groupIds){
+	public boolean deleteGroup(List<String> groupIds) {
 		for (String groupId : groupIds) {
 			if (!groupServiceProvider.getGroupResource(groupId).delete()) {
 				return false;
@@ -166,14 +212,16 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	/**
 	 * 包装信息（可用于加密）
 	 */
-	public void wrap(T info){}
+	public void wrap(T info) {
+	}
 
 	/**
 	 * 解除包装信息（可用于解密）
 	 */
-	public void unwrap(T info){}
+	public void unwrap(T info) {
+	}
 
-	public byte[] serialize(T info){
+	public byte[] serialize(T info) {
 		wrap(info);
 		String script = info.getScript();
 		info.setScript(null);
@@ -183,7 +231,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		return content.getBytes();
 	}
 
-	public T deserialize(byte[] data){
+	public T deserialize(byte[] data) {
 		String content = new String(data, StandardCharsets.UTF_8);
 		int index = content.indexOf(separator);
 		if (index > -1) {
