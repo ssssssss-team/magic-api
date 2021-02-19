@@ -48,7 +48,7 @@ magic-api 是一个基于Java的接口快速开发框架，编写接口将通过
 <dependency>
 	<groupId>org.ssssssss</groupId>
     <artifactId>magic-api-spring-boot-starter</artifactId>
-    <version>0.6.1</version>
+    <version>0.7.0</version>
 </dependency>
 ```
 ## 修改application.properties
@@ -57,16 +57,9 @@ magic-api 是一个基于Java的接口快速开发框架，编写接口将通过
 server.port=9999
 #配置web页面入口
 magic-api.web=/magic/web
-#以下配置需跟实际情况修改
-spring.datasource.url=jdbc:mysql://localhost/test
-spring.datasource.username=root
-spring.datasource.password=123456789
-spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+#配置文件存储位置。当以classpath开头时，为只读模式
+magic-api.workspace=/data/magic-api
 ```
-
-## 执行建表语句
-
-执行本仓库下[db/magic-api.sql](./db/magic-api.sql)建表语句
 
 ## 在线编辑
 访问`http://localhost:9999/magic/web`进行操作
