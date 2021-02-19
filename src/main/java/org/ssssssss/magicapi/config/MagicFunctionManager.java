@@ -106,6 +106,10 @@ public class MagicFunctionManager {
 	public void register(FunctionInfo functionInfo) {
 		FunctionInfo oldFunctionInfo = mappings.get(functionInfo.getId());
 		if (oldFunctionInfo != null) {
+			// 完全一致时不用注册
+			if(functionInfo.equals(oldFunctionInfo)){
+				return;
+			}
 			// 如果路径不一致，则需要取消注册
 			if (!Objects.equals(functionInfo.getPath(), oldFunctionInfo.getPath())) {
 				unregister(functionInfo.getId());

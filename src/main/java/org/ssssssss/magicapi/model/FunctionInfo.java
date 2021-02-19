@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class FunctionInfo extends MagicEntity {
@@ -72,4 +73,24 @@ public class FunctionInfo extends MagicEntity {
 	}
 
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		FunctionInfo functionInfo = (FunctionInfo) o;
+		return Objects.equals(id, functionInfo.id) &&
+				Objects.equals(path, functionInfo.path) &&
+				Objects.equals(script, functionInfo.script) &&
+				Objects.equals(name, functionInfo.name) &&
+				Objects.equals(groupId, functionInfo.groupId) &&
+				Objects.equals(description, functionInfo.description) &&
+				Objects.equals(parameter, functionInfo.parameter) &&
+				Objects.equals(returnType, functionInfo.returnType);
+	}
+
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, path, script, name, groupId, parameter, description, returnType);
+	}
 }
