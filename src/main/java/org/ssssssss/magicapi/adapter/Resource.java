@@ -79,12 +79,24 @@ public interface Resource {
 	 */
 	List<Resource> resources();
 
+	/**
+	 * 父级资源
+	 */
 	Resource parent();
 
+	/**
+	 * 目录
+	 */
 	List<Resource> dirs();
 
+	/**
+	 * 遍历文件
+	 */
 	List<Resource> files(String suffix);
 
+	/**
+	 * 获取所在位置
+	 */
 	String getAbsolutePath();
 
 }
