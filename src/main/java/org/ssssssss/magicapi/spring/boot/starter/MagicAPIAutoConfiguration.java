@@ -165,10 +165,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
+	@ConditionalOnMissingBean(Resource.class)
 	public Resource magicWorkspaceResource() throws IOException {
-		Resource resource = ResourceAdapter.getResource(properties.getWorkspace());
-		logger.info("magic-api工作目录:{}",resource.getAbsolutePath());
-		return resource;
+		return ResourceAdapter.getResource(properties.getWorkspace());
 	}
 
 	@Override
@@ -434,6 +433,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	public MagicConfiguration magicConfiguration(@Autowired List<MagicModule> magicModules,@Autowired  Resource magicWorkspaceResource) {
+		logger.info("magic-api工作目录:{}",magicWorkspaceResource.getAbsolutePath());
 		setupSpringSecurity();
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 		// 设置模块和扩展方法
