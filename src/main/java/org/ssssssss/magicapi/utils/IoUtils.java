@@ -1,5 +1,8 @@
 package org.ssssssss.magicapi.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -7,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class IoUtils {
+
+	private static Logger logger = LoggerFactory.getLogger(IoUtils.class);
 
 	public static List<File> files(File file, String suffix) {
 		List<File> list = new ArrayList<>();
@@ -47,6 +52,7 @@ public class IoUtils {
 		try {
 			return Files.readAllBytes(file.toPath());
 		} catch (IOException e) {
+			logger.error("读取文件失败",e);
 			return new byte[0];
 		}
 	}
@@ -65,6 +71,7 @@ public class IoUtils {
 			}
 			return baos.toByteArray();
 		} catch (IOException e) {
+			logger.error("读取InputStream失败",e);
 			return new byte[0];
 		}
 	}
@@ -83,6 +90,7 @@ public class IoUtils {
 			}
 			return result.toString();
 		} catch (IOException e) {
+			logger.error("读取InputStream失败",e);
 			return "";
 		}
 	}
@@ -92,6 +100,7 @@ public class IoUtils {
 			Files.write(file.toPath(), bytes);
 			return true;
 		} catch (IOException e) {
+			logger.error("写文件失败",e);
 			return false;
 		}
 	}

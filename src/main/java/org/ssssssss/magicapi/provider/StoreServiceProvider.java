@@ -228,7 +228,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		String content = JsonUtils.toJsonString(info) + separator + script;
 		info.setScript(script);
 		unwrap(info);
-		return content.getBytes();
+		return content.getBytes(StandardCharsets.UTF_8);
 	}
 
 	public T deserialize(byte[] data) {
