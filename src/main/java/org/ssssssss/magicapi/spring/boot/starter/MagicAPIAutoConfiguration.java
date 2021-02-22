@@ -59,7 +59,6 @@ import java.util.*;
 
 @Configuration
 @ConditionalOnClass({RequestMappingHandlerMapping.class})
-@AutoConfigureAfter({DataSourceAutoConfiguration.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
@@ -112,7 +111,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	List<MagicFunction> magicFunctions = Collections.emptyList();
 
 	@Autowired
-	private Environment environment;
+	Environment environment;
 
 	@Autowired
 	ApiServiceProvider apiServiceProvider;
@@ -330,7 +329,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 * 注入数据库查询模块
 	 */
 	@Bean
-	@ConditionalOnBean({MagicDynamicDataSource.class})
+	@ConditionalOnBean({DataSource.class})
 	public SQLModule magicSqlModule(MagicDynamicDataSource dynamicDataSource, ResultProvider resultProvider, PageProvider pageProvider, SqlCache sqlCache) {
 		SQLModule sqlModule = new SQLModule(dynamicDataSource);
 		sqlModule.setResultProvider(resultProvider);
