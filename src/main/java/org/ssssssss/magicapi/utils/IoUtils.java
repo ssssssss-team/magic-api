@@ -8,10 +8,17 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class IoUtils {
 
 	private static Logger logger = LoggerFactory.getLogger(IoUtils.class);
+
+	private static Pattern FILE_NAME_PATTERN = Pattern.compile("^[\\u4e00-\\u9fa5_a-zA-Z0-9]+$");
+
+	public static boolean validateFileName(String name){
+		return FILE_NAME_PATTERN.matcher(name).matches();
+	}
 
 	public static List<File> files(File file, String suffix) {
 		List<File> list = new ArrayList<>();

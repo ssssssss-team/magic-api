@@ -10,6 +10,7 @@ import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
+import org.ssssssss.magicapi.utils.IoUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -164,6 +165,9 @@ public class MagicAPIController extends MagicController {
 			}
 			if (StringUtils.isBlank(info.getName())) {
 				return new JsonBean<>(0, "接口名称不能为空");
+			}
+			if (!IoUtils.validateFileName(info.getName())) {
+				return new JsonBean<>(0, "接口名称不能包含特殊字符，只允许中文、数字、字母以及_组合");
 			}
 			if (StringUtils.isBlank(info.getScript())) {
 				return new JsonBean<>(0, "脚本内容不能为空");

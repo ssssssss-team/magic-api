@@ -11,6 +11,7 @@ import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.model.TreeNode;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
+import org.ssssssss.magicapi.utils.IoUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -96,6 +97,9 @@ public class MagicGroupController extends MagicController {
 		if (StringUtils.isBlank(group.getName())) {
 			return new JsonBean<>(0, "分组名称不能为空");
 		}
+		if (!IoUtils.validateFileName(group.getName())) {
+			return new JsonBean<>(0, "分组名称不能包含特殊字符，只允许中文、数字、字母以及_组合");
+		}
 		if (StringUtils.isBlank(group.getType())) {
 			return new JsonBean<>(0, "分组类型不能为空");
 		}
@@ -155,6 +159,9 @@ public class MagicGroupController extends MagicController {
 		}
 		if (StringUtils.isBlank(group.getName())) {
 			return new JsonBean<>(0, "分组名称不能为空");
+		}
+		if (!IoUtils.validateFileName(group.getName())) {
+			return new JsonBean<>(0, "分组名称不能包含特殊字符，只允许中文、数字、字母以及_组合");
 		}
 		if (StringUtils.isBlank(group.getType())) {
 			return new JsonBean<>(0, "分组类型不能为空");

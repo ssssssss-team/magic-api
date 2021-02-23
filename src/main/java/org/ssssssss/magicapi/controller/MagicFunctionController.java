@@ -10,6 +10,7 @@ import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.model.FunctionInfo;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.provider.FunctionServiceProvider;
+import org.ssssssss.magicapi.utils.IoUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -98,6 +99,9 @@ public class MagicFunctionController extends MagicController {
 		}
 		if (StringUtils.isBlank(functionInfo.getName())) {
 			return new JsonBean<>(0, "函数名称不能为空");
+		}
+		if (!IoUtils.validateFileName(functionInfo.getName())) {
+			return new JsonBean<>(0, "函数名称不能包含特殊字符，只允许中文、数字、字母以及_组合");
 		}
 		if (StringUtils.isBlank(functionInfo.getPath())) {
 			return new JsonBean<>(0, "函数路径不能为空");
