@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.swagger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.model.ApiInfo;
@@ -74,17 +75,23 @@ public class SwaggerProvider {
 		for (ApiInfo info : infos) {
 			String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
 			String requestPath = "/" + mappingHandlerMapping.getRequestPath(info.getGroupId(), info.getPath());
-			swaggerEntity.addTag(groupName, Objects.toString(info.getDescription(), requestPath));
 			SwaggerEntity.Path path = new SwaggerEntity.Path();
 			path.addTag(groupName);
+			boolean hasBody = false;
 			try {
-				parseParameters(mapper, info).forEach(path::addParameter);
+				List<SwaggerEntity.Parameter> parameters = parseParameters(mapper, info);
+				hasBody = parameters.stream().anyMatch(it -> "body".equals(it.getIn()));
+				parameters.forEach(path::addParameter);
 				path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), "{}"), Object.class));
 			} catch (Exception ignored) {
 			}
-			path.addConsume("*/*");
+			if(hasBody){
+				path.addConsume("application/json");
+			}else{
+				path.addConsume("*/*");
+			}
 			path.addProduce("application/json");
-			path.setSummary(info.getName());
+			path.setSummary(StringUtils.defaultIfBlank(info.getDescription(), info.getName()));
 
 			swaggerEntity.addPath(requestPath, info.getMethod(), path);
 		}
