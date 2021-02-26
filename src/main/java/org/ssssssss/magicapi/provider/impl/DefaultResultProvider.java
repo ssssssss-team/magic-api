@@ -6,7 +6,7 @@ import org.ssssssss.magicapi.provider.ResultProvider;
 public class DefaultResultProvider implements ResultProvider {
 
 	@Override
-	public Object buildResult(int code, String message, Object data) {
-		return new JsonBean<>(code, message, data);
+	public Object buildResult(int code, String message, Object data, long requestTime) {
+		return new JsonBean<>(code, message, data, (int)(System.currentTimeMillis() - requestTime));
 	}
 }

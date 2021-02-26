@@ -19,11 +19,11 @@ import java.util.Map;
 
 public class DefaultMagicAPIService implements MagicAPIService {
 
-	private MappingHandlerMapping mappingHandlerMapping;
+	private final MappingHandlerMapping mappingHandlerMapping;
 
-	private boolean throwException;
+	private final boolean throwException;
 
-	private ResultProvider resultProvider;
+	private final ResultProvider resultProvider;
 
 	public DefaultMagicAPIService(MappingHandlerMapping mappingHandlerMapping, ResultProvider resultProvider, boolean throwException) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
@@ -78,15 +78,16 @@ public class DefaultMagicAPIService implements MagicAPIService {
 
 	@Override
 	public Object call(String method, String path, Map<String, Object> context) {
+		long requestTime = System.currentTimeMillis();
 		try {
-			return resultProvider.buildResult(execute(method, path, context));
+			return resultProvider.buildResult(execute(method, path, context), requestTime);
 		} catch (MagicServiceException e) {
 			return null;    //找不到对应接口
 		} catch (Throwable root) {
 			if (throwException) {
 				throw root;
 			}
-			return resultProvider.buildResult(root);
+			return resultProvider.buildResult(root, requestTime);
 		}
 	}
 

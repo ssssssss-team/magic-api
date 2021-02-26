@@ -22,13 +22,13 @@ public interface ResultProvider {
 	/**
 	 * 根据异常内容构建结果
 	 */
-	default Object buildResult(Throwable root) {
+	default Object buildResult(Throwable root,long requestTime) {
 		MagicScriptException se = null;
 		Throwable parent = root;
 		do {
 			if (parent instanceof MagicScriptAssertException) {
 				MagicScriptAssertException sae = (MagicScriptAssertException) parent;
-				return buildResult(sae.getCode(), sae.getMessage());
+				return buildResult(sae.getCode(), sae.getMessage(), requestTime);
 			}
 			if (parent instanceof MagicScriptException) {
 				se = (MagicScriptException) parent;
@@ -36,9 +36,9 @@ public interface ResultProvider {
 		} while ((parent = parent.getCause()) != null);
 		logger.error("调用接口出错", root);
 		if (se != null) {
-			return buildResult(-1, se.getSimpleMessage());
+			return buildResult(-1, se.getSimpleMessage(), requestTime);
 		}
-		return buildResult(-1, root.getMessage());
+		return buildResult(-1, root.getMessage(), requestTime);
 	}
 
 	/**
@@ -46,15 +46,15 @@ public interface ResultProvider {
 	 *
 	 * @param data 数据内容，状态码和状态说明默认为1 "success"
 	 */
-	default Object buildResult(Object data) {
+	default Object buildResult(Object data, long requestTime) {
 		if (data instanceof Exit.Value) {
 			Exit.Value exitValue = (Exit.Value) data;
 			Object[] values = exitValue.getValues();
 			int code = values.length > 0 ? ObjectConvertExtension.asInt(values[0], 1) : 1;
 			String message = values.length > 1 ? Objects.toString(values[1], "success") : "success";
-			return buildResult(code, message, values.length > 2 ? values[2] : null);
+			return buildResult(code, message, values.length > 2 ? values[2] : null,requestTime);
 		}
-		return buildResult(1, "success", data);
+		return buildResult(1, "success", data, requestTime);
 	}
 
 	/**
@@ -63,8 +63,8 @@ public interface ResultProvider {
 	 * @param code    状态码
 	 * @param message 状态说明
 	 */
-	default Object buildResult(int code, String message) {
-		return buildResult(code, message, null);
+	default Object buildResult(int code, String message, long requestTime) {
+		return buildResult(code, message, null, requestTime);
 	}
 
 	/**
@@ -74,7 +74,7 @@ public interface ResultProvider {
 	 * @param message 状态说明
 	 * @param data    数据内容，可以通过data的类型判断是否是分页结果进行区分普通结果集和分页结果集
 	 */
-	Object buildResult(int code, String message, Object data);
+	Object buildResult(int code, String message, Object data, long requestTime);
 
 	/**
 	 * @param total 总数

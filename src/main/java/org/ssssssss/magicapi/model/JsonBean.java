@@ -25,12 +25,19 @@ public class JsonBean<T> {
      */
     private long timestamp = System.currentTimeMillis();
 
+    private Integer executeTime;
+
     public JsonBean(int code, String message) {
         this.code = code;
         this.message = message;
     }
 
-    public JsonBean(int code, String message,T data) {
+    public JsonBean(int code, String message, T data, Integer executeTime) {
+        this(code, message, data);
+        this.executeTime = executeTime;
+    }
+
+    public JsonBean(int code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
@@ -73,5 +80,13 @@ public class JsonBean<T> {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public Integer getExecuteTime() {
+        return executeTime;
+    }
+
+    public void setExecuteTime(Integer executeTime) {
+        this.executeTime = executeTime;
     }
 }
