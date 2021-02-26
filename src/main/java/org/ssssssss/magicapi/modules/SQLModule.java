@@ -281,7 +281,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	/**
 	 * 插入并返回主键
 	 */
-	@Comment("执行insert操作，返回插入条数")
+	@Comment("执行insert操作，返回插入主键")
 	public long insert(@Comment("`SQL`语句") String sql) {
 		BoundSql boundSql = new BoundSql(sql);
 		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql));
