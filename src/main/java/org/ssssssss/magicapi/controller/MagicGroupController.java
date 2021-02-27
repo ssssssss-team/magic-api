@@ -51,23 +51,23 @@ public class MagicGroupController extends MagicController {
 				}
 				isApi = false;
 			}
-			List<String> groupIds = treeNode.flat().stream().map(Group::getId).collect(Collectors.toList());
+			List<String> children = treeNode.flat().stream().map(Group::getId).collect(Collectors.toList());
 			boolean success;
 			if (isApi) {
 				// 删除接口
-				if (success = configuration.getMagicApiService().deleteGroup(groupIds)) {
+				if (success = configuration.getMagicApiService().deleteGroup(groupId, children)) {
 					// 取消注册
-					configuration.getMappingHandlerMapping().deleteGroup(groupIds);
-					groupIds.forEach(configuration.getGroupServiceProvider()::delete);
+					configuration.getMappingHandlerMapping().deleteGroup(children);
+					children.forEach(configuration.getGroupServiceProvider()::delete);
 					// 重新加载分组
 					configuration.getMappingHandlerMapping().loadGroup();
 				}
 			} else {
 				// 删除函数
-				if (success = configuration.getFunctionServiceProvider().deleteGroup(groupIds)) {
+				if (success = configuration.getFunctionServiceProvider().deleteGroup(groupId, children)) {
 					// 取消注册
-					configuration.getMagicFunctionManager().deleteGroup(groupIds);
-					groupIds.forEach(configuration.getGroupServiceProvider()::delete);
+					configuration.getMagicFunctionManager().deleteGroup(children);
+					children.forEach(configuration.getGroupServiceProvider()::delete);
 					// 重新加载分组
 					configuration.getMagicFunctionManager().loadGroup();
 				}
@@ -102,6 +102,9 @@ public class MagicGroupController extends MagicController {
 		}
 		if (StringUtils.isBlank(group.getType())) {
 			return new JsonBean<>(0, "分组类型不能为空");
+		}
+		if (groupServiceProvider.exists(group)) {
+			return new JsonBean<>(-20, "修改分组后，名称会有冲突，请检查！");
 		}
 		try {
 			boolean isApiGroup = "1".equals(group.getType());

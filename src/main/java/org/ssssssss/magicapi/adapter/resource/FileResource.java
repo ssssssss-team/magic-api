@@ -13,7 +13,7 @@ public class FileResource implements Resource {
 
 	private File file;
 
-	private boolean readonly;
+	private final boolean readonly;
 
 	public FileResource(File file, boolean readonly) {
 		this.file = file;
@@ -110,6 +110,6 @@ public class FileResource implements Resource {
 
 	@Override
 	public String toString() {
-		return String.format("file resource [%s]", this.file.getAbsolutePath());
+		return String.format("file://%s", this.file.getAbsolutePath());
 	}
 }

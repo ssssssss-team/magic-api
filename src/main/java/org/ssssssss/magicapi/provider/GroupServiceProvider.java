@@ -25,6 +25,11 @@ public interface GroupServiceProvider {
 	boolean delete(String groupId);
 
 	/**
+	 * 分组是否存在
+	 */
+	boolean exists(Group group);
+
+	/**
 	 * 是否有该分组
 	 */
 	boolean containsApiGroup(String groupId);

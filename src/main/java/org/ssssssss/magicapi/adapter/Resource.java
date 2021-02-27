@@ -65,6 +65,13 @@ public interface Resource {
 	byte[] read();
 
 	/**
+	 * 获取子目录
+	 */
+	default Resource getDirectory(String name){
+		return getResource(name);
+	}
+
+	/**
 	 * 获取子资源
 	 */
 	Resource getResource(String name);

@@ -30,7 +30,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	public boolean insert(Group group) {
 		group.setId(UUID.randomUUID().toString().replace("-", ""));
 		Resource directory = this.getGroupResource(group.getParentId());
-		directory = directory == null ? this.getGroupResource(group.getType(),group.getName()) : directory.getResource(group.getName());
+		directory = directory == null ? this.getGroupResource(group.getType(),group.getName()) : directory.getDirectory(group.getName());
 		if (!directory.exists() && directory.mkdir()) {
 			Resource resource = directory.getResource(metabase);
 			if (resource.write(JsonUtils.toJsonString(group))) {
@@ -42,14 +42,14 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	}
 
 	private Resource getGroupResource(String type, String name) {
-		return this.workspace.getResource("1".equals(type) ? "api" : "function").getResource(name);
+		return this.workspace.getDirectory("1".equals(type) ? "api" : "function").getDirectory(name);
 	}
 
 	@Override
 	public boolean update(Group group) {
 		Resource oldResource = this.getGroupResource(group.getId());
 		Resource newResource = this.getGroupResource(group.getParentId());
-		newResource = newResource == null ? getGroupResource(group.getType(),group.getName()) : newResource.getResource(group.getName());
+		newResource = newResource == null ? getGroupResource(group.getType(),group.getName()) : newResource.getDirectory(group.getName());
 		// 重命名或移动目录
 		if(oldResource.renameTo(newResource)){
 			Resource target = newResource.getResource(metabase);
@@ -65,6 +65,15 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	public boolean delete(String groupId) {
 		mappings.remove(groupId);
 		return true;
+	}
+
+	@Override
+	public boolean exists(Group group) {
+		Resource resource = getGroupResource(group.getParentId());
+		if(resource == null){
+			return getGroupResource(group.getType(),group.getName()).exists();
+		}
+		return resource.getDirectory(group.getName()).exists();
 	}
 
 	@Override
@@ -88,7 +97,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	@Override
 	public List<Group> groupList(String type) {
-		Resource resource = this.workspace.getResource("1".equals(type) ? "api" : "function");
+		Resource resource = this.workspace.getDirectory("1".equals(type) ? "api" : "function");
 		return resource.dirs().stream().map(it -> it.getResource(metabase)).filter(Resource::exists)
 				.map(it -> {
 					Group group = JsonUtils.readValue(it.read(), Group.class);

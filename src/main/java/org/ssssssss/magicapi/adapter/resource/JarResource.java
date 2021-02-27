@@ -15,17 +15,17 @@ import java.util.zip.ZipEntry;
 
 public class JarResource implements Resource {
 
-	private JarFile jarFile;
+	private final JarFile jarFile;
 
-	private ZipEntry entry;
+	private final ZipEntry entry;
 
-	private List<JarEntry> entries;
+	private final List<JarEntry> entries;
 
-	private String entryName;
+	private final String entryName;
 
 	private JarResource parent = this;
 
-	private boolean inSpringBoot;
+	private final boolean inSpringBoot;
 
 	public JarResource(JarFile jarFile, String entryName, List<JarEntry> entries, boolean inSpringBoot) {
 		this.jarFile = jarFile;
@@ -122,6 +122,6 @@ public class JarResource implements Resource {
 
 	@Override
 	public String toString() {
-		return String.format("class path resource [%s]", this.entryName);
+		return String.format("jar://%s", this.entryName);
 	}
 }

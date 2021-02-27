@@ -31,7 +31,13 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		this.clazz = clazz;
 		this.workspace = workspace;
 		this.groupServiceProvider = groupServiceProvider;
-		this.backupResource = this.workspace.parent().getResource("backups");
+		if(!this.workspace.exists()){
+			this.workspace.mkdir();
+		}
+		this.backupResource = this.workspace.parent().getDirectory("backups");
+		if(!this.backupResource.exists()){
+			this.backupResource.mkdir();
+		}
 	}
 
 
@@ -55,7 +61,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	 * 备份历史记录
 	 */
 	public boolean backup(T info) {
-		Resource directory = this.backupResource.getResource(info.getId());
+		Resource directory = this.backupResource.getDirectory(info.getId());
 		if(!directory.readonly() && (directory.exists() || directory.mkdir())){
 			Resource resource = directory.getResource(String.format("%s.ms", System.currentTimeMillis()));
 			return resource.write(serialize(info));
@@ -70,7 +76,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	 * @return 时间戳列表
 	 */
 	public List<Long> backupList(String id) {
-		Resource directory = this.backupResource.getResource(id);
+		Resource directory = this.backupResource.getDirectory(id);
 		List<Resource> resources = directory.files(".ms");
 		return resources.stream().map(it -> Long.valueOf(it.name().replace(".ms",""))).collect(Collectors.toList());
 	}
@@ -82,7 +88,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	 * @param timestamp 时间戳
 	 */
 	public T backupInfo(String id, Long timestamp) {
-		Resource directory = this.backupResource.getResource(id);
+		Resource directory = this.backupResource.getDirectory(id);
 		if(directory.exists()){
 			Resource resource = directory.getResource(String.format("%s.ms", timestamp));
 			if(resource.exists()){
@@ -195,11 +201,11 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	/**
 	 * 根据组ID删除
 	 */
-	public boolean deleteGroup(List<String> groupIds) {
+	public boolean deleteGroup(String rootId,List<String> groupIds) {
+		if (!groupServiceProvider.getGroupResource(rootId).delete()) {
+			return false;
+		}
 		for (String groupId : groupIds) {
-			if (!groupServiceProvider.getGroupResource(groupId).delete()) {
-				return false;
-			}
 			List<String> infoIds = infos.values().stream().filter(info -> groupId.equals(info.getGroupId()))
 					.map(T::getId)
 					.collect(Collectors.toList());

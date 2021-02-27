@@ -38,9 +38,9 @@ public class MappingHandlerMapping {
 	/**
 	 * 已缓存的映射信息
 	 */
-	private static Map<String, MappingNode> mappings = new ConcurrentHashMap<>();
+	private static final Map<String, MappingNode> mappings = new ConcurrentHashMap<>();
 
-	private static Logger logger = LoggerFactory.getLogger(MappingHandlerMapping.class);
+	private static final Logger logger = LoggerFactory.getLogger(MappingHandlerMapping.class);
 
 	/**
 	 * spring中的请求映射处理器
@@ -55,7 +55,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 请求到达时处理的方法
 	 */
-	private Method method = RequestHandler.class.getDeclaredMethod("invoke", HttpServletRequest.class, HttpServletResponse.class, Map.class, Map.class);
+	private final Method method = RequestHandler.class.getDeclaredMethod("invoke", HttpServletRequest.class, HttpServletResponse.class, Map.class, Map.class);
 
 	/**
 	 * 接口信息读取
@@ -85,7 +85,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 缓存已映射的接口信息
 	 */
-	private List<ApiInfo> apiInfos = Collections.synchronizedList(new ArrayList<>());
+	private final List<ApiInfo> apiInfos = Collections.synchronizedList(new ArrayList<>());
 
 	public MappingHandlerMapping() throws NoSuchMethodException {
 	}
@@ -212,10 +212,8 @@ public class MappingHandlerMapping {
 			}
 			if (!allowOverride) {
 				Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.requestMappingHandlerMapping.getHandlerMethods();
-				if (handlerMethods != null) {
-					if (handlerMethods.get(getRequestMapping(info.getMethod(), path)) != null) {
-						return true;
-					}
+				if (handlerMethods.get(getRequestMapping(info.getMethod(), path)) != null) {
+					return true;
 				}
 			}
 		}
@@ -232,10 +230,11 @@ public class MappingHandlerMapping {
 	 */
 	public boolean checkGroup(Group group) {
 		TreeNode<Group> oldTree = groups.findTreeNode((item) -> item.getId().equals(group.getId()));
-		// 如果只改了名字，则不做任何操作
-		if (Objects.equals(oldTree.getNode().getParentId(), group.getParentId()) &&
-				Objects.equals(oldTree.getNode().getPath(), group.getPath())) {
-			return true;
+		// 如果移动目录或改了名字，判断是否冲突
+		if (Objects.equals(oldTree.getNode().getParentId(), group.getParentId()) || Objects.equals(oldTree.getNode().getName(), group.getName())) {
+			if(groupServiceProvider.exists(group)){
+				return false;
+			}
 		}
 		// 新的接口分组路径
 		String newPath = groupServiceProvider.getFullPath(group.getParentId());
@@ -298,9 +297,7 @@ public class MappingHandlerMapping {
 		}
 		if (!allowOverride) {
 			Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.requestMappingHandlerMapping.getHandlerMethods();
-			if (handlerMethods != null) {
-				return handlerMethods.get(getRequestMapping(info)) != null;
-			}
+			return handlerMethods.get(getRequestMapping(info)) != null;
 		}
 		return false;
 	}
