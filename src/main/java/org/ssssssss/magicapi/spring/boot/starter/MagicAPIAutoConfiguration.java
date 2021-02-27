@@ -4,11 +4,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationContext;
@@ -433,7 +431,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Bean
 	public MagicConfiguration magicConfiguration(@Autowired List<MagicModule> magicModules,@Autowired  Resource magicWorkspaceResource) {
-		logger.info("magic-api工作目录:{}",magicWorkspaceResource.getAbsolutePath());
+		logger.info("magic-api工作目录:{}",magicWorkspaceResource);
 		setupSpringSecurity();
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 		// 设置模块和扩展方法
