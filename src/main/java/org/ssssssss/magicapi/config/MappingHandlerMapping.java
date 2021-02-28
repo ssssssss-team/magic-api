@@ -230,11 +230,15 @@ public class MappingHandlerMapping {
 	 */
 	public boolean checkGroup(Group group) {
 		TreeNode<Group> oldTree = groups.findTreeNode((item) -> item.getId().equals(group.getId()));
-		// 如果移动目录或改了名字，判断是否冲突
-		if (Objects.equals(oldTree.getNode().getParentId(), group.getParentId()) || Objects.equals(oldTree.getNode().getName(), group.getName())) {
-			if(groupServiceProvider.exists(group)){
-				return false;
-			}
+		// 如果没移动目录且没改路径，则只需要判断名字是否冲突
+		boolean parentIdEquals = Objects.equals(oldTree.getNode().getParentId(), group.getParentId());
+		boolean nameEquals = Objects.equals(oldTree.getNode().getName(), group.getName());
+		if (parentIdEquals && Objects.equals(oldTree.getNode().getPath(), group.getPath())) {
+			return nameEquals || !groupServiceProvider.exists(group);
+		}
+		// 检测名字是否冲突
+		if((!parentIdEquals || !nameEquals) && groupServiceProvider.exists(group)){
+			return false;
 		}
 		// 新的接口分组路径
 		String newPath = groupServiceProvider.getFullPath(group.getParentId());

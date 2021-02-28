@@ -186,7 +186,7 @@ public class MagicAPIController extends MagicController {
 			} else {
 				// 先判断接口是否存在
 				if (magicApiService.existsWithoutId(info.getName(), info.getGroupId(), info.getMethod(), info.getPath(), info.getId())) {
-					return new JsonBean<>(0, String.format("接口%s:%s已存在", info.getMethod(), info.getPath()));
+					return new JsonBean<>(0, String.format("接口%s:%s已存在或接口名称重复", info.getMethod(), info.getPath()));
 				}
 				Optional<ApiInfo> optional = configuration.getMappingHandlerMapping().getApiInfos().stream()
 						.filter(it -> it.getId().equals(info.getId()))

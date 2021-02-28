@@ -114,15 +114,15 @@ public class MagicFunctionController extends MagicController {
 		}
 		try {
 			if (StringUtils.isBlank(functionInfo.getId())) {
-				if (functionService.exists(functionInfo.getPath(), functionInfo.getGroupId())) {
-					return new JsonBean<>(0, String.format("函数%s已存在", functionInfo.getPath()));
+				if (functionService.exists(functionInfo.getName(), functionInfo.getPath(), functionInfo.getGroupId())) {
+					return new JsonBean<>(0, String.format("函数%s已存在或名称重复", functionInfo.getPath()));
 				}
 				if(!functionService.insert(functionInfo)){
 					return new JsonBean<>(0, "保存失败,请检查函数名称是否重复且不能包含特殊字符。");
 				}
 			} else {
-				if (functionService.existsWithoutId(functionInfo.getPath(), functionInfo.getGroupId(), functionInfo.getId())) {
-					return new JsonBean<>(0, String.format("函数%s已存在", functionInfo.getPath()));
+				if (functionService.existsWithoutId(functionInfo.getName(), functionInfo.getPath(), functionInfo.getGroupId(), functionInfo.getId())) {
+					return new JsonBean<>(0, String.format("函数%s已存在或名称重复", functionInfo.getPath()));
 				}
 				if(!functionService.update(functionInfo)){
 					return new JsonBean<>(0, "保存失败,请检查函数名称是否重复且不能包含特殊字符。");

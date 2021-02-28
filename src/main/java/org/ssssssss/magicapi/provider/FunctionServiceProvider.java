@@ -9,14 +9,14 @@ public abstract class FunctionServiceProvider extends StoreServiceProvider<Funct
 		super(FunctionInfo.class, workspace, groupServiceProvider);
 	}
 
-	public boolean exists(String path, String groupId){
+	public boolean exists(String name, String path, String groupId){
 		return infos.values().stream()
-				.anyMatch(it -> groupId.equals(it.getGroupId()) && path.equals(it.getPath()));
+				.anyMatch(it -> groupId.equals(it.getGroupId()) && (name.equals(it.getName()) || path.equals(it.getPath())));
 	}
 
-	public boolean existsWithoutId(String path, String groupId, String id){
+	public boolean existsWithoutId(String name, String path, String groupId, String id){
 		return infos.values().stream()
-				.anyMatch(it -> !id.equals(it.getId()) && groupId.equals(it.getGroupId()) && path.equals(it.getPath()));
+				.anyMatch(it -> !id.equals(it.getId()) && groupId.equals(it.getGroupId()) && (name.equals(it.getName()) || path.equals(it.getPath())));
 	}
 
 	@Override

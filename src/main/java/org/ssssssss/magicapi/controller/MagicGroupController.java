@@ -103,9 +103,6 @@ public class MagicGroupController extends MagicController {
 		if (StringUtils.isBlank(group.getType())) {
 			return new JsonBean<>(0, "分组类型不能为空");
 		}
-		if (groupServiceProvider.exists(group)) {
-			return new JsonBean<>(-20, "修改分组后，名称会有冲突，请检查！");
-		}
 		try {
 			boolean isApiGroup = "1".equals(group.getType());
 			boolean isFunctionGroup = "2".equals(group.getType());
@@ -124,7 +121,7 @@ public class MagicGroupController extends MagicController {
 				}
 				return new JsonBean<>(true);
 			}
-			return new JsonBean<>(-20, "修改分组后，路径会有冲突，请检查！");
+			return new JsonBean<>(-20, "修改分组后，名称或路径会有冲突，请检查！");
 		} catch (Exception e) {
 			logger.error("修改分组出错", e);
 			return new JsonBean<>(-1, e.getMessage());
