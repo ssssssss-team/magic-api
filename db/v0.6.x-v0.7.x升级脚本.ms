@@ -1,12 +1,11 @@
-import 'org.ssssssss.magicapi.provider.GroupServiceProvider' as GroupServiceProvider
-import 'org.ssssssss.magicapi.provider.ApiServiceProvider' as ApiServiceProvider
-import 'org.ssssssss.magicapi.provider.FunctionServiceProvider' as FunctionServiceProvider
+import 'org.ssssssss.magicapi.adapter.Resource' as root;
+import 'org.ssssssss.magicapi.provider.GroupServiceProvider';
+import 'org.ssssssss.magicapi.provider.ApiServiceProvider';
+import 'org.ssssssss.magicapi.provider.FunctionServiceProvider';
 import 'org.ssssssss.magicapi.utils.IoUtils' as IoUtils
 import 'org.ssssssss.magicapi.utils.JsonUtils' as JsonUtils
 import 'java.io.File' as File;
 var ds = db.camel();    //如果之前保存在其他库，这里可以修改为db.xxx.camel();
-// 文件保存目录
-var workspace = new File('E:\\magic\\');
 var apiSql = """ select * from magic_api_info """;
 var groupSql = """ select * from magic_group where deleted = '0' """;
 var functionSql = """ select * from magic_function """;
@@ -21,27 +20,30 @@ var apiTree = toTree(groupList.filter(it => it.type == '1'),'0');
 // 将函数分组转为tree
 var functionTree = toTree(groupList.filter(it => it.type == '2'),'0');
 // 记录分组所在路径
-var groupPath = {};
+var groups = {};
 // 处理分组
-var processGroup = (parentFile,list)=>{
+var processGroup = (parent,list)=>{
+    if(!parent.exists()){
+        parent.mkdir();
+    }
     list.each(it => {
-        var file = new File(parentFile,it.name);
-        file.mkdirs();
-        groupPath[it.id] = file.absolutePath;
+        var resource = parent.getResource(it.name);
+        resource.mkdir();
+        groups[it.id] = resource;
         // 防止序列化children
         var children = it.remove('children');
-        IoUtils.write(new File(file,'group.json'),JsonUtils.toJsonString(it));
+        resource.getResource('group.json').write(JsonUtils.toJsonString(it))
         if(children){
-            processGroup(file,children);
+            processGroup(resource,children);
         }
     });
 }
 // 处理接口分组
-processGroup(new File(workspace,'api'),apiTree);
+processGroup(root.getResource("api"),apiTree);
 // 处理函数分组
-processGroup(new File(workspace,'function'),functionTree);
+processGroup(root.getResource("function"),functionTree);
 // 处理接口
-ds.select(apiSql).map(it => replaceKey(it,'api')).each(it => IoUtils.write(new File(groupPath[it.groupId],it.name + '.ms'),ApiServiceProvider.serialize(it)));
+ds.select(apiSql).map(it => replaceKey(it,'api')).each(it => groups[it.groupId].getResource(it.name + '.ms').write(ApiServiceProvider.serialize(it)));
 // 处理函数
-ds.select(functionSql).map(it => replaceKey(it,'function')).each(it => IoUtils.write(new File(groupPath[it.groupId],it.name + '.ms'),FunctionServiceProvider.serialize(it)));
+ds.select(functionSql).map(it => replaceKey(it,'function')).each(it => groups[it.groupId].getResource(it.name + '.ms').write(FunctionServiceProvider.serialize(it)));
 return 'ok';
