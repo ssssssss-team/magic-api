@@ -22,17 +22,13 @@ public class RedisResource extends KeyValueResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(RedisResource.class);
 
-	public RedisResource(StringRedisTemplate redisTemplate, String path, RedisResource parent) {
-		this(redisTemplate, path, ":", parent);
-	}
-
-	public RedisResource(StringRedisTemplate redisTemplate, String path, String separator, RedisResource parent) {
-		super(separator, path, parent);
+	public RedisResource(StringRedisTemplate redisTemplate, String path, String separator, boolean readonly, RedisResource parent) {
+		super(separator, path, readonly, parent);
 		this.redisTemplate = redisTemplate;
 	}
 
-	public RedisResource(StringRedisTemplate redisTemplate, String path) {
-		this(redisTemplate, path, null);
+	public RedisResource(StringRedisTemplate redisTemplate, String path, String separator, boolean readonly) {
+		this(redisTemplate,path,separator,readonly,null);
 	}
 
 	@Override
@@ -45,11 +41,6 @@ public class RedisResource extends KeyValueResource {
 	public boolean write(String content) {
 		this.redisTemplate.opsForValue().set(this.path, content);
 		return true;
-	}
-
-	@Override
-	public Resource getResource(String name) {
-		return new RedisResource(this.redisTemplate, (isDirectory() ? this.path : this.path + separator) + name, this);
 	}
 
 	@Override
@@ -71,7 +62,7 @@ public class RedisResource extends KeyValueResource {
 
 	@Override
 	protected Function<String, Resource> mappedFunction() {
-		return (it) -> new RedisResource(this.redisTemplate, it, this);
+		return (it) -> new RedisResource(this.redisTemplate, it, this.separator, readonly, this);
 	}
 
 	@Override

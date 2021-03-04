@@ -15,10 +15,19 @@ public abstract class KeyValueResource implements Resource {
 
 	protected KeyValueResource parent;
 
+	protected boolean readonly = false;
+
 	public KeyValueResource(String separator, String path, KeyValueResource parent) {
 		this.separator = separator;
 		this.path = path;
 		this.parent = parent;
+	}
+
+	public KeyValueResource(String separator, String path, boolean readonly, KeyValueResource parent) {
+		this.separator = separator;
+		this.path = path;
+		this.parent = parent;
+		this.readonly = readonly;
 	}
 
 	@Override
@@ -66,6 +75,12 @@ public abstract class KeyValueResource implements Resource {
 		}
 		int index = name.lastIndexOf(separator);
 		return index > -1 ? name.substring(index + 1) : name;
+	}
+
+	@Override
+	public Resource getResource(String name) {
+		name = (isDirectory() ? this.path : this.path + separator) + name;
+		return mappedFunction().apply(name);
 	}
 
 	@Override

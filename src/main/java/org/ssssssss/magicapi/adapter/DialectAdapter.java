@@ -2,7 +2,7 @@ package org.ssssssss.magicapi.adapter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ssssssss.magicapi.dialect.Dialect;
+import org.ssssssss.magicapi.dialect.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +19,17 @@ public class DialectAdapter {
 	 * 缓存已解析的方言
 	 */
 	private Map<String, Dialect> dialectMap = new ConcurrentHashMap<>();
+
+	public DialectAdapter() {
+		add(new MySQLDialect());
+		add(new OracleDialect());
+		add(new PostgreSQLDialect());
+		add(new ClickhouseDialect());
+		add(new DB2Dialect());
+		add(new SQLServerDialect());
+		add(new SQLServer2005Dialect());
+		add(new DmDialect());
+	}
 
 	public void add(Dialect dialect){
 		this.dialectList.add(dialect);

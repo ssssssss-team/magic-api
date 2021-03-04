@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.adapter;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.ssssssss.magicapi.provider.ColumnMapperProvider;
+import org.ssssssss.magicapi.provider.impl.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,14 @@ public class ColumnMapperAdapter {
 	private RowMapper<Map<String, Object>> mapRowColumnMapper;
 
 	private Function<String, String> rowMapColumnMapper;
+
+	public ColumnMapperAdapter() {
+		setDefault(new DefaultColumnMapperProvider());
+		add(new CamelColumnMapperProvider());
+		add(new PascalColumnMapperProvider());
+		add(new LowerColumnMapperProvider());
+		add(new UpperColumnMapperProvider());
+	}
 
 	public void add(ColumnMapperProvider columnMapperProvider) {
 		columnMapRowMappers.put(columnMapperProvider.name(), columnMapperProvider.getColumnMapRowMapper());

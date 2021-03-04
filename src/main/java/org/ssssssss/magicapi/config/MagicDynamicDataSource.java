@@ -20,9 +20,9 @@ import java.util.Map;
 
 public class MagicDynamicDataSource {
 
-	private static Logger logger = LoggerFactory.getLogger(MagicDynamicDataSource.class);
+	private static final Logger logger = LoggerFactory.getLogger(MagicDynamicDataSource.class);
 
-	private Map<String, MagicDynamicDataSource.DataSourceNode> dataSourceMap = new HashMap<>();
+	private final Map<String, MagicDynamicDataSource.DataSourceNode> dataSourceMap = new HashMap<>();
 
 	/**
 	 * 注册默认数据源
@@ -90,11 +90,11 @@ public class MagicDynamicDataSource {
 		/**
 		 * 事务管理器
 		 */
-		private DataSourceTransactionManager dataSourceTransactionManager;
+		private final DataSourceTransactionManager dataSourceTransactionManager;
 
-		private JdbcTemplate jdbcTemplate;
+		private final JdbcTemplate jdbcTemplate;
 
-		private DataSource dataSource;
+		private final DataSource dataSource;
 
 		private Dialect dialect;
 

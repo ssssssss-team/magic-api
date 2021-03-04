@@ -70,7 +70,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 统一接口前缀
 	 */
-	private String prefix;
+	private final String prefix;
 
 	/**
 	 * 接口分组
@@ -80,21 +80,15 @@ public class MappingHandlerMapping {
 	/**
 	 * 是否覆盖应用接口
 	 */
-	private boolean allowOverride = false;
+	private final boolean allowOverride;
 
 	/**
 	 * 缓存已映射的接口信息
 	 */
 	private final List<ApiInfo> apiInfos = Collections.synchronizedList(new ArrayList<>());
 
-	public MappingHandlerMapping() throws NoSuchMethodException {
-	}
-
-	public void setPrefix(String prefix) {
+	public MappingHandlerMapping(String prefix,boolean allowOverride) throws NoSuchMethodException {
 		this.prefix = prefix;
-	}
-
-	public void setAllowOverride(boolean allowOverride) {
 		this.allowOverride = allowOverride;
 	}
 

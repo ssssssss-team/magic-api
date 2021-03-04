@@ -20,7 +20,7 @@ public abstract class ResourceAdapter {
 
 	public static final String SPRING_BOOT_CLASS_PATH = "BOOT-INF/classes/";
 
-	public static Resource getResource(String location) throws IOException {
+	public static Resource getResource(String location,boolean readonly) throws IOException {
 		if (location == null) {
 			return null;
 		}
@@ -38,7 +38,7 @@ public abstract class ResourceAdapter {
 				resource = resolver.getResource(ResourceUtils.FILE_URL_PREFIX + location);
 			}
 		}
-		return resolveResource(resource, false);
+		return resolveResource(resource, readonly);
 	}
 
 	private static Resource resolveResource(org.springframework.core.io.Resource resource, boolean readonly) throws IOException {

@@ -14,22 +14,10 @@ public class DatabaseResource extends KeyValueResource {
 
 	private final String tableName;
 
-	public DatabaseResource(JdbcTemplate template, String tableName, String separator, String path, KeyValueResource parent) {
-		super(separator, path, parent);
+	public DatabaseResource(JdbcTemplate template, String tableName, String separator, String path, boolean readonly, KeyValueResource parent) {
+		super(separator, path, readonly, parent);
 		this.template = template;
 		this.tableName = tableName;
-	}
-
-	public DatabaseResource(JdbcTemplate template, String tableName, String separator, String path) {
-		this(template, tableName, separator, path, null);
-	}
-
-	public DatabaseResource(JdbcTemplate template, String tableName, String path) {
-		this(template, tableName, "/", path);
-	}
-
-	public DatabaseResource(JdbcTemplate template, String tableName) {
-		this(template, tableName, "/magic-api");
 	}
 
 	@Override
@@ -49,16 +37,11 @@ public class DatabaseResource extends KeyValueResource {
 	@Override
 	public boolean write(String content) {
 		String sql = String.format("update %s set file_content = ? where file_path = ?", tableName);
-		if(exists()){
-			return template.update(sql, content,this.path) >= 0;
+		if (exists()) {
+			return template.update(sql, content, this.path) >= 0;
 		}
 		sql = String.format("insert into %s (file_path,file_content) values(?,?)", tableName);
 		return template.update(sql, this.path, content) > 0;
-	}
-
-	@Override
-	public Resource getResource(String name) {
-		return new DatabaseResource(template, tableName, separator, (isDirectory() ? this.path : this.path + separator) + name, this);
 	}
 
 	@Override
@@ -71,18 +54,18 @@ public class DatabaseResource extends KeyValueResource {
 	public boolean renameTo(Map<String, String> renameKeys) {
 		List<Object[]> args = renameKeys.entrySet().stream().map(entry -> new Object[]{entry.getValue(), entry.getKey()}).collect(Collectors.toList());
 		String sql = String.format("update %s set file_path = ? where file_path = ?", tableName);
-		return Arrays.stream(template.batchUpdate(sql,args)).sum() > 0;
+		return Arrays.stream(template.batchUpdate(sql, args)).sum() > 0;
 	}
 
 	@Override
 	public boolean delete() {
-		String sql = String.format("delete from %s where file_path = ? or file_path like '%s%%'",tableName, isDirectory() ? this.path : this.path + separator);
-		return template.update(sql,this.path) > 0;
+		String sql = String.format("delete from %s where file_path = ? or file_path like '%s%%'", tableName, isDirectory() ? this.path : this.path + separator);
+		return template.update(sql, this.path) > 0;
 	}
 
 	@Override
 	public Function<String, Resource> mappedFunction() {
-		return it -> new DatabaseResource(template, tableName, separator, it, this);
+		return it -> new DatabaseResource(template, tableName, separator, it, readonly, this);
 	}
 
 	@Override
