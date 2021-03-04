@@ -1,5 +1,1 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.ssssssss.magicapi.spring.boot.starter.MagicAPIAutoConfiguration,\
-org.ssssssss.magicapi.spring.boot.starter.MagicRedisAutoConfiguration,\
-org.ssssssss.magicapi.spring.boot.starter.MagicMongoAutoConfiguration,\
-org.ssssssss.magicapi.spring.boot.starter.MagicSwaggerConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.ssssssss.magicapi.spring.boot.starter.MagicAPIAutoConfiguration

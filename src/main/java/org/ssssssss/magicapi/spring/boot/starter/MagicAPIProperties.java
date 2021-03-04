@@ -1,7 +1,6 @@
 package org.ssssssss.magicapi.spring.boot.starter;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.ssssssss.magicapi.controller.RequestHandler;
@@ -87,6 +86,13 @@ public class MagicAPIProperties {
 	 */
 	private final String version = RequestHandler.class.getPackage().getImplementationVersion();
 
+	/**
+	 * 是否启用跨域支持
+	 *
+	 * @since 1.0.0
+	 */
+	private boolean supportCrossDomain = true;
+
 
 	@NestedConfigurationProperty
 	private SecurityConfig securityConfig = new SecurityConfig();
@@ -102,6 +108,9 @@ public class MagicAPIProperties {
 
 	@NestedConfigurationProperty
 	private SwaggerConfig swaggerConfig = new SwaggerConfig();
+
+	@NestedConfigurationProperty
+	private ResourceConfig resource = new ResourceConfig();
 
 	public String getEditorConfig() {
 		return editorConfig;
@@ -264,5 +273,22 @@ public class MagicAPIProperties {
 
 	public String getVersion() {
 		return version;
+	}
+
+
+	public ResourceConfig getResource() {
+		return resource;
+	}
+
+	public void setResource(ResourceConfig resource) {
+		this.resource = resource;
+	}
+
+	public boolean isSupportCrossDomain() {
+		return supportCrossDomain;
+	}
+
+	public void setSupportCrossDomain(boolean supportCrossDomain) {
+		this.supportCrossDomain = supportCrossDomain;
 	}
 }
