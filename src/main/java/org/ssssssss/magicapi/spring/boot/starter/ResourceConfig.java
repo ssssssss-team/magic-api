@@ -21,7 +21,7 @@ public class ResourceConfig {
 	private boolean readonly = false;
 
 	/**
-	 * 使用Redis时使用的前缀
+	 * 前缀
 	 */
 	private String prefix = "magic-api";
 

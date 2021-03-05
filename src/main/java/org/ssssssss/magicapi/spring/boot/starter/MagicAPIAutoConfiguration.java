@@ -30,6 +30,7 @@ import org.ssssssss.magicapi.adapter.ColumnMapperAdapter;
 import org.ssssssss.magicapi.adapter.DialectAdapter;
 import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.adapter.ResourceAdapter;
+import org.ssssssss.magicapi.adapter.resource.DatabaseResource;
 import org.ssssssss.magicapi.cache.DefaultSqlCache;
 import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
@@ -184,7 +185,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		if (dataSourceNode == null) {
 			throw new IllegalArgumentException(String.format("找不到数据源:%s", resourceConfig.getDatasource()));
 		}
-		return ResourceAdapter.getResource(properties.getWorkspace(), resourceConfig.isReadonly());
+		return new DatabaseResource(dataSourceNode.getJdbcTemplate(), resourceConfig.getTableName(), resourceConfig.getSeparator(), resourceConfig.getPrefix(), resourceConfig.isReadonly(), null);
 	}
 
 	@Bean
