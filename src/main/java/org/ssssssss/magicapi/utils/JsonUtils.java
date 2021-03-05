@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -10,9 +11,9 @@ import java.io.IOException;
 
 public class JsonUtils {
 
-	private static ObjectMapper mapper = new ObjectMapper();
+	private static final ObjectMapper mapper = new ObjectMapper();
 
-	private static Logger logger = LoggerFactory.getLogger(JsonUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(JsonUtils.class);
 
 	static{
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -23,6 +24,15 @@ public class JsonUtils {
 			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(target);
 		} catch (JsonProcessingException e) {
 			logger.error("json序列化失败",e);
+			return null;
+		}
+	}
+
+	public static <T> T readValue(String json, TypeReference<T> typeReference){
+		try {
+			return mapper.readValue(json,typeReference);
+		} catch (IOException e) {
+			logger.error("读取json失败",e);
 			return null;
 		}
 	}

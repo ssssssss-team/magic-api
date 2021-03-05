@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public class ResponseModule {
 
-	private ResultProvider resultProvider;
+	private final ResultProvider resultProvider;
 
 	public ResponseModule(ResultProvider resultProvider) {
 		this.resultProvider = resultProvider;
@@ -36,7 +36,7 @@ public class ResponseModule {
 	 * @param values 数据内容
 	 */
 	@Comment("返回自定义分页结果")
-	public Object page(@Comment("总条数") long total, @Comment("当前结果集") List<Map<String,Object>> values) {
+	public Object page(@Comment("总条数") long total, @Comment("当前结果集") List<Map<String, Object>> values) {
 		return resultProvider.buildPageResult(total, values);
 	}
 
@@ -46,7 +46,7 @@ public class ResponseModule {
 	 * @param value json内容
 	 */
 	@Comment("自定义返回json内容")
-	public ResponseEntity json(@Comment("返回对象") Object value) {
+	public ResponseEntity<Object> json(@Comment("返回对象") Object value) {
 		return ResponseEntity.ok(value);
 	}
 
@@ -116,7 +116,7 @@ public class ResponseModule {
 	 */
 	@Comment("添加Cookie")
 	public ResponseModule addCookie(@Comment("Cookie名") String name, @Comment("Cookie值") String value,
-						  @Comment("Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
+									@Comment("Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
 		if (StringUtils.isNotBlank(name)) {
 			Cookie cookie = new Cookie(name, value);
 			if (options != null) {

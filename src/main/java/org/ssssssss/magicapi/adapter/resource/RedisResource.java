@@ -10,10 +10,8 @@ import org.ssssssss.magicapi.adapter.Resource;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 public class RedisResource extends KeyValueResource {
@@ -21,6 +19,8 @@ public class RedisResource extends KeyValueResource {
 	private final StringRedisTemplate redisTemplate;
 
 	private static final Logger logger = LoggerFactory.getLogger(RedisResource.class);
+
+	private final Map<String,String> cachedContent = new ConcurrentHashMap<>();
 
 	public RedisResource(StringRedisTemplate redisTemplate, String path, String separator, boolean readonly, RedisResource parent) {
 		super(separator, path, readonly, parent);
@@ -32,8 +32,22 @@ public class RedisResource extends KeyValueResource {
 	}
 
 	@Override
+	public void readAll() {
+		List<String> keys = new ArrayList<>(keys());
+		List<String> values = redisTemplate.opsForValue().multiGet(keys);
+		if(values != null){
+			for (int i = 0,size = keys.size(); i < size; i++) {
+				this.cachedContent.put(keys.get(i),values.get(i));
+			}
+		}
+	}
+
+	@Override
 	public byte[] read() {
-		String value = redisTemplate.opsForValue().get(path);
+		String value = this.cachedContent.get(path);
+		if(value == null){
+			value = redisTemplate.opsForValue().get(path);
+		}
 		return value == null ? new byte[0] : value.getBytes(StandardCharsets.UTF_8);
 	}
 
@@ -51,6 +65,9 @@ public class RedisResource extends KeyValueResource {
 
 	@Override
 	public boolean exists() {
+		if(this.cachedContent.containsKey(this.path)){
+			return true;
+		}
 		return Boolean.TRUE.equals(this.redisTemplate.hasKey(this.path));
 	}
 

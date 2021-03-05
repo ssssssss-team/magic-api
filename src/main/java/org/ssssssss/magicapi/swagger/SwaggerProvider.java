@@ -7,9 +7,10 @@ import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * 生成swagger用的json
@@ -99,84 +100,16 @@ public class SwaggerProvider {
 	}
 
 	private List<SwaggerEntity.Parameter> parseParameters(ObjectMapper mapper, ApiInfo info) {
-		String content = info.getParameter();
-		content = content.trim();
 		List<SwaggerEntity.Parameter> parameters = new ArrayList<>();
-		if (content.startsWith("[")) {    // 0.5.0
-			try {
-				List<KeyValueDescription> kvs = readKeyValues(mapper, content);
-				parameters.addAll(kvs.stream().map(kv -> new SwaggerEntity.Parameter(kv.getName(), "query", "string", kv.getDescription(), kv.getValue())).collect(Collectors.toList()));
-				kvs = readKeyValues(mapper, Objects.toString(info.getRequestHeader(),"[]"));
-				parameters.addAll(kvs.stream().map(kv -> new SwaggerEntity.Parameter(kv.getName(), "header", "string", kv.getDescription(), kv.getValue())).collect(Collectors.toList()));
-				Object object = mapper.readValue(info.getRequestBody(),Object.class);
-				if(object instanceof List || object instanceof Map){
-					parameters.add(new SwaggerEntity.Parameter("body", "body", object instanceof List ? "array": "object", null, object));
-				}
-			} catch (Exception ignored) {
+		info.getParameters().forEach(it-> parameters.add(new SwaggerEntity.Parameter(it.getName(),"query","string",it.getDescription(),it.getValue())));
+		info.getHeaders().forEach(it-> parameters.add(new SwaggerEntity.Parameter(it.getName(),"header","string",it.getDescription(),it.getValue())));
+		try {
+			Object object = mapper.readValue(info.getRequestBody(),Object.class);
+			if(object instanceof List || object instanceof Map){
+				parameters.add(new SwaggerEntity.Parameter("body", "body", object instanceof List ? "array": "object", null, object));
 			}
-		} else {
-			try {
-				Map map = mapper.readValue(Objects.toString(content, "{}"), Map.class);
-				Object request = map.get("request");
-				if (request instanceof Map) {
-					Map requestMap = (Map) request;
-					Set keys = requestMap.keySet();
-					for (Object key : keys) {
-						parameters.add(new SwaggerEntity.Parameter(key.toString(), "query", "string", key.toString(), requestMap.getOrDefault(key, "")));
-					}
-				}
-				Object header = map.get("header");
-				if (header instanceof Map) {
-					Map headers = (Map) header;
-					Set keys = headers.keySet();
-					for (Object key : keys) {
-						parameters.add(new SwaggerEntity.Parameter(key.toString(), "header", "string", key.toString(), headers.getOrDefault(key, "")));
-					}
-				}
-				if (map.containsKey("body")) {
-					parameters.add(new SwaggerEntity.Parameter("body", "body", null, null, map.get("body")));
-				}
-			} catch (Exception ignored) {
-			}
+		} catch (Exception ignored) {
 		}
 		return parameters;
 	}
-
-	private List<KeyValueDescription> readKeyValues(ObjectMapper mapper, String json) throws IOException {
-		return Arrays.asList(mapper.readValue(json, KeyValueDescription[].class));
-	}
-
-	static class KeyValueDescription {
-
-		private String name;
-
-		private String value;
-
-		private String description;
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public String getValue() {
-			return value;
-		}
-
-		public void setValue(String value) {
-			this.value = value;
-		}
-
-		public String getDescription() {
-			return description;
-		}
-
-		public void setDescription(String description) {
-			this.description = description;
-		}
-	}
-
 }

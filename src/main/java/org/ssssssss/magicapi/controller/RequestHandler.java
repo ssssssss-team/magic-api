@@ -26,32 +26,34 @@ import org.ssssssss.magicapi.context.SessionContext;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.logging.LogInfo;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
-import org.ssssssss.magicapi.model.ApiInfo;
-import org.ssssssss.magicapi.model.JsonBean;
-import org.ssssssss.magicapi.model.JsonBodyBean;
-import org.ssssssss.magicapi.model.Options;
+import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
+import org.ssssssss.magicapi.utils.PatternUtils;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.exception.MagicScriptAssertException;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
+import org.ssssssss.script.reflection.JavaInvoker;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class RequestHandler extends MagicController {
 
-	private static Logger logger = LoggerFactory.getLogger(RequestHandler.class);
+	private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 
-	private ResultProvider resultProvider;
+	private final ResultProvider resultProvider;
 
 	public RequestHandler(MagicConfiguration configuration) {
 		super(configuration);
@@ -74,11 +76,17 @@ public class RequestHandler extends MagicController {
 		}
 		if (info == null) {
 			logger.error("接口不存在");
-			return resultProvider.buildResult(1001, "fail", "接口不存在", requestTime);
+			return resultProvider.buildResult(null, request, response, 1001, "fail", "接口不存在", requestTime);
+		}
+		// 验证
+		Object value = doValidate(info, request, response, requestTime, parameters);
+		if (value != null) {
+			if (requestedFromTest) {
+				return new JsonBean<>(0, "参数验证失败", value);
+			}
+			return value;
 		}
 		MagicScriptContext context = createMagicScriptContext(info, request, pathVariables, parameters);
-
-		Object value;
 		// 执行前置拦截器
 		if ((value = doPreHandle(info, context, request, response)) != null) {
 			if (requestedFromTest) {
@@ -96,11 +104,78 @@ public class RequestHandler extends MagicController {
 		return invokeRequest(info, requestTime, context, request, response);
 	}
 
+	private Object doValidate(ApiInfo info, HttpServletRequest request, HttpServletResponse response, Long requestTime, Map<String, Object> parameters) {
+		List<Parameter> parameterList = info.getParameters();
+		for (Parameter parameter : parameterList) {
+			String requestValue = StringUtils.defaultIfBlank(Objects.toString(parameters.get(parameter.getName())), Objects.toString(parameter.getDefaultValue(), ""));
+			if (parameter.isRequired()) {
+				if (StringUtils.isBlank(requestValue)) {
+					return resultProvider.buildResult(info, request, response, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("参数[%s]为必填项", parameter.getName())), null, requestTime);
+				}
+			}
+			try {
+				Object value = convertValue(parameter.getDataType(), parameter.getName(), requestValue);
+				String validateType = parameter.getValidateType();
+				if ("pattern".equals(validateType)) {    // 正则验证
+					String expression = parameter.getExpression();
+					if (StringUtils.isNotBlank(expression) && !PatternUtils.match(Objects.toString(value, ""), expression)) {
+						return resultProvider.buildResult(info, request, response, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("参数[%s]不满足正则表达式", parameter.getName())), null, requestTime);
+					}
+				}
+				parameters.put(parameter.getName(), value);
+
+			} catch (Exception e) {
+				return resultProvider.buildResult(info, request, response, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("参数[%s]不合法", parameter.getName())), null, requestTime);
+			}
+		}
+		// 取出表达式验证的参数
+		List<Parameter> validates = parameterList.stream().filter(it -> "expression".equals(it.getValidateType()) && StringUtils.isNotBlank(it.getExpression())).collect(Collectors.toList());
+		for (Parameter parameter : validates) {
+			MagicScriptContext context = new MagicScriptContext();
+			context.putMapIntoContext(parameters);
+			context.set("value", parameters.get(parameter.getName()));
+			if (!BooleanLiteral.isTrue(ScriptManager.executeExpression(parameter.getExpression(), context))) {
+				return resultProvider.buildResult(info, request, response, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("参数[%s]不满足表达式", parameter.getName())), null, requestTime);
+			}
+		}
+		return null;
+	}
+
+	private Object convertValue(DataType dataType, String name, String value) {
+		if (dataType == null) {
+			return value;
+		}
+		try {
+			if (dataType.isNumber()) {
+				BigDecimal decimal = ObjectConvertExtension.asDecimal(value, null);
+				if (decimal == null) {
+					throw new IllegalArgumentException();
+				}
+				return dataType.getInvoker().invoke0(decimal, null);
+			} else {
+				JavaInvoker<Method> invoker = dataType.getInvoker();
+				if (invoker != null) {
+					List<Object> params = new ArrayList<>();
+					if (dataType.isNeedName()) {
+						params.add(name);
+					}
+					if (dataType.isNeedValue()) {
+						params.add(value);
+					}
+					return invoker.invoke0(null, null, params.toArray());
+				}
+			}
+			return value;
+		} catch (Throwable throwable) {
+			throw new IllegalArgumentException();
+		}
+	}
+
 	private Object invokeContinueRequest(ApiInfo info, long requestTime, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		String sessionId = getRequestedSessionId(request);
 		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(sessionId);
 		if (context == null) {
-			return new JsonBean<>(0, "debug session not found!", resultProvider.buildResult(0, "debug session not found!", requestTime));
+			return new JsonBean<>(0, "debug session not found!", resultProvider.buildResult(info, request, response, 0, "debug session not found!", requestTime));
 		}
 		// 重置断点
 		context.setBreakpoints(getRequestedBreakpoints(request));
@@ -112,9 +187,9 @@ public class RequestHandler extends MagicController {
 			e.printStackTrace();
 		}
 		if (context.isRunning()) {    //判断是否执行完毕
-			return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), requestTime), context.getDebugInfo());
+			return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(info, request, response, 1000, context.getId(), requestTime), context.getDebugInfo());
 		} else if (context.isException()) {
-			return resolveThrowable((Throwable) context.getReturnValue(), requestTime);
+			return resolveThrowable(info, request, response, (Throwable) context.getReturnValue(), requestTime);
 		}
 		Object value = context.getReturnValue();
 		// 执行后置拦截器
@@ -124,7 +199,7 @@ public class RequestHandler extends MagicController {
 			// 后置拦截器不包裹
 			return value;
 		}
-		return convertResult(context.getReturnValue(), requestTime, response);
+		return convertResult(info, request, context.getReturnValue(), requestTime, response);
 	}
 
 	private Object invokeTestRequest(ApiInfo info, long requestTime, MagicScriptDebugContext context, HttpServletRequest request, HttpServletResponse response) {
@@ -133,9 +208,9 @@ public class RequestHandler extends MagicController {
 			initializeDebug(context, request, response);
 			Object result = ScriptManager.executeScript(info.getScript(), context);
 			if (context.isRunning()) {
-				return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(1000, context.getId(), result, requestTime), result);
+				return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(info, request, response, 1000, context.getId(), result, requestTime), result);
 			} else if (context.isException()) {    //判断是否出现异常
-				return resolveThrowable((Throwable) context.getReturnValue(), requestTime);
+				return resolveThrowable(info, request, response, (Throwable) context.getReturnValue(), requestTime);
 			}
 			Object value = result;
 			// 执行后置拦截器
@@ -145,9 +220,9 @@ public class RequestHandler extends MagicController {
 				// 后置拦截器不包裹
 				return value;
 			}
-			return convertResult(result, requestTime, response);
+			return convertResult(info, request, result, requestTime, response);
 		} catch (Exception e) {
-			return resolveThrowable(e, requestTime);
+			return resolveThrowable(info, request, response, e, requestTime);
 		}
 	}
 
@@ -161,20 +236,20 @@ public class RequestHandler extends MagicController {
 				return value;
 			}
 			// 对返回结果包装处理
-			return response(result, requestTime);
+			return response(info, request, response, result, requestTime);
 		} catch (Throwable root) {
 			Throwable parent = root;
 			do {
 				if (parent instanceof MagicScriptAssertException) {
 					MagicScriptAssertException sae = (MagicScriptAssertException) parent;
-					return resultProvider.buildResult(sae.getCode(), sae.getMessage(), requestTime);
+					return resultProvider.buildResult(info, request, response, sae.getCode(), sae.getMessage(), requestTime);
 				}
 			} while ((parent = parent.getCause()) != null);
 			if (configuration.isThrowException()) {
 				throw root;
 			}
 			logger.error("接口{}请求出错", request.getRequestURI(), root);
-			return resultProvider.buildResult(-1, "系统内部出现错误", requestTime);
+			return resultProvider.buildResult(info, request, response, -1, "系统内部出现错误", requestTime);
 		} finally {
 			RequestContext.remove();
 		}
@@ -183,9 +258,9 @@ public class RequestHandler extends MagicController {
 	/**
 	 * 转换请求结果
 	 */
-	private Object convertResult(Object result, long requestTime, HttpServletResponse response) throws IOException {
+	private Object convertResult(ApiInfo info, HttpServletRequest request, Object result, long requestTime, HttpServletResponse response) throws IOException {
 		if (result instanceof ResponseEntity) {
-			ResponseEntity entity = (ResponseEntity) result;
+			ResponseEntity<?> entity = (ResponseEntity<?>) result;
 			List<String> headers = new ArrayList<>();
 			for (Map.Entry<String, List<String>> entry : entity.getHeaders().entrySet()) {
 				String key = entry.getKey();
@@ -203,7 +278,7 @@ public class RequestHandler extends MagicController {
 		} else if (result instanceof ResponseModule.NullValue) {
 			return new JsonBean<>(1, "empty.");
 		}
-		return new JsonBean<>(resultProvider.buildResult(result, requestTime));
+		return new JsonBean<>(resultProvider.buildResult(info, request, response, result, requestTime));
 	}
 
 	/**
@@ -227,13 +302,13 @@ public class RequestHandler extends MagicController {
 	/**
 	 * 解决异常
 	 */
-	private JsonBean<Object> resolveThrowable(Throwable root, long requestTime) {
+	private JsonBean<Object> resolveThrowable(ApiInfo info, HttpServletRequest request, HttpServletResponse response, Throwable root, long requestTime) {
 		MagicScriptException se = null;
 		Throwable parent = root;
 		do {
 			if (parent instanceof MagicScriptAssertException) {
 				MagicScriptAssertException sae = (MagicScriptAssertException) parent;
-				return new JsonBean<>(resultProvider.buildResult(sae.getCode(), sae.getMessage(), requestTime));
+				return new JsonBean<>(resultProvider.buildResult(info, request, response, sae.getCode(), sae.getMessage(), requestTime));
 			}
 			if (parent instanceof MagicScriptException) {
 				se = (MagicScriptException) parent;
@@ -242,9 +317,9 @@ public class RequestHandler extends MagicController {
 		logger.error("测试脚本出错", root);
 		if (se != null) {
 			Span.Line line = se.getLine();
-			return new JsonBodyBean<>(-1000, se.getSimpleMessage(), resultProvider.buildResult(-1000, se.getSimpleMessage(), requestTime), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol()));
+			return new JsonBodyBean<>(-1000, se.getSimpleMessage(), resultProvider.buildResult(info, request, response, -1000, se.getSimpleMessage(), requestTime), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol()));
 		}
-		return new JsonBean<>(-1, root.getMessage(), resultProvider.buildResult(-1, root.getMessage(), requestTime));
+		return new JsonBean<>(-1, root.getMessage(), resultProvider.buildResult(info, request, response, -1, root.getMessage(), requestTime));
 	}
 
 	private void initializeDebug(MagicScriptDebugContext context, HttpServletRequest request, HttpServletResponse response) {
@@ -336,13 +411,13 @@ public class RequestHandler extends MagicController {
 	/**
 	 * 包装返回结果
 	 */
-	private Object response(Object value, long requestTime) {
+	private Object response(ApiInfo info, HttpServletRequest request, HttpServletResponse response, Object value, long requestTime) {
 		if (value instanceof ResponseEntity) {
 			return value;
 		} else if (value instanceof ResponseModule.NullValue) {
 			return null;
 		}
-		return resultProvider.buildResult(value, requestTime);
+		return resultProvider.buildResult(info, request, response, value, requestTime);
 	}
 
 	/**

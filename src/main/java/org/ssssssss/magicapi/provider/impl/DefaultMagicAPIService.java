@@ -80,14 +80,14 @@ public class DefaultMagicAPIService implements MagicAPIService {
 	public Object call(String method, String path, Map<String, Object> context) {
 		long requestTime = System.currentTimeMillis();
 		try {
-			return resultProvider.buildResult(execute(method, path, context), requestTime);
+			return resultProvider.buildResult(null, null, null, execute(method, path, context), requestTime);
 		} catch (MagicServiceException e) {
 			return null;    //找不到对应接口
 		} catch (Throwable root) {
 			if (throwException) {
 				throw root;
 			}
-			return resultProvider.buildResult(root, requestTime);
+			return resultProvider.buildResult(null, null, null, root, requestTime);
 		}
 	}
 

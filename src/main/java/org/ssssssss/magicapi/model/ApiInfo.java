@@ -1,11 +1,11 @@
 package org.ssssssss.magicapi.model;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ssssssss.magicapi.utils.JsonUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 接口信息
@@ -25,7 +25,7 @@ public class ApiInfo extends MagicEntity{
 	/**
 	 * 设置的请求参数
 	 */
-	private String parameter;
+	private List<Parameter> parameters = Collections.emptyList();
 
 	/**
 	 * 设置的接口选项
@@ -40,7 +40,7 @@ public class ApiInfo extends MagicEntity{
 	/**
 	 * 请求头
 	 */
-	private String requestHeader;
+	private List<Header> headers = Collections.emptyList();
 
 	/**
 	 * 输出结果
@@ -56,7 +56,6 @@ public class ApiInfo extends MagicEntity{
 	 * 接口选项json
 	 */
 	private JsonNode jsonNode;
-
 
 	public String getMethod() {
 		return method;
@@ -74,18 +73,41 @@ public class ApiInfo extends MagicEntity{
 		this.path = path;
 	}
 
-	public String getParameter() {
-		return parameter;
-	}
-
 	public void setParameter(String parameter) {
-		this.parameter = parameter;
+		if(parameter != null ){
+			parameter = parameter.trim();
+			if(parameter.startsWith("[")){	// v0.5.0+
+				this.parameters = JsonUtils.readValue(Objects.toString(parameter,"[]"), new TypeReference<List<Parameter>>() {});
+			}else{
+				Map map = JsonUtils.readValue(Objects.toString(parameter, "{}"), Map.class);
+				Object request = map.get("request");
+				if (request instanceof Map) {
+					Map requestMap = (Map) request;
+					Set keys = requestMap.keySet();
+					this.parameters = new ArrayList<>();
+					for (Object key : keys) {
+						this.parameters.add(new Parameter(key.toString(),Objects.toString(requestMap.get(key),"")));
+					}
+				}
+				Object header = map.get("header");
+				if (header instanceof Map) {
+					Map headers = (Map) header;
+					Set keys = headers.keySet();
+					this.headers = new ArrayList<>();
+					for (Object key : keys) {
+						this.headers.add(new Header(key.toString(),Objects.toString(headers.get(key),"")));
+					}
+				}
+				if (map.containsKey("body")) {
+					this.requestBody = Objects.toString(map.get("body"),null);
+				}
+			}
+		}
 	}
 
 	public String getResponseBody() {
 		return responseBody;
 	}
-
 
 	public String getRequestBody() {
 		return requestBody;
@@ -95,13 +117,6 @@ public class ApiInfo extends MagicEntity{
 		this.requestBody = requestBody;
 	}
 
-	public String getRequestHeader() {
-		return requestHeader;
-	}
-
-	public void setRequestHeader(String requestHeader) {
-		this.requestHeader = requestHeader;
-	}
 
 	public void setResponseBody(String responseBody) {
 		this.responseBody = responseBody;
@@ -131,6 +146,26 @@ public class ApiInfo extends MagicEntity{
 
 	public String getOption() {
 		return option;
+	}
+
+	public List<Parameter> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(List<Parameter> parameters) {
+		this.parameters = parameters;
+	}
+
+	public void setRequestHeader(String requestHeader){
+		this.headers = JsonUtils.readValue(Objects.toString(requestHeader,"[]"), new TypeReference<List<Header>>() {});
+	}
+
+	public List<Header> getHeaders() {
+		return headers;
+	}
+
+	public void setHeaders(List<Header> headers) {
+		this.headers = headers;
 	}
 
 	public void setOptionValue(String optionValue) {
@@ -173,10 +208,10 @@ public class ApiInfo extends MagicEntity{
 				Objects.equals(script, apiInfo.script) &&
 				Objects.equals(name, apiInfo.name) &&
 				Objects.equals(groupId, apiInfo.groupId) &&
-				Objects.equals(parameter, apiInfo.parameter) &&
+				Objects.equals(parameters, apiInfo.parameters) &&
 				Objects.equals(option, apiInfo.option) &&
 				Objects.equals(requestBody, apiInfo.requestBody) &&
-				Objects.equals(requestHeader, apiInfo.requestHeader) &&
+				Objects.equals(headers, apiInfo.headers) &&
 				Objects.equals(responseBody, apiInfo.responseBody) &&
 				Objects.equals(description, apiInfo.description);
 	}
@@ -184,7 +219,7 @@ public class ApiInfo extends MagicEntity{
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, method, path, script, name, groupId, parameter, option, requestBody, requestHeader, responseBody, description);
+		return Objects.hash(id, method, path, script, name, groupId, parameters, option, requestBody, headers, responseBody, description);
 	}
 
 	public ApiInfo copy() {
@@ -195,10 +230,10 @@ public class ApiInfo extends MagicEntity{
 		info.setPath(this.path);
 		info.setScript(this.script);
 		info.setGroupId(this.groupId);
-		info.setParameter(parameter);
+		info.setParameters(this.parameters);
 		info.setOption(this.option);
 		info.setRequestBody(this.requestBody);
-		info.setRequestHeader(this.requestHeader);
+		info.setHeaders(this.headers);
 		info.setResponseBody(this.responseBody);
 		info.setDescription(this.description);
 		return info;

@@ -65,6 +65,12 @@ public interface Resource {
 	byte[] read();
 
 	/**
+	 * 读取当前资源下的所有内容,主要是缓存作用。
+	 */
+	default void readAll(){
+	}
+
+	/**
 	 * 获取子目录
 	 */
 	default Resource getDirectory(String name){

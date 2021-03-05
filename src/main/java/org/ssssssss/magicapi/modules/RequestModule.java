@@ -23,7 +23,7 @@ public class RequestModule {
 	 * @param name 参数名
 	 */
 	@Comment("获取文件")
-	public MultipartFile getFile(@Comment("参数名") String name) {
+	public static MultipartFile getFile(@Comment("参数名") String name) {
 		MultipartRequest request = getMultipartHttpServletRequest();
 		return request == null ? null : request.getFile(name);
 	}
@@ -34,7 +34,7 @@ public class RequestModule {
 	 * @param name 参数名
 	 */
 	@Comment("获取多个文件")
-	public List<MultipartFile> getFiles(@Comment("参数名") String name) {
+	public static List<MultipartFile> getFiles(@Comment("参数名") String name) {
 		MultipartRequest request = getMultipartHttpServletRequest();
 		return request == null ? null : request.getFiles(name);
 	}
@@ -72,11 +72,11 @@ public class RequestModule {
 	/**
 	 * 获取原生HttpServletRequest对象
 	 */
-	public HttpServletRequest get() {
+	public static HttpServletRequest get() {
 		return RequestContext.getHttpServletRequest();
 	}
 
-	private MultipartRequest getMultipartHttpServletRequest() {
+	private static MultipartRequest getMultipartHttpServletRequest() {
 		HttpServletRequest request = get();
 		if (request != null && request.getContentType() != null && request.getContentType().toLowerCase().startsWith("multipart/")) {
 			return WebUtils.getNativeRequest(request, MultipartRequest.class);

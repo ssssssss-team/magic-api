@@ -1,10 +1,12 @@
 package org.ssssssss.magicapi.adapter.resource;
 
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.ssssssss.magicapi.adapter.Resource;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -14,21 +16,43 @@ public class DatabaseResource extends KeyValueResource {
 
 	private final String tableName;
 
+	private Map<String,String> cachedContent = new ConcurrentHashMap<>();
+
 	public DatabaseResource(JdbcTemplate template, String tableName, String separator, String path, boolean readonly, KeyValueResource parent) {
 		super(separator, path, readonly, parent);
 		this.template = template;
 		this.tableName = tableName;
 	}
 
+	public DatabaseResource(JdbcTemplate template, String tableName, String separator, String path, boolean readonly, Map<String,String> cachedContent, KeyValueResource parent) {
+		this(template, tableName, separator, path, readonly, parent);
+		this.cachedContent = cachedContent;
+	}
+
 	@Override
 	public byte[] read() {
-		String sql = String.format("select file_content from %s where file_path = ?", tableName);
-		String value = template.queryForObject(sql, String.class, this.path);
+		String value = this.cachedContent.get(path);
+		if(value == null){
+			String sql = String.format("select file_content from %s where file_path = ?", tableName);
+			value = template.queryForObject(sql, String.class, this.path);
+		}
 		return value == null ? new byte[0] : value.getBytes(StandardCharsets.UTF_8);
 	}
 
 	@Override
+	public void readAll() {
+		String sql = String.format("select file_path, file_content from %s where file_path like '%s%%'", tableName, this.path);
+		SqlRowSet sqlRowSet = template.queryForRowSet(sql);
+		while (sqlRowSet.next()){
+			this.cachedContent.put(sqlRowSet.getString(1),sqlRowSet.getString(2));
+		}
+	}
+
+	@Override
 	public boolean exists() {
+		if(this.cachedContent.containsKey(this.path)){
+			return true;
+		}
 		String sql = String.format("select count(*) from %s where file_path = ?", tableName);
 		Long value = template.queryForObject(sql, Long.class, this.path);
 		return value != null && value > 0;
@@ -65,7 +89,7 @@ public class DatabaseResource extends KeyValueResource {
 
 	@Override
 	public Function<String, Resource> mappedFunction() {
-		return it -> new DatabaseResource(template, tableName, separator, it, readonly, this);
+		return it -> new DatabaseResource(template, tableName, separator, it, readonly, this.cachedContent,this);
 	}
 
 	@Override

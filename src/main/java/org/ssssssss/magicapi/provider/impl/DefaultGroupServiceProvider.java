@@ -24,6 +24,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	public DefaultGroupServiceProvider(Resource workspace) {
 		this.workspace = workspace;
+		this.workspace.readAll();
 	}
 
 	@Override

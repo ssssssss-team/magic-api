@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.controller;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
@@ -149,7 +150,7 @@ public class MagicAPIController extends MagicController {
 	 */
 	@RequestMapping("/save")
 	@ResponseBody
-	public JsonBean<String> save(HttpServletRequest request, ApiInfo info) {
+	public JsonBean<String> save(HttpServletRequest request, @RequestBody ApiInfo info) {
 		if(configuration.getWorkspace().readonly()){
 			return new JsonBean<>(0, "当前为只读模式,无法保存");
 		}
