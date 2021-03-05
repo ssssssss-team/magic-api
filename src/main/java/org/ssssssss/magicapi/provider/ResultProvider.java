@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.PageResult;
+import org.ssssssss.magicapi.model.RequestEntity;
 import org.ssssssss.script.exception.MagicScriptAssertException;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
@@ -71,6 +72,14 @@ public interface ResultProvider {
 	 */
 	default Object buildResult(ApiInfo apiInfo, HttpServletRequest request, HttpServletResponse response, int code, String message, long requestTime) {
 		return buildResult(apiInfo, request, response, code, message, null, requestTime);
+	}
+
+	default Object buildResult(RequestEntity requestEntity, int code, String message) {
+		return buildResult(requestEntity, code, message, null);
+	}
+
+	default Object buildResult(RequestEntity requestEntity, int code, String message, Object data) {
+		return buildResult(requestEntity.getApiInfo(), requestEntity.getRequest(), requestEntity.getResponse(), code, message, data, requestEntity.getRequestTime());
 	}
 
 	/**

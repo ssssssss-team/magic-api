@@ -1,21 +1,21 @@
 package org.ssssssss.magicapi.context;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Header Context 用于脚本中获取Header信息
  */
-public class HeaderContext extends HashMap<String,Object> {
+public class HeaderContext extends HashMap<String, Object> {
 
-    private HttpServletRequest request;
+    private final Map<String, Object> headers;
 
-    public HeaderContext(HttpServletRequest request) {
-        this.request = request;
+    public HeaderContext(Map<String, Object> headers) {
+        this.headers = headers;
     }
 
     @Override
-    public Object get(Object key){
-        return request.getHeader(key.toString());
+    public Object get(Object key) {
+        return headers.get(key);
     }
 }
