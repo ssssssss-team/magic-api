@@ -188,7 +188,7 @@ public class ResponseModule {
 	 * @param filename 文件名
 	 */
 	@Comment("文件下载")
-	public ResponseEntity download(@Comment("文件内容，如`byte[]`") Object value, @Comment("文件名") String filename) throws UnsupportedEncodingException {
+	public static ResponseEntity<?> download(@Comment("文件内容，如`byte[]`") Object value, @Comment("文件名") String filename) throws UnsupportedEncodingException {
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncoder.encode(filename, "UTF-8"))
 				.body(value);

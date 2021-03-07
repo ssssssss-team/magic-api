@@ -1,20 +1,27 @@
 package org.ssssssss.magicapi.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.config.MagicConfiguration;
+import org.ssssssss.magicapi.config.Valid;
+import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.model.Options;
+import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.utils.MD5Utils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -77,5 +84,24 @@ public class MagicWorkbenchController extends MagicController {
 			}
 		}
 		return "var MAGIC_EDITOR_CONFIG = {}";
+	}
+
+	@RequestMapping("/download")
+	@Valid(authorization = RequestInterceptor.Authorization.DOWNLOAD)
+	@ResponseBody
+	public ResponseEntity<?> download(String groupId) throws IOException {
+		if (StringUtils.isBlank(groupId)) {
+			return download(configuration.getWorkspace(), "magic-api-all.zip");
+		} else {
+			Resource resource = configuration.getGroupServiceProvider().getGroupResource(groupId);
+			notNull(resource, GROUP_NOT_FOUND);
+			return download(resource, "magic-api-group.zip");
+		}
+	}
+
+	private ResponseEntity<?> download(Resource resource, String filename) throws IOException {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		resource.export(os,"backups");
+		return ResponseModule.download(os.toByteArray(),filename);
 	}
 }

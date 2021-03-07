@@ -60,6 +60,12 @@ public class MagicController implements JsonCodeConstants {
 		}
 	}
 
+	public void notNull(Object value, JsonCode jsonCode) {
+		if (value == null) {
+			throw new InvalidArgumentException(jsonCode);
+		}
+	}
+
 	public void isTrue(boolean value, JsonCode jsonCode) {
 		if (!value) {
 			throw new InvalidArgumentException(jsonCode);

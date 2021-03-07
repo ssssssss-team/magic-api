@@ -36,7 +36,7 @@ public class MagicGroupController extends MagicController {
 		TreeNode<Group> treeNode = configuration.getGroupServiceProvider().apiGroupTree().findTreeNode(group -> group.getId().equals(groupId));
 		if (treeNode == null) {
 			treeNode = configuration.getGroupServiceProvider().functionGroupTree().findTreeNode(group -> group.getId().equals(groupId));
-			isTrue(treeNode != null, GROUP_NOT_FOUND);
+			notNull(treeNode, GROUP_NOT_FOUND);
 			isApi = false;
 		}
 		List<String> children = treeNode.flat().stream().map(Group::getId).collect(Collectors.toList());

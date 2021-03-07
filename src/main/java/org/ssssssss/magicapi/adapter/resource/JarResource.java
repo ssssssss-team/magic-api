@@ -124,4 +124,5 @@ public class JarResource implements Resource {
 	public String toString() {
 		return String.format("jar://%s", this.entryName);
 	}
+
 }

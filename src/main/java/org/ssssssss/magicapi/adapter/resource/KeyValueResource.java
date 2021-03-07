@@ -2,10 +2,13 @@ package org.ssssssss.magicapi.adapter.resource;
 
 import org.ssssssss.magicapi.adapter.Resource;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public abstract class KeyValueResource implements Resource {
 
@@ -44,9 +47,9 @@ public abstract class KeyValueResource implements Resource {
 		// 判断移动的是否是文件夹
 		if (resource.isDirectory()) {
 			Set<String> oldKeys = this.keys();
-			Map<String,String> mappings = new HashMap<>(oldKeys.size());
+			Map<String, String> mappings = new HashMap<>(oldKeys.size());
 			int keyLen = this.path.length();
-			oldKeys.forEach(oldKey -> mappings.put(oldKey,targetResource.path + oldKey.substring(keyLen)));
+			oldKeys.forEach(oldKey -> mappings.put(oldKey, targetResource.path + oldKey.substring(keyLen)));
 			return renameTo(mappings);
 		} else {
 			return renameTo(Collections.singletonMap(this.path, targetResource.path));
@@ -58,7 +61,7 @@ public abstract class KeyValueResource implements Resource {
 		return this.keys().stream().allMatch(this::deleteByKey);
 	}
 
-	protected boolean deleteByKey(String key){
+	protected boolean deleteByKey(String key) {
 		return false;
 	}
 
@@ -70,8 +73,8 @@ public abstract class KeyValueResource implements Resource {
 	@Override
 	public String name() {
 		String name = this.path;
-		if(isDirectory()){
-			name = this.path.substring(0,name.length() - 1);
+		if (isDirectory()) {
+			name = this.path.substring(0, name.length() - 1);
 		}
 		int index = name.lastIndexOf(separator);
 		return index > -1 ? name.substring(index + 1) : name;
@@ -90,7 +93,7 @@ public abstract class KeyValueResource implements Resource {
 
 	@Override
 	public boolean mkdir() {
-		if(!isDirectory()){
+		if (!isDirectory()) {
 			this.path += separator;
 		}
 		return write("this is directory");
@@ -128,5 +131,31 @@ public abstract class KeyValueResource implements Resource {
 	@Override
 	public String getAbsolutePath() {
 		return this.path;
+	}
+
+	@Override
+	public void processExport(ZipOutputStream zos, String path, Resource directory, List<Resource> resources, List<String> excludes) throws IOException {
+		for (Resource resource : resources) {
+			String fullName = directory.getAbsolutePath();
+			if (!fullName.endsWith(separator)) {
+				fullName += separator;
+			}
+			fullName += resource.name();
+			if (resource.isDirectory()) {
+				fullName += separator;
+			}
+			if (fullName.equals(resource.getAbsolutePath()) && !excludes.contains(resource.name())) {
+				if (resource.isDirectory()) {
+					String newPath = path + resource.name() + "/";
+					zos.putNextEntry(new ZipEntry(newPath));
+					zos.closeEntry();
+					processExport(zos, newPath, resource, resources, excludes);
+				} else {
+					zos.putNextEntry(new ZipEntry(path + resource.name()));
+					zos.write(resource.read());
+					zos.closeEntry();
+				}
+			}
+		}
 	}
 }

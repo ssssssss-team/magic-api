@@ -112,4 +112,5 @@ public class FileResource implements Resource {
 	public String toString() {
 		return String.format("file://%s", this.file.getAbsolutePath());
 	}
+
 }

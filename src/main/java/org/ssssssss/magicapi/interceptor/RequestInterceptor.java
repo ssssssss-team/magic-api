@@ -13,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 public interface RequestInterceptor {
 
 	enum Authorization {
-		NONE, SAVE, DETAIL, RUN, DELETE
+		NONE, SAVE, DETAIL, RUN, DELETE, DOWNLOAD, UPLOAD
 	}
 
 	/**
