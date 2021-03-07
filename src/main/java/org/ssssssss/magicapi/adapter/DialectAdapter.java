@@ -11,14 +11,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class DialectAdapter {
 
-	private static Logger logger = LoggerFactory.getLogger(DialectAdapter.class);
+	private static final Logger logger = LoggerFactory.getLogger(DialectAdapter.class);
 
-	private List<Dialect> dialectList = new ArrayList<>();
+	private final List<Dialect> dialectList = new ArrayList<>();
 
 	/**
 	 * 缓存已解析的方言
 	 */
-	private Map<String, Dialect> dialectMap = new ConcurrentHashMap<>();
+	private final Map<String, Dialect> dialectMap = new ConcurrentHashMap<>();
 
 	public DialectAdapter() {
 		add(new MySQLDialect());

@@ -8,7 +8,7 @@ import java.util.HashMap;
  */
 public class SessionContext extends HashMap<String,Object> {
 
-    private HttpSession session;
+    private final HttpSession session;
 
     public SessionContext(HttpSession session){
         this.session = session;

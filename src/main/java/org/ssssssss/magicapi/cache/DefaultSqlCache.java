@@ -7,13 +7,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.ExpireNode<Object>> implements SqlCache {
 
-    private String separator = ":";
+    private final String separator = ":";
 
-    private int capacity;
+    private final int capacity;
 
-    private long expire;
+    private final long expire;
 
-    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     public DefaultSqlCache(int capacity, long expire) {
         super((int) Math.ceil(capacity / 0.75) + 1, 0.75f, true);
@@ -118,9 +118,9 @@ public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.Expir
      */
     static class ExpireNode<V> {
         long expire;
-        Object value;
+        V value;
 
-        ExpireNode(long expire, Object value) {
+        ExpireNode(long expire, V value) {
             this.expire = expire;
             this.value = value;
         }

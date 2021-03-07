@@ -30,6 +30,11 @@ public class BaseDefinition {
 	private DataType dataType;
 
 	/**
+	 * 类型，函数专用
+	 */
+	private String type;
+
+	/**
 	 * 默认值
 	 */
 	private String defaultValue;
@@ -127,6 +132,14 @@ public class BaseDefinition {
 
 	public void setExpression(String expression) {
 		this.expression = expression;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	@Override

@@ -1,12 +1,11 @@
 package org.ssssssss.magicapi.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.ssssssss.magicapi.utils.JsonUtils;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class FunctionInfo extends MagicEntity {
 
@@ -14,13 +13,11 @@ public class FunctionInfo extends MagicEntity {
 
 	private String description;
 
-	private String parameter;
-
 	private String returnType;
 
 	private String mappingPath;
 
-	private List<String> parameterNames = Collections.emptyList();
+	private List<Parameter> parameters = Collections.emptyList();
 
 	public String getDescription() {
 		return description;
@@ -30,16 +27,10 @@ public class FunctionInfo extends MagicEntity {
 		this.description = description;
 	}
 
-	public String getParameter() {
-		return parameter;
-	}
-
 	public void setParameter(String parameter) {
-		this.parameter = parameter;
 		try {
-			this.parameterNames = new ObjectMapper().readTree(parameter).findValues("name")
-					.stream().map(JsonNode::asText)
-					.collect(Collectors.toList());
+			this.parameters = JsonUtils.readValue(Objects.toString(parameter, "[]"), new TypeReference<List<Parameter>>() {
+			});
 		} catch (Throwable ignored) {
 		}
 	}
@@ -60,10 +51,6 @@ public class FunctionInfo extends MagicEntity {
 		this.mappingPath = mappingPath;
 	}
 
-	public List<String> getParameterNames() {
-		return parameterNames;
-	}
-
 	public String getReturnType() {
 		return returnType;
 	}
@@ -72,6 +59,13 @@ public class FunctionInfo extends MagicEntity {
 		this.returnType = returnType;
 	}
 
+	public List<Parameter> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(List<Parameter> parameters) {
+		this.parameters = parameters;
+	}
 
 	@Override
 	public boolean equals(Object o) {
@@ -84,13 +78,13 @@ public class FunctionInfo extends MagicEntity {
 				Objects.equals(name, functionInfo.name) &&
 				Objects.equals(groupId, functionInfo.groupId) &&
 				Objects.equals(description, functionInfo.description) &&
-				Objects.equals(parameter, functionInfo.parameter) &&
+				Objects.equals(parameters, functionInfo.parameters) &&
 				Objects.equals(returnType, functionInfo.returnType);
 	}
 
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, path, script, name, groupId, parameter, description, returnType);
+		return Objects.hash(id, path, script, name, groupId, parameters, description, returnType);
 	}
 }

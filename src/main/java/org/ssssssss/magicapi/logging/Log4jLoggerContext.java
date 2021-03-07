@@ -20,17 +20,17 @@ public class Log4jLoggerContext implements MagicLoggerContext {
         magicLog4jAppender.setLayout(patternLayout);
         logger.addAppender(magicLog4jAppender);
     }
-     class MagicLog4jAppender  extends AppenderSkeleton{
+     static class MagicLog4jAppender extends AppenderSkeleton {
 
 
-        @Override
-        protected void append(LoggingEvent event) {
-            LogInfo logInfo = new LogInfo();
-            logInfo.setLevel(event.getLevel().toString().toLowerCase());
-            logInfo.setMessage(String.valueOf(event.getMessage()));
-            ThrowableInformation throwableInformation = event.getThrowableInformation();
-            if (throwableInformation != null) {
-                logInfo.setThrowable(throwableInformation.getThrowable());
+         @Override
+         protected void append(LoggingEvent event) {
+             LogInfo logInfo = new LogInfo();
+             logInfo.setLevel(event.getLevel().toString().toLowerCase());
+             logInfo.setMessage(String.valueOf(event.getMessage()));
+             ThrowableInformation throwableInformation = event.getThrowableInformation();
+             if (throwableInformation != null) {
+                 logInfo.setThrowable(throwableInformation.getThrowable());
             }
             MagicLoggerContext.println(logInfo);
         }

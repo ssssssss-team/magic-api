@@ -33,14 +33,14 @@ public class Log4j2LoggerContext implements MagicLoggerContext{
 		MagicLog4j2Appender appender = new MagicLog4j2Appender("Magic", logger.getFilter(), layout);
 		appender.start();
 		configuration.addAppender(appender);
-		logger.addAppender(appender,logger.getLevel(),logger.getFilter());
+		logger.addAppender(appender, logger.getLevel(), logger.getFilter());
 		context.updateLoggers(configuration);
 	}
 
-	class MagicLog4j2Appender extends AbstractAppender{
+	static class MagicLog4j2Appender extends AbstractAppender {
 
 		MagicLog4j2Appender(String name, Filter filter, Layout<? extends Serializable> layout) {
-			super(name, filter, layout,true, Property.EMPTY_ARRAY);
+			super(name, filter, layout, true, Property.EMPTY_ARRAY);
 		}
 
 		@Override

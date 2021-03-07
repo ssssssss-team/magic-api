@@ -23,7 +23,7 @@ public class LogbackLoggerContext implements MagicLoggerContext{
 		logger.addAppender(appender);
 	}
 
-	class MagicLogbackAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
+	static class MagicLogbackAppender extends UnsynchronizedAppenderBase<ILoggingEvent> {
 
 		@Override
 		protected void append(ILoggingEvent event) {
@@ -31,7 +31,7 @@ public class LogbackLoggerContext implements MagicLoggerContext{
 			logInfo.setLevel(event.getLevel().levelStr.toLowerCase());
 			logInfo.setMessage(event.getFormattedMessage());
 			ThrowableProxy throwableProxy = (ThrowableProxy) event.getThrowableProxy();
-			if(throwableProxy != null){
+			if (throwableProxy != null) {
 				logInfo.setThrowable(throwableProxy.getThrowable());
 			}
 			MagicLoggerContext.println(logInfo);

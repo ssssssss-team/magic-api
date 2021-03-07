@@ -31,7 +31,6 @@ public interface SqlCache {
 	 *
 	 * @param name 名字
 	 * @param key  key
-	 * @return
 	 */
 	<T> T get(String name, String key);
 

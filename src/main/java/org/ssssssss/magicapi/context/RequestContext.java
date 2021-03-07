@@ -26,11 +26,11 @@ public class RequestContext {
 	}
 
 
-	private static class RequestAttribute{
+	private static class RequestAttribute {
 
-		private HttpServletRequest request;
+		private final HttpServletRequest request;
 
-		private HttpServletResponse response;
+		private final HttpServletResponse response;
 
 		public RequestAttribute(HttpServletRequest request, HttpServletResponse response) {
 			this.request = request;

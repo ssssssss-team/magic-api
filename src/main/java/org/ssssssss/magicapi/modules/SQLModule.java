@@ -31,40 +31,28 @@ import java.util.function.Function;
  */
 public class SQLModule extends HashMap<String, SQLModule> implements MagicModule {
 
-	@UnableCall
 	private MagicDynamicDataSource dynamicDataSource;
 
-	@UnableCall
 	private DataSourceNode dataSourceNode;
 
-	@UnableCall
 	private PageProvider pageProvider;
 
-	@UnableCall
 	private ResultProvider resultProvider;
 
-	@UnableCall
 	private ColumnMapperAdapter columnMapperAdapter;
 
-	@UnableCall
 	private DialectAdapter dialectAdapter;
 
-	@UnableCall
 	private RowMapper<Map<String, Object>> columnMapRowMapper;
 
-	@UnableCall
 	private Function<String, String> rowMapColumnMapper;
 
-	@UnableCall
 	private SqlCache sqlCache;
 
-	@UnableCall
 	private String cacheName;
 
-	@UnableCall
 	private List<SQLInterceptor> sqlInterceptors;
 
-	@UnableCall
 	private long ttl;
 
 	public SQLModule() {
@@ -153,7 +141,6 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 开启事务，在一个回调中进行操作
 	 *
 	 * @param function 回调函数
-	 * @return
 	 */
 	@Comment("开启事务，并在回调中处理")
 	public Object transaction(@Comment("回调函数，如：()=>{....}") Function<?, ?> function) {
@@ -170,8 +157,6 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	/**
 	 * 开启事务，手动提交和回滚
-	 *
-	 * @return
 	 */
 	@Comment("开启事务，返回事务对象")
 	public Transaction transaction() {
@@ -183,7 +168,6 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 *
 	 * @param cacheName 缓存名
 	 * @param ttl       过期时间
-	 * @return
 	 */
 	@Comment("使用缓存")
 	public SQLModule cache(@Comment("缓存名") String cacheName, @Comment("过期时间") long ttl) {
@@ -200,7 +184,6 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 使用缓存（采用默认缓存时间）
 	 *
 	 * @param cacheName 缓冲名
-	 * @return
 	 */
 	@Comment("使用缓存，过期时间采用默认配置")
 	public SQLModule cache(@Comment("缓存名") String cacheName) {
@@ -345,7 +328,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		BoundSql boundSql = new BoundSql(sql, this.sqlCache, this.cacheName, this.ttl);
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
 			List<Map<String, Object>> list = dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.columnMapRowMapper, boundSql.getParameters());
-			return list != null && list.size() > 0 ? list.get(0) : null;
+			return list.size() > 0 ? list.get(0) : null;
 		});
 	}
 

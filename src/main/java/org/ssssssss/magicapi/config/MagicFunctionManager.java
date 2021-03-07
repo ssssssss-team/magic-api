@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ssssssss.magicapi.model.FunctionInfo;
 import org.ssssssss.magicapi.model.Group;
+import org.ssssssss.magicapi.model.Parameter;
 import org.ssssssss.magicapi.model.TreeNode;
 import org.ssssssss.magicapi.provider.FunctionServiceProvider;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
@@ -42,15 +43,15 @@ public class MagicFunctionManager {
 		MagicResourceLoader.addFunctionLoader((path) -> {
 			FunctionInfo info = mappings.get(path);
 			if (info != null) {
-				List<String> parameterNames = info.getParameterNames();
+				List<Parameter> parameters = info.getParameters();
 				return (Function<Object[], Object>) objects -> {
 					MagicScriptContext context = MagicScriptContext.get();
 					try {
 						MagicScriptContext functionContext = new MagicScriptContext(context.getRootVariables());
 						MagicScriptContext.set(functionContext);
 						if (objects != null) {
-							for (int i = 0, len = objects.length, size = parameterNames.size(); i < len && i < size; i++) {
-								functionContext.set(parameterNames.get(i), objects[i]);
+							for (int i = 0, len = objects.length, size = parameters.size(); i < len && i < size; i++) {
+								functionContext.set(parameters.get(i).getName(), objects[i]);
 							}
 						}
 						return ScriptManager.executeScript(info.getScript(), functionContext);

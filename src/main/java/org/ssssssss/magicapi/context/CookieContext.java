@@ -9,7 +9,7 @@ import java.util.HashMap;
  */
 public class CookieContext extends HashMap<String,String> {
 
-    private Cookie[] cookies;
+    private final Cookie[] cookies;
 
     public CookieContext(HttpServletRequest request){
         this.cookies = request.getCookies();
@@ -17,9 +17,9 @@ public class CookieContext extends HashMap<String,String> {
 
     @Override
     public String get(Object key) {
-        for (int i = 0; i < cookies.length; i++) {
-            if(cookies[i].getName().equalsIgnoreCase("" + key)){
-                return cookies[i].getValue();
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equalsIgnoreCase("" + key)) {
+                return cookie.getValue();
             }
         }
         return null;

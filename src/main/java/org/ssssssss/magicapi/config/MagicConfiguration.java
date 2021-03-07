@@ -39,12 +39,10 @@ public class MagicConfiguration {
 	 */
 	private String editorConfig;
 
-	private final String tokenKey = "Magic-Token";
-
 	/**
 	 * 拦截器
 	 */
-	private List<RequestInterceptor> requestInterceptors = new ArrayList<>();
+	private final List<RequestInterceptor> requestInterceptors = new ArrayList<>();
 
 	/**
 	 * 接口查询Service
@@ -148,7 +146,7 @@ public class MagicConfiguration {
 	}
 
 	public String getTokenKey() {
-		return tokenKey;
+		return "Magic-Token";
 	}
 
 	public List<RequestInterceptor> getRequestInterceptors() {

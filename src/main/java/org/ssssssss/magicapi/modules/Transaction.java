@@ -5,20 +5,16 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.ssssssss.script.annotation.Comment;
-import org.ssssssss.script.annotation.UnableCall;
 
 /**
  * 事务模块
  */
 public class Transaction {
 
-	@UnableCall
-	private DataSourceTransactionManager dataSourceTransactionManager;
+	private final DataSourceTransactionManager dataSourceTransactionManager;
 
-	@UnableCall
-	private TransactionStatus transactionStatus;
+	private final TransactionStatus transactionStatus;
 
-	@UnableCall
 	private static final TransactionDefinition TRANSACTION_DEFINITION = new DefaultTransactionDefinition();
 
 	public Transaction(DataSourceTransactionManager dataSourceTransactionManager) {

@@ -6,7 +6,7 @@ import org.ssssssss.script.annotation.Comment;
 
 public class EnvModule implements MagicModule {
 
-	private Environment environment;
+	private final Environment environment;
 
 	public EnvModule(Environment environment) {
 		this.environment = environment;

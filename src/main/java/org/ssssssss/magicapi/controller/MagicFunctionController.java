@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.controller;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
@@ -60,12 +61,12 @@ public class MagicFunctionController extends MagicController {
 	@RequestMapping("/function/save")
 	@ResponseBody
 	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.SAVE)
-	public JsonBean<String> save(FunctionInfo functionInfo) {
+	public JsonBean<String> save(@RequestBody FunctionInfo functionInfo) {
 		notBlank(functionInfo.getName(), FUNCTION_NAME_REQUIRED);
 		isTrue(IoUtils.validateFileName(functionInfo.getName()), NAME_INVALID);
 		notBlank(functionInfo.getPath(), FUNCTION_PATH_REQUIRED);
 		notBlank(functionInfo.getScript(), SCRIPT_REQUIRED);
-		isTrue(configuration.getMagicFunctionManager().hasRegister(functionInfo), FUNCTION_PATH_CONFLICT);
+		isTrue(!configuration.getMagicFunctionManager().hasRegister(functionInfo), FUNCTION_PATH_CONFLICT);
 
 		if (StringUtils.isBlank(functionInfo.getId())) {
 			isTrue(!functionService.exists(functionInfo), FUNCTION_ALREADY_EXISTS.format(functionInfo.getPath()));
