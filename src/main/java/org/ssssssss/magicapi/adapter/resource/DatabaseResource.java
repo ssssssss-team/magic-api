@@ -16,7 +16,7 @@ public class DatabaseResource extends KeyValueResource {
 
 	private final String tableName;
 
-	private Map<String,String> cachedContent = new ConcurrentHashMap<>();
+	private Map<String, String> cachedContent = new ConcurrentHashMap<>();
 
 	public DatabaseResource(JdbcTemplate template, String tableName, String separator, String path, boolean readonly, KeyValueResource parent) {
 		super(separator, path, readonly, parent);
@@ -24,7 +24,7 @@ public class DatabaseResource extends KeyValueResource {
 		this.tableName = tableName;
 	}
 
-	public DatabaseResource(JdbcTemplate template, String tableName, String separator, String path, boolean readonly, Map<String,String> cachedContent, KeyValueResource parent) {
+	public DatabaseResource(JdbcTemplate template, String tableName, String separator, String path, boolean readonly, Map<String, String> cachedContent, KeyValueResource parent) {
 		this(template, tableName, separator, path, readonly, parent);
 		this.cachedContent = cachedContent;
 	}
@@ -32,7 +32,7 @@ public class DatabaseResource extends KeyValueResource {
 	@Override
 	public byte[] read() {
 		String value = this.cachedContent.get(path);
-		if(value == null){
+		if (value == null) {
 			String sql = String.format("select file_content from %s where file_path = ?", tableName);
 			value = template.queryForObject(sql, String.class, this.path);
 		}
@@ -41,16 +41,17 @@ public class DatabaseResource extends KeyValueResource {
 
 	@Override
 	public void readAll() {
+		this.cachedContent.clear();
 		String sql = String.format("select file_path, file_content from %s where file_path like '%s%%'", tableName, this.path);
 		SqlRowSet sqlRowSet = template.queryForRowSet(sql);
-		while (sqlRowSet.next()){
-			this.cachedContent.put(sqlRowSet.getString(1),sqlRowSet.getString(2));
+		while (sqlRowSet.next()) {
+			this.cachedContent.put(sqlRowSet.getString(1), sqlRowSet.getString(2));
 		}
 	}
 
 	@Override
 	public boolean exists() {
-		if(this.cachedContent.containsKey(this.path)){
+		if (this.cachedContent.containsKey(this.path)) {
 			return true;
 		}
 		String sql = String.format("select count(*) from %s where file_path = ?", tableName);
@@ -62,10 +63,17 @@ public class DatabaseResource extends KeyValueResource {
 	public boolean write(String content) {
 		String sql = String.format("update %s set file_content = ? where file_path = ?", tableName);
 		if (exists()) {
-			return template.update(sql, content, this.path) >= 0;
+			if (template.update(sql, content, this.path) > 0) {
+				this.cachedContent.put(this.path, content);
+				return true;
+			}
 		}
 		sql = String.format("insert into %s (file_path,file_content) values(?,?)", tableName);
-		return template.update(sql, this.path, content) > 0;
+		if (template.update(sql, this.path, content) > 0) {
+			this.cachedContent.put(this.path, content);
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -78,18 +86,26 @@ public class DatabaseResource extends KeyValueResource {
 	public boolean renameTo(Map<String, String> renameKeys) {
 		List<Object[]> args = renameKeys.entrySet().stream().map(entry -> new Object[]{entry.getValue(), entry.getKey()}).collect(Collectors.toList());
 		String sql = String.format("update %s set file_path = ? where file_path = ?", tableName);
-		return Arrays.stream(template.batchUpdate(sql, args)).sum() > 0;
+		if (Arrays.stream(template.batchUpdate(sql, args)).sum() > 0) {
+			renameKeys.forEach((oldKey, newKey) -> this.cachedContent.put(newKey, this.cachedContent.remove(oldKey)));
+			return true;
+		}
+		return false;
 	}
 
 	@Override
 	public boolean delete() {
 		String sql = String.format("delete from %s where file_path = ? or file_path like '%s%%'", tableName, isDirectory() ? this.path : this.path + separator);
-		return template.update(sql, this.path) > 0;
+		if (template.update(sql, this.path) > 0) {
+			this.cachedContent.remove(this.path);
+			return true;
+		}
+		return false;
 	}
 
 	@Override
 	public Function<String, Resource> mappedFunction() {
-		return it -> new DatabaseResource(template, tableName, separator, it, readonly, this.cachedContent,this);
+		return it -> new DatabaseResource(template, tableName, separator, it, readonly, this.cachedContent, this);
 	}
 
 	@Override

@@ -30,7 +30,6 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	public StoreServiceProvider(Class<T> clazz, Resource workspace, GroupServiceProvider groupServiceProvider) {
 		this.clazz = clazz;
 		this.workspace = workspace;
-		this.workspace.readAll();
 		this.groupServiceProvider = groupServiceProvider;
 		if(!this.workspace.exists()){
 			this.workspace.mkdir();

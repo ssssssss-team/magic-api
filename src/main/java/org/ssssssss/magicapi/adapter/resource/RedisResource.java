@@ -33,11 +33,12 @@ public class RedisResource extends KeyValueResource {
 
 	@Override
 	public void readAll() {
+		this.cachedContent.clear();
 		List<String> keys = new ArrayList<>(keys());
 		List<String> values = redisTemplate.opsForValue().multiGet(keys);
-		if(values != null){
-			for (int i = 0,size = keys.size(); i < size; i++) {
-				this.cachedContent.put(keys.get(i),values.get(i));
+		if (values != null) {
+			for (int i = 0, size = keys.size(); i < size; i++) {
+				this.cachedContent.put(keys.get(i), values.get(i));
 			}
 		}
 	}
@@ -54,12 +55,14 @@ public class RedisResource extends KeyValueResource {
 	@Override
 	public boolean write(String content) {
 		this.redisTemplate.opsForValue().set(this.path, content);
+		this.cachedContent.put(this.path, content);
 		return true;
 	}
 
 	@Override
 	protected boolean renameTo(Map<String, String> renameKeys) {
 		renameKeys.forEach(this.redisTemplate::rename);
+		renameKeys.forEach((oldKey, newKey) -> this.cachedContent.put(newKey, this.cachedContent.remove(oldKey)));
 		return true;
 	}
 
@@ -74,7 +77,11 @@ public class RedisResource extends KeyValueResource {
 
 	@Override
 	protected boolean deleteByKey(String key) {
-		return Boolean.TRUE.equals(this.redisTemplate.delete(key));
+		if (Boolean.TRUE.equals(this.redisTemplate.delete(key))) {
+			this.cachedContent.remove(key);
+			return true;
+		}
+		return false;
 	}
 
 	@Override

@@ -70,29 +70,29 @@ public class RequestHandler extends MagicController {
 			response.setHeader(HEADER_RESPONSE_WITH_MAGIC_API, CONST_STRING_TRUE);
 			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
 			if (!allowVisit(request, RequestInterceptor.Authorization.RUN)) {
-				return new JsonBean<>(-10, "无权限执行测试方法");
+				return new JsonBean<>(PERMISSION_INVALID);
 			}
 		}
 		if (requestEntity.getApiInfo() == null) {
-			logger.error("接口不存在");
-			return resultProvider.buildResult(requestEntity, 1001, "fail", "接口不存在");
+			logger.error("{}找不到对应接口", request.getRequestURI());
+			return buildResult(requestEntity, API_NOT_FOUND, "接口不存在");
 		}
 		// 验证
 		Object value = doValidate(requestEntity, "参数", requestEntity.getApiInfo().getParameters(), parameters);
 		if (value != null) {
-			return requestEntity.isRequestedFromTest() ? new JsonBean<>(0, "参数验证失败", value) : value;
+			return requestEntity.isRequestedFromTest() ? new JsonBean<>(PARAMETER_INVALID, value) : value;
 		}
 		Map<String, Object> headers = new HashMap<String, Object>() {
 			@Override
 			public Object get(Object key) {
-				return request.getHeader(key.toString());
+				return getOrDefault(key, request.getHeader(key.toString()));
 			}
 		};
 		requestEntity.setHeaders(headers);
 		// 验证 header
 		value = doValidate(requestEntity, "header", requestEntity.getApiInfo().getHeaders(), headers);
 		if (value != null) {
-			return requestEntity.isRequestedFromTest() ? new JsonBean<>(0, "header验证失败", value) : value;
+			return requestEntity.isRequestedFromTest() ? new JsonBean<>(HEADER_INVALID, value) : value;
 		}
 		MagicScriptContext context = createMagicScriptContext(requestEntity);
 		requestEntity.setMagicScriptContext(context);
@@ -108,6 +108,10 @@ public class RequestHandler extends MagicController {
 			return isRequestedFromContinue(request) ? invokeContinueRequest(requestEntity) : invokeTestRequest(requestEntity);
 		}
 		return invokeRequest(requestEntity);
+	}
+
+	private Object buildResult(RequestEntity requestEntity, JsonCode code, Object data) {
+		return resultProvider.buildResult(requestEntity, code.getCode(), code.getMessage(), data);
 	}
 
 	private <T extends BaseDefinition> Object doValidate(RequestEntity requestEntity, String comment, List<T> validateParameters, Map<String, Object> parameters) {
@@ -184,12 +188,12 @@ public class RequestHandler extends MagicController {
 		String sessionId = getRequestedSessionId(request);
 		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(sessionId);
 		if (context == null) {
-			return new JsonBean<>(0, "debug session not found!", resultProvider.buildResult(requestEntity, 0, "debug session not found!"));
+			return new JsonBean<>(DEBUG_SESSION_NOT_FOUND, buildResult(requestEntity, DEBUG_SESSION_NOT_FOUND, null));
 		}
 		// 重置断点
 		context.setBreakpoints(getRequestedBreakpoints(request));
 		// 步进
-		context.setStepInto("true".equalsIgnoreCase(request.getHeader(HEADER_REQUEST_STEP_INTO)));
+		context.setStepInto(CONST_STRING_TRUE.equalsIgnoreCase(request.getHeader(HEADER_REQUEST_STEP_INTO)));
 		try {
 			context.singal();    //等待语句执行到断点或执行完毕
 		} catch (InterruptedException e) {

@@ -16,29 +16,18 @@ public abstract class ApiServiceProvider extends StoreServiceProvider<ApiInfo> {
 
 	/**
 	 * 判断接口是否存在
-	 *
-	 * @param name 接口名称
-	 * @param groupId 分组Id
-	 * @param method  请求方法
-	 * @param path    请求路径
 	 */
-	public boolean exists(String name, String groupId, String method, String path) {
+	public boolean exists(ApiInfo info) {
 		return infos.values().stream()
-				.anyMatch(it -> groupId.equals(it.getGroupId()) && (name.equals(it.getName()) || (method.equals(it.getMethod()) && path.equals(it.getPath()))));
+				.anyMatch(it -> info.getGroupId().equals(it.getGroupId()) && (info.getName().equals(it.getName()) || (info.getMethod().equals(it.getMethod()) && info.getPath().equals(it.getPath()))));
 	}
 
 	/**
 	 * 判断接口是否存在
-	 *
-	 * @param name 接口名称
-	 * @param groupId 分组ID
-	 * @param method  请求方法
-	 * @param path    请求路径
-	 * @param id      排除接口
 	 */
-	public boolean existsWithoutId(String name, String groupId, String method, String path, String id) {
+	public boolean existsWithoutId(ApiInfo info) {
 		return infos.values().stream()
-				.anyMatch(it -> !id.equals(it.getId()) && groupId.equals(it.getGroupId()) && (name.equals(it.getName()) || (method.equals(it.getMethod()) && path.equals(it.getPath()))));
+				.anyMatch(it -> !info.getId().equals(it.getId()) && info.getGroupId().equals(it.getGroupId()) && (info.getName().equals(it.getName()) || (info.getMethod().equals(it.getMethod()) && info.getPath().equals(it.getPath()))));
 	}
 
 	@Override

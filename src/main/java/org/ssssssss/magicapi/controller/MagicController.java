@@ -1,14 +1,25 @@
 package org.ssssssss.magicapi.controller;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
+import org.ssssssss.magicapi.config.Valid;
+import org.ssssssss.magicapi.exception.InvalidArgumentException;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
+import org.ssssssss.magicapi.model.JsonBean;
+import org.ssssssss.magicapi.model.JsonCode;
+import org.ssssssss.magicapi.model.JsonCodeConstants;
 import org.ssssssss.magicapi.utils.MD5Utils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Objects;
 
-public class MagicController {
+public class MagicController implements JsonCodeConstants {
 
+	private static final Logger logger = LoggerFactory.getLogger(MagicController.class);
 
 	public static final String HEADER_REQUEST_SESSION = "Magic-Request-Session";
 
@@ -24,6 +35,39 @@ public class MagicController {
 
 	MagicController(MagicConfiguration configuration) {
 		this.configuration = configuration;
+	}
+
+	@ExceptionHandler(Exception.class)
+	public Object exceptionHandler(Exception e) {
+		logger.error("magic-api调用接口出错", e);
+		return new JsonBean<>(-1, e.getMessage());
+	}
+
+	@ExceptionHandler(InvalidArgumentException.class)
+	@ResponseBody
+	public Object exceptionHandler(InvalidArgumentException e) {
+		return new JsonBean<>(e.getCode(), e.getMessage());
+	}
+
+	public void doValid(HttpServletRequest request, Valid valid) {
+		if (valid != null) {
+			if (!valid.readonly() && configuration.getWorkspace().readonly()) {
+				throw new InvalidArgumentException(IS_READ_ONLY);
+			}
+			if (valid.authorization() != RequestInterceptor.Authorization.NONE && !allowVisit(request, valid.authorization())) {
+				throw new InvalidArgumentException(PERMISSION_INVALID);
+			}
+		}
+	}
+
+	public void isTrue(boolean value, JsonCode jsonCode) {
+		if (!value) {
+			throw new InvalidArgumentException(jsonCode);
+		}
+	}
+
+	public void notBlank(String value, JsonCode jsonCode) {
+		isTrue(StringUtils.isNotBlank(value), jsonCode);
 	}
 
 	/**

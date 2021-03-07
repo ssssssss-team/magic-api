@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 
 public class MagicWorkbenchController extends MagicController {
 
-	private static Logger logger = LoggerFactory.getLogger(MagicWorkbenchController.class);
+	private static final Logger logger = LoggerFactory.getLogger(MagicWorkbenchController.class);
 
 	public MagicWorkbenchController(MagicConfiguration configuration) {
 		super(configuration);
@@ -38,7 +38,7 @@ public class MagicWorkbenchController extends MagicController {
 	@ResponseBody
 	public JsonBean<Boolean> login(String username, String password, HttpServletRequest request, HttpServletResponse response) {
 		if (username != null && password != null && Objects.equals(username, configuration.getUsername()) && Objects.equals(password, configuration.getPassword())) {
-			response.setHeader(configuration.getTokenKey(),MD5Utils.encrypt(String.format("%s||%s", username, password)));
+			response.setHeader(configuration.getTokenKey(), MD5Utils.encrypt(String.format("%s||%s", username, password)));
 			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, configuration.getTokenKey());
 			return new JsonBean<>(true);
 		} else if (allowVisit(request, null)) {

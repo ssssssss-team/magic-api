@@ -46,6 +46,14 @@ public class JsonBean<T> {
     public JsonBean() {
     }
 
+    public JsonBean(JsonCode jsonCode) {
+        this(jsonCode, null);
+    }
+
+    public JsonBean(JsonCode jsonCode, T data) {
+        this(jsonCode.getCode(), jsonCode.getMessage(), data);
+    }
+
     public JsonBean(T data) {
         this.data = data;
     }

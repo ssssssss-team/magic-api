@@ -20,18 +20,17 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	private final Resource workspace;
 
-	private String metabase = "group.json";
+	private final String metabase = "group.json";
 
 	public DefaultGroupServiceProvider(Resource workspace) {
 		this.workspace = workspace;
-		this.workspace.readAll();
 	}
 
 	@Override
 	public boolean insert(Group group) {
 		group.setId(UUID.randomUUID().toString().replace("-", ""));
 		Resource directory = this.getGroupResource(group.getParentId());
-		directory = directory == null ? this.getGroupResource(group.getType(),group.getName()) : directory.getDirectory(group.getName());
+		directory = directory == null ? this.getGroupResource(group.getType(), group.getName()) : directory.getDirectory(group.getName());
 		if (!directory.exists() && directory.mkdir()) {
 			Resource resource = directory.getResource(metabase);
 			if (resource.write(JsonUtils.toJsonString(group))) {
@@ -99,6 +98,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	@Override
 	public List<Group> groupList(String type) {
 		Resource resource = this.workspace.getDirectory("1".equals(type) ? "api" : "function");
+		resource.readAll();
 		return resource.dirs().stream().map(it -> it.getResource(metabase)).filter(Resource::exists)
 				.map(it -> {
 					Group group = JsonUtils.readValue(it.read(), Group.class);
