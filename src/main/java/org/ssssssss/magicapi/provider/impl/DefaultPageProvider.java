@@ -13,12 +13,12 @@ public class DefaultPageProvider implements PageProvider {
     /**
      * page参数名
      */
-    private String pageName;
+    private final String pageName;
 
     /**
      * pageSize参数名
      */
-    private String pageSize;
+    private final String pageSize;
 
     /**
      * 默认分页大小
