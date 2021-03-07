@@ -19,8 +19,6 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -53,7 +51,6 @@ import org.ssssssss.script.reflection.AbstractReflection;
 import org.ssssssss.script.reflection.JavaReflection;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -218,20 +215,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		if (properties.isSupportCrossDomain()) {
-			registry.addInterceptor(new HandlerInterceptor() {
-				@Override
-				public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-					if (handler instanceof HandlerMethod) {
-						handler = ((HandlerMethod) handler).getBean();
-					}
-					if (handler instanceof MagicController) {
-						magicCorsFilter.process(request, response);
-					}
-					return true;
-				}
-			}).addPathPatterns("/**");
-		}
+		registry.addInterceptor(new MagicWebRequestInterceptor(properties.isSupportCrossDomain() ? magicCorsFilter : null)).addPathPatterns("/**");
 	}
 
 	@Bean
