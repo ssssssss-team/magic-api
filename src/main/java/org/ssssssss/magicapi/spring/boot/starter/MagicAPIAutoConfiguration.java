@@ -176,7 +176,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	@ConditionalOnMissingBean(Resource.class)
 	@ConditionalOnProperty(prefix = "magic-api", name = "resource.type", havingValue = "database")
-	public Resource magicDatabaseResource(MagicDynamicDataSource magicDynamicDataSource) throws IOException {
+	public Resource magicDatabaseResource(MagicDynamicDataSource magicDynamicDataSource) {
 		ResourceConfig resourceConfig = properties.getResource();
 		MagicDynamicDataSource.DataSourceNode dataSourceNode = magicDynamicDataSource.getDataSource(resourceConfig.getDatasource());
 		if (dataSourceNode == null) {
@@ -225,7 +225,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 
 	@Bean
-	@ConditionalOnProperty(prefix = "magic-api", value = "cors", havingValue = "true", matchIfMissing = true)
+	@ConditionalOnProperty(prefix = "magic-api", value = "support-cross-domain", havingValue = "true", matchIfMissing = true)
 	public FilterRegistrationBean<MagicCorsFilter> magicCorsFilterRegistrationBean() {
 		FilterRegistrationBean<MagicCorsFilter> registration = new FilterRegistrationBean<>(magicCorsFilter);
 		registration.addUrlPatterns("/*");
@@ -248,7 +248,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	@ConditionalOnMissingBean(ResultProvider.class)
 	public ResultProvider resultProvider() {
-		return new DefaultResultProvider();
+		return new DefaultResultProvider(properties.getResponse());
 	}
 
 	/**

@@ -93,6 +93,13 @@ public class MagicAPIProperties {
 	 */
 	private boolean supportCrossDomain = true;
 
+	/**
+	 * JSON响应结构表达式
+	 *
+	 * @since 1.0.0
+	 */
+	private String response;
+
 
 	@NestedConfigurationProperty
 	private SecurityConfig securityConfig = new SecurityConfig();
@@ -290,5 +297,13 @@ public class MagicAPIProperties {
 
 	public void setSupportCrossDomain(boolean supportCrossDomain) {
 		this.supportCrossDomain = supportCrossDomain;
+	}
+
+	public String getResponse() {
+		return response;
+	}
+
+	public void setResponse(String response) {
+		this.response = response;
 	}
 }
