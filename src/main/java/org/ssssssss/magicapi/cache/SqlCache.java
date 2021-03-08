@@ -16,6 +16,16 @@ public interface SqlCache {
 		return MD5Utils.encrypt(sql + ":" + Arrays.toString(params));
 	}
 
+
+	/**
+	 * 存入缓存
+	 *
+	 * @param name  名字
+	 * @param key   key
+	 * @param value 值
+	 */
+	void put(String name, String key, Object value);
+
 	/**
 	 * 存入缓存
 	 *

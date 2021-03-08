@@ -24,11 +24,15 @@ public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.Expir
     }
 
     @Override
+    public void put(String name, String key, Object value) {
+        // 封装成过期时间节点
+        put(name, key, value, this.expire);
+    }
+
+    @Override
     public void put(String name, String key, Object value, long ttl) {
-        long expireTime = Long.MAX_VALUE;
-        if (ttl >= 0) {
-            expireTime = System.currentTimeMillis() + (ttl == 0 ? this.expire : ttl);
-        }
+        long expireTime = ttl > 0 ? (System.currentTimeMillis() + ttl) :
+                (this.expire > -1 ? System.currentTimeMillis() + this.expire : Long.MAX_VALUE);
         lock.writeLock().lock();
         try {
             // 封装成过期时间节点
@@ -52,7 +56,8 @@ public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.Expir
             return null;
         }
         // 惰性删除过期的
-        if (this.expire > -1L && expireNode.expire < System.currentTimeMillis()) {
+//        if (this.expire > -1L && expireNode.expire < System.currentTimeMillis()) {
+        if (expireNode.expire < System.currentTimeMillis()) {
             try {
                 lock.writeLock().lock();
                 super.remove(key);
