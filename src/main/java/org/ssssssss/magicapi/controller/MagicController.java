@@ -38,6 +38,7 @@ public class MagicController implements JsonCodeConstants {
 	}
 
 	@ExceptionHandler(Exception.class)
+	@ResponseBody
 	public Object exceptionHandler(Exception e) {
 		logger.error("magic-api调用接口出错", e);
 		return new JsonBean<>(-1, e.getMessage());

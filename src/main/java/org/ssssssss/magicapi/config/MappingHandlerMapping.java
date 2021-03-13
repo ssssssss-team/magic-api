@@ -87,7 +87,7 @@ public class MappingHandlerMapping {
 	 */
 	private final List<ApiInfo> apiInfos = Collections.synchronizedList(new ArrayList<>());
 
-	public MappingHandlerMapping(String prefix,boolean allowOverride) throws NoSuchMethodException {
+	public MappingHandlerMapping(String prefix, boolean allowOverride) throws NoSuchMethodException {
 		this.prefix = prefix;
 		this.allowOverride = allowOverride;
 	}
@@ -231,13 +231,17 @@ public class MappingHandlerMapping {
 			return nameEquals || !groupServiceProvider.exists(group);
 		}
 		// 检测名字是否冲突
-		if((!parentIdEquals || !nameEquals) && groupServiceProvider.exists(group)){
+		if ((!parentIdEquals || !nameEquals) && groupServiceProvider.exists(group)) {
 			return false;
 		}
 		// 新的接口分组路径
 		String newPath = groupServiceProvider.getFullPath(group.getParentId());
 		// 检测冲突
 		return !hasConflict(oldTree, newPath + "/" + Objects.toString(group.getPath(), ""));
+	}
+
+	public boolean hasRegister(Set<String> paths) {
+		return paths.stream().anyMatch(mappings::containsKey);
 	}
 
 	/**

@@ -20,15 +20,15 @@ public class RedisResource extends KeyValueResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(RedisResource.class);
 
-	private final Map<String,String> cachedContent = new ConcurrentHashMap<>();
+	private final Map<String, String> cachedContent = new ConcurrentHashMap<>();
 
-	public RedisResource(StringRedisTemplate redisTemplate, String path, String separator, boolean readonly, RedisResource parent) {
-		super(separator, path, readonly, parent);
+	public RedisResource(StringRedisTemplate redisTemplate, String path, boolean readonly, RedisResource parent) {
+		super(":", path, readonly, parent);
 		this.redisTemplate = redisTemplate;
 	}
 
-	public RedisResource(StringRedisTemplate redisTemplate, String path, String separator, boolean readonly) {
-		this(redisTemplate,path,separator,readonly,null);
+	public RedisResource(StringRedisTemplate redisTemplate, String path, boolean readonly) {
+		this(redisTemplate, path, readonly, null);
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public class RedisResource extends KeyValueResource {
 	@Override
 	public byte[] read() {
 		String value = this.cachedContent.get(path);
-		if(value == null){
+		if (value == null) {
 			value = redisTemplate.opsForValue().get(path);
 		}
 		return value == null ? new byte[0] : value.getBytes(StandardCharsets.UTF_8);
@@ -68,7 +68,7 @@ public class RedisResource extends KeyValueResource {
 
 	@Override
 	public boolean exists() {
-		if(this.cachedContent.containsKey(this.path)){
+		if (this.cachedContent.containsKey(this.path)) {
 			return true;
 		}
 		return Boolean.TRUE.equals(this.redisTemplate.hasKey(this.path));
@@ -86,7 +86,7 @@ public class RedisResource extends KeyValueResource {
 
 	@Override
 	protected Function<String, Resource> mappedFunction() {
-		return (it) -> new RedisResource(this.redisTemplate, it, this.separator, readonly, this);
+		return (it) -> new RedisResource(this.redisTemplate, it, readonly, this);
 	}
 
 	@Override

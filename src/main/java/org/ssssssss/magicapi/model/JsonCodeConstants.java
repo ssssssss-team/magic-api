@@ -50,6 +50,10 @@ public interface JsonCodeConstants {
 
 	JsonCode HEADER_INVALID = new JsonCode(0, "header验证失败");
 
+	JsonCode FILE_IS_REQUIRED = new JsonCode(0, "请上传文件");
+
+	JsonCode UPLOAD_PATH_CONFLICT = new JsonCode(0, "上传后%s路径会有冲突，请检查");
+
 	JsonCode DEBUG_SESSION_NOT_FOUND = new JsonCode(0, "debug session not found!");
 
 	JsonCode API_NOT_FOUND = new JsonCode(1001, "api not found");

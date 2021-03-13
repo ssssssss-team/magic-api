@@ -1,14 +1,13 @@
 package org.ssssssss.magicapi.provider;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.model.MagicEntity;
 import org.ssssssss.magicapi.utils.JsonUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class StoreServiceProvider<T extends MagicEntity> {
@@ -27,15 +26,17 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 
 	protected Class<T> clazz;
 
+	private static Logger logger = LoggerFactory.getLogger(StoreServiceProvider.class);
+
 	public StoreServiceProvider(Class<T> clazz, Resource workspace, GroupServiceProvider groupServiceProvider) {
 		this.clazz = clazz;
 		this.workspace = workspace;
 		this.groupServiceProvider = groupServiceProvider;
-		if(!this.workspace.exists()){
+		if (!this.workspace.exists()) {
 			this.workspace.mkdir();
 		}
 		this.backupResource = this.workspace.parent().getDirectory("backups");
-		if(!this.backupResource.exists()){
+		if (!this.backupResource.exists()) {
 			this.backupResource.mkdir();
 		}
 	}
@@ -62,9 +63,13 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	 */
 	public boolean backup(T info) {
 		Resource directory = this.backupResource.getDirectory(info.getId());
-		if(!directory.readonly() && (directory.exists() || directory.mkdir())){
+		if (!directory.readonly() && (directory.exists() || directory.mkdir())) {
 			Resource resource = directory.getResource(String.format("%s.ms", System.currentTimeMillis()));
-			return resource.write(serialize(info));
+			try {
+				return resource.write(serialize(info));
+			} catch (Exception e) {
+				logger.warn("保存历史记录失败,{}", e.getMessage());
+			}
 		}
 		return false;
 	}
@@ -78,7 +83,10 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	public List<Long> backupList(String id) {
 		Resource directory = this.backupResource.getDirectory(id);
 		List<Resource> resources = directory.files(".ms");
-		return resources.stream().map(it -> Long.valueOf(it.name().replace(".ms",""))).collect(Collectors.toList());
+		return resources.stream()
+				.map(it -> Long.valueOf(it.name().replace(".ms", "")))
+				.sorted(Comparator.reverseOrder())
+				.collect(Collectors.toList());
 	}
 
 	/**
@@ -89,9 +97,9 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	 */
 	public T backupInfo(String id, Long timestamp) {
 		Resource directory = this.backupResource.getDirectory(id);
-		if(directory.exists()){
+		if (directory.exists()) {
 			Resource resource = directory.getResource(String.format("%s.ms", timestamp));
-			if(resource.exists()){
+			if (resource.exists()) {
 				return deserialize(resource.read());
 			}
 		}
@@ -201,7 +209,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	/**
 	 * 根据组ID删除
 	 */
-	public boolean deleteGroup(String rootId,List<String> groupIds) {
+	public boolean deleteGroup(String rootId, List<String> groupIds) {
 		if (!groupServiceProvider.getGroupResource(rootId).delete()) {
 			return false;
 		}

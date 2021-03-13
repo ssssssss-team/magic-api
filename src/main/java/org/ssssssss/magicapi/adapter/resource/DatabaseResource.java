@@ -18,14 +18,26 @@ public class DatabaseResource extends KeyValueResource {
 
 	private Map<String, String> cachedContent = new ConcurrentHashMap<>();
 
-	public DatabaseResource(JdbcTemplate template, String tableName, String separator, String path, boolean readonly, KeyValueResource parent) {
-		super(separator, path, readonly, parent);
+	public DatabaseResource(JdbcTemplate template, String tableName) {
+		this(template, tableName,  false);
+	}
+
+	public DatabaseResource(JdbcTemplate template, String tableName, boolean readonly) {
+		this(template, tableName, "/magic-api", readonly);
+	}
+
+	public DatabaseResource(JdbcTemplate template, String tableName, String path,boolean readonly) {
+		this(template, tableName, path, readonly, null);
+	}
+
+	public DatabaseResource(JdbcTemplate template, String tableName, String path, boolean readonly, KeyValueResource parent) {
+		super("/", path, readonly, parent);
 		this.template = template;
 		this.tableName = tableName;
 	}
 
-	public DatabaseResource(JdbcTemplate template, String tableName, String separator, String path, boolean readonly, Map<String, String> cachedContent, KeyValueResource parent) {
-		this(template, tableName, separator, path, readonly, parent);
+	public DatabaseResource(JdbcTemplate template, String tableName, String path, boolean readonly, Map<String, String> cachedContent, KeyValueResource parent) {
+		this(template, tableName, path, readonly, parent);
 		this.cachedContent = cachedContent;
 	}
 
@@ -105,7 +117,7 @@ public class DatabaseResource extends KeyValueResource {
 
 	@Override
 	public Function<String, Resource> mappedFunction() {
-		return it -> new DatabaseResource(template, tableName, separator, it, readonly, this.cachedContent, this);
+		return it -> new DatabaseResource(template, tableName, it, readonly, this.cachedContent, this);
 	}
 
 	@Override

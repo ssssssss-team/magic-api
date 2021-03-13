@@ -40,6 +40,9 @@ public abstract class KeyValueResource implements Resource {
 
 	@Override
 	public final boolean renameTo(Resource resource) {
+		if(resource.name().equalsIgnoreCase(this.name())){
+			return true;
+		}
 		if (!(resource instanceof KeyValueResource)) {
 			throw new IllegalArgumentException("无法将" + this.getAbsolutePath() + "重命名为:" + resource.getAbsolutePath());
 		}

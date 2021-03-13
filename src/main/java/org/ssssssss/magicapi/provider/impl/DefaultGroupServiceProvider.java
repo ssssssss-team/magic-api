@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.provider.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.TreeNode;
@@ -28,7 +29,9 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	@Override
 	public boolean insert(Group group) {
-		group.setId(UUID.randomUUID().toString().replace("-", ""));
+		if(StringUtils.isBlank(group.getId())){
+			group.setId(UUID.randomUUID().toString().replace("-", ""));
+		}
 		Resource directory = this.getGroupResource(group.getParentId());
 		directory = directory == null ? this.getGroupResource(group.getType(), group.getName()) : directory.getDirectory(group.getName());
 		if (!directory.exists() && directory.mkdir()) {
@@ -79,6 +82,11 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	@Override
 	public boolean containsApiGroup(String groupId) {
 		return "0".equals(groupId) || cacheApiTree.containsKey(groupId);
+	}
+
+	@Override
+	public Group readGroup(Resource resource) {
+		return JsonUtils.readValue(resource.read(),Group.class);
 	}
 
 	@Override

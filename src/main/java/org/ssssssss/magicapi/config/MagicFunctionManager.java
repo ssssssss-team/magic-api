@@ -16,6 +16,7 @@ import org.ssssssss.script.MagicScriptContext;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -82,6 +83,10 @@ public class MagicFunctionManager {
 		String path = PathUtils.replaceSlash(Objects.toString(groupServiceProvider.getFullPath(info.getGroupId()), "") + "/" + info.getPath());
 		FunctionInfo functionInfo = mappings.get(path);
 		return functionInfo != null && !Objects.equals(info.getId(), functionInfo.getId());
+	}
+
+	public boolean hasRegister(Set<String> paths) {
+		return paths.stream().anyMatch(mappings::containsKey);
 	}
 
 	/**

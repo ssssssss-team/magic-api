@@ -34,6 +34,8 @@ public interface GroupServiceProvider {
 	 */
 	boolean containsApiGroup(String groupId);
 
+	Group readGroup(Resource resource);
+
 	/**
 	 * 接口分组列表
 	 */
