@@ -14,6 +14,6 @@ public class LowerColumnMapperProvider implements ColumnMapperProvider {
 
 	@Override
 	public String mapping(String columnName) {
-		return columnName.toLowerCase();
+		return columnName == null ? null : columnName.toLowerCase();
 	}
 }

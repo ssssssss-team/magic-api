@@ -14,7 +14,7 @@ public class UpperColumnMapperProvider implements ColumnMapperProvider {
 
 	@Override
 	public String mapping(String columnName) {
-		return columnName.toUpperCase();
+		return columnName == null ? null : columnName.toUpperCase();
 	}
 
 }
