@@ -14,8 +14,8 @@ public class CamelColumnMapperProvider implements ColumnMapperProvider {
 
 	@Override
 	public String mapping(String columnName) {
-		if (columnName == null || !columnName.contains("_")) {
-			return columnName;
+		if (columnName == null) {
+			return null;
 		}
 		columnName = columnName.toLowerCase();
 		boolean upperCase = false;
