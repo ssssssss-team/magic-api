@@ -74,7 +74,6 @@ public interface Resource {
 					zos.closeEntry();
 					processExport(zos, newPath, resource, resource.resources(), excludes);
 				} else {
-					System.out.println(path + resource.name());
 					zos.putNextEntry(new ZipEntry(path + resource.name()));
 					zos.write(resource.read());
 					zos.closeEntry();
