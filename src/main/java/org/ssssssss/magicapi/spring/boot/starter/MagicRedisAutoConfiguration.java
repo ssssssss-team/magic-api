@@ -40,6 +40,6 @@ public class MagicRedisAutoConfiguration {
 	@ConditionalOnProperty(prefix = "magic-api", name = "resource.type", havingValue = "redis")
 	public Resource magicRedisResource(RedisConnectionFactory connectionFactory) {
 		ResourceConfig resource = properties.getResource();
-		return new RedisResource(new StringRedisTemplate(connectionFactory), resource.getPrefix(), resource.getSeparator(), resource.isReadonly());
+		return new RedisResource(new StringRedisTemplate(connectionFactory), resource.getPrefix(), resource.isReadonly());
 	}
 }

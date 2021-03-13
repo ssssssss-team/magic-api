@@ -182,7 +182,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		if (dataSourceNode == null) {
 			throw new IllegalArgumentException(String.format("找不到数据源:%s", resourceConfig.getDatasource()));
 		}
-		return new DatabaseResource(dataSourceNode.getJdbcTemplate(), resourceConfig.getTableName(), resourceConfig.getSeparator(), resourceConfig.getPrefix(), resourceConfig.isReadonly(), null);
+		return new DatabaseResource(dataSourceNode.getJdbcTemplate(), resourceConfig.getTableName(), resourceConfig.getPrefix(), resourceConfig.isReadonly());
 	}
 
 	@Bean

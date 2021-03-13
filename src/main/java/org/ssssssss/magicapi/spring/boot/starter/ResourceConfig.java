@@ -26,11 +26,6 @@ public class ResourceConfig {
 	private String prefix = "magic-api";
 
 	/**
-	 * 分隔符
-	 */
-	private String separator = ":";
-
-	/**
 	 * 使用数据库存储时的表名
 	 */
 	private String tableName = "magic_api_file";
@@ -70,14 +65,6 @@ public class ResourceConfig {
 
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
-	}
-
-	public String getSeparator() {
-		return separator;
-	}
-
-	public void setSeparator(String separator) {
-		this.separator = separator;
 	}
 
 	public String getTableName() {
