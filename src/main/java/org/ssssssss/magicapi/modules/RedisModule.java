@@ -19,7 +19,7 @@ public class RedisModule implements MagicModule, DynamicMethod {
 		return "redis";
 	}
 
-	private StringRedisTemplate redisTemplate;
+	private final StringRedisTemplate redisTemplate;
 
 	public RedisModule(RedisConnectionFactory connectionFactory) {
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
