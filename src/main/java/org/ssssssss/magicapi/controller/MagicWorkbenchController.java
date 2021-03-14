@@ -135,7 +135,8 @@ public class MagicWorkbenchController extends MagicController {
 			groups.removeIf(it -> it.getId().equalsIgnoreCase(group.getId()));
 		}
 		for (Group group : groups) {
-			if (groupServiceProvider.getGroupResource(group.getId()).exists()) {
+			Resource groupResource = groupServiceProvider.getGroupResource(group.getId());
+			if (groupResource!= null && groupResource.exists()) {
 				groupServiceProvider.update(group);
 			} else {
 				groupServiceProvider.insert(group);
@@ -154,6 +155,7 @@ public class MagicWorkbenchController extends MagicController {
 	private <T extends MagicEntity> void write(StoreServiceProvider<T> provider, Resource backups, Set<T> infos) {
 		for (T info : infos) {
 			Resource resource = configuration.getGroupServiceProvider().getGroupResource(info.getGroupId());
+			resource = resource.getResource(info.getName() + ".ms");
 			byte[] content = provider.serialize(info);
 			resource.write(content);
 			Resource directory = backups.getDirectory(info.getId());

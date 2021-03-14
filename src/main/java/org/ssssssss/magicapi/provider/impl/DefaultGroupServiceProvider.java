@@ -154,7 +154,8 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 		if (groupId == null || "0".equals(groupId)) {
 			return null;
 		}
-		return mappings.get(groupId).parent();
+		Resource resource = mappings.get(groupId);
+		return resource == null ? null : resource.parent();
 	}
 
 	private TreeNode<Group> convertToTree(List<Group> groups) {

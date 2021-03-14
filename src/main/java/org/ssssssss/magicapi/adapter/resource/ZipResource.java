@@ -70,7 +70,7 @@ public class ZipResource implements Resource {
 
 	@Override
 	public boolean isDirectory() {
-		return this.path.endsWith("/");
+		return this.path.isEmpty() || this.path.endsWith("/");
 	}
 
 	@Override
