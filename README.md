@@ -48,7 +48,7 @@ magic-api 是一个基于Java的接口快速开发框架，编写接口将通过
 <dependency>
 	<groupId>org.ssssssss</groupId>
     <artifactId>magic-api-spring-boot-starter</artifactId>
-    <version>0.7.2</version>
+    <version>1.0.0.beta1</version>
 </dependency>
 ```
 ## 修改application.properties
@@ -58,7 +58,7 @@ server.port=9999
 #配置web页面入口
 magic-api.web=/magic/web
 #配置文件存储位置。当以classpath开头时，为只读模式
-magic-api.workspace=/data/magic-api
+magic-api.resource.location=/data/magic-api
 ```
 
 ## 在线编辑
