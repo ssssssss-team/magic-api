@@ -35,6 +35,14 @@ public class BoundSql {
 
 	private long ttl;
 
+	public BoundSql(String sql, List<Object> parameters, SQLModule sqlModule) {
+		this.sql = sql;
+		this.parameters = parameters;
+		this.sqlCache = sqlModule.getSqlCache();
+		this.cacheName = sqlModule.getCacheName();
+		this.ttl = sqlModule.getTtl();
+	}
+
 	BoundSql(String sql) {
 		MagicScriptContext context = MagicScriptContext.get();
 		// 处理?{}参数
@@ -78,11 +86,11 @@ public class BoundSql {
 		this.sql = this.sql == null ? null : REPLACE_MULTI_WHITE_LINE.matcher(this.sql.trim()).replaceAll("\r\n");
 	}
 
-	BoundSql(String sql, SqlCache sqlCache, String cacheName, long ttl) {
+	BoundSql(String sql, SQLModule sqlModule) {
 		this(sql);
-		this.sqlCache = sqlCache;
-		this.cacheName = cacheName;
-		this.ttl = ttl;
+		this.sqlCache = sqlModule.getSqlCache();
+		this.cacheName = sqlModule.getCacheName();
+		this.ttl = sqlModule.getTtl();
 	}
 
 	private BoundSql() {

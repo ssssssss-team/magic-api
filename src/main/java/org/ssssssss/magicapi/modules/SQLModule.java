@@ -13,6 +13,7 @@ import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.magicapi.dialect.Dialect;
 import org.ssssssss.magicapi.interceptor.SQLInterceptor;
 import org.ssssssss.magicapi.model.Page;
+import org.ssssssss.magicapi.modules.table.NamedTable;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.MagicScriptContext;
@@ -118,6 +119,18 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	private void setTtl(long ttl) {
 		this.ttl = ttl;
+	}
+
+	protected String getCacheName() {
+		return cacheName;
+	}
+
+	protected long getTtl() {
+		return ttl;
+	}
+
+	protected SqlCache getSqlCache() {
+		return sqlCache;
 	}
 
 	@UnableCall
@@ -243,7 +256,11 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("查询SQL，返回List类型结果")
 	public List<Map<String, Object>> select(@Comment("`SQL`语句") String sql) {
-		BoundSql boundSql = new BoundSql(sql, this.sqlCache, this.cacheName, this.ttl);
+		return select(new BoundSql(sql, this));
+	}
+
+	@UnableCall
+	public List<Map<String, Object>> select(BoundSql boundSql) {
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.columnMapRowMapper, boundSql.getParameters()));
 	}
 
@@ -252,7 +269,11 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("执行update操作，返回受影响行数")
 	public int update(@Comment("`SQL`语句") String sql) {
-		BoundSql boundSql = new BoundSql(sql);
+		return update(new BoundSql(sql));
+	}
+
+	@UnableCall
+	public int update(BoundSql boundSql) {
 		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql));
 		int value = dataSourceNode.getJdbcTemplate().update(boundSql.getSql(), boundSql.getParameters());
 		if (this.cacheName != null) {
@@ -289,8 +310,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("执行分页查询，分页条件自动获取")
 	public Object page(@Comment("`SQL`语句") String sql) {
-		Page page = pageProvider.getPage(MagicScriptContext.get());
-		return page(sql, page.getLimit(), page.getOffset());
+		return page(new BoundSql(sql, this));
 	}
 
 	/**
@@ -298,7 +318,17 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("执行分页查询，分页条件手动传入")
 	public Object page(@Comment("`SQL`语句") String sql, @Comment("限制条数") long limit, @Comment("跳过条数") long offset) {
-		BoundSql boundSql = new BoundSql(sql, this.sqlCache, this.cacheName, this.ttl);
+		BoundSql boundSql = new BoundSql(sql, this);
+		return page(boundSql, limit, offset);
+	}
+
+	@UnableCall
+	public Object page(BoundSql boundSql) {
+		Page page = pageProvider.getPage(MagicScriptContext.get());
+		return page(boundSql, page.getLimit(), page.getOffset());
+	}
+
+	private Object page(BoundSql boundSql, long limit, long offset) {
 		Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
 		BoundSql countBoundSql = boundSql.copy(dialect.getCountSql(boundSql.getSql()));
 		int count = countBoundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().queryForObject(countBoundSql.getSql(), Integer.class, countBoundSql.getParameters()));
@@ -316,7 +346,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("查询int值，适合单行单列int的结果")
 	public Integer selectInt(@Comment("`SQL`语句") String sql) {
-		BoundSql boundSql = new BoundSql(sql, this.sqlCache, this.cacheName, this.ttl);
+		BoundSql boundSql = new BoundSql(sql, this);
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().queryForObject(boundSql.getSql(), boundSql.getParameters(), Integer.class));
 	}
 
@@ -325,7 +355,11 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("查询单条结果，查不到返回null")
 	public Map<String, Object> selectOne(@Comment("`SQL`语句") String sql) {
-		BoundSql boundSql = new BoundSql(sql, this.sqlCache, this.cacheName, this.ttl);
+		return selectOne(new BoundSql(sql, this));
+	}
+
+	@UnableCall
+	public Map<String, Object> selectOne(BoundSql boundSql) {
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
 			List<Map<String, Object>> list = dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.columnMapRowMapper, boundSql.getParameters());
 			return list.size() > 0 ? list.get(0) : null;
@@ -337,13 +371,13 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("查询单行单列的值")
 	public Object selectValue(@Comment("`SQL`语句") String sql) {
-		BoundSql boundSql = new BoundSql(sql, this.sqlCache, this.cacheName, this.ttl);
+		BoundSql boundSql = new BoundSql(sql, this);
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().queryForObject(boundSql.getSql(), boundSql.getParameters(), Object.class));
 	}
 
-	@Comment("指定table，进行一系列操作")
+	@Comment("指定table，进行单表操作")
 	public NamedTable table(String tableName) {
-		return new NamedTable(tableName, this.dataSourceNode);
+		return new NamedTable(tableName, this);
 	}
 
 	@UnableCall
