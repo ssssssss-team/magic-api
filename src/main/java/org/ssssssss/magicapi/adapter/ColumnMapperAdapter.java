@@ -10,9 +10,9 @@ import java.util.function.Function;
 
 public class ColumnMapperAdapter {
 
-	private Map<String, RowMapper<Map<String, Object>>> columnMapRowMappers = new HashMap<>();
+	private final Map<String, RowMapper<Map<String, Object>>> columnMapRowMappers = new HashMap<>();
 
-	private Map<String, Function<String, String>> rowMapColumnMappers = new HashMap<>();
+	private final Map<String, Function<String, String>> rowMapColumnMappers = new HashMap<>();
 
 	private RowMapper<Map<String, Object>> mapRowColumnMapper;
 

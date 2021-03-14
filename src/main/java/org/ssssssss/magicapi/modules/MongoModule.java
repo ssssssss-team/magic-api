@@ -19,13 +19,13 @@ import java.util.HashMap;
  */
 public class MongoModule extends HashMap<String, Object> implements MagicModule {
 
-	private static Logger logger = LoggerFactory.getLogger(MongoModule.class);
+	private static final Logger logger = LoggerFactory.getLogger(MongoModule.class);
 
 	private final MongoTemplate mongoTemplate;
 
 	private JavaInvoker<Method> invoker;
 
-	private JavaInvoker<Method> mongoDbFactoryInvoker;
+	private final JavaInvoker<Method> mongoDbFactoryInvoker;
 
 	public MongoModule(MongoTemplate mongoTemplate) {
 		this.mongoTemplate = mongoTemplate;
