@@ -152,6 +152,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	 * 查询所有（内部使用，需要带Script）
 	 */
 	public List<T> listWithScript() {
+		workspace.readAll();
 		List<Resource> resources = workspace.files(".ms");
 		Map<String, Resource> mappings = new HashMap<>();
 		Map<String, T> infos = new HashMap<>();

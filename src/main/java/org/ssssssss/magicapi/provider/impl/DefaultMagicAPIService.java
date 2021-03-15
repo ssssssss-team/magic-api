@@ -59,7 +59,7 @@ public class DefaultMagicAPIService implements MagicAPIService {
 		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, scriptContext, ScriptContext.ENGINE_SCOPE);
 		final Object evalVal;
 		try {
-			evalVal = ScriptManager.compile("MagicScript", info.getScript()).eval(simpleScriptContext);
+			evalVal = ((MagicScript)ScriptManager.compile("MagicScript", info.getScript())).eval(simpleScriptContext);
 		} finally {
 			// 恢复原接口上下文，修复当前调完其它接口后原接口上下文丢失的问题
 			MagicScriptContext.set(magicScriptContext);
