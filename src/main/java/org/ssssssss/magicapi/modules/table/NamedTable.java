@@ -98,6 +98,7 @@ public class NamedTable {
 		builder.append(StringUtils.join(entries.stream().map(Map.Entry::getKey).toArray(), ","));
 		builder.append(") values (");
 		builder.append(StringUtils.join(Collections.nCopies(entries.size(), "?"), ","));
+		builder.append(")");
 		return sqlModule.update(new BoundSql(builder.toString(), entries.stream().map(Map.Entry::getValue).collect(Collectors.toList()), sqlModule));
 	}
 
@@ -111,7 +112,7 @@ public class NamedTable {
 		if (StringUtils.isBlank(this.primary)) {
 			throw new MagicAPIException("请设置主键");
 		}
-		if (this.columns.containsKey(this.primary) || (data != null && data.containsKey(this.primary))) {
+		if (this.columns.get(this.primary) != null || (data != null && data.get(this.primary) != null)) {
 			return update(data);
 		}
 		return insert(data);
@@ -160,8 +161,9 @@ public class NamedTable {
 		if (null != data) {
 			this.columns.putAll(data);
 		}
+		Object primaryValue = null;
 		if (StringUtils.isNotBlank(this.primary)) {
-			this.columns.remove(this.primary);
+			primaryValue = this.columns.remove(this.primary);
 		}
 		List<Map.Entry<String, Object>> entries = filterNotBlanks();
 		if (entries.isEmpty()) {
@@ -172,13 +174,22 @@ public class NamedTable {
 		builder.append(tableName);
 		builder.append(" set ");
 		List<Object> params = new ArrayList<>();
-		for (Map.Entry<String, Object> entry : entries) {
+		for (int i = 0,size = entries.size(); i < size; i++) {
+			Map.Entry<String, Object> entry = entries.get(i);
 			builder.append(entry.getKey()).append(" = ?");
 			params.add(entry.getValue());
+			if(i + 1 < size){
+				builder.append(",");
+			}
 		}
 		if (!where.isEmpty()) {
 			builder.append(where.getSql());
 			params.addAll(where.getParams());
+		} else if(primaryValue != null){
+			builder.append(" where ").append(this.primary).append(" = ?");
+			params.add(primaryValue);
+		}else{
+			throw new MagicAPIException("主键值不能为空");
 		}
 		return sqlModule.update(new BoundSql(builder.toString(), params, sqlModule));
 	}
