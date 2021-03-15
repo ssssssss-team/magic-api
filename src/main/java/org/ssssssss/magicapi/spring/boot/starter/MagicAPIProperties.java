@@ -33,12 +33,6 @@ public class MagicAPIProperties {
 	private boolean throwException = false;
 
 	/**
-	 * 数据保存的工作空间
-	 * @since 0.7.0
-	 */
-	private String workspace = "/data/magic-api";
-
-	/**
 	 * 自动导入的模块,多个用","分隔
 	 * @since 0.3.2
 	 */
@@ -209,14 +203,6 @@ public class MagicAPIProperties {
 
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
-	}
-
-	public String getWorkspace() {
-		return workspace;
-	}
-
-	public void setWorkspace(String workspace) {
-		this.workspace = workspace;
 	}
 
 	public SwaggerConfig getSwaggerConfig() {

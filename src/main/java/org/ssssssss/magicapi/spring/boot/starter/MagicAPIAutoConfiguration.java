@@ -34,6 +34,7 @@ import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.controller.*;
 import org.ssssssss.magicapi.dialect.Dialect;
+import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.interceptor.SQLInterceptor;
 import org.ssssssss.magicapi.logging.LoggerManager;
@@ -55,6 +56,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.BiFunction;
 
 @Configuration
 @ConditionalOnClass({RequestMappingHandlerMapping.class})
@@ -190,7 +192,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@ConditionalOnProperty(prefix = "magic-api", name = "resource.type", havingValue = "file", matchIfMissing = true)
 	public Resource magicResource() throws IOException {
 		ResourceConfig resourceConfig = properties.getResource();
-		return ResourceAdapter.getResource(properties.getWorkspace(), resourceConfig.isReadonly());
+		return ResourceAdapter.getResource(resourceConfig.getLocation(), resourceConfig.isReadonly());
 	}
 
 	@Override
@@ -349,7 +351,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	/**
 	 * 注册模块、类型扩展
 	 */
-	private void setupMagicModules(ResultProvider resultProvider, List<MagicModule> magicModules, List<ExtensionMethod> extensionMethods) {
+	private void setupMagicModules(ResultProvider resultProvider, List<MagicModule> magicModules, List<ExtensionMethod> extensionMethods, List<LanguageProvider> languageProviders) {
 		// 设置脚本import时 class加载策略
 		MagicResourceLoader.setClassLoader((className) -> {
 			try {
@@ -364,6 +366,16 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 				}
 			}
 		});
+		MagicResourceLoader.addScriptLanguageLoader(language -> languageProviders.stream()
+				.filter(it -> it.support(language))
+				.findFirst().<BiFunction<Map<String, Object>, String, Object>>map(languageProvider -> (context, script) -> {
+					try {
+						return languageProvider.execute(language, script, context);
+					} catch (Exception e) {
+						throw new MagicAPIException(e.getMessage(), e);
+					}
+				}).orElse(null)
+		);
 		logger.info("注册模块:{} -> {}", "log", Logger.class);
 		MagicResourceLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
 		List<String> importModules = properties.getAutoImportModuleList();
@@ -394,12 +406,17 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	}
 
 	@Bean
-	public MagicConfiguration magicConfiguration(List<MagicModule> magicModules, @Autowired(required = false) MagicDynamicDataSource magicDynamicDataSource, Resource magicResource) {
+	public JSR223LanguageProvider jsr223LanguageProvider() {
+		return new JSR223LanguageProvider();
+	}
+
+	@Bean
+	public MagicConfiguration magicConfiguration(List<MagicModule> magicModules, List<LanguageProvider> languageProviders, @Autowired(required = false) MagicDynamicDataSource magicDynamicDataSource, Resource magicResource) {
 		logger.info("magic-api工作目录:{}", magicResource);
 		setupSpringSecurity();
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 		// 设置模块和扩展方法
-		setupMagicModules(resultProvider, magicModules, extensionMethods);
+		setupMagicModules(resultProvider, magicModules, extensionMethods, languageProviders);
 		MagicConfiguration configuration = new MagicConfiguration();
 		configuration.setMagicApiService(apiServiceProvider);
 		configuration.setGroupServiceProvider(groupServiceProvider);
