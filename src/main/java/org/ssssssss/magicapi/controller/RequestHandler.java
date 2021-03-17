@@ -116,8 +116,11 @@ public class RequestHandler extends MagicController {
 
 	private <T extends BaseDefinition> Object doValidate(RequestEntity requestEntity, String comment, List<T> validateParameters, Map<String, Object> parameters) {
 		for (BaseDefinition parameter : validateParameters) {
-			String requestValue = StringUtils.defaultIfBlank(Objects.toString(parameters.get(parameter.getName())), Objects.toString(parameter.getDefaultValue(), EMPTY));
-			if (parameter.isRequired() && StringUtils.isBlank(requestValue)) {
+			String requestValue = StringUtils.defaultIfBlank(Objects.toString(parameters.get(parameter.getName()),EMPTY), Objects.toString(parameter.getDefaultValue(), EMPTY));
+			if(StringUtils.isBlank(requestValue)){
+				if (!parameter.isRequired()) {
+					continue;
+				}
 				return resultProvider.buildResult(requestEntity, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
 			}
 			try {
