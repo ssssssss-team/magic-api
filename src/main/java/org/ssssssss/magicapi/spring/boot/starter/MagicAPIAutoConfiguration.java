@@ -386,7 +386,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		logger.info("注册模块:{} -> {}", "response", ResponseModule.class);
 		MagicResourceLoader.addModule("response", new ResponseModule(resultProvider));
 		logger.info("注册模块:{} -> {}", "assert", AssertModule.class);
-		MagicResourceLoader.addModule("assert", AssertModule.class);
+		MagicResourceLoader.addModule("assert", new AssertModule());
 		magicModules.forEach(module -> {
 			logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
 			MagicResourceLoader.addModule(module.getModuleName(), module);
