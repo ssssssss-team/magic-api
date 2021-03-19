@@ -3,10 +3,11 @@ package org.ssssssss.magicapi.controller;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MimeType;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -81,10 +82,15 @@ public class MagicWorkbenchController extends MagicController {
 
 	@RequestMapping(value = "/config-js")
 	@ResponseBody
-	public ResponseEntity<byte[]> configjs() {
+	public ResponseEntity<?> configjs() {
 		ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok().contentType(MediaType.parseMediaType("application/javascript"));
 		if (configuration.getEditorConfig() != null) {
 			try {
+				String path = configuration.getEditorConfig();
+				if(path.startsWith(ResourceUtils.CLASSPATH_URL_PREFIX)){
+					path = path.substring(ResourceUtils.CLASSPATH_URL_PREFIX.length());
+					return responseBuilder.body(new InputStreamResource(new ClassPathResource(path).getInputStream()));
+				}
 				File file = ResourceUtils.getFile(configuration.getEditorConfig());
 				return responseBuilder.body(Files.readAllBytes(Paths.get(file.toURI())));
 			} catch (IOException e) {
