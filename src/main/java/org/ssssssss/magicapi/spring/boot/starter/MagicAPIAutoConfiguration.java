@@ -130,8 +130,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Autowired
 	ResultProvider resultProvider;
 
-	@Autowired
-	MagicCorsFilter magicCorsFilter;
+	MagicCorsFilter magicCorsFilter = new MagicCorsFilter();
 
 	private String ALL_CLASS_TXT;
 
@@ -218,11 +217,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(new MagicWebRequestInterceptor(properties.isSupportCrossDomain() ? magicCorsFilter : null)).addPathPatterns("/**");
-	}
-
-	@Bean
-	public MagicCorsFilter magicCorsFilter() {
-		return new MagicCorsFilter();
 	}
 
 
