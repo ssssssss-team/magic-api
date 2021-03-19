@@ -3,8 +3,13 @@ package org.ssssssss.magicapi.adapter.resource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.ssssssss.magicapi.adapter.Resource;
+import org.ssssssss.magicapi.utils.IoUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.sql.Blob;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -57,7 +62,20 @@ public class DatabaseResource extends KeyValueResource {
 		String sql = String.format("select file_path, file_content from %s where file_path like '%s%%'", tableName, this.path);
 		SqlRowSet sqlRowSet = template.queryForRowSet(sql);
 		while (sqlRowSet.next()) {
-			this.cachedContent.put(sqlRowSet.getString(1), sqlRowSet.getString(2));
+			Object object = sqlRowSet.getObject(2);
+			String content = null;
+			if(object instanceof String){
+				content = object.toString();
+			}else if(object instanceof byte[]){
+				content = new String((byte[])object,StandardCharsets.UTF_8);
+			}else if(object instanceof Blob){
+				Blob blob = (Blob) object;
+				try(InputStream is = blob.getBinaryStream()){
+					content = new String(IoUtils.bytes(is),StandardCharsets.UTF_8);
+				}catch (SQLException | IOException ignored){
+				}
+			}
+			this.cachedContent.put(sqlRowSet.getString(1), content);
 		}
 	}
 
