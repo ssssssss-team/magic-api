@@ -59,7 +59,7 @@ public class MagicAPIController extends MagicController {
 	 */
 	@RequestMapping("/get")
 	@ResponseBody
-	@Valid(authorization = RequestInterceptor.Authorization.DELETE)
+	@Valid(authorization = RequestInterceptor.Authorization.DETAIL)
 	public JsonBean<ApiInfo> get(String id) {
 		return new JsonBean<>(magicApiService.get(id));
 	}
