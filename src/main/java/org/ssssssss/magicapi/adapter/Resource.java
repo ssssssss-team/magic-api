@@ -65,14 +65,26 @@ public interface Resource {
 		return false;
 	}
 
+	default String separator(){
+		return null;
+	}
+
 	default void processExport(ZipOutputStream zos, String path, Resource directory, List<Resource> resources, List<String> excludes) throws IOException {
 		for (Resource resource : resources) {
-			if (resource.parent().getAbsolutePath().equals(directory.getAbsolutePath()) && !excludes.contains(resource.name())) {
+			String fullName = directory.getAbsolutePath();
+			if (!fullName.endsWith(separator())) {
+				fullName += separator();
+			}
+			fullName += resource.name();
+			if (resource.isDirectory()) {
+				fullName += separator();
+			}
+			if (fullName.equals(resource.getAbsolutePath()) && !excludes.contains(resource.name())) {
 				if (resource.isDirectory()) {
 					String newPath = path + resource.name() + "/";
 					zos.putNextEntry(new ZipEntry(newPath));
 					zos.closeEntry();
-					processExport(zos, newPath, resource, resource.resources(), excludes);
+					processExport(zos, newPath, resource, resources, excludes);
 				} else {
 					zos.putNextEntry(new ZipEntry(path + resource.name()));
 					zos.write(resource.read());

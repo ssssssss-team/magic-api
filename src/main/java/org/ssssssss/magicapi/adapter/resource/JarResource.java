@@ -41,6 +41,11 @@ public class JarResource implements Resource {
 	}
 
 	@Override
+	public String separator() {
+		return "/";
+	}
+
+	@Override
 	public boolean readonly() {
 		return true;
 	}
@@ -82,8 +87,12 @@ public class JarResource implements Resource {
 
 	@Override
 	public String name() {
-		int index = this.entryName.lastIndexOf("/");
-		return index > -1 ? this.entryName.substring(index) : this.entryName;
+		String name = this.entryName;
+		if (isDirectory()) {
+			name = name.substring(0, name.length() - 1);
+		}
+		int index = name.lastIndexOf("/");
+		return index > -1 ? name.substring(index + 1) : name;
 	}
 
 	@Override

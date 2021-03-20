@@ -34,6 +34,11 @@ public abstract class KeyValueResource implements Resource {
 	}
 
 	@Override
+	public String separator() {
+		return this.separator;
+	}
+
+	@Override
 	public boolean isDirectory() {
 		return this.path.endsWith(separator);
 	}
@@ -136,29 +141,4 @@ public abstract class KeyValueResource implements Resource {
 		return this.path;
 	}
 
-	@Override
-	public void processExport(ZipOutputStream zos, String path, Resource directory, List<Resource> resources, List<String> excludes) throws IOException {
-		for (Resource resource : resources) {
-			String fullName = directory.getAbsolutePath();
-			if (!fullName.endsWith(separator)) {
-				fullName += separator;
-			}
-			fullName += resource.name();
-			if (resource.isDirectory()) {
-				fullName += separator;
-			}
-			if (fullName.equals(resource.getAbsolutePath()) && !excludes.contains(resource.name())) {
-				if (resource.isDirectory()) {
-					String newPath = path + resource.name() + "/";
-					zos.putNextEntry(new ZipEntry(newPath));
-					zos.closeEntry();
-					processExport(zos, newPath, resource, resources, excludes);
-				} else {
-					zos.putNextEntry(new ZipEntry(path + resource.name()));
-					zos.write(resource.read());
-					zos.closeEntry();
-				}
-			}
-		}
-	}
 }

@@ -4,10 +4,13 @@ import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.utils.IoUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class FileResource implements Resource {
 
@@ -113,4 +116,21 @@ public class FileResource implements Resource {
 		return String.format("file://%s", this.file.getAbsolutePath());
 	}
 
+	@Override
+	public void processExport(ZipOutputStream zos, String path, Resource directory, List<Resource> resources, List<String> excludes) throws IOException {
+		for (Resource resource : resources) {
+			if (resource.parent().getAbsolutePath().equals(directory.getAbsolutePath()) && !excludes.contains(resource.name())) {
+				if (resource.isDirectory()) {
+					String newPath = path + resource.name() + "/";
+					zos.putNextEntry(new ZipEntry(newPath));
+					zos.closeEntry();
+					processExport(zos, newPath, resource, resource.resources(), excludes);
+				} else {
+					zos.putNextEntry(new ZipEntry(path + resource.name()));
+					zos.write(resource.read());
+					zos.closeEntry();
+				}
+			}
+		}
+	}
 }
