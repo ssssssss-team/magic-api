@@ -15,7 +15,7 @@ public class JsonUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(JsonUtils.class);
 
-	static{
+	static {
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 	}
 
@@ -23,34 +23,34 @@ public class JsonUtils {
 		try {
 			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(target);
 		} catch (JsonProcessingException e) {
-			logger.error("json序列化失败",e);
+			logger.error("json序列化失败", e);
 			return null;
 		}
 	}
 
-	public static <T> T readValue(String json, TypeReference<T> typeReference){
+	public static <T> T readValue(String json, TypeReference<T> typeReference) {
 		try {
-			return mapper.readValue(json,typeReference);
+			return mapper.readValue(json, typeReference);
 		} catch (IOException e) {
-			logger.error("读取json失败",e);
+			logger.error("读取json失败,json:{}", json, e);
 			return null;
 		}
 	}
 
-	public static <T> T readValue(String json, Class<T> clazz){
+	public static <T> T readValue(String json, Class<T> clazz) {
 		try {
 			return mapper.readValue(json, clazz);
 		} catch (IOException e) {
-			logger.error("读取json失败",e);
+			logger.error("读取json失败,json:{}", json, e);
 			return null;
 		}
 	}
 
-	public static <T> T readValue(byte[] bytes, Class<T> clazz){
+	public static <T> T readValue(byte[] bytes, Class<T> clazz) {
 		try {
 			return mapper.readValue(bytes, clazz);
 		} catch (IOException e) {
-			logger.error("读取json失败",e);
+			logger.error("读取json失败,json:{}", new String(bytes), e);
 			return null;
 		}
 	}
