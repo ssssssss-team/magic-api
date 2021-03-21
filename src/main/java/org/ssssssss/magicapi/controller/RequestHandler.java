@@ -297,7 +297,7 @@ public class RequestHandler extends MagicController {
 			// 对于return response.end() 的特殊处理
 			return new JsonBean<>(1, "empty.");
 		}
-		return new JsonBean<>(resultProvider.buildResult(requestEntity.getApiInfo(), requestEntity.getRequest(), requestEntity.getResponse(), result, requestEntity.getRequestTime()));
+		return new JsonBean<>(resultProvider.buildResult(requestEntity, result));
 	}
 
 	/**
@@ -458,7 +458,7 @@ public class RequestHandler extends MagicController {
 		} else if (value instanceof ResponseModule.NullValue) {
 			return null;
 		}
-		return resultProvider.buildResult(requestEntity.getApiInfo(), requestEntity.getRequest(), requestEntity.getResponse(), value, requestEntity.getRequestTime());
+		return resultProvider.buildResult(requestEntity, value);
 	}
 
 	/**

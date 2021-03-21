@@ -27,6 +27,15 @@ public class RequestEntity {
 
 	private final Long requestTime = System.currentTimeMillis();
 
+	private RequestEntity() {
+		this.request = null;
+		this.response = null;
+		this.requestedFromTest = false;
+		this.parameters = null;
+		this.pathVariables = null;
+		this.apiInfo = null;
+	}
+
 	public RequestEntity(HttpServletRequest request, HttpServletResponse response, boolean requestedFromTest, Map<String, Object> parameters, Map<String, Object> pathVariables) {
 		this.request = request;
 		this.response = response;
@@ -34,6 +43,10 @@ public class RequestEntity {
 		this.parameters = parameters;
 		this.pathVariables = pathVariables;
 		this.apiInfo = MappingHandlerMapping.getMappingApiInfo(request);
+	}
+
+	public static RequestEntity empty() {
+		return new RequestEntity();
 	}
 
 	public ApiInfo getApiInfo() {

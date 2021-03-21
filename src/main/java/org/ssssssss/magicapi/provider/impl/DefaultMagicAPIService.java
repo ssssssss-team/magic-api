@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.provider.impl;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.exception.MagicServiceException;
 import org.ssssssss.magicapi.model.ApiInfo;
+import org.ssssssss.magicapi.model.RequestEntity;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
@@ -59,7 +60,7 @@ public class DefaultMagicAPIService implements MagicAPIService {
 		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, scriptContext, ScriptContext.ENGINE_SCOPE);
 		final Object evalVal;
 		try {
-			evalVal = ((MagicScript)ScriptManager.compile("MagicScript", info.getScript())).eval(simpleScriptContext);
+			evalVal = ((MagicScript) ScriptManager.compile("MagicScript", info.getScript())).eval(simpleScriptContext);
 		} finally {
 			// 恢复原接口上下文，修复当前调完其它接口后原接口上下文丢失的问题
 			MagicScriptContext.set(magicScriptContext);
@@ -78,16 +79,16 @@ public class DefaultMagicAPIService implements MagicAPIService {
 
 	@Override
 	public Object call(String method, String path, Map<String, Object> context) {
-		long requestTime = System.currentTimeMillis();
+		RequestEntity requestEntity = RequestEntity.empty();
 		try {
-			return resultProvider.buildResult(null, null, null, execute(method, path, context), requestTime);
+			return resultProvider.buildResult(requestEntity, execute(method, path, context));
 		} catch (MagicServiceException e) {
 			return null;    //找不到对应接口
 		} catch (Throwable root) {
 			if (throwException) {
 				throw root;
 			}
-			return resultProvider.buildResult(null, null, null, root, requestTime);
+			return resultProvider.buildResult(requestEntity, root);
 		}
 	}
 
