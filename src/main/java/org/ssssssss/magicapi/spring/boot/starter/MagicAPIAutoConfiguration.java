@@ -56,6 +56,8 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
 @Configuration
@@ -435,10 +437,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		// 构建UI请求处理器
 		String base = properties.getWeb();
 		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
+		MagicDataSourceController dataSourceController = new MagicDataSourceController(configuration);
 		if (base != null) {
 			configuration.setEnableWeb(true);
 			List<MagicController> controllers = new ArrayList<>(Arrays.asList(
 					new MagicAPIController(configuration),
+					dataSourceController,
 					new MagicConfigController(configuration),
 					new MagicWorkbenchController(configuration),
 					new MagicGroupController(configuration),
@@ -446,6 +450,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			));
 			controllers.forEach(item -> mappingHandlerMapping.registerController(item, base));
 		}
+		dataSourceController.registerDataSource();
 		// 设置拦截器信息
 		this.requestInterceptors.forEach(interceptor -> {
 			logger.info("注册请求拦截器：{}", interceptor.getClass());
@@ -468,8 +473,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		mappingHandlerMapping.setGroupServiceProvider(groupServiceProvider);
 		// 注册所有映射
 		mappingHandlerMapping.registerAllMapping();
+		int refreshInterval = properties.getRefreshInterval();
 		// 自动刷新
-		mappingHandlerMapping.enableRefresh(properties.getRefreshInterval());
+		mappingHandlerMapping.enableRefresh(refreshInterval);
+		if(refreshInterval > 0){
+			Executors.newScheduledThreadPool(1).scheduleAtFixedRate(dataSourceController::registerDataSource, refreshInterval, refreshInterval, TimeUnit.SECONDS);
+		}
 		return configuration;
 	}
 
