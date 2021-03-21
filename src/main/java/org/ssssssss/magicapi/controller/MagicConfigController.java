@@ -34,15 +34,6 @@ public class MagicConfigController extends MagicController {
 	public JsonBean<Map<String, Object>> classes() {
 		Map<String, ScriptClass> classMap = MagicScriptEngine.getScriptClassMap();
 		classMap.putAll(MagicResourceLoader.getModules());
-		ScriptClass db = classMap.get(SQLModule.class.getName());
-		MagicDynamicDataSource datasource = configuration.getMagicDynamicDataSource();
-		if (db != null && datasource != null) {
-			List<ScriptClass.ScriptAttribute> attributes = new ArrayList<>();
-			// 给与前台动态数据源提示
-			datasource.datasources().stream().filter(StringUtils::isNotBlank)
-					.forEach(item -> attributes.add(new ScriptClass.ScriptAttribute("db", item)));
-			db.setAttributes(attributes);
-		}
 		Map<String, Object> values = new HashMap<>();
 		values.put("classes", classMap);
 		values.put("extensions", MagicScriptEngine.getExtensionScriptClass());

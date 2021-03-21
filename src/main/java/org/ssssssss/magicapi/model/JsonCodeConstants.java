@@ -34,6 +34,8 @@ public interface JsonCodeConstants {
 
 	JsonCode NAME_INVALID = new JsonCode(0, "名称不能包含特殊字符，只允许中文、数字、字母以及_组合");
 
+	JsonCode DATASOURCE_KEY_INVALID = new JsonCode(0, "数据源Key不能包含特殊字符，只允许中文、数字、字母以及_组合");
+
 	JsonCode API_ALREADY_EXISTS = new JsonCode(0, "接口%s:%s已存在或接口名称重复");
 
 	JsonCode FUNCTION_ALREADY_EXISTS = new JsonCode(0, "函数%s已存在或名称重复");
@@ -57,4 +59,13 @@ public interface JsonCodeConstants {
 	JsonCode DEBUG_SESSION_NOT_FOUND = new JsonCode(0, "debug session not found!");
 
 	JsonCode API_NOT_FOUND = new JsonCode(1001, "api not found");
+
+	JsonCode DATASOURCE_KEY_REQUIRED = new JsonCode(0, "数据源Key不能为空");
+
+	JsonCode DATASOURCE_KEY_EXISTS = new JsonCode(0, "数据源%s已存在或名称重复");
+
+	JsonCode DATASOURCE_TYPE_NOT_FOUND = new JsonCode(0, "%s not found");
+	JsonCode DATASOURCE_NOT_FOUND = new JsonCode(0, "找不到对应的数据源");
+
+	JsonCode DATASOURCE_TYPE_NOT_SET = new JsonCode(0, "请设置数据源类型");
 }

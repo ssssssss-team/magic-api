@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,4 +55,13 @@ public class JsonUtils {
 			return null;
 		}
 	}
+	public static <T> T readValue(byte[] bytes, JavaType javaType) {
+		try {
+			return mapper.readValue(bytes, javaType);
+		} catch (IOException e) {
+			logger.error("读取json失败,json:{}", new String(bytes), e);
+			return null;
+		}
+	}
+
 }
