@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class MagicGroupController extends MagicController {
+public class MagicGroupController extends MagicController implements MagicExceptionHandler {
 
 	private final GroupServiceProvider groupServiceProvider;
 

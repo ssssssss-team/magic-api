@@ -37,19 +37,6 @@ public class MagicController implements JsonCodeConstants {
 		this.configuration = configuration;
 	}
 
-	@ExceptionHandler(Exception.class)
-	@ResponseBody
-	public Object exceptionHandler(Exception e) {
-		logger.error("magic-api调用接口出错", e);
-		return new JsonBean<>(-1, e.getMessage());
-	}
-
-	@ExceptionHandler(InvalidArgumentException.class)
-	@ResponseBody
-	public Object exceptionHandler(InvalidArgumentException e) {
-		return new JsonBean<>(e.getCode(), e.getMessage());
-	}
-
 	public void doValid(HttpServletRequest request, Valid valid) {
 		if (valid != null) {
 			if (!valid.readonly() && configuration.getWorkspace().readonly()) {

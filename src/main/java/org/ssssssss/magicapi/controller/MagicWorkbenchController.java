@@ -21,11 +21,16 @@ import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.modules.ResponseModule;
+import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
+import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.StoreServiceProvider;
 import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.magicapi.utils.MD5Utils;
 import org.ssssssss.magicapi.utils.PathUtils;
+import org.ssssssss.script.MagicResourceLoader;
+import org.ssssssss.script.MagicScriptEngine;
+import org.ssssssss.script.ScriptClass;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,12 +43,41 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MagicWorkbenchController extends MagicController {
+public class MagicWorkbenchController extends MagicController implements MagicExceptionHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicWorkbenchController.class);
 
 	public MagicWorkbenchController(MagicConfiguration configuration) {
 		super(configuration);
+		// 给前端添加代码提示
+		MagicScriptEngine.addScriptClass(SQLModule.class);
+		MagicScriptEngine.addScriptClass(MagicAPIService.class);
+	}
+
+	/**
+	 * 获取所有class
+	 */
+	@RequestMapping("/classes")
+	@ResponseBody
+	public JsonBean<Map<String, Object>> classes() {
+		Map<String, ScriptClass> classMap = MagicScriptEngine.getScriptClassMap();
+		classMap.putAll(MagicResourceLoader.getModules());
+		Map<String, Object> values = new HashMap<>();
+		values.put("classes", classMap);
+		values.put("extensions", MagicScriptEngine.getExtensionScriptClass());
+		values.put("functions", MagicScriptEngine.getFunctions());
+		return new JsonBean<>(values);
+	}
+
+	/**
+	 * 获取单个class
+	 *
+	 * @param className 类名
+	 */
+	@RequestMapping("/class")
+	@ResponseBody
+	public JsonBean<List<ScriptClass>> clazz(String className) {
+		return new JsonBean<>(MagicScriptEngine.getScriptClass(className));
 	}
 
 	/**
@@ -87,7 +121,7 @@ public class MagicWorkbenchController extends MagicController {
 		if (configuration.getEditorConfig() != null) {
 			try {
 				String path = configuration.getEditorConfig();
-				if(path.startsWith(ResourceUtils.CLASSPATH_URL_PREFIX)){
+				if (path.startsWith(ResourceUtils.CLASSPATH_URL_PREFIX)) {
 					path = path.substring(ResourceUtils.CLASSPATH_URL_PREFIX.length());
 					return responseBuilder.body(new InputStreamResource(new ClassPathResource(path).getInputStream()));
 				}
@@ -142,7 +176,7 @@ public class MagicWorkbenchController extends MagicController {
 		}
 		for (Group group : groups) {
 			Resource groupResource = groupServiceProvider.getGroupResource(group.getId());
-			if (groupResource!= null && groupResource.exists()) {
+			if (groupResource != null && groupResource.exists()) {
 				groupServiceProvider.update(group);
 			} else {
 				groupServiceProvider.insert(group);
@@ -150,8 +184,8 @@ public class MagicWorkbenchController extends MagicController {
 		}
 		Resource backups = configuration.getWorkspace().getDirectory("backups");
 		// 保存
-		write(configuration.getMagicApiService(),backups,apiInfos);
-		write(configuration.getFunctionServiceProvider(),backups,functionInfos);
+		write(configuration.getMagicApiService(), backups, apiInfos);
+		write(configuration.getFunctionServiceProvider(), backups, functionInfos);
 		// 重新注册
 		configuration.getMappingHandlerMapping().registerAllMapping();
 		configuration.getMagicFunctionManager().registerAllFunction();

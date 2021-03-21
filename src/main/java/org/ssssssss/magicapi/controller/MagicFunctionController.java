@@ -14,7 +14,7 @@ import org.ssssssss.magicapi.utils.IoUtils;
 
 import java.util.List;
 
-public class MagicFunctionController extends MagicController {
+public class MagicFunctionController extends MagicController implements MagicExceptionHandler {
 
 	private final FunctionServiceProvider functionService;
 

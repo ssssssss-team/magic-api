@@ -18,7 +18,7 @@ import java.util.Optional;
 /**
  * 接口相关操作
  */
-public class MagicAPIController extends MagicController {
+public class MagicAPIController extends MagicController implements MagicExceptionHandler {
 
 	private final ApiServiceProvider magicApiService;
 
