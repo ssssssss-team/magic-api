@@ -443,7 +443,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			List<MagicController> controllers = new ArrayList<>(Arrays.asList(
 					new MagicAPIController(configuration),
 					dataSourceController,
-					new MagicConfigController(configuration),
 					new MagicWorkbenchController(configuration),
 					new MagicGroupController(configuration),
 					new MagicFunctionController(configuration)
