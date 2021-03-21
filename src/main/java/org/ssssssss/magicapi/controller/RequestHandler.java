@@ -94,6 +94,11 @@ public class RequestHandler extends MagicController {
 		if (value != null) {
 			return requestEntity.isRequestedFromTest() ? new JsonBean<>(HEADER_INVALID, value) : value;
 		}
+		// 验证 path
+		value = doValidate(requestEntity, "path", requestEntity.getApiInfo().getPaths(), requestEntity.getPathVariables());
+		if (value != null) {
+			return requestEntity.isRequestedFromTest() ? new JsonBean<>(PATH_VARIABLE_INVALID, value) : value;
+		}
 		MagicScriptContext context = createMagicScriptContext(requestEntity);
 		requestEntity.setMagicScriptContext(context);
 		// 执行前置拦截器
@@ -116,26 +121,28 @@ public class RequestHandler extends MagicController {
 
 	private <T extends BaseDefinition> Object doValidate(RequestEntity requestEntity, String comment, List<T> validateParameters, Map<String, Object> parameters) {
 		for (BaseDefinition parameter : validateParameters) {
-			String requestValue = StringUtils.defaultIfBlank(Objects.toString(parameters.get(parameter.getName()), EMPTY), Objects.toString(parameter.getDefaultValue(), EMPTY));
-			if (StringUtils.isBlank(requestValue)) {
-				if (!parameter.isRequired()) {
-					continue;
-				}
-				return resultProvider.buildResult(requestEntity, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
-			}
-			try {
-				Object value = convertValue(parameter.getDataType(), parameter.getName(), requestValue);
-				String validateType = parameter.getValidateType();
-				if (VALIDATE_TYPE_PATTERN.equals(validateType)) {    // 正则验证
-					String expression = parameter.getExpression();
-					if (StringUtils.isNotBlank(expression) && !PatternUtils.match(Objects.toString(value, EMPTY), expression)) {
-						return resultProvider.buildResult(requestEntity, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足正则表达式", comment, parameter.getName())));
+			if (StringUtils.isNotBlank(parameter.getName())) {
+				String requestValue = StringUtils.defaultIfBlank(Objects.toString(parameters.get(parameter.getName()), EMPTY), Objects.toString(parameter.getDefaultValue(), EMPTY));
+				if (StringUtils.isBlank(requestValue)) {
+					if (!parameter.isRequired()) {
+						continue;
 					}
+					return resultProvider.buildResult(requestEntity, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
 				}
-				parameters.put(parameter.getName(), value);
+				try {
+					Object value = convertValue(parameter.getDataType(), parameter.getName(), requestValue);
+					String validateType = parameter.getValidateType();
+					if (VALIDATE_TYPE_PATTERN.equals(validateType)) {    // 正则验证
+						String expression = parameter.getExpression();
+						if (StringUtils.isNotBlank(expression) && !PatternUtils.match(Objects.toString(value, EMPTY), expression)) {
+							return resultProvider.buildResult(requestEntity, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足正则表达式", comment, parameter.getName())));
+						}
+					}
+					parameters.put(parameter.getName(), value);
 
-			} catch (Exception e) {
-				return resultProvider.buildResult(requestEntity, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不合法", comment, parameter.getName())));
+				} catch (Exception e) {
+					return resultProvider.buildResult(requestEntity, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不合法", comment, parameter.getName())));
+				}
 			}
 		}
 		// 取出表达式验证的参数

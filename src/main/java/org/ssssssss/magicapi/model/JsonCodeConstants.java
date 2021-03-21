@@ -52,6 +52,8 @@ public interface JsonCodeConstants {
 
 	JsonCode HEADER_INVALID = new JsonCode(0, "header验证失败");
 
+	JsonCode PATH_VARIABLE_INVALID = new JsonCode(0, "路径变量验证失败");
+
 	JsonCode FILE_IS_REQUIRED = new JsonCode(0, "请上传文件");
 
 	JsonCode UPLOAD_PATH_CONFLICT = new JsonCode(0, "上传后%s路径会有冲突，请检查");

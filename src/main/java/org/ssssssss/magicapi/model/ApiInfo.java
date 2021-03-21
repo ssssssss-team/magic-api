@@ -43,6 +43,11 @@ public class ApiInfo extends MagicEntity{
 	private List<Header> headers = Collections.emptyList();
 
 	/**
+	 * 路径变量
+	 */
+	private List<Path> paths = Collections.emptyList();
+
+	/**
 	 * 输出结果
 	 */
 	private String responseBody;
@@ -120,6 +125,14 @@ public class ApiInfo extends MagicEntity{
 
 	public void setResponseBody(String responseBody) {
 		this.responseBody = responseBody;
+	}
+
+	public List<Path> getPaths() {
+		return paths;
+	}
+
+	public void setPaths(List<Path> paths) {
+		this.paths = paths;
 	}
 
 	public Map<String, Object> getOptionMap() {
