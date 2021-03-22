@@ -29,7 +29,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MagicDataSourceController extends MagicController {
+public class MagicDataSourceController extends MagicController implements MagicExceptionHandler {
 
 	private static final ClassLoader classLoader = MagicDataSourceController.class.getClassLoader();
 
