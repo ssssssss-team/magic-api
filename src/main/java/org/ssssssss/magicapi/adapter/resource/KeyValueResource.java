@@ -44,6 +44,11 @@ public abstract class KeyValueResource implements Resource {
 	}
 
 	@Override
+	public boolean readonly() {
+		return this.readonly;
+	}
+
+	@Override
 	public final boolean renameTo(Resource resource) {
 		if(resource.name().equalsIgnoreCase(this.name())){
 			return true;
