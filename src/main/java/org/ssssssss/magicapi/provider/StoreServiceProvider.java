@@ -12,7 +12,9 @@ import java.util.stream.Collectors;
 
 public abstract class StoreServiceProvider<T extends MagicEntity> {
 
-	String separator = "\r\n================================\r\n";
+	String separatorWithCRLF = "\r\n================================\r\n";
+
+	String separatorWithLF = "\n================================\n";
 
 	protected Resource workspace;
 
@@ -240,7 +242,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		wrap(info);
 		String script = info.getScript();
 		info.setScript(null);
-		String content = JsonUtils.toJsonString(info) + separator + script;
+		String content = JsonUtils.toJsonString(info) + separatorWithCRLF + script;
 		info.setScript(script);
 		unwrap(info);
 		return content.getBytes(StandardCharsets.UTF_8);
@@ -248,13 +250,19 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 
 	public T deserialize(byte[] data) {
 		String content = new String(data, StandardCharsets.UTF_8);
+		String separator = separatorWithCRLF;
 		int index = content.indexOf(separator);
+		if(index == -1){
+			separator = separatorWithLF;
+			index = content.indexOf(separatorWithLF);
+		}
 		if (index > -1) {
 			T info = JsonUtils.readValue(content.substring(0, index), clazz);
 			info.setScript(content.substring(index + separator.length()));
 			unwrap(info);
 			return info;
 		}
+		logger.warn("文件内容格式错误，请检查。");
 		return null;
 	}
 }
