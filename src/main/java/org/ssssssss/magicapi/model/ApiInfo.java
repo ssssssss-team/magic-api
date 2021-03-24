@@ -60,7 +60,7 @@ public class ApiInfo extends MagicEntity{
 	/**
 	 * 接口选项json
 	 */
-	private JsonNode jsonNode;
+	private transient JsonNode jsonNode;
 
 	public String getMethod() {
 		return method;
@@ -220,12 +220,12 @@ public class ApiInfo extends MagicEntity{
 				Objects.equals(path, apiInfo.path) &&
 				Objects.equals(script, apiInfo.script) &&
 				Objects.equals(name, apiInfo.name) &&
+				Objects.equals(paths, apiInfo.paths) &&
 				Objects.equals(groupId, apiInfo.groupId) &&
 				Objects.equals(parameters, apiInfo.parameters) &&
 				Objects.equals(option, apiInfo.option) &&
 				Objects.equals(requestBody, apiInfo.requestBody) &&
 				Objects.equals(headers, apiInfo.headers) &&
-				Objects.equals(responseBody, apiInfo.responseBody) &&
 				Objects.equals(description, apiInfo.description);
 	}
 
@@ -249,6 +249,7 @@ public class ApiInfo extends MagicEntity{
 		info.setHeaders(this.headers);
 		info.setResponseBody(this.responseBody);
 		info.setDescription(this.description);
+		info.setPaths(this.paths);
 		return info;
 	}
 }
