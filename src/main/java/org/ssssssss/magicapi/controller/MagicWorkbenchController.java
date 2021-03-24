@@ -17,7 +17,9 @@ import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.adapter.resource.ZipResource;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
-import org.ssssssss.magicapi.interceptor.RequestInterceptor;
+import org.ssssssss.magicapi.exception.MagicLoginException;
+import org.ssssssss.magicapi.interceptor.Authorization;
+import org.ssssssss.magicapi.interceptor.MagicUser;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.modules.ResponseModule;
@@ -26,7 +28,6 @@ import org.ssssssss.magicapi.provider.GroupServiceProvider;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.StoreServiceProvider;
 import org.ssssssss.magicapi.utils.JsonUtils;
-import org.ssssssss.magicapi.utils.MD5Utils;
 import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScriptEngine;
@@ -59,6 +60,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	 */
 	@RequestMapping("/classes")
 	@ResponseBody
+	@Valid(requireLogin = false)
 	public JsonBean<Map<String, Object>> classes() {
 		Map<String, ScriptClass> classMap = MagicScriptEngine.getScriptClassMap();
 		classMap.putAll(MagicResourceLoader.getModules());
@@ -85,15 +87,22 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	 */
 	@RequestMapping("/login")
 	@ResponseBody
-	public JsonBean<Boolean> login(String username, String password, HttpServletRequest request, HttpServletResponse response) {
-		if (username != null && password != null && Objects.equals(username, configuration.getUsername()) && Objects.equals(password, configuration.getPassword())) {
-			response.setHeader(configuration.getTokenKey(), MD5Utils.encrypt(String.format("%s||%s", username, password)));
-			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, configuration.getTokenKey());
-			return new JsonBean<>(true);
-		} else if (allowVisit(request, null)) {
-			return new JsonBean<>(true);
+	@Valid(requireLogin = false)
+	public JsonBean<Boolean> login(String username, String password, HttpServletRequest request, HttpServletResponse response) throws MagicLoginException {
+		if(configuration.getAuthorizationInterceptor().requireLogin()){
+			if(StringUtils.isBlank(username) && StringUtils.isBlank(password)){
+				try {
+					configuration.getAuthorizationInterceptor().getUserByToken(request.getHeader(Constants.MAGIC_TOKEN_HEADER));
+				} catch (MagicLoginException ignored) {
+					return new JsonBean<>(false);
+				}
+			}else{
+				MagicUser user = configuration.getAuthorizationInterceptor().login(username, password);
+				response.setHeader(Constants.MAGIC_TOKEN_HEADER, user.getToken());
+				response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, Constants.MAGIC_TOKEN_HEADER);
+			}
 		}
-		return new JsonBean<>(false);
+		return new JsonBean<>(true);
 	}
 
 
@@ -101,6 +110,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	 * 创建控制台输出
 	 */
 	@RequestMapping("/console")
+	@Valid(requireLogin = false)
 	public SseEmitter console() throws IOException {
 		String sessionId = UUID.randomUUID().toString().replace("-", "");
 		SseEmitter emitter = MagicLoggerContext.createEmitter(sessionId);
@@ -110,12 +120,14 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	@RequestMapping("/options")
 	@ResponseBody
+	@Valid(requireLogin = false)
 	public JsonBean<List<Map<String, String>>> options() {
 		return new JsonBean<>(Stream.of(Options.values()).map(item -> Collections.singletonMap(item.getValue(), item.getName())).collect(Collectors.toList()));
 	}
 
 	@RequestMapping(value = "/config-js")
 	@ResponseBody
+	@Valid(requireLogin = false)
 	public ResponseEntity<?> configjs() {
 		ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok().contentType(MediaType.parseMediaType("application/javascript"));
 		if (configuration.getEditorConfig() != null) {
@@ -135,7 +147,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	}
 
 	@RequestMapping("/download")
-	@Valid(authorization = RequestInterceptor.Authorization.DOWNLOAD)
+	@Valid(authorization = Authorization.DOWNLOAD)
 	@ResponseBody
 	public ResponseEntity<?> download(String groupId) throws IOException {
 		if (StringUtils.isBlank(groupId)) {
@@ -148,7 +160,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	}
 
 	@RequestMapping("/upload")
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.UPLOAD)
+	@Valid(readonly = false, authorization = Authorization.UPLOAD)
 	@ResponseBody
 	public JsonBean<Boolean> upload(MultipartFile file, String mode) throws IOException {
 		notNull(file, FILE_IS_REQUIRED);

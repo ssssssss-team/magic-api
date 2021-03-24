@@ -12,17 +12,6 @@ import javax.servlet.http.HttpServletResponse;
  */
 public interface RequestInterceptor {
 
-	enum Authorization {
-		NONE, SAVE, DETAIL, RUN, DELETE, DOWNLOAD, UPLOAD
-	}
-
-	/**
-	 * 是否拥有页面按钮的权限
-	 */
-	default boolean allowVisit(HttpServletRequest request, Authorization authorization) {
-		return true;
-	}
-
 	/**
 	 * 请求之前执行
 	 *

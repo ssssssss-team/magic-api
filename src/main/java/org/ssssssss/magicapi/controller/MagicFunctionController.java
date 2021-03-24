@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
-import org.ssssssss.magicapi.interceptor.RequestInterceptor;
+import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.model.FunctionInfo;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.provider.FunctionServiceProvider;
@@ -31,7 +31,7 @@ public class MagicFunctionController extends MagicController implements MagicExc
 
 	@RequestMapping("/function/get")
 	@ResponseBody
-	@Valid(authorization = RequestInterceptor.Authorization.DETAIL)
+	@Valid(authorization = Authorization.DETAIL)
 	public JsonBean<FunctionInfo> get(String id) {
 		return new JsonBean<>(functionService.get(id));
 	}
@@ -50,7 +50,7 @@ public class MagicFunctionController extends MagicController implements MagicExc
 
 	@RequestMapping("/function/move")
 	@ResponseBody
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.SAVE)
+	@Valid(readonly = false, authorization = Authorization.SAVE)
 	public JsonBean<Boolean> move(String id, String groupId) {
 		isTrue(functionService.allowMove(id, groupId), NAME_CONFLICT);
 		isTrue(configuration.getMagicFunctionManager().move(id, groupId), FUNCTION_PATH_CONFLICT);
@@ -60,7 +60,7 @@ public class MagicFunctionController extends MagicController implements MagicExc
 
 	@RequestMapping("/function/save")
 	@ResponseBody
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.SAVE)
+	@Valid(readonly = false, authorization = Authorization.SAVE)
 	public JsonBean<String> save(@RequestBody FunctionInfo functionInfo) {
 		notBlank(functionInfo.getName(), FUNCTION_NAME_REQUIRED);
 		isTrue(IoUtils.validateFileName(functionInfo.getName()), NAME_INVALID);
@@ -82,7 +82,7 @@ public class MagicFunctionController extends MagicController implements MagicExc
 
 	@RequestMapping("/function/delete")
 	@ResponseBody
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.DELETE)
+	@Valid(readonly = false, authorization = Authorization.DELETE)
 	public JsonBean<Boolean> delete(String id) {
 		boolean success = functionService.delete(id);
 		if (success) {

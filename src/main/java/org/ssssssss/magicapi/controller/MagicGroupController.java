@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
-import org.ssssssss.magicapi.interceptor.RequestInterceptor;
+import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.model.TreeNode;
@@ -30,7 +30,7 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	 */
 	@RequestMapping("/group/delete")
 	@ResponseBody
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.DELETE)
+	@Valid(readonly = false, authorization = Authorization.DELETE)
 	public JsonBean<Boolean> deleteGroup(String groupId) {
 		boolean isApi = true;
 		TreeNode<Group> treeNode = configuration.getGroupServiceProvider().apiGroupTree().findTreeNode(group -> group.getId().equals(groupId));
@@ -68,7 +68,7 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	 */
 	@RequestMapping("/group/update")
 	@ResponseBody
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.SAVE)
+	@Valid(readonly = false, authorization = Authorization.SAVE)
 	public synchronized JsonBean<Boolean> groupUpdate(Group group) {
 		if (StringUtils.isBlank(group.getParentId())) {
 			group.setParentId("0");
@@ -107,7 +107,7 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	 */
 	@RequestMapping("/group/create")
 	@ResponseBody
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.SAVE)
+	@Valid(readonly = false, authorization = Authorization.SAVE)
 	public JsonBean<String> createGroup(Group group) {
 		if (StringUtils.isBlank(group.getParentId())) {
 			group.setParentId("0");

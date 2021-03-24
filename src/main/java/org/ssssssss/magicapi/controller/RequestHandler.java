@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.ssssssss.magicapi.config.MagicConfiguration;
+import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.context.CookieContext;
 import org.ssssssss.magicapi.context.HeaderContext;
 import org.ssssssss.magicapi.context.RequestContext;
@@ -61,7 +62,11 @@ public class RequestHandler extends MagicController {
 		this.resultProvider = configuration.getResultProvider();
 	}
 
+	/**
+	 * 测试入口、实际请求入口
+	 */
 	@ResponseBody
+	@Valid(requireLogin = false)	// 无需验证是否要登录
 	public Object invoke(HttpServletRequest request, HttpServletResponse response,
 						 @PathVariable(required = false) Map<String, Object> pathVariables,
 						 @RequestParam(required = false) Map<String, Object> parameters) throws Throwable {
@@ -69,9 +74,6 @@ public class RequestHandler extends MagicController {
 		if (requestEntity.isRequestedFromTest()) {
 			response.setHeader(HEADER_RESPONSE_WITH_MAGIC_API, CONST_STRING_TRUE);
 			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
-			if (!allowVisit(request, RequestInterceptor.Authorization.RUN)) {
-				return new JsonBean<>(PERMISSION_INVALID);
-			}
 		}
 		if (requestEntity.getApiInfo() == null) {
 			logger.error("{}找不到对应接口", request.getRequestURI());

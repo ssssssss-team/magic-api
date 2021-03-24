@@ -3,6 +3,9 @@ package org.ssssssss.magicapi.config;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.ssssssss.magicapi.controller.MagicController;
+import org.ssssssss.magicapi.exception.MagicLoginException;
+import org.ssssssss.magicapi.interceptor.AuthorizationInterceptor;
+import org.ssssssss.magicapi.model.Constants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,12 +17,15 @@ public class MagicWebRequestInterceptor implements HandlerInterceptor {
 
 	private final MagicCorsFilter magicCorsFilter;
 
-	public MagicWebRequestInterceptor(MagicCorsFilter magicCorsFilter) {
+	private AuthorizationInterceptor authorizationInterceptor;
+
+	public MagicWebRequestInterceptor(MagicCorsFilter magicCorsFilter, AuthorizationInterceptor authorizationInterceptor) {
 		this.magicCorsFilter = magicCorsFilter;
+		this.authorizationInterceptor = authorizationInterceptor;
 	}
 
 	@Override
-	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws MagicLoginException {
 		HandlerMethod handlerMethod;
 		if (handler instanceof HandlerMethod) {
 			handlerMethod = (HandlerMethod) handler;
@@ -28,7 +34,11 @@ public class MagicWebRequestInterceptor implements HandlerInterceptor {
 				if (magicCorsFilter != null) {
 					magicCorsFilter.process(request, response);
 				}
-				((MagicController) handler).doValid(request, handlerMethod.getMethodAnnotation(Valid.class));
+				Valid valid = handlerMethod.getMethodAnnotation(Valid.class);
+				if (authorizationInterceptor.requireLogin() && (valid == null || valid.requireLogin())) {
+					request.setAttribute(Constants.ATTRIBUTE_MAGIC_USER, authorizationInterceptor.getUserByToken(request.getHeader(Constants.MAGIC_TOKEN_HEADER)));
+				}
+				((MagicController) handler).doValid(request, valid);
 			}
 		}
 		return true;

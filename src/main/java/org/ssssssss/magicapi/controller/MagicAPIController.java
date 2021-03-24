@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
-import org.ssssssss.magicapi.interceptor.RequestInterceptor;
+import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
@@ -34,7 +34,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/delete")
 	@ResponseBody
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.DELETE)
+	@Valid(readonly = false, authorization = Authorization.DELETE)
 	public JsonBean<Boolean> delete(String id) {
 		boolean success = magicApiService.delete(id);
 		if (success) {    //删除成功时在取消注册
@@ -59,7 +59,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/get")
 	@ResponseBody
-	@Valid(authorization = RequestInterceptor.Authorization.DETAIL)
+	@Valid(authorization = Authorization.DETAIL)
 	public JsonBean<ApiInfo> get(String id) {
 		return new JsonBean<>(magicApiService.get(id));
 	}
@@ -92,7 +92,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/api/move")
 	@ResponseBody
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.SAVE)
+	@Valid(readonly = false, authorization = Authorization.SAVE)
 	public JsonBean<Boolean> apiMove(String id, String groupId) {
 		// 验证分组是否存在
 		isTrue(configuration.getGroupServiceProvider().containsApiGroup(groupId), GROUP_NOT_FOUND);
@@ -111,7 +111,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/save")
 	@ResponseBody
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.SAVE)
+	@Valid(readonly = false, authorization = Authorization.SAVE)
 	public JsonBean<String> save(@RequestBody ApiInfo info) {
 		// 非空验证
 		notBlank(info.getMethod(), REQUEST_METHOD_REQUIRED);

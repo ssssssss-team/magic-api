@@ -19,7 +19,7 @@ import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.MagicDynamicDataSource;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.exception.InvalidArgumentException;
-import org.ssssssss.magicapi.interceptor.RequestInterceptor;
+import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.utils.IoUtils;
 import org.ssssssss.magicapi.utils.JsonUtils;
@@ -80,7 +80,7 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	 * @param properties 数据源配置信息
 	 */
 	@RequestMapping("/datasource/save")
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.SAVE)
+	@Valid(readonly = false, authorization = Authorization.SAVE)
 	@ResponseBody
 	public JsonBean<String> save(@RequestBody Map<String, String> properties) {
 		String key = properties.get("key");
@@ -113,7 +113,7 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	 * @param id 数据源ID
 	 */
 	@RequestMapping("/datasource/delete")
-	@Valid(readonly = false, authorization = RequestInterceptor.Authorization.DELETE)
+	@Valid(readonly = false, authorization = Authorization.DELETE)
 	@ResponseBody
 	public JsonBean<Boolean> delete(String id) {
 		// 查询数据源是否存在
@@ -131,7 +131,7 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	}
 
 	@RequestMapping("/datasource/detail")
-	@Valid(authorization = RequestInterceptor.Authorization.DETAIL)
+	@Valid(authorization = Authorization.DETAIL)
 	@ResponseBody
 	public JsonBean<Object> detail(String id) {
 		Resource resource = this.resource.getResource(id + ".json");

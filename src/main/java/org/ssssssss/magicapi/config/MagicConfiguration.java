@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.config;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.controller.RequestHandler;
+import org.ssssssss.magicapi.interceptor.AuthorizationInterceptor;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.FunctionServiceProvider;
@@ -78,6 +79,8 @@ public class MagicConfiguration {
 
 	private List<HttpMessageConverter<?>> httpMessageConverters = new ArrayList<>();
 
+	private AuthorizationInterceptor authorizationInterceptor;
+
 	/**
 	 * debug 超时时间
 	 */
@@ -145,8 +148,12 @@ public class MagicConfiguration {
 		return password;
 	}
 
-	public String getTokenKey() {
-		return "Magic-Token";
+	public AuthorizationInterceptor getAuthorizationInterceptor() {
+		return authorizationInterceptor;
+	}
+
+	public void setAuthorizationInterceptor(AuthorizationInterceptor authorizationInterceptor) {
+		this.authorizationInterceptor = authorizationInterceptor;
 	}
 
 	public List<RequestInterceptor> getRequestInterceptors() {

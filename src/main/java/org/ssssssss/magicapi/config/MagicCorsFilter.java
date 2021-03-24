@@ -2,7 +2,7 @@ package org.ssssssss.magicapi.config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
-import org.ssssssss.magicapi.controller.MagicAPIController;
+import org.ssssssss.magicapi.model.Constants;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -36,7 +36,7 @@ public class MagicCorsFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
-		if (StringUtils.isNotBlank(MagicAPIController.HEADER_REQUEST_SESSION)) {
+		if (StringUtils.isNotBlank(Constants.HEADER_REQUEST_SESSION)) {
 			process(request, (HttpServletResponse) resp);
 		}
 		chain.doFilter(req, resp);

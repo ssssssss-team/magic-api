@@ -9,7 +9,7 @@ import org.ssssssss.magicapi.model.JsonBean;
 
 public interface MagicExceptionHandler {
 
-	final Logger logger = LoggerFactory.getLogger(MagicExceptionHandler.class);
+	Logger logger = LoggerFactory.getLogger(MagicExceptionHandler.class);
 
 	@ExceptionHandler(Exception.class)
 	@ResponseBody
