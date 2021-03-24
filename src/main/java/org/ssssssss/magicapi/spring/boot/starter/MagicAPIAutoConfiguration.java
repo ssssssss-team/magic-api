@@ -35,6 +35,8 @@ import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.controller.*;
 import org.ssssssss.magicapi.dialect.Dialect;
 import org.ssssssss.magicapi.exception.MagicAPIException;
+import org.ssssssss.magicapi.interceptor.AuthorizationInterceptor;
+import org.ssssssss.magicapi.interceptor.DefaultAuthorizationInterceptor;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.interceptor.SQLInterceptor;
 import org.ssssssss.magicapi.logging.LoggerManager;
@@ -73,6 +75,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Autowired(required = false)
 	private final List<RequestInterceptor> requestInterceptors = Collections.emptyList();
+
+	@Autowired
+	private AuthorizationInterceptor authorizationInterceptor;
 
 	@Autowired(required = false)
 	private final List<SQLInterceptor> sqlInterceptors = Collections.emptyList();
@@ -196,6 +201,13 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return ResourceAdapter.getResource(resourceConfig.getLocation(), resourceConfig.isReadonly());
 	}
 
+	@Bean
+	@ConditionalOnMissingBean(AuthorizationInterceptor.class)
+	public AuthorizationInterceptor magicAuthorizationInterceptor() {
+		SecurityConfig securityConfig = properties.getSecurityConfig();
+		return new DefaultAuthorizationInterceptor(securityConfig.getUsername(), securityConfig.getPassword());
+	}
+
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		String web = properties.getWeb();
@@ -218,7 +230,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(new MagicWebRequestInterceptor(properties.isSupportCrossDomain() ? magicCorsFilter : null)).addPathPatterns("/**");
+		registry.addInterceptor(new MagicWebRequestInterceptor(properties.isSupportCrossDomain() ? magicCorsFilter : null, authorizationInterceptor))
+				.addPathPatterns("/**");
 	}
 
 
@@ -428,6 +441,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		configuration.setMagicDynamicDataSource(magicDynamicDataSource);
 		configuration.setEditorConfig(properties.getEditorConfig());
 		configuration.setWorkspace(magicResource);
+		configuration.setAuthorizationInterceptor(authorizationInterceptor);
 		// 注册函数
 		this.magicFunctions.forEach(JavaReflection::registerFunction);
 		// 向页面传递配置信息时不传递用户名密码，增强安全性
@@ -475,7 +489,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		int refreshInterval = properties.getRefreshInterval();
 		// 自动刷新
 		mappingHandlerMapping.enableRefresh(refreshInterval);
-		if(refreshInterval > 0){
+		if (refreshInterval > 0) {
 			Executors.newScheduledThreadPool(1).scheduleAtFixedRate(dataSourceController::registerDataSource, refreshInterval, refreshInterval, TimeUnit.SECONDS);
 		}
 		return configuration;
