@@ -98,6 +98,7 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	 */
 	@RequestMapping("/group/list")
 	@ResponseBody
+	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<List<Group>> groupList(String type) {
 		return new JsonBean<>(groupServiceProvider.groupList(type));
 	}

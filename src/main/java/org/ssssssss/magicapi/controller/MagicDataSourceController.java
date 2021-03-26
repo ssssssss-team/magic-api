@@ -51,6 +51,7 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	 */
 	@RequestMapping("/datasource/list")
 	@ResponseBody
+	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<List<Map<String, Object>>> list() {
 		List<Map<String, Object>> list = configuration.getMagicDynamicDataSource().datasourceNodes().stream().map(it -> {
 			Map<String, Object> row = new HashMap<>();
@@ -80,7 +81,7 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	 * @param properties 数据源配置信息
 	 */
 	@RequestMapping("/datasource/save")
-	@Valid(readonly = false, authorization = Authorization.SAVE)
+	@Valid(readonly = false, authorization = Authorization.DATASOURCE_SAVE)
 	@ResponseBody
 	public JsonBean<String> save(@RequestBody Map<String, String> properties) {
 		String key = properties.get("key");
@@ -113,7 +114,7 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	 * @param id 数据源ID
 	 */
 	@RequestMapping("/datasource/delete")
-	@Valid(readonly = false, authorization = Authorization.DELETE)
+	@Valid(readonly = false, authorization = Authorization.DATASOURCE_DELETE)
 	@ResponseBody
 	public JsonBean<Boolean> delete(String id) {
 		// 查询数据源是否存在
@@ -131,7 +132,7 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	}
 
 	@RequestMapping("/datasource/detail")
-	@Valid(authorization = Authorization.DETAIL)
+	@Valid(authorization = Authorization.DATASOURCE_VIEW)
 	@ResponseBody
 	public JsonBean<Object> detail(String id) {
 		Resource resource = this.resource.getResource(id + ".json");

@@ -48,6 +48,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/list")
 	@ResponseBody
+	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<List<ApiInfo>> list() {
 		return new JsonBean<>(magicApiService.list());
 	}
@@ -59,7 +60,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/get")
 	@ResponseBody
-	@Valid(authorization = Authorization.DETAIL)
+	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<ApiInfo> get(String id) {
 		return new JsonBean<>(magicApiService.get(id));
 	}
@@ -71,6 +72,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/backups")
 	@ResponseBody
+	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<List<Long>> backups(String id) {
 		return new JsonBean<>(magicApiService.backupList(id));
 	}
@@ -83,6 +85,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/backup/get")
 	@ResponseBody
+	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<ApiInfo> backups(String id, Long timestamp) {
 		return new JsonBean<>(magicApiService.backupInfo(id, timestamp));
 	}

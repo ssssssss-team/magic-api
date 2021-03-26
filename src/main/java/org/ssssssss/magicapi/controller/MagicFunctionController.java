@@ -25,25 +25,28 @@ public class MagicFunctionController extends MagicController implements MagicExc
 
 	@RequestMapping("/function/list")
 	@ResponseBody
+	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<List<FunctionInfo>> list() {
 		return new JsonBean<>(functionService.list());
 	}
 
 	@RequestMapping("/function/get")
 	@ResponseBody
-	@Valid(authorization = Authorization.DETAIL)
+	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<FunctionInfo> get(String id) {
 		return new JsonBean<>(functionService.get(id));
 	}
 
 	@RequestMapping("/function/backup/get")
 	@ResponseBody
+	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<FunctionInfo> backups(String id, Long timestamp) {
 		return new JsonBean<>(functionService.backupInfo(id, timestamp));
 	}
 
 	@RequestMapping("/function/backups")
 	@ResponseBody
+	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<List<Long>> backups(String id) {
 		return new JsonBean<>(functionService.backupList(id));
 	}

@@ -128,7 +128,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@RequestMapping(value = "/config-js")
 	@ResponseBody
 	@Valid(requireLogin = false)
-	public ResponseEntity<?> configjs() {
+	public ResponseEntity<?> configJs() {
 		ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok().contentType(MediaType.parseMediaType("application/javascript"));
 		if (configuration.getEditorConfig() != null) {
 			try {

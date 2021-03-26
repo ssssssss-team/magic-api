@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 public interface AuthorizationInterceptor {
 
 
-
 	/**
 	 * 是否需要登录
 	 */
@@ -18,7 +17,9 @@ public interface AuthorizationInterceptor {
 	/**
 	 * 根据Token获取User对象
 	 */
-	MagicUser getUserByToken(String token) throws MagicLoginException;
+	default MagicUser getUserByToken(String token) throws MagicLoginException {
+		return null;
+	}
 
 	/**
 	 * 根据用户名，密码登录
@@ -26,7 +27,9 @@ public interface AuthorizationInterceptor {
 	 * @param username 用户名
 	 * @param password 密码
 	 */
-	MagicUser login(String username, String password) throws MagicLoginException;
+	default MagicUser login(String username, String password) throws MagicLoginException {
+		return null;
+	}
 
 	/**
 	 * 是否拥有页面按钮的权限
