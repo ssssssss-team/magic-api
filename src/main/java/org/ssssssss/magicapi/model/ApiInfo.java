@@ -194,7 +194,7 @@ public class ApiInfo extends MagicEntity{
 	}
 
 	public String getOptionValue(Options options){
-		return getOptionValue(options.name());
+		return getOptionValue(options.getValue());
 	}
 
 	public String getOptionValue(String key) {

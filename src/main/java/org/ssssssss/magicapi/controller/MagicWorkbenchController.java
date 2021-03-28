@@ -121,8 +121,8 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@RequestMapping("/options")
 	@ResponseBody
 	@Valid(requireLogin = false)
-	public JsonBean<List<Map<String, String>>> options() {
-		return new JsonBean<>(Stream.of(Options.values()).map(item -> Collections.singletonMap(item.getValue(), item.getName())).collect(Collectors.toList()));
+	public JsonBean<List<List<String>>> options() {
+		return new JsonBean<>(Stream.of(Options.values()).map(item -> Arrays.asList(item.getValue(),item.getName(),item.getDefaultValue())).collect(Collectors.toList()));
 	}
 
 	@RequestMapping(value = "/config-js")
