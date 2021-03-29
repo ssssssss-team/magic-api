@@ -44,6 +44,9 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	public MagicDataSourceController(MagicConfiguration configuration) {
 		super(configuration);
 		resource = configuration.getWorkspace().getDirectory("datasource");
+		if (!resource.exists()) {
+			resource.mkdir();
+		}
 	}
 
 	/**
