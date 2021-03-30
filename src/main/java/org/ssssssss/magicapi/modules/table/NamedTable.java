@@ -34,7 +34,7 @@ public class NamedTable {
 
 	@Comment("设置主键名，update时使用")
 	public NamedTable primary(String primary) {
-		this.primary = primary;
+		this.primary = rowMapColumnMapper.apply(primary);
 		return this;
 	}
 
