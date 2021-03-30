@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.interceptor.Authorization;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.model.TreeNode;
@@ -77,8 +78,8 @@ public class MagicGroupController extends MagicController implements MagicExcept
 		isTrue(IoUtils.validateFileName(group.getName()), NAME_INVALID);
 
 		notBlank(group.getType(), GROUP_TYPE_REQUIRED);
-		boolean isApiGroup = "1".equals(group.getType());
-		boolean isFunctionGroup = "2".equals(group.getType());
+		boolean isApiGroup = Constants.GROUP_TYPE_API.equals(group.getType());
+		boolean isFunctionGroup = Constants.GROUP_TYPE_FUNCTION.equals(group.getType());
 		if (isApiGroup && configuration.getMappingHandlerMapping().checkGroup(group)) {
 			isTrue(groupServiceProvider.update(group), GROUP_SAVE_FAILURE);
 			// 如果数据库修改成功，则修改接口路径
@@ -117,7 +118,7 @@ public class MagicGroupController extends MagicController implements MagicExcept
 		isTrue(IoUtils.validateFileName(group.getName()), NAME_INVALID);
 		notBlank(group.getType(), GROUP_TYPE_REQUIRED);
 		isTrue(groupServiceProvider.insert(group), GROUP_SAVE_FAILURE);
-		if (Objects.equals(group.getType(), "1")) {
+		if (Objects.equals(group.getType(), Constants.GROUP_TYPE_API)) {
 			configuration.getMappingHandlerMapping().loadGroup();
 		} else {
 			configuration.getMagicFunctionManager().loadGroup();

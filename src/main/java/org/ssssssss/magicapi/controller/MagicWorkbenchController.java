@@ -194,7 +194,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 				groupServiceProvider.insert(group);
 			}
 		}
-		Resource backups = configuration.getWorkspace().getDirectory("backups");
+		Resource backups = configuration.getWorkspace().getDirectory(Constants.PATH_BACKUPS);
 		// 保存
 		write(configuration.getMagicApiService(), backups, apiInfos);
 		write(configuration.getFunctionServiceProvider(), backups, functionInfos);
@@ -226,7 +226,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 			Group group = JsonUtils.readValue(resource.read(), Group.class);
 			groups.add(group);
 			path = Objects.toString(group.getPath(), "");
-			boolean isApi = "1".equals(group.getType());
+			boolean isApi = Constants.GROUP_TYPE_API.equals(group.getType());
 			for (Resource file : root.files(".ms")) {
 				boolean conflict;
 				if (isApi) {
@@ -253,7 +253,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	private ResponseEntity<?> download(Resource resource, String filename) throws IOException {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		resource.export(os, "backups");
+		resource.export(os, Constants.PATH_BACKUPS);
 		return ResponseModule.download(os.toByteArray(), filename);
 	}
 }

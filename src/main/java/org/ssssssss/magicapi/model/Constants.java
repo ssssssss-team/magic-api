@@ -12,6 +12,37 @@ public class Constants {
 	 */
 	public static final String CONST_STRING_FALSE = "false";
 
+
+	/**
+	 * 分组类型: 接口
+	 */
+	public static final String GROUP_TYPE_API = "1";
+
+	/**
+	 * 分组类型: 函数
+	 */
+	public static final String GROUP_TYPE_FUNCTION = "2";
+
+	/**
+	 * 接口文件夹名
+	 */
+	public static final String PATH_API = "api";
+
+	/**
+	 * 函数文件夹名
+	 */
+	public static final String PATH_FUNCTION = "function";
+
+	/**
+	 * 数据源文件夹名
+	 */
+	public static final String PATH_DATASOURCE = "datasource";
+
+	/**
+	 * 备份文件夹名
+	 */
+	public static final String PATH_BACKUPS = "backups";
+
 	/**
 	 * 空值
 	 */

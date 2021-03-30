@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.provider.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.magicapi.adapter.Resource;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.TreeNode;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
@@ -45,7 +46,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	}
 
 	private Resource getGroupResource(String type, String name) {
-		return this.workspace.getDirectory("1".equals(type) ? "api" : "function").getDirectory(name);
+		return this.workspace.getDirectory(Constants.GROUP_TYPE_API.equals(type) ? Constants.PATH_API : Constants.PATH_FUNCTION).getDirectory(name);
 	}
 
 	@Override
@@ -91,7 +92,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	@Override
 	public TreeNode<Group> apiGroupTree() {
-		List<Group> groups = groupList("1");
+		List<Group> groups = groupList(Constants.GROUP_TYPE_API);
 		cacheApiTree = groups.stream().collect(Collectors.toMap(Group::getId, value -> value));
 		return convertToTree(groups);
 	}
@@ -105,7 +106,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	@Override
 	public List<Group> groupList(String type) {
-		Resource resource = this.workspace.getDirectory("1".equals(type) ? "api" : "function");
+		Resource resource = this.workspace.getDirectory(Constants.GROUP_TYPE_API.equals(type) ? Constants.PATH_API : Constants.PATH_FUNCTION);
 		resource.readAll();
 		return resource.dirs().stream().map(it -> it.getResource(metabase)).filter(Resource::exists)
 				.map(it -> {

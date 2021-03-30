@@ -20,6 +20,7 @@ import org.ssssssss.magicapi.config.MagicDynamicDataSource;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.exception.InvalidArgumentException;
 import org.ssssssss.magicapi.interceptor.Authorization;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.utils.IoUtils;
 import org.ssssssss.magicapi.utils.JsonUtils;
@@ -43,7 +44,7 @@ public class MagicDataSourceController extends MagicController implements MagicE
 
 	public MagicDataSourceController(MagicConfiguration configuration) {
 		super(configuration);
-		resource = configuration.getWorkspace().getDirectory("datasource");
+		resource = configuration.getWorkspace().getDirectory(Constants.PATH_DATASOURCE);
 		if (!resource.exists()) {
 			resource.mkdir();
 		}

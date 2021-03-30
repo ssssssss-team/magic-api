@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.provider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ssssssss.magicapi.adapter.Resource;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.MagicEntity;
 import org.ssssssss.magicapi.utils.JsonUtils;
 
@@ -37,7 +38,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		if (!this.workspace.exists()) {
 			this.workspace.mkdir();
 		}
-		this.backupResource = this.workspace.parent().getDirectory("backups");
+		this.backupResource = this.workspace.parent().getDirectory(Constants.PATH_BACKUPS);
 		if (!this.backupResource.exists()) {
 			this.backupResource.mkdir();
 		}
