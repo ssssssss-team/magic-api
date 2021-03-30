@@ -377,7 +377,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	@Comment("指定table，进行单表操作")
 	public NamedTable table(String tableName) {
-		return new NamedTable(tableName, this);
+		return new NamedTable(tableName, this, rowMapColumnMapper);
 	}
 
 	@UnableCall

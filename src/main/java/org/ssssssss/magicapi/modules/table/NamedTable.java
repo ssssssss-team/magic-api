@@ -7,6 +7,7 @@ import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.script.annotation.Comment;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class NamedTable {
@@ -21,11 +22,14 @@ public class NamedTable {
 
 	List<String> fields = new ArrayList<>();
 
+	Function<String, String> rowMapColumnMapper;
+
 	Where where = new Where(this);
 
-	public NamedTable(String tableName, SQLModule sqlModule) {
+	public NamedTable(String tableName, SQLModule sqlModule,Function<String, String> rowMapColumnMapper) {
 		this.tableName = tableName;
 		this.sqlModule = sqlModule;
+		this.rowMapColumnMapper = rowMapColumnMapper;
 	}
 
 	@Comment("设置主键名，update时使用")
@@ -41,7 +45,7 @@ public class NamedTable {
 
 	@Comment("设置单列的值")
 	public NamedTable column(@Comment("列名") String key, @Comment("值") Object value) {
-		this.columns.put(key, value);
+		this.columns.put(rowMapColumnMapper.apply(key), value);
 		return this;
 	}
 
@@ -58,7 +62,7 @@ public class NamedTable {
 	@Comment("设置查询的列，如`columns(['a','b','c'])`")
 	public NamedTable columns(Collection<String> columns) {
 		if (columns != null) {
-			columns.stream().filter(StringUtils::isNotBlank).forEach(this.fields::add);
+			columns.stream().filter(StringUtils::isNotBlank).map(rowMapColumnMapper).forEach(this.fields::add);
 		}
 		return this;
 	}
@@ -66,7 +70,7 @@ public class NamedTable {
 	@Comment("设置查询的列，如`column('a')`")
 	public NamedTable column(String column) {
 		if (StringUtils.isNotBlank(column)) {
-			this.fields.add(column);
+			this.fields.add(this.rowMapColumnMapper.apply(column));
 		}
 		return this;
 	}
@@ -112,7 +116,7 @@ public class NamedTable {
 		if (StringUtils.isBlank(this.primary)) {
 			throw new MagicAPIException("请设置主键");
 		}
-		if (this.columns.get(this.primary) != null || (data != null && data.get(this.primary) != null)) {
+		if (StringUtils.isNotBlank(Objects.toString(this.columns.get(this.primary))) || (data != null && StringUtils.isNotBlank(Objects.toString(data.get(this.primary))))) {
 			return update(data);
 		}
 		return insert(data);

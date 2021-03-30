@@ -17,7 +17,7 @@ public interface ColumnMapperProvider {
 	}
 
 	default Function<String, String> getRowMapColumnMapper() {
-		return this::mapping;
+		return this::unmapping;
 	}
 
 	default ColumnMapRowMapper getColumnMapRowMapper() {
