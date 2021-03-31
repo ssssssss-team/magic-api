@@ -24,6 +24,8 @@ public class NamedTable {
 
 	Function<String, String> rowMapColumnMapper;
 
+	Object defaultPrimaryValue;
+
 	Where where = new Where(this);
 
 	public NamedTable(String tableName, SQLModule sqlModule, Function<String, String> rowMapColumnMapper) {
@@ -34,7 +36,13 @@ public class NamedTable {
 
 	@Comment("设置主键名，update时使用")
 	public NamedTable primary(String primary) {
+		return primary(primary,null);
+	}
+
+	@Comment("设置主键名，并设置默认主键值(主要用于insert)")
+	public NamedTable primary(String primary, Object defaultPrimaryValue) {
 		this.primary = rowMapColumnMapper.apply(primary);
+		this.defaultPrimaryValue = defaultPrimaryValue;
 		return this;
 	}
 
@@ -90,6 +98,9 @@ public class NamedTable {
 	public int insert(@Comment("各项列和值") Map<String, Object> data) {
 		if (data != null) {
 			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
+		}
+		if(this.defaultPrimaryValue != null && StringUtils.isBlank(Objects.toString(this.columns.getOrDefault(this.primary,"")))){
+			this.columns.put(this.primary, this.defaultPrimaryValue);
 		}
 		List<Map.Entry<String, Object>> entries = filterNotBlanks();
 		if (entries.isEmpty()) {
