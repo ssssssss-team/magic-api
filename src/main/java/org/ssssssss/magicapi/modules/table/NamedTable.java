@@ -26,7 +26,7 @@ public class NamedTable {
 
 	Where where = new Where(this);
 
-	public NamedTable(String tableName, SQLModule sqlModule,Function<String, String> rowMapColumnMapper) {
+	public NamedTable(String tableName, SQLModule sqlModule, Function<String, String> rowMapColumnMapper) {
 		this.tableName = tableName;
 		this.sqlModule = sqlModule;
 		this.rowMapColumnMapper = rowMapColumnMapper;
@@ -89,7 +89,7 @@ public class NamedTable {
 	@Comment("执行插入")
 	public int insert(@Comment("各项列和值") Map<String, Object> data) {
 		if (data != null) {
-			this.columns.putAll(data);
+			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
 		}
 		List<Map.Entry<String, Object>> entries = filterNotBlanks();
 		if (entries.isEmpty()) {
@@ -163,7 +163,7 @@ public class NamedTable {
 	@Comment("执行update语句")
 	public int update(@Comment("各项列和值") Map<String, Object> data) {
 		if (null != data) {
-			this.columns.putAll(data);
+			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
 		}
 		Object primaryValue = null;
 		if (StringUtils.isNotBlank(this.primary)) {
@@ -178,21 +178,21 @@ public class NamedTable {
 		builder.append(tableName);
 		builder.append(" set ");
 		List<Object> params = new ArrayList<>();
-		for (int i = 0,size = entries.size(); i < size; i++) {
+		for (int i = 0, size = entries.size(); i < size; i++) {
 			Map.Entry<String, Object> entry = entries.get(i);
 			builder.append(entry.getKey()).append(" = ?");
 			params.add(entry.getValue());
-			if(i + 1 < size){
+			if (i + 1 < size) {
 				builder.append(",");
 			}
 		}
 		if (!where.isEmpty()) {
 			builder.append(where.getSql());
 			params.addAll(where.getParams());
-		} else if(primaryValue != null){
+		} else if (primaryValue != null) {
 			builder.append(" where ").append(this.primary).append(" = ?");
 			params.add(primaryValue);
-		}else{
+		} else {
 			throw new MagicAPIException("主键值不能为空");
 		}
 		return sqlModule.update(new BoundSql(builder.toString(), params, sqlModule));
