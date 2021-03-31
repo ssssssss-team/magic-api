@@ -152,6 +152,18 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	}
 
 	/**
+	 * 重新加载分组
+	 */
+	public void reload(String groupId){
+		Resource dest = groupServiceProvider.getGroupResource(groupId);
+		dest.files(".ms").forEach(r -> {
+			T info = deserialize(r.read());
+			infos.put(info.getId(), info);
+			mappings.put(info.getId(), r);
+		});
+	}
+
+	/**
 	 * 查询所有（内部使用，需要带Script）
 	 */
 	public List<T> listWithScript() {

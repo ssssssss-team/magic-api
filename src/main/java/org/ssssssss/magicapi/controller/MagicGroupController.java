@@ -84,11 +84,13 @@ public class MagicGroupController extends MagicController implements MagicExcept
 			isTrue(groupServiceProvider.update(group), GROUP_SAVE_FAILURE);
 			// 如果数据库修改成功，则修改接口路径
 			configuration.getMappingHandlerMapping().updateGroup(group);
+			configuration.getMagicApiService().reload(group.getId());
 			return new JsonBean<>(true);
 		} else if (isFunctionGroup && configuration.getMagicFunctionManager().checkGroup(group)) {
 			isTrue(groupServiceProvider.update(group), GROUP_SAVE_FAILURE);
 			// 如果数据库修改成功，则修改接口路径
 			configuration.getMagicFunctionManager().updateGroup(group);
+			configuration.getFunctionServiceProvider().reload(group.getId());
 			return new JsonBean<>(true);
 		}
 		return new JsonBean<>(GROUP_CONFLICT);
