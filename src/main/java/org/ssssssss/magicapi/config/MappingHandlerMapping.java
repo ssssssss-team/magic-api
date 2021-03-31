@@ -201,7 +201,11 @@ public class MappingHandlerMapping {
 		for (ApiInfo info : infos) {
 			String path = concatPath(newPath, "/" + info.getPath());
 			String mappingKey = buildMappingKey(info.getMethod(), path);
-			if (mappings.containsKey(mappingKey)) {
+			MappingNode mappingNode = mappings.get(mappingKey);
+			if (mappingNode != null) {
+				if(mappingNode.getInfo().equals(info)){
+					continue;
+				}
 				return true;
 			}
 			if (!allowOverride) {
