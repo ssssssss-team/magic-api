@@ -1,14 +1,18 @@
 package org.ssssssss.magicapi.adapter.resource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.ssssssss.magicapi.adapter.Resource;
+import org.ssssssss.magicapi.utils.Assert;
 import org.ssssssss.magicapi.utils.IoUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Blob;
+import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,15 +27,17 @@ public class DatabaseResource extends KeyValueResource {
 
 	private Map<String, String> cachedContent = new ConcurrentHashMap<>();
 
+	private static final Logger logger = LoggerFactory.getLogger(DatabaseResource.class);
+
 	public DatabaseResource(JdbcTemplate template, String tableName) {
-		this(template, tableName,  false);
+		this(template, tableName, false);
 	}
 
 	public DatabaseResource(JdbcTemplate template, String tableName, boolean readonly) {
 		this(template, tableName, "/magic-api", readonly);
 	}
 
-	public DatabaseResource(JdbcTemplate template, String tableName, String path,boolean readonly) {
+	public DatabaseResource(JdbcTemplate template, String tableName, String path, boolean readonly) {
 		this(template, tableName, path, readonly, null);
 	}
 
@@ -64,17 +70,26 @@ public class DatabaseResource extends KeyValueResource {
 		while (sqlRowSet.next()) {
 			Object object = sqlRowSet.getObject(2);
 			String content = null;
-			if(object instanceof String){
+			if (object instanceof String) {
 				content = object.toString();
-			}else if(object instanceof byte[]){
-				content = new String((byte[])object,StandardCharsets.UTF_8);
-			}else if(object instanceof Blob){
+			} else if (object instanceof byte[]) {
+				content = new String((byte[]) object, StandardCharsets.UTF_8);
+			} else if (object instanceof Blob) {
 				Blob blob = (Blob) object;
-				try(InputStream is = blob.getBinaryStream()){
-					content = new String(IoUtils.bytes(is),StandardCharsets.UTF_8);
-				}catch (SQLException | IOException ignored){
+				try (InputStream is = blob.getBinaryStream()) {
+					content = new String(IoUtils.bytes(is), StandardCharsets.UTF_8);
+				} catch (SQLException | IOException ex) {
+					logger.error("读取content失败", ex);
+				}
+			} else if (object instanceof Clob) {
+				Clob clob = (Clob) object;
+				try {
+					clob.getSubString(1, (int) clob.length());
+				} catch (SQLException ex) {
+					logger.error("读取content失败", ex);
 				}
 			}
+			Assert.isNotNull(content, "读取content失败，请检查列类型是否正确");
 			this.cachedContent.put(sqlRowSet.getString(1), content);
 		}
 	}
