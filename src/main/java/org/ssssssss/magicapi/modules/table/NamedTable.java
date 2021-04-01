@@ -127,7 +127,7 @@ public class NamedTable {
 		if (StringUtils.isBlank(this.primary)) {
 			throw new MagicAPIException("请设置主键");
 		}
-		if (StringUtils.isNotBlank(Objects.toString(this.columns.get(this.primary))) || (data != null && StringUtils.isNotBlank(Objects.toString(data.get(this.primary))))) {
+		if (StringUtils.isNotBlank(Objects.toString(this.columns.get(this.primary), "")) || (data != null && StringUtils.isNotBlank(Objects.toString(data.get(this.primary), "")))) {
 			return update(data);
 		}
 		return insert(data);
