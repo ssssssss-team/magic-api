@@ -174,10 +174,13 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 */
 	@Bean
 	@ConditionalOnMissingBean(MagicDynamicDataSource.class)
-	@ConditionalOnBean({DataSource.class})
-	public MagicDynamicDataSource magicDynamicDataSource(DataSource dataSource) {
+	public MagicDynamicDataSource magicDynamicDataSource(@Autowired(required = false) DataSource dataSource) {
 		MagicDynamicDataSource dynamicDataSource = new MagicDynamicDataSource();
-		dynamicDataSource.put(dataSource);
+		if(dataSource != null){
+			dynamicDataSource.put(dataSource);
+		}else {
+			logger.warn("当前数据源未配置");
+		}
 		return dynamicDataSource;
 	}
 
