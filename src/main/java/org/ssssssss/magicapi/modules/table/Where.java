@@ -294,22 +294,22 @@ public class Where {
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
-	public int save() {
+	public Object save() {
 		return namedTable.save();
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
-	public int save(@Comment("各项列和值") Map<String, Object> data) {
+	public Object save(@Comment("各项列和值") Map<String, Object> data) {
 		return namedTable.save(data);
 	}
 
-	@Comment("执行插入语句")
-	public int insert() {
+	@Comment("执行插入语句，返回主键")
+	public Object insert() {
 		return namedTable.insert();
 	}
 
-	@Comment("执行插入语句")
-	public int insert(@Comment("各项列和值") Map<String, Object> data) {
+	@Comment("执行插入语句，返回主键")
+	public Object insert(@Comment("各项列和值") Map<String, Object> data) {
 		return namedTable.insert(data);
 	}
 

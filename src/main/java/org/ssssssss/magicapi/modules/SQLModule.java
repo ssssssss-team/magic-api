@@ -1,9 +1,11 @@
 package org.ssssssss.magicapi.modules;
 
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.dao.DataRetrievalFailureException;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.ssssssss.magicapi.adapter.ColumnMapperAdapter;
 import org.ssssssss.magicapi.adapter.DialectAdapter;
 import org.ssssssss.magicapi.cache.SqlCache;
@@ -20,9 +22,12 @@ import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.annotation.UnableCall;
 
+import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -287,22 +292,36 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("执行insert操作，返回插入主键")
 	public long insert(@Comment("`SQL`语句") String sql) {
-		BoundSql boundSql = new BoundSql(sql);
+		MagicKeyHolder magicKeyHolder = new MagicKeyHolder();
+		insert(new BoundSql(sql), magicKeyHolder);
+		return magicKeyHolder.getLongKey();
+	}
+
+	/**
+	 * 插入并返回主键
+	 */
+	@Comment("执行insert操作，返回插入主键")
+	public Object insert(@Comment("`SQL`语句") String sql, @Comment("主键列") String primary) {
+		return insert(new BoundSql(sql), primary);
+	}
+
+	void insert(BoundSql boundSql, MagicKeyHolder keyHolder) {
 		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql));
-		KeyHolder keyHolder = new GeneratedKeyHolder();
 		dataSourceNode.getJdbcTemplate().update(con -> {
-			PreparedStatement ps = con.prepareStatement(boundSql.getSql(), Statement.RETURN_GENERATED_KEYS);
+			PreparedStatement ps = keyHolder.createPrepareStatement(con, boundSql.getSql());
 			new ArgumentPreparedStatementSetter(boundSql.getParameters()).setValues(ps);
 			return ps;
 		}, keyHolder);
 		if (this.cacheName != null) {
 			this.sqlCache.delete(this.cacheName);
 		}
-		Number key = keyHolder.getKey();
-		if (key == null) {
-			return -1;
-		}
-		return key.longValue();
+	}
+
+	@UnableCall
+	public Object insert(BoundSql boundSql, String primary) {
+		MagicKeyHolder keyHolder = new MagicKeyHolder(primary);
+		insert(boundSql, keyHolder);
+		return keyHolder.getObjectKey();
 	}
 
 	/**
@@ -384,6 +403,49 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@Override
 	public String getModuleName() {
 		return "db";
+	}
+
+	class MagicKeyHolder extends GeneratedKeyHolder {
+
+		private final boolean useGeneratedKeys;
+
+		private final String primary;
+
+		public MagicKeyHolder() {
+			this(null);
+		}
+
+		public MagicKeyHolder(String primary) {
+			this.primary = primary;
+			this.useGeneratedKeys = StringUtils.isBlank(primary);
+		}
+
+		PreparedStatement createPrepareStatement(Connection connection, String sql) throws SQLException {
+			if (useGeneratedKeys) {
+				return connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			}
+			return connection.prepareStatement(sql, new String[]{primary});
+		}
+
+		public long getLongKey() throws InvalidDataAccessApiUsageException, DataRetrievalFailureException {
+			Number key = super.getKey();
+			if (key == null) {
+				return -1;
+			}
+			return key.longValue();
+		}
+
+		public Object getObjectKey() {
+			if (useGeneratedKeys) {
+				return getLongKey();
+			}
+			List<Map<String, Object>> keyList = getKeyList();
+			if (keyList.isEmpty()) {
+				return null;
+			}
+			Iterator<Object> keyIterator = keyList.get(0).values().iterator();
+			return keyIterator.hasNext() ? keyIterator.next() : null;
+		}
 	}
 
 }

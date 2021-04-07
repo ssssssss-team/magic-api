@@ -89,13 +89,13 @@ public class NamedTable {
 				.collect(Collectors.toList());
 	}
 
-	@Comment("执行插入")
-	public int insert() {
+	@Comment("执行插入,返回主键")
+	public Object insert() {
 		return insert(null);
 	}
 
-	@Comment("执行插入")
-	public int insert(@Comment("各项列和值") Map<String, Object> data) {
+	@Comment("执行插入,返回主键")
+	public Object insert(@Comment("各项列和值") Map<String, Object> data) {
 		if (data != null) {
 			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
 		}
@@ -114,16 +114,16 @@ public class NamedTable {
 		builder.append(") values (");
 		builder.append(StringUtils.join(Collections.nCopies(entries.size(), "?"), ","));
 		builder.append(")");
-		return sqlModule.update(new BoundSql(builder.toString(), entries.stream().map(Map.Entry::getValue).collect(Collectors.toList()), sqlModule));
+		return sqlModule.insert(new BoundSql(builder.toString(), entries.stream().map(Map.Entry::getValue).collect(Collectors.toList()), sqlModule), this.primary);
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
-	public int save() {
+	public Object save() {
 		return this.save(null);
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
-	public int save(@Comment("各项列和值") Map<String, Object> data) {
+	public Object save(@Comment("各项列和值") Map<String, Object> data) {
 		if (StringUtils.isBlank(this.primary)) {
 			throw new MagicAPIException("请设置主键");
 		}
