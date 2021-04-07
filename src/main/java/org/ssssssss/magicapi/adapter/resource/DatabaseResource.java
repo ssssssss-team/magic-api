@@ -84,7 +84,7 @@ public class DatabaseResource extends KeyValueResource {
 			} else if (object instanceof Clob) {
 				Clob clob = (Clob) object;
 				try {
-					clob.getSubString(1, (int) clob.length());
+					content = clob.getSubString(1, (int) clob.length());
 				} catch (SQLException ex) {
 					logger.error("读取content失败", ex);
 				}
