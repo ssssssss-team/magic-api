@@ -36,7 +36,7 @@ public class NamedTable {
 
 	@Comment("设置主键名，update时使用")
 	public NamedTable primary(String primary) {
-		return primary(primary,null);
+		return primary(primary, null);
 	}
 
 	@Comment("设置主键名，并设置默认主键值(主要用于insert)")
@@ -99,7 +99,7 @@ public class NamedTable {
 		if (data != null) {
 			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
 		}
-		if(this.defaultPrimaryValue != null && StringUtils.isBlank(Objects.toString(this.columns.getOrDefault(this.primary,"")))){
+		if (this.defaultPrimaryValue != null && StringUtils.isBlank(Objects.toString(this.columns.getOrDefault(this.primary, "")))) {
 			this.columns.put(this.primary, this.defaultPrimaryValue);
 		}
 		List<Map.Entry<String, Object>> entries = filterNotBlanks();
@@ -115,6 +115,18 @@ public class NamedTable {
 		builder.append(StringUtils.join(Collections.nCopies(entries.size(), "?"), ","));
 		builder.append(")");
 		return sqlModule.insert(new BoundSql(builder.toString(), entries.stream().map(Map.Entry::getValue).collect(Collectors.toList()), sqlModule), this.primary);
+	}
+
+	@Comment("执行delete语句(物理删除)")
+	public int delete() {
+		if (where.isEmpty()) {
+			throw new MagicAPIException("delete语句不能没有条件");
+		}
+		StringBuilder builder = new StringBuilder();
+		builder.append("delete from ");
+		builder.append(tableName);
+		builder.append(where.getSql());
+		return sqlModule.update(new BoundSql(builder.toString(), where.getParams(), sqlModule));
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
