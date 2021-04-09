@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.spring.boot.starter;
 
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -16,9 +17,10 @@ import org.ssssssss.magicapi.modules.RedisModule;
  */
 @ConditionalOnBean(RedisConnectionFactory.class)
 @Configuration
+@AutoConfigureBefore(MagicAPIAutoConfiguration.class)
 public class MagicRedisAutoConfiguration {
 
-	private MagicAPIProperties properties;
+	private final MagicAPIProperties properties;
 
 	public MagicRedisAutoConfiguration(MagicAPIProperties properties) {
 		this.properties = properties;

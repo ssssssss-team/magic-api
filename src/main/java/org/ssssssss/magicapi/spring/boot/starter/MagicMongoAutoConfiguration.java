@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.spring.boot.starter;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,7 @@ import org.ssssssss.script.reflection.AbstractReflection;
  */
 @Configuration
 @ConditionalOnBean(MongoTemplate.class)
+@AutoConfigureBefore(MagicAPIAutoConfiguration.class)
 public class MagicMongoAutoConfiguration {
 
 	/**
