@@ -32,6 +32,7 @@ import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.ScriptClass;
+import org.ssssssss.script.parsing.Span;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -89,14 +90,14 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@ResponseBody
 	@Valid(requireLogin = false)
 	public JsonBean<Boolean> login(String username, String password, HttpServletRequest request, HttpServletResponse response) throws MagicLoginException {
-		if(configuration.getAuthorizationInterceptor().requireLogin()){
-			if(StringUtils.isBlank(username) && StringUtils.isBlank(password)){
+		if (configuration.getAuthorizationInterceptor().requireLogin()) {
+			if (StringUtils.isBlank(username) && StringUtils.isBlank(password)) {
 				try {
 					configuration.getAuthorizationInterceptor().getUserByToken(request.getHeader(Constants.MAGIC_TOKEN_HEADER));
 				} catch (MagicLoginException ignored) {
 					return new JsonBean<>(false);
 				}
-			}else{
+			} else {
 				MagicUser user = configuration.getAuthorizationInterceptor().login(username, password);
 				response.setHeader(Constants.MAGIC_TOKEN_HEADER, user.getToken());
 				response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, Constants.MAGIC_TOKEN_HEADER);
@@ -122,7 +123,36 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@ResponseBody
 	@Valid(requireLogin = false)
 	public JsonBean<List<List<String>>> options() {
-		return new JsonBean<>(Stream.of(Options.values()).map(item -> Arrays.asList(item.getValue(),item.getName(),item.getDefaultValue())).collect(Collectors.toList()));
+		return new JsonBean<>(Stream.of(Options.values()).map(item -> Arrays.asList(item.getValue(), item.getName(), item.getDefaultValue())).collect(Collectors.toList()));
+	}
+
+	@RequestMapping("/search")
+	@ResponseBody
+	public JsonBean<List<Map<String, Object>>> search(String keyword, String type) {
+		if (StringUtils.isBlank(keyword)) {
+			return new JsonBean<>(Collections.emptyList());
+		}
+		List<MagicEntity> entities = new ArrayList<>();
+		if (!"2".equals(type)) {
+			entities.addAll(configuration.getMappingHandlerMapping().getApiInfos());
+		}
+		if (!"1".equals(type)) {
+			entities.addAll(configuration.getMagicFunctionManager().getFunctionInfos());
+		}
+		return new JsonBean<>(entities.stream().filter(it -> it.getScript().contains(keyword)).map(it -> {
+			String script = it.getScript();
+			int index = script.indexOf(keyword);
+			int endIndex = script.indexOf("\n", index + keyword.length());
+			Span span = new Span(script, index, endIndex == -1 ? script.length() : endIndex);
+			return new HashMap<String, Object>() {
+				{
+					put("id", it.getId());
+					put("text", span.getText().trim());
+					put("line", span.getLine().getLineNumber());
+					put("type", it instanceof ApiInfo ? 1 : 2);
+				}
+			};
+		}).collect(Collectors.toList()));
 	}
 
 	@RequestMapping(value = "/config-js")

@@ -13,10 +13,7 @@ import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScriptContext;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -127,6 +124,10 @@ public class MagicFunctionManager {
 		functionInfo.setMappingPath(path);
 		mappings.put(path, functionInfo);
 		logger.info("注册函数:[{}:{}]", functionInfo.getName(), path);
+	}
+
+	public Collection<FunctionInfo> getFunctionInfos(){
+		return mappings.values();
 	}
 
 	private boolean hasConflict(TreeNode<Group> group, String newPath) {
