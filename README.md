@@ -14,7 +14,7 @@
     <a target="_blank" href="https://shang.qq.com/wpa/qunwpa?idkey=10faa4cf9743e0aa379a72f2ad12a9e576c81462742143c8f3391b52e8c3ed8d"><img src="https://img.shields.io/badge/QQ群-720832964-blue"></a>
 </p>
 
-[特性](#特性) | [快速开始](#快速开始) | [文档/演示](#文档演示) | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图) | [其它开源](#其它开源项目)
+[特性](#特性) | [快速开始](#快速开始) | [文档/演示](#文档演示) | [示例项目](#示例项目) | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图) | [其它开源](#其它开源项目)
 
 # 简介
 magic-api 是一个基于Java的接口快速开发框架，编写接口将通过magic-api提供的UI界面完成，自动映射为HTTP接口，无需定义Controller、Service、Dao、Mapper、XML、VO等Java对象即可完成常见的HTTP API接口开发
@@ -68,6 +68,10 @@ magic-api.resource.location=/data/magic-api
 
 - 文档地址：[https://ssssssss.org](https://ssssssss.org)
 - 在线演示：[http://140.143.210.90:9999/magic/web](http://140.143.210.90:9999/magic/web)
+
+# 示例项目
+
+- [magic-api-example](https://gitee.com/ssssssss-team/magic-api-example)
 
 # 项目截图
 
