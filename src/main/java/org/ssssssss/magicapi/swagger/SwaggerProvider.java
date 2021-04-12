@@ -103,6 +103,7 @@ public class SwaggerProvider {
 		List<SwaggerEntity.Parameter> parameters = new ArrayList<>();
 		info.getParameters().forEach(it-> parameters.add(new SwaggerEntity.Parameter(it.getName(),"query","string",it.getDescription(),it.getValue())));
 		info.getHeaders().forEach(it-> parameters.add(new SwaggerEntity.Parameter(it.getName(),"header","string",it.getDescription(),it.getValue())));
+		info.getPaths().forEach(it-> parameters.add(new SwaggerEntity.Parameter(it.getName(),"path","string",it.getDescription(),it.getValue())));
 		try {
 			Object object = mapper.readValue(info.getRequestBody(),Object.class);
 			if(object instanceof List || object instanceof Map){
