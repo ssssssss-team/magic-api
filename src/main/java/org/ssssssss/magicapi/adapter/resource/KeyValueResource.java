@@ -74,7 +74,13 @@ public abstract class KeyValueResource implements Resource {
 
 	@Override
 	public boolean delete() {
-		return !readonly() && this.keys().stream().allMatch(this::deleteByKey);
+		if(readonly()){
+			return false;
+		}
+		if(isDirectory()){
+			return this.keys().stream().allMatch(this::deleteByKey);
+		}
+		return deleteByKey(getAbsolutePath());
 	}
 
 	protected boolean deleteByKey(String key) {
