@@ -65,7 +65,7 @@ import java.util.function.BiFunction;
 @Configuration
 @ConditionalOnClass({RequestMappingHandlerMapping.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
-@Import({MagicRedisAutoConfiguration.class, MagicMongoAutoConfiguration.class, MagicSwaggerConfiguration.class})
+@Import({MagicRedisAutoConfiguration.class, MagicMongoAutoConfiguration.class, MagicSwaggerConfiguration.class, MagicJsonAutoConfiguration.class})
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
