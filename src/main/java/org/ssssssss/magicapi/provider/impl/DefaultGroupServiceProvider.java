@@ -99,7 +99,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	@Override
 	public TreeNode<Group> functionGroupTree() {
-		List<Group> groups = groupList("2");
+		List<Group> groups = groupList(Constants.GROUP_TYPE_FUNCTION);
 		cacheFunctionTree = groups.stream().collect(Collectors.toMap(Group::getId, value -> value));
 		return convertToTree(groups);
 	}
