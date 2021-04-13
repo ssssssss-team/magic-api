@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class BoundSql {
 
@@ -52,10 +54,7 @@ public class BoundSql {
 				ifTrue.set(BooleanLiteral.isTrue(context.eval(param)));
 				return null;
 			});
-			if (ifTrue.get()) {
-				return val;
-			}
-			return "";
+			return ifTrue.get() ? val : "";
 		});
 		// 处理${}参数
 		this.sql = concatTokenParser.parse(this.sql, text -> String.valueOf(context.eval(text)));
@@ -69,15 +68,8 @@ public class BoundSql {
 			try {
 				//对集合自动展开
 				List<Object> objects = StreamExtension.arrayLikeToList(value);
-				StringBuilder sb = new StringBuilder();
-				for (int i = 0, size = objects.size(); i < size; i++) {
-					sb.append("?");
-					if (i + 1 < size) {
-						sb.append(",");
-					}
-					parameters.add(objects.get(i));
-				}
-				return sb.toString();
+				parameters.addAll(objects);
+				return IntStream.range(0, objects.size()).mapToObj(t -> "?").collect(Collectors.joining(","));
 			} catch (Exception e) {
 				parameters.add(value);
 				return "?";
