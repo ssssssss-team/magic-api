@@ -17,8 +17,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -57,6 +60,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -95,6 +99,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Autowired(required = false)
 	private final List<ExtensionMethod> extensionMethods = Collections.emptyList();
 
+	@Autowired(required = false)
+	private RestTemplate restTemplate;
+
 	/**
 	 * 内置的消息转换
 	 */
@@ -112,6 +119,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 */
 	@Autowired(required = false)
 	List<ColumnMapperProvider> columnMapperProviders = Collections.emptyList();
+
 
 	/**
 	 * 自定义的函数
@@ -176,9 +184,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@ConditionalOnMissingBean(MagicDynamicDataSource.class)
 	public MagicDynamicDataSource magicDynamicDataSource(@Autowired(required = false) DataSource dataSource) {
 		MagicDynamicDataSource dynamicDataSource = new MagicDynamicDataSource();
-		if(dataSource != null){
+		if (dataSource != null) {
 			dynamicDataSource.put(dataSource);
-		}else {
+		} else {
 			logger.warn("当前数据源未配置");
 		}
 		return dynamicDataSource;
@@ -407,6 +415,24 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			logger.info("自动导入模块：{}", moduleName);
 			MagicScriptEngine.addDefaultImport(moduleName, MagicResourceLoader.loadModule(moduleName));
 		});
+		if (MagicResourceLoader.loadModule("http") == null) {
+			logger.info("注册模块:{} -> {}", "http", HttpModule.class);
+			RestTemplate restTemplate = this.restTemplate;
+			if (restTemplate == null) {
+				restTemplate = new RestTemplate();
+				restTemplate.getMessageConverters().add(new StringHttpMessageConverter(StandardCharsets.UTF_8) {
+					{
+						setSupportedMediaTypes(Collections.singletonList(MediaType.ALL));
+					}
+
+					@Override
+					public boolean supports(Class<?> clazz) {
+						return true;
+					}
+				});
+			}
+			MagicResourceLoader.addModule("http", new HttpModule(restTemplate));
+		}
 		properties.getAutoImportPackageList().forEach(importPackage -> {
 			logger.info("自动导包：{}", importPackage);
 			MagicResourceLoader.addPackage(importPackage);
