@@ -17,6 +17,10 @@ public class Where {
 
 	private final boolean needWhere;
 
+	private boolean notNull = false;
+
+	private boolean notBlank = false;
+
 	public Where(NamedTable namedTable) {
 		this(namedTable, true);
 	}
@@ -78,6 +82,35 @@ public class Where {
 		return (needWhere ? " where " : "") + StringUtils.join(tokens, " ");
 	}
 
+	@Comment("过滤`null`的参数")
+	public Where notNull(){
+		return notNull(true);
+	}
+
+	@Comment("过滤`blank`的参数")
+	public Where notBlank(){
+		return notBlank(true);
+	}
+
+	@Comment("是否过滤`null`的参数")
+	public Where notNull(boolean flag){
+		this.notNull = flag;
+		return this;
+	}
+
+	@Comment("是否过滤`blank`的参数")
+	public Where notBlank(boolean flag){
+		this.notNull = flag;
+		return this;
+	}
+
+	boolean filterNullAndBlank(Object value){
+		if(notNull && value == null){
+			return false;
+		}
+		return !notBlank || !StringUtils.isEmpty(Objects.toString(value, ""));
+	}
+
 	@Comment("等于`=`,如：`eq('name', '老王') ---> name = '老王'`")
 	public Where eq(@Comment("数据库中的列名") String column, @Comment("值")Object value) {
 		return eq(true, column, value);
@@ -85,7 +118,7 @@ public class Where {
 
 	@Comment("等于`=`,如：`eq('name', '老王') ---> name = '老王'`")
 	public Where eq(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
-		if (condition) {
+		if (condition && filterNullAndBlank(value)) {
 			tokens.add(column);
 			if (value == null) {
 				append(" is null");
@@ -105,7 +138,7 @@ public class Where {
 
 	@Comment("不等于`<>`,如：`ne('name', '老王') ---> name <> '老王'`")
 	public Where ne(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
-		if (condition) {
+		if (condition && filterNullAndBlank(value)) {
 			append(column);
 			if (value == null) {
 				append("is not null");
@@ -119,7 +152,7 @@ public class Where {
 	}
 
 	private Where append(boolean append, String column, String condition, Object value) {
-		if (append) {
+		if (append  && filterNullAndBlank(value)) {
 			append(column);
 			append(condition);
 			appendAnd();
