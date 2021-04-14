@@ -4,10 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.functions.StreamExtension;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 public class Where {
@@ -290,6 +287,28 @@ public class Where {
 			append(")");
 			appendAnd();
 		}
+		return this;
+	}
+
+	@Comment("拼接`order by xxx asc/desc`")
+	public Where orderBy(@Comment("要排序的列") String column, @Comment("`asc`或`desc`") String sort) {
+		this.namedTable.orderBy(column, sort);
+		return this;
+	}
+
+	@Comment("拼接`order by xxx asc`")
+	public Where orderBy(@Comment("要排序的列") String column) {
+		return orderBy(column, "asc");
+	}
+
+	@Comment("拼接`order by xxx desc`")
+	public Where orderByDesc(@Comment("要排序的列") String column) {
+		return orderBy(column, "desc");
+	}
+
+	@Comment("拼接`group by`")
+	public Where groupBy(@Comment("要分组的列") String ... columns) {
+		this.namedTable.groupBy(columns);
 		return this;
 	}
 

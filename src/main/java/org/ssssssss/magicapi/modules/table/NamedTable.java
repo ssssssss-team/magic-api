@@ -22,6 +22,10 @@ public class NamedTable {
 
 	List<String> fields = new ArrayList<>();
 
+	List<String> groups = new ArrayList<>();
+
+	List<String> orders = new ArrayList<>();
+
 	Function<String, String> rowMapColumnMapper;
 
 	Object defaultPrimaryValue;
@@ -80,6 +84,28 @@ public class NamedTable {
 		if (StringUtils.isNotBlank(column)) {
 			this.fields.add(this.rowMapColumnMapper.apply(column));
 		}
+		return this;
+	}
+
+	@Comment("拼接`order by xxx asc/desc`")
+	public NamedTable orderBy(@Comment("要排序的列") String column, @Comment("`asc`或`desc`") String sort) {
+		this.orders.add(column + " " + sort);
+		return this;
+	}
+
+	@Comment("拼接`order by xxx asc`")
+	public NamedTable orderBy(@Comment("要排序的列") String column) {
+		return orderBy(column, "asc");
+	}
+
+	@Comment("拼接`order by xxx desc`")
+	public NamedTable orderByDesc(@Comment("要排序的列") String column) {
+		return orderBy(column, "desc");
+	}
+
+	@Comment("拼接`group by`")
+	public NamedTable groupBy(@Comment("要分组的列") String ... columns) {
+		this.groups.addAll(Arrays.asList(columns));
 		return this;
 	}
 
@@ -169,6 +195,14 @@ public class NamedTable {
 		if (!where.isEmpty()) {
 			builder.append(where.getSql());
 			params.addAll(where.getParams());
+		}
+		if(!orders.isEmpty()){
+			builder.append(" order by ");
+			builder.append(String.join(",", orders));
+		}
+		if(!groups.isEmpty()){
+			builder.append(" group by ");
+			builder.append(String.join(",", groups));
 		}
 		return new BoundSql(builder.toString(), params, sqlModule);
 	}
