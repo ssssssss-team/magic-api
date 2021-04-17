@@ -20,6 +20,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -201,7 +202,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		if (dataSourceNode == null) {
 			throw new IllegalArgumentException(String.format("找不到数据源:%s", resourceConfig.getDatasource()));
 		}
-		return new DatabaseResource(dataSourceNode.getJdbcTemplate(), resourceConfig.getTableName(), resourceConfig.getPrefix(), resourceConfig.isReadonly());
+		return new DatabaseResource(new JdbcTemplate(dataSourceNode.getDataSource()), resourceConfig.getTableName(), resourceConfig.getPrefix(), resourceConfig.isReadonly());
 	}
 
 	@Bean
