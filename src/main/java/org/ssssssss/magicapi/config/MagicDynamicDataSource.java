@@ -34,7 +34,17 @@ public class MagicDynamicDataSource {
 	 * @param dataSourceKey 数据源Key
 	 */
 	public void put(String dataSourceKey, DataSource dataSource) {
-		put(null, dataSourceKey, dataSourceKey, dataSource);
+		put(dataSourceKey, dataSource, -1);
+	}
+
+	/**
+	 * 注册数据源（可以运行时注册）
+	 *
+	 * @param dataSourceKey 数据源Key
+	 * @param maxRows 最大返回行数
+	 */
+	public void put(String dataSourceKey, DataSource dataSource, int maxRows) {
+		put(null, dataSourceKey, dataSourceKey, dataSource, maxRows);
 	}
 
 	/**
@@ -44,12 +54,12 @@ public class MagicDynamicDataSource {
 	 * @param dataSourceKey  数据源Key
 	 * @param datasourceName 数据源名称
 	 */
-	public void put(String id, String dataSourceKey, String datasourceName, DataSource dataSource) {
+	public void put(String id, String dataSourceKey, String datasourceName, DataSource dataSource, int maxRows) {
 		if (dataSourceKey == null) {
 			dataSourceKey = "";
 		}
 		logger.info("注册数据源：{}", StringUtils.isNotBlank(dataSourceKey) ? dataSourceKey : "default");
-		this.dataSourceMap.put(dataSourceKey, new MagicDynamicDataSource.DataSourceNode(dataSource, dataSourceKey, datasourceName, id));
+		this.dataSourceMap.put(dataSourceKey, new MagicDynamicDataSource.DataSourceNode(dataSource, dataSourceKey, datasourceName, id, maxRows));
 		if (id != null) {
 			String finalDataSourceKey = dataSourceKey;
 			this.dataSourceMap.entrySet().stream()
@@ -112,12 +122,28 @@ public class MagicDynamicDataSource {
 		return dataSourceNode;
 	}
 
+	/**
+	 * 设置默认数据源
+	 */
 	public void setDefault(DataSource dataSource) {
 		put(dataSource);
 	}
 
+	/**
+	 * 设置默认数据源
+	 * @param maxRows	最大返回行数
+	 */
+	public void setDefault(DataSource dataSource, int maxRows) {
+		put(null, null, null, dataSource, maxRows);
+	}
+
+
 	public void add(String dataSourceKey, DataSource dataSource) {
 		put(dataSourceKey, dataSource);
+	}
+
+	public void add(String dataSourceKey, DataSource dataSource, int maxRows) {
+		put(null, dataSourceKey, dataSourceKey, dataSource, maxRows);
 	}
 
 	public static class DataSourceNode {
@@ -139,18 +165,14 @@ public class MagicDynamicDataSource {
 
 		private Dialect dialect;
 
-
-		DataSourceNode(DataSource dataSource, String key) {
-			this(dataSource, key, key, null);
-		}
-
-		DataSourceNode(DataSource dataSource, String key, String name, String id) {
+		DataSourceNode(DataSource dataSource, String key, String name, String id, int maxRows) {
 			this.dataSource = dataSource;
 			this.key = key;
 			this.name = name;
 			this.id = id;
 			this.dataSourceTransactionManager = new DataSourceTransactionManager(this.dataSource);
 			this.jdbcTemplate = new JdbcTemplate(dataSource);
+			this.jdbcTemplate.setMaxRows(maxRows);
 		}
 
 		public String getId() {
@@ -189,6 +211,10 @@ public class MagicDynamicDataSource {
 				}
 			}
 			return dialect;
+		}
+
+		public DataSource getDataSource() {
+			return dataSource;
 		}
 	}
 }

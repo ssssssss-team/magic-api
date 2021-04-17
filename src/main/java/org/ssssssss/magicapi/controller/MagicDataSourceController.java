@@ -24,6 +24,7 @@ import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.utils.IoUtils;
 import org.ssssssss.magicapi.utils.JsonUtils;
+import org.ssssssss.script.functions.ObjectConvertExtension;
 
 import javax.sql.DataSource;
 import java.util.*;
@@ -105,8 +106,10 @@ public class MagicDataSourceController extends MagicController implements MagicE
 		String dsId = StringUtils.isBlank(id) ? UUID.randomUUID().toString().replace("-", "") : id;
 		// 验证是否有冲突
 		isTrue(keyStream.noneMatch(key::equals), DATASOURCE_KEY_EXISTS);
+
+		int maxRows = ObjectConvertExtension.asInt(properties.get("maxRows"), -1);
 		// 注册数据源
-		configuration.getMagicDynamicDataSource().put(dsId, key, name, createDataSource(properties));
+		configuration.getMagicDynamicDataSource().put(dsId, key, name, createDataSource(properties), maxRows);
 		properties.put("id", dsId);
 		resource.getResource(dsId + ".json").write(JsonUtils.toJsonString(properties));
 		return new JsonBean<>(dsId);
@@ -161,7 +164,8 @@ public class MagicDataSourceController extends MagicController implements MagicE
 			if (properties != null) {
 				String key = properties.get("key");
 				String name = properties.getOrDefault("name", key);
-				configuration.getMagicDynamicDataSource().put(properties.get("id"), key, name, createDataSource(properties));
+				int maxRows = ObjectConvertExtension.asInt(properties.get("maxRows"), -1);
+				configuration.getMagicDynamicDataSource().put(properties.get("id"), key, name, createDataSource(properties), maxRows);
 			}
 		}
 	}
