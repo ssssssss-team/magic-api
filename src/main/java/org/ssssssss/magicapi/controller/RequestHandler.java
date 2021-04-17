@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.ssssssss.magicapi.config.MagicConfiguration;
+import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.context.CookieContext;
 import org.ssssssss.magicapi.context.HeaderContext;
@@ -66,7 +67,7 @@ public class RequestHandler extends MagicController {
 	 * 测试入口、实际请求入口
 	 */
 	@ResponseBody
-	@Valid(requireLogin = false)	// 无需验证是否要登录
+	@Valid(requireLogin = false)    // 无需验证是否要登录
 	public Object invoke(HttpServletRequest request, HttpServletResponse response,
 						 @PathVariable(required = false) Map<String, Object> pathVariables,
 						 @RequestParam(required = false) Map<String, Object> parameters) throws Throwable {
@@ -96,8 +97,17 @@ public class RequestHandler extends MagicController {
 		if (value != null) {
 			return requestEntity.isRequestedFromTest() ? new JsonBean<>(HEADER_INVALID, value) : value;
 		}
+		List<Path> paths = new ArrayList<>(requestEntity.getApiInfo().getPaths());
+		MappingHandlerMapping.findGroups(requestEntity.getApiInfo().getGroupId())
+				.stream()
+				.flatMap(it -> it.getPaths().stream())
+				.forEach(it -> {
+					if (!paths.contains(it)) {
+						paths.add(it);
+					}
+				});
 		// 验证 path
-		value = doValidate(requestEntity, "path", requestEntity.getApiInfo().getPaths(), requestEntity.getPathVariables());
+		value = doValidate(requestEntity, "path", paths, requestEntity.getPathVariables());
 		if (value != null) {
 			return requestEntity.isRequestedFromTest() ? new JsonBean<>(PATH_VARIABLE_INVALID, value) : value;
 		}

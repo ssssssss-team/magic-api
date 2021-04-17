@@ -1,5 +1,8 @@
 package org.ssssssss.magicapi.model;
 
+import java.util.Collections;
+import java.util.List;
+
 public class Group {
 
 	private String id;
@@ -11,6 +14,16 @@ public class Group {
 	private String parentId;
 
 	private String path;
+
+	/**
+	 * 路径变量
+	 */
+	private List<Path> paths = Collections.emptyList();
+
+	/**
+	 * 分组选项
+	 */
+	private List<BaseDefinition> options = Collections.emptyList();
 
 	public Group(String id, String name) {
 		this.id = id;
@@ -58,5 +71,21 @@ public class Group {
 
 	public void setPath(String path) {
 		this.path = path;
+	}
+
+	public List<Path> getPaths() {
+		return paths;
+	}
+
+	public void setPaths(List<Path> paths) {
+		this.paths = paths;
+	}
+
+	public List<BaseDefinition> getOptions() {
+		return options;
+	}
+
+	public void setOptions(List<BaseDefinition> options) {
+		this.options = options;
 	}
 }

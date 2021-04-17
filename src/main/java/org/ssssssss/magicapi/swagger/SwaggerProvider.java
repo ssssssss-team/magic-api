@@ -5,7 +5,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.model.ApiInfo;
+import org.ssssssss.magicapi.model.Path;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
+import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,9 +88,9 @@ public class SwaggerProvider {
 				path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), "{}"), Object.class));
 			} catch (Exception ignored) {
 			}
-			if(hasBody){
+			if (hasBody) {
 				path.addConsume("application/json");
-			}else{
+			} else {
 				path.addConsume("*/*");
 			}
 			path.addProduce("application/json");
@@ -101,13 +103,22 @@ public class SwaggerProvider {
 
 	private List<SwaggerEntity.Parameter> parseParameters(ObjectMapper mapper, ApiInfo info) {
 		List<SwaggerEntity.Parameter> parameters = new ArrayList<>();
-		info.getParameters().forEach(it-> parameters.add(new SwaggerEntity.Parameter(it.getName(),"query","string",it.getDescription(),it.getValue())));
-		info.getHeaders().forEach(it-> parameters.add(new SwaggerEntity.Parameter(it.getName(),"header","string",it.getDescription(),it.getValue())));
-		info.getPaths().forEach(it-> parameters.add(new SwaggerEntity.Parameter(it.getName(),"path","string",it.getDescription(),it.getValue())));
+		info.getParameters().forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), "query", it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
+		info.getHeaders().forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), "header", it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
+		List<Path> paths = new ArrayList<>(info.getPaths());
+		MappingHandlerMapping.findGroups(info.getGroupId())
+				.stream()
+				.flatMap(it -> it.getPaths().stream())
+				.forEach(it -> {
+					if (!paths.contains(it)) {
+						paths.add(it);
+					}
+				});
+		paths.forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), "path", it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
 		try {
-			Object object = mapper.readValue(info.getRequestBody(),Object.class);
-			if(object instanceof List || object instanceof Map){
-				parameters.add(new SwaggerEntity.Parameter("body", "body", object instanceof List ? "array": "object", null, object));
+			Object object = mapper.readValue(info.getRequestBody(), Object.class);
+			if ((object instanceof List || object instanceof Map) && BooleanLiteral.isTrue(object)) {
+				parameters.add(new SwaggerEntity.Parameter(true, "body", "body", object instanceof List ? "array" : "object", null, object));
 			}
 		} catch (Exception ignored) {
 		}

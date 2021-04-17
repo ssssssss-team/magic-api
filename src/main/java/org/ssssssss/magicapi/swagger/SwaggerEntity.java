@@ -21,6 +21,48 @@ public class SwaggerEntity {
 
 	private Map<String, Map<String, Path>> paths = new HashMap<>();
 
+	private static Map<String, Object> doProcessSchema(Object target) {
+		Map<String, Object> result = new HashMap<>(3);
+		result.put("type", getType(target));
+		if (target instanceof List) {
+			List targetList = (List) target;
+			if (targetList.size() > 0) {
+				result.put("items", doProcessSchema(targetList.get(0)));
+			} else {
+				result.put("items", Collections.emptyList());
+			}
+		} else if (target instanceof Map) {
+			Set<Map.Entry> entries = ((Map) target).entrySet();
+			Map<String, Map<String, Object>> properties = new HashMap<>(entries.size());
+			for (Map.Entry entry : entries) {
+				properties.put(Objects.toString(entry.getKey()), doProcessSchema(entry.getValue()));
+			}
+			result.put("properties", properties);
+		} else {
+			result.put("example", target == null ? "" : target);
+		}
+		return result;
+	}
+
+	private static String getType(Object object) {
+		if (object instanceof Number) {
+			return "number";
+		}
+		if (object instanceof String) {
+			return "string";
+		}
+		if (object instanceof Boolean) {
+			return "boolean";
+		}
+		if (object instanceof List) {
+			return "array";
+		}
+		if (object instanceof Map) {
+			return "object";
+		}
+		return "string";
+	}
+
 	public Info getInfo() {
 		return info;
 	}
@@ -72,49 +114,6 @@ public class SwaggerEntity {
 
 	public Map<String, Map<String, Path>> getPaths() {
 		return paths;
-	}
-
-
-	private static Map<String, Object> doProcessSchema(Object target) {
-		Map<String, Object> result = new HashMap<>(3);
-		result.put("type", getType(target));
-		if (target instanceof List) {
-			List targetList = (List) target;
-			if (targetList.size() > 0) {
-				result.put("items", doProcessSchema(targetList.get(0)));
-			} else {
-				result.put("items", Collections.emptyList());
-			}
-		} else if (target instanceof Map) {
-			Set<Map.Entry> entries = ((Map) target).entrySet();
-			Map<String, Map<String, Object>> properties = new HashMap<>(entries.size());
-			for (Map.Entry entry : entries) {
-				properties.put(Objects.toString(entry.getKey()), doProcessSchema(entry.getValue()));
-			}
-			result.put("properties", properties);
-		} else {
-			result.put("example", target == null ? "": target);
-		}
-		return result;
-	}
-
-	private static String getType(Object object) {
-		if (object instanceof Number) {
-			return "number";
-		}
-		if (object instanceof String) {
-			return "string";
-		}
-		if (object instanceof Boolean) {
-			return "boolean";
-		}
-		if (object instanceof List) {
-			return "array";
-		}
-		if (object instanceof Map) {
-			return "object";
-		}
-		return "string";
 	}
 
 	public static class Info {
@@ -173,7 +172,7 @@ public class SwaggerEntity {
 
 		private String summary;
 
-		private String operationId = UUID.randomUUID().toString().replace("-","");
+		private String operationId = UUID.randomUUID().toString().replace("-", "");
 
 		private List<String> produces = new ArrayList<>();
 
@@ -215,12 +214,12 @@ public class SwaggerEntity {
 			return tags;
 		}
 
-		public void addTag(String tag) {
-			this.tags.add(tag);
-		}
-
 		public void setTags(List<String> tags) {
 			this.tags = tags;
+		}
+
+		public void addTag(String tag) {
+			this.tags.add(tag);
 		}
 
 		public String getSummary() {
@@ -280,10 +279,12 @@ public class SwaggerEntity {
 
 		private Object example;
 
-		public Parameter(String name, String in, String type, String description, Object example) {
+		public Parameter(boolean required, String name, String in, String type, String description, Object example) {
 			this.name = name;
 			this.in = in;
+			this.type = type;
 			this.description = description;
+			this.required = required;
 			if ("body".equalsIgnoreCase(in)) {
 				Map<String, Object> schema = new HashMap<>();
 				schema.put("type", type);

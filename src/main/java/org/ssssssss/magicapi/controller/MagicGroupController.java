@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.controller;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
@@ -70,7 +71,7 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	@RequestMapping("/group/update")
 	@ResponseBody
 	@Valid(readonly = false, authorization = Authorization.SAVE)
-	public synchronized JsonBean<Boolean> groupUpdate(Group group) {
+	public synchronized JsonBean<Boolean> groupUpdate(@RequestBody Group group) {
 		if (StringUtils.isBlank(group.getParentId())) {
 			group.setParentId("0");
 		}
@@ -112,7 +113,7 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	@RequestMapping("/group/create")
 	@ResponseBody
 	@Valid(readonly = false, authorization = Authorization.SAVE)
-	public JsonBean<String> createGroup(Group group) {
+	public JsonBean<String> createGroup(@RequestBody Group group) {
 		if (StringUtils.isBlank(group.getParentId())) {
 			group.setParentId("0");
 		}

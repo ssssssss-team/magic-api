@@ -9,15 +9,15 @@ import java.math.BigDecimal;
 import static org.ssssssss.script.reflection.JavaReflection.findInvoker;
 
 public enum DataType {
-	String,
-	Integer(true, findInvoker(BigDecimal.class, "intValue")),
-	Double(true, findInvoker(BigDecimal.class, "doubleValue")),
-	Long(true, findInvoker(BigDecimal.class, "longValue")),
-	Float(true, findInvoker(BigDecimal.class, "floatValue")),
-	Byte(true, findInvoker(BigDecimal.class, "byteValue")),
-	Short(true, findInvoker(BigDecimal.class, "shortValue")),
-	MultipartFile(findInvoker(RequestModule.class, "getFile", new Class<?>[]{String.class}), true, false),
-	MultipartFiles(findInvoker(RequestModule.class, "getFiles", new Class<?>[]{String.class}), true, false);
+	String("string"),
+	Integer(true, findInvoker(BigDecimal.class, "intValue"), "number"),
+	Double(true, findInvoker(BigDecimal.class, "doubleValue"), "number"),
+	Long(true, findInvoker(BigDecimal.class, "longValue"), "number"),
+	Float(true, findInvoker(BigDecimal.class, "floatValue"), "number"),
+	Byte(true, findInvoker(BigDecimal.class, "byteValue"), "number"),
+	Short(true, findInvoker(BigDecimal.class, "shortValue"), "number"),
+	MultipartFile(findInvoker(RequestModule.class, "getFile", new Class<?>[]{String.class}), true, false, "file"),
+	MultipartFiles(findInvoker(RequestModule.class, "getFiles", new Class<?>[]{String.class}), true, false, "file");
 
 	private boolean isNumber;
 
@@ -27,25 +27,27 @@ public enum DataType {
 
 	private boolean needValue;
 
-	DataType(boolean isNumber, JavaInvoker<Method> invoker, boolean needName, boolean needValue) {
+	private String javascriptType;
+
+	DataType(boolean isNumber, JavaInvoker<Method> invoker, boolean needName, boolean needValue, String javascriptType) {
 		this.isNumber = isNumber;
 		this.invoker = invoker;
 		this.needName = needName;
 		this.needValue = needValue;
+		this.javascriptType = javascriptType;
 	}
 
-	DataType(JavaInvoker<Method> invoker, boolean needName, boolean needValue) {
-		this.invoker = invoker;
-		this.needName = needName;
-		this.needValue = needValue;
+	DataType(JavaInvoker<Method> invoker, boolean needName, boolean needValue, String javascriptType) {
+		this(false, invoker, needName, needValue, javascriptType);
 	}
 
-	DataType(boolean isNumber, JavaInvoker<Method> invoker) {
+	DataType(boolean isNumber, JavaInvoker<Method> invoker, String javascriptType) {
+		this(invoker, false, false, javascriptType);
 		this.isNumber = isNumber;
-		this.invoker = invoker;
 	}
 
-	DataType() {
+	DataType(String javascriptType) {
+		this.javascriptType = javascriptType;
 	}
 
 	public boolean isNumber() {
@@ -62,5 +64,9 @@ public enum DataType {
 
 	public boolean isNeedValue() {
 		return needValue;
+	}
+
+	public java.lang.String getJavascriptType() {
+		return javascriptType;
 	}
 }

@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.model;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.utils.JsonUtils;
 
 import java.util.*;
@@ -10,7 +11,7 @@ import java.util.*;
 /**
  * 接口信息
  */
-public class ApiInfo extends MagicEntity{
+public class ApiInfo extends MagicEntity {
 
 	/**
 	 * 请求方法
@@ -79,11 +80,12 @@ public class ApiInfo extends MagicEntity{
 	}
 
 	public void setParameter(String parameter) {
-		if(parameter != null ){
+		if (parameter != null) {
 			parameter = parameter.trim();
-			if(parameter.startsWith("[")){	// v0.5.0+
-				this.parameters = JsonUtils.readValue(Objects.toString(parameter,"[]"), new TypeReference<List<Parameter>>() {});
-			}else{
+			if (parameter.startsWith("[")) {    // v0.5.0+
+				this.parameters = JsonUtils.readValue(Objects.toString(parameter, "[]"), new TypeReference<List<Parameter>>() {
+				});
+			} else {
 				Map map = JsonUtils.readValue(Objects.toString(parameter, "{}"), Map.class);
 				Object request = map.get("request");
 				if (request instanceof Map) {
@@ -91,7 +93,7 @@ public class ApiInfo extends MagicEntity{
 					Set keys = requestMap.keySet();
 					this.parameters = new ArrayList<>();
 					for (Object key : keys) {
-						this.parameters.add(new Parameter(key.toString(),Objects.toString(requestMap.get(key),"")));
+						this.parameters.add(new Parameter(key.toString(), Objects.toString(requestMap.get(key), "")));
 					}
 				}
 				Object header = map.get("header");
@@ -100,11 +102,11 @@ public class ApiInfo extends MagicEntity{
 					Set keys = headers.keySet();
 					this.headers = new ArrayList<>();
 					for (Object key : keys) {
-						this.headers.add(new Header(key.toString(),Objects.toString(headers.get(key),"")));
+						this.headers.add(new Header(key.toString(), Objects.toString(headers.get(key), "")));
 					}
 				}
 				if (map.containsKey("body")) {
-					this.requestBody = Objects.toString(map.get("body"),null);
+					this.requestBody = Objects.toString(map.get("body"), null);
 				}
 			}
 		}
@@ -112,6 +114,10 @@ public class ApiInfo extends MagicEntity{
 
 	public String getResponseBody() {
 		return responseBody;
+	}
+
+	public void setResponseBody(String responseBody) {
+		this.responseBody = responseBody;
 	}
 
 	public String getRequestBody() {
@@ -122,11 +128,6 @@ public class ApiInfo extends MagicEntity{
 		this.requestBody = requestBody;
 	}
 
-
-	public void setResponseBody(String responseBody) {
-		this.responseBody = responseBody;
-	}
-
 	public List<Path> getPaths() {
 		return paths;
 	}
@@ -135,8 +136,8 @@ public class ApiInfo extends MagicEntity{
 		this.paths = paths;
 	}
 
-	public Map<String, Object> getOptionMap() {
-		Map<String, Object> map = new HashMap<>();
+	public Map<String, String> getOptionMap() {
+		Map<String, String> map = new HashMap<>();
 		if (this.jsonNode == null) {
 			return null;
 		} else if (this.jsonNode.isArray()) {
@@ -144,8 +145,16 @@ public class ApiInfo extends MagicEntity{
 				map.put(node.get("name").asText(), node.get("value").asText());
 			}
 		} else {
-			this.jsonNode.fieldNames().forEachRemaining(it -> map.put(it, this.jsonNode.get(it)));
+			this.jsonNode.fieldNames().forEachRemaining(it -> map.put(it, this.jsonNode.get(it).asText()));
 		}
+		MappingHandlerMapping.findGroups(this.groupId)
+				.stream()
+				.flatMap(it -> it.getOptions().stream())
+				.forEach(option -> {
+					if (!map.containsKey(option.getName())) {
+						map.put(option.getName(), option.getValue());
+					}
+				});
 		return map;
 	}
 
@@ -161,6 +170,14 @@ public class ApiInfo extends MagicEntity{
 		return option;
 	}
 
+	public void setOption(String option) {
+		this.option = option;
+		try {
+			this.jsonNode = new ObjectMapper().readTree(option);
+		} catch (Throwable ignored) {
+		}
+	}
+
 	public List<Parameter> getParameters() {
 		return parameters;
 	}
@@ -169,8 +186,9 @@ public class ApiInfo extends MagicEntity{
 		this.parameters = parameters;
 	}
 
-	public void setRequestHeader(String requestHeader){
-		this.headers = JsonUtils.readValue(Objects.toString(requestHeader,"[]"), new TypeReference<List<Header>>() {});
+	public void setRequestHeader(String requestHeader) {
+		this.headers = JsonUtils.readValue(Objects.toString(requestHeader, "[]"), new TypeReference<List<Header>>() {
+		});
 	}
 
 	public List<Header> getHeaders() {
@@ -185,15 +203,7 @@ public class ApiInfo extends MagicEntity{
 		this.setOption(optionValue);
 	}
 
-	public void setOption(String option) {
-		this.option = option;
-		try {
-			this.jsonNode = new ObjectMapper().readTree(option);
-		} catch (Throwable ignored) {
-		}
-	}
-
-	public String getOptionValue(Options options){
+	public String getOptionValue(Options options) {
 		return getOptionValue(options.getValue());
 	}
 
@@ -208,9 +218,18 @@ public class ApiInfo extends MagicEntity{
 				}
 			}
 		} else if (this.jsonNode.isObject()) {
-			return this.jsonNode.get(key).asText();
+			JsonNode node = this.jsonNode.get(key);
+			if (node != null) {
+				return node.asText();
+			}
 		}
-		return null;
+		return MappingHandlerMapping.findGroups(this.groupId)
+				.stream()
+				.flatMap(it -> it.getOptions().stream())
+				.filter(it -> key.equals(it.getName()))
+				.findFirst()
+				.map(BaseDefinition::getValue)
+				.orElse(null);
 	}
 
 	@Override
@@ -247,7 +266,7 @@ public class ApiInfo extends MagicEntity{
 		info.setScript(this.script);
 		info.setGroupId(this.groupId);
 		info.setParameters(this.parameters);
-		info.setOption(this.option);
+		info.jsonNode = this.jsonNode;
 		info.setRequestBody(this.requestBody);
 		info.setHeaders(this.headers);
 		info.setResponseBody(this.responseBody);

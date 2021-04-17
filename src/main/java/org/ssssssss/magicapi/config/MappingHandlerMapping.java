@@ -41,51 +41,42 @@ public class MappingHandlerMapping {
 	private static final Map<String, MappingNode> mappings = new ConcurrentHashMap<>();
 
 	private static final Logger logger = LoggerFactory.getLogger(MappingHandlerMapping.class);
-
 	/**
-	 * spring中的请求映射处理器
+	 * 接口分组
 	 */
-	private RequestMappingHandlerMapping requestMappingHandlerMapping;
-
-	/**
-	 * 请求处理器
-	 */
-	private Object handler;
-
+	private static TreeNode<Group> groups;
 	/**
 	 * 请求到达时处理的方法
 	 */
 	private final Method method = RequestHandler.class.getDeclaredMethod("invoke", HttpServletRequest.class, HttpServletResponse.class, Map.class, Map.class);
-
-	/**
-	 * 接口信息读取
-	 */
-	private ApiServiceProvider magicApiService;
-
-	/**
-	 * 分组信息读取
-	 */
-	private GroupServiceProvider groupServiceProvider;
-
 	/**
 	 * 统一接口前缀
 	 */
 	private final String prefix;
-
-	/**
-	 * 接口分组
-	 */
-	private TreeNode<Group> groups;
-
 	/**
 	 * 是否覆盖应用接口
 	 */
 	private final boolean allowOverride;
-
 	/**
 	 * 缓存已映射的接口信息
 	 */
 	private final List<ApiInfo> apiInfos = Collections.synchronizedList(new ArrayList<>());
+	/**
+	 * spring中的请求映射处理器
+	 */
+	private RequestMappingHandlerMapping requestMappingHandlerMapping;
+	/**
+	 * 请求处理器
+	 */
+	private Object handler;
+	/**
+	 * 接口信息读取
+	 */
+	private ApiServiceProvider magicApiService;
+	/**
+	 * 分组信息读取
+	 */
+	private GroupServiceProvider groupServiceProvider;
 
 	public MappingHandlerMapping(String prefix, boolean allowOverride) throws NoSuchMethodException {
 		this.prefix = prefix;
@@ -121,6 +112,21 @@ public class MappingHandlerMapping {
 			requestMapping = "/" + requestMapping;
 		}
 		return Objects.toString(requestMethod, "GET").toUpperCase() + ":" + requestMapping;
+	}
+
+	public static Group findGroup(String groupId) {
+		TreeNode<Group> node = groups.findTreeNode(it -> it.getId().equals(groupId));
+		return node != null ? node.getNode() : null;
+	}
+
+	public static List<Group> findGroups(String groupId) {
+		List<Group> groups = new ArrayList<>();
+		Group group;
+		while (!"0".equals(groupId) && (group = MappingHandlerMapping.findGroup(groupId)) != null) {
+			groups.add(group);
+			groupId = group.getParentId();
+		}
+		return groups;
 	}
 
 	public void setRequestMappingHandlerMapping(RequestMappingHandlerMapping requestMappingHandlerMapping) {
@@ -203,7 +209,7 @@ public class MappingHandlerMapping {
 			String mappingKey = buildMappingKey(info.getMethod(), path);
 			MappingNode mappingNode = mappings.get(mappingKey);
 			if (mappingNode != null) {
-				if(mappingNode.getInfo().equals(info)){
+				if (mappingNode.getInfo().equals(info)) {
 					continue;
 				}
 				return true;
