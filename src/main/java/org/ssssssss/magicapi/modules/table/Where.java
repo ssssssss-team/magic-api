@@ -51,16 +51,16 @@ public class Where {
 			if ("and".equalsIgnoreCase(token) || "or".equalsIgnoreCase(token)) {
 				tokens.remove(size - 1);
 				size--;
-			}else {
+			} else {
 				break;
 			}
 		}
-		while(size > 0){
+		while (size > 0) {
 			String token = tokens.get(0);
 			if ("and".equalsIgnoreCase(token) || "or".equalsIgnoreCase(token)) {
 				tokens.remove(0);
 				size--;
-			}else {
+			} else {
 				break;
 			}
 		}
@@ -83,41 +83,41 @@ public class Where {
 	}
 
 	@Comment("过滤`null`的参数")
-	public Where notNull(){
+	public Where notNull() {
 		return notNull(true);
 	}
 
 	@Comment("过滤`blank`的参数")
-	public Where notBlank(){
+	public Where notBlank() {
 		return notBlank(true);
 	}
 
 	@Comment("是否过滤`null`的参数")
-	public Where notNull(boolean flag){
+	public Where notNull(boolean flag) {
 		this.notNull = flag;
 		return this;
 	}
 
 	@Comment("是否过滤`blank`的参数")
-	public Where notBlank(boolean flag){
+	public Where notBlank(boolean flag) {
 		this.notNull = flag;
 		return this;
 	}
 
-	boolean filterNullAndBlank(Object value){
-		if(notNull && value == null){
+	boolean filterNullAndBlank(Object value) {
+		if (notNull && value == null) {
 			return false;
 		}
 		return !notBlank || !StringUtils.isEmpty(Objects.toString(value, ""));
 	}
 
 	@Comment("等于`=`,如：`eq('name', '老王') ---> name = '老王'`")
-	public Where eq(@Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where eq(@Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return eq(true, column, value);
 	}
 
 	@Comment("等于`=`,如：`eq('name', '老王') ---> name = '老王'`")
-	public Where eq(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where eq(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		if (condition && filterNullAndBlank(value)) {
 			tokens.add(column);
 			if (value == null) {
@@ -132,12 +132,12 @@ public class Where {
 	}
 
 	@Comment("不等于`<>`,如：`ne('name', '老王') ---> name <> '老王'`")
-	public Where ne(@Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where ne(@Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return ne(true, column, value);
 	}
 
 	@Comment("不等于`<>`,如：`ne('name', '老王') ---> name <> '老王'`")
-	public Where ne(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where ne(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		if (condition && filterNullAndBlank(value)) {
 			append(column);
 			if (value == null) {
@@ -152,7 +152,7 @@ public class Where {
 	}
 
 	private Where append(boolean append, String column, String condition, Object value) {
-		if (append  && filterNullAndBlank(value)) {
+		if (append && filterNullAndBlank(value)) {
 			append(column);
 			append(condition);
 			appendAnd();
@@ -162,52 +162,52 @@ public class Where {
 	}
 
 	@Comment("小于`<`,如：`lt('age', 18) ---> age < 18")
-	public Where lt(@Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where lt(@Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return lt(true, column, value);
 	}
 
 	@Comment("小于`<`,如：`lt('age', 18) ---> age < 18")
-	public Where lt(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where lt(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return append(condition, column, " < ?", value);
 	}
 
 	@Comment("小于等于`<=`,如：`lte('age', 18) ---> age <= 18")
-	public Where lte(@Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where lte(@Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return lte(true, column, value);
 	}
 
 	@Comment("小于等于`<=`,如：`lte('age', 18) ---> age <= 18")
-	public Where lte(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where lte(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return append(condition, column, " <= ?", value);
 	}
 
 	@Comment("大于`>`,如：`get('age', 18) ---> age > 18")
-	public Where gt(@Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where gt(@Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return gt(true, column, value);
 	}
 
 	@Comment("大于`>`,如：`get('age', 18) ---> age > 18")
-	public Where gt(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where gt(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return append(condition, column, " > ?", value);
 	}
 
 	@Comment("大于等于`>=`,如：`get('age', 18) ---> age >= 18")
-	public Where gte(@Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where gte(@Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return gte(true, column, value);
 	}
 
 	@Comment("大于等于`>=`,如：`get('age', 18) ---> age >= 18")
-	public Where gte(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where gte(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return append(condition, column, " >= ?", value);
 	}
 
 	@Comment("`in`,如：`in('age', [1,2,3]) ---> age in (1,2,3)")
-	public Where in(@Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where in(@Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return in(true, column, value);
 	}
 
 	@Comment("`in`,如：`in('age', [1,2,3]) ---> age in (1,2,3)")
-	public Where in(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where in(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		if (condition && value != null) {
 			List<Object> objects = StreamExtension.arrayLikeToList(value);
 			if (objects.size() > 0) {
@@ -223,12 +223,12 @@ public class Where {
 	}
 
 	@Comment("`not in`,如：`notIn('age', [1,2,3]) ---> age not in (1,2,3)")
-	public Where notIn(@Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where notIn(@Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return notIn(true, column, value);
 	}
 
 	@Comment("`not in`,如：`notIn('age', [1,2,3]) ---> age not in (1,2,3)")
-	public Where notIn(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where notIn(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		if (condition && value != null) {
 			List<Object> objects = StreamExtension.arrayLikeToList(value);
 			if (objects.size() > 0) {
@@ -244,22 +244,22 @@ public class Where {
 	}
 
 	@Comment("`like`,如：`like('name', '%王%') ---> name like '%王%'")
-	public Where like(@Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where like(@Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return like(true, column, value);
 	}
 
 	@Comment("`like`,如：`like('name', '%王%') ---> name like '%王%'")
-	public Where like(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where like(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return append(condition, column, "like ?", value);
 	}
 
 	@Comment("`not like`,如：`notLike('name', '%王%') ---> name not like '%王%'")
-	public Where notLike(@Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where notLike(@Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return notLike(true, column, value);
 	}
 
 	@Comment("`not like` ,如：`notLike('name', '%王%') ---> name not like '%王%'")
-	public Where notLike(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值")Object value) {
+	public Where notLike(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		return append(condition, column, "not like ?", value);
 	}
 
@@ -340,7 +340,7 @@ public class Where {
 	}
 
 	@Comment("拼接`group by`")
-	public Where groupBy(@Comment("要分组的列") String ... columns) {
+	public Where groupBy(@Comment("要分组的列") String... columns) {
 		this.namedTable.groupBy(columns);
 		return this;
 	}

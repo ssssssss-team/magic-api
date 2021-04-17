@@ -30,6 +30,19 @@ public class ResponseModule {
 	}
 
 	/**
+	 * 文件下载
+	 *
+	 * @param value    文件内容
+	 * @param filename 文件名
+	 */
+	@Comment("文件下载")
+	public static ResponseEntity<?> download(@Comment("文件内容，如`byte[]`") Object value, @Comment("文件名") String filename) throws UnsupportedEncodingException {
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncoder.encode(filename, "UTF-8"))
+				.body(value);
+	}
+
+	/**
 	 * 自行构建分页结果
 	 *
 	 * @param total  条数
@@ -179,19 +192,6 @@ public class ResponseModule {
 	@Comment("输出图片")
 	public ResponseEntity image(@Comment("图片内容，如`byte[]`") Object value, @Comment("图片类型，如`image/png`、`image/jpeg`、`image/gif`") String mime) {
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, mime).body(value);
-	}
-
-	/**
-	 * 文件下载
-	 *
-	 * @param value    文件内容
-	 * @param filename 文件名
-	 */
-	@Comment("文件下载")
-	public static ResponseEntity<?> download(@Comment("文件内容，如`byte[]`") Object value, @Comment("文件名") String filename) throws UnsupportedEncodingException {
-		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
-				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncoder.encode(filename, "UTF-8"))
-				.body(value);
 	}
 
 	public static class NullValue {

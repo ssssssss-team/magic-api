@@ -7,21 +7,21 @@ import java.util.HashMap;
 /**
  * Cookie Context 用于脚本中获取cookie信息
  */
-public class CookieContext extends HashMap<String,String> {
+public class CookieContext extends HashMap<String, String> {
 
-    private final Cookie[] cookies;
+	private final Cookie[] cookies;
 
-    public CookieContext(HttpServletRequest request){
-        this.cookies = request.getCookies();
-    }
+	public CookieContext(HttpServletRequest request) {
+		this.cookies = request.getCookies();
+	}
 
-    @Override
-    public String get(Object key) {
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equalsIgnoreCase("" + key)) {
-                return cookie.getValue();
-            }
-        }
-        return null;
-    }
+	@Override
+	public String get(Object key) {
+		for (Cookie cookie : cookies) {
+			if (cookie.getName().equalsIgnoreCase("" + key)) {
+				return cookie.getValue();
+			}
+		}
+		return null;
+	}
 }

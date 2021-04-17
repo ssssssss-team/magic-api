@@ -122,19 +122,18 @@ public class BoundSql {
 	}
 
 	/**
-	 * 设置要执行的参数
-	 */
-	public void setParameters(List<Object> parameters) {
-		this.parameters = parameters;
-	}
-
-	/**
 	 * 获取要执行的参数
 	 */
 	public Object[] getParameters() {
 		return parameters.toArray();
 	}
 
+	/**
+	 * 设置要执行的参数
+	 */
+	public void setParameters(List<Object> parameters) {
+		this.parameters = parameters;
+	}
 
 	/**
 	 * 获取缓存值

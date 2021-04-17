@@ -55,6 +55,7 @@ public class JsonUtils {
 			return null;
 		}
 	}
+
 	public static <T> T readValue(byte[] bytes, JavaType javaType) {
 		try {
 			return mapper.readValue(bytes, javaType);

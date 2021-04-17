@@ -40,6 +40,21 @@ public class RequestModule {
 	}
 
 	/**
+	 * 获取原生HttpServletRequest对象
+	 */
+	public static HttpServletRequest get() {
+		return RequestContext.getHttpServletRequest();
+	}
+
+	private static MultipartRequest getMultipartHttpServletRequest() {
+		HttpServletRequest request = get();
+		if (request != null && request.getContentType() != null && request.getContentType().toLowerCase().startsWith("multipart/")) {
+			return WebUtils.getNativeRequest(request, MultipartRequest.class);
+		}
+		return null;
+	}
+
+	/**
 	 * 根据参数名获取参数值集合
 	 *
 	 * @param name 参数名
@@ -65,21 +80,6 @@ public class RequestModule {
 		if (request != null) {
 			Enumeration<String> headers = request.getHeaders(name);
 			return headers == null ? null : Collections.list(headers);
-		}
-		return null;
-	}
-
-	/**
-	 * 获取原生HttpServletRequest对象
-	 */
-	public static HttpServletRequest get() {
-		return RequestContext.getHttpServletRequest();
-	}
-
-	private static MultipartRequest getMultipartHttpServletRequest() {
-		HttpServletRequest request = get();
-		if (request != null && request.getContentType() != null && request.getContentType().toLowerCase().startsWith("multipart/")) {
-			return WebUtils.getNativeRequest(request, MultipartRequest.class);
 		}
 		return null;
 	}

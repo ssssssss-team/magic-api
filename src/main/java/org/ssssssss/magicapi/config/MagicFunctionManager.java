@@ -22,15 +22,11 @@ import java.util.stream.Collectors;
 
 public class MagicFunctionManager {
 
-	private static Map<String, FunctionInfo> mappings = new ConcurrentHashMap<>();
-
-	private GroupServiceProvider groupServiceProvider;
-
-	private FunctionServiceProvider functionServiceProvider;
-
-	private TreeNode<Group> groups;
-
 	private static final Logger logger = LoggerFactory.getLogger(MagicFunctionManager.class);
+	private static Map<String, FunctionInfo> mappings = new ConcurrentHashMap<>();
+	private GroupServiceProvider groupServiceProvider;
+	private FunctionServiceProvider functionServiceProvider;
+	private TreeNode<Group> groups;
 
 	public MagicFunctionManager(GroupServiceProvider groupServiceProvider, FunctionServiceProvider functionServiceProvider) {
 		this.groupServiceProvider = groupServiceProvider;
@@ -110,7 +106,7 @@ public class MagicFunctionManager {
 		FunctionInfo oldFunctionInfo = mappings.get(functionInfo.getId());
 		if (oldFunctionInfo != null) {
 			// 完全一致时不用注册
-			if(functionInfo.equals(oldFunctionInfo)){
+			if (functionInfo.equals(oldFunctionInfo)) {
 				return;
 			}
 			// 如果路径不一致，则需要取消注册
@@ -126,7 +122,7 @@ public class MagicFunctionManager {
 		logger.info("注册函数:[{}:{}]", functionInfo.getName(), path);
 	}
 
-	public Collection<FunctionInfo> getFunctionInfos(){
+	public Collection<FunctionInfo> getFunctionInfos() {
 		return mappings.values();
 	}
 

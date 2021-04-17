@@ -104,7 +104,7 @@ public class NamedTable {
 	}
 
 	@Comment("拼接`group by`")
-	public NamedTable groupBy(@Comment("要分组的列") String ... columns) {
+	public NamedTable groupBy(@Comment("要分组的列") String... columns) {
 		this.groups.addAll(Arrays.asList(columns));
 		return this;
 	}
@@ -196,11 +196,11 @@ public class NamedTable {
 			builder.append(where.getSql());
 			params.addAll(where.getParams());
 		}
-		if(!orders.isEmpty()){
+		if (!orders.isEmpty()) {
 			builder.append(" order by ");
 			builder.append(String.join(",", orders));
 		}
-		if(!groups.isEmpty()){
+		if (!groups.isEmpty()) {
 			builder.append(" group by ");
 			builder.append(String.join(",", groups));
 		}

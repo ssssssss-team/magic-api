@@ -22,10 +22,8 @@ public class MongoModule extends HashMap<String, Object> implements MagicModule 
 	private static final Logger logger = LoggerFactory.getLogger(MongoModule.class);
 
 	private final MongoTemplate mongoTemplate;
-
-	private JavaInvoker<Method> invoker;
-
 	private final JavaInvoker<Method> mongoDbFactoryInvoker;
+	private JavaInvoker<Method> invoker;
 
 	public MongoModule(MongoTemplate mongoTemplate) {
 		this.mongoTemplate = mongoTemplate;

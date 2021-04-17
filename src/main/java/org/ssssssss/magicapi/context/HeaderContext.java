@@ -8,14 +8,14 @@ import java.util.Map;
  */
 public class HeaderContext extends HashMap<String, Object> {
 
-    private final Map<String, Object> headers;
+	private final Map<String, Object> headers;
 
-    public HeaderContext(Map<String, Object> headers) {
-        this.headers = headers;
-    }
+	public HeaderContext(Map<String, Object> headers) {
+		this.headers = headers;
+	}
 
-    @Override
-    public Object get(Object key) {
-        return headers.get(key);
-    }
+	@Override
+	public Object get(Object key) {
+		return headers.get(key);
+	}
 }

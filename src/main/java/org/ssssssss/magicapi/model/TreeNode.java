@@ -34,7 +34,7 @@ public class TreeNode<T> {
 	}
 
 
-	public TreeNode<T> findTreeNode(Function<T, Boolean> mapping){
+	public TreeNode<T> findTreeNode(Function<T, Boolean> mapping) {
 		return findTreeNode(this.children, mapping);
 	}
 
@@ -44,7 +44,7 @@ public class TreeNode<T> {
 				return child;
 			}
 			TreeNode<T> node = findTreeNode(child.children, mapping);
-			if(node != null){
+			if (node != null) {
 				return node;
 			}
 		}

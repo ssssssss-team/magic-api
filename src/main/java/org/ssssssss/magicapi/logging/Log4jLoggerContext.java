@@ -12,37 +12,38 @@ import org.apache.log4j.spi.ThrowableInformation;
  * 对接Log4j
  */
 public class Log4jLoggerContext implements MagicLoggerContext {
-    @Override
-    public void generateAppender() {
-        RootLogger logger = (RootLogger) LogManager.getRootLogger();
-        PatternLayout patternLayout = new PatternLayout("%d %p [%c] - %m%n");
-        MagicLog4jAppender magicLog4jAppender = new MagicLog4jAppender();
-        magicLog4jAppender.setLayout(patternLayout);
-        logger.addAppender(magicLog4jAppender);
-    }
-     static class MagicLog4jAppender extends AppenderSkeleton {
+	@Override
+	public void generateAppender() {
+		RootLogger logger = (RootLogger) LogManager.getRootLogger();
+		PatternLayout patternLayout = new PatternLayout("%d %p [%c] - %m%n");
+		MagicLog4jAppender magicLog4jAppender = new MagicLog4jAppender();
+		magicLog4jAppender.setLayout(patternLayout);
+		logger.addAppender(magicLog4jAppender);
+	}
+
+	static class MagicLog4jAppender extends AppenderSkeleton {
 
 
-         @Override
-         protected void append(LoggingEvent event) {
-             LogInfo logInfo = new LogInfo();
-             logInfo.setLevel(event.getLevel().toString().toLowerCase());
-             logInfo.setMessage(String.valueOf(event.getMessage()));
-             ThrowableInformation throwableInformation = event.getThrowableInformation();
-             if (throwableInformation != null) {
-                 logInfo.setThrowable(throwableInformation.getThrowable());
-            }
-            MagicLoggerContext.println(logInfo);
-        }
+		@Override
+		protected void append(LoggingEvent event) {
+			LogInfo logInfo = new LogInfo();
+			logInfo.setLevel(event.getLevel().toString().toLowerCase());
+			logInfo.setMessage(String.valueOf(event.getMessage()));
+			ThrowableInformation throwableInformation = event.getThrowableInformation();
+			if (throwableInformation != null) {
+				logInfo.setThrowable(throwableInformation.getThrowable());
+			}
+			MagicLoggerContext.println(logInfo);
+		}
 
-        @Override
-        public void close() {
+		@Override
+		public void close() {
 
-        }
+		}
 
-        @Override
-        public boolean requiresLayout() {
-            return false;
-        }
-    }
+		@Override
+		public boolean requiresLayout() {
+			return false;
+		}
+	}
 }

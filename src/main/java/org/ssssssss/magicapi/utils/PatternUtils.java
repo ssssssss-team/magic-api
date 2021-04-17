@@ -8,11 +8,11 @@ public class PatternUtils {
 
 	private static final Map<String, Pattern> cachedPatterns = new ConcurrentHashMap<>();
 
-	public static boolean match(String content,String regex){
+	public static boolean match(String content, String regex) {
 		Pattern pattern = cachedPatterns.get(regex);
-		if(pattern == null){
+		if (pattern == null) {
 			pattern = Pattern.compile(regex);
-			cachedPatterns.put(regex,pattern);
+			cachedPatterns.put(regex, pattern);
 		}
 		return pattern.matcher(content).find();
 	}

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 /**
  * 对接Logback
  */
-public class LogbackLoggerContext implements MagicLoggerContext{
+public class LogbackLoggerContext implements MagicLoggerContext {
 
 	@Override
 	public void generateAppender() {

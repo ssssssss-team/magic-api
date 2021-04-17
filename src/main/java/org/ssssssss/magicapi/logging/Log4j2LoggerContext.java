@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * 对接Log4j2
  */
-public class Log4j2LoggerContext implements MagicLoggerContext{
+public class Log4j2LoggerContext implements MagicLoggerContext {
 
 	@Override
 	public void generateAppender() {
@@ -49,7 +49,7 @@ public class Log4j2LoggerContext implements MagicLoggerContext{
 			logInfo.setLevel(event.getLevel().name().toLowerCase());
 			logInfo.setMessage(event.getMessage().getFormattedMessage());
 			ThrowableProxy throwableProxy = event.getThrownProxy();
-			if(throwableProxy != null){
+			if (throwableProxy != null) {
 				logInfo.setThrowable(throwableProxy.getThrowable());
 			}
 			MagicLoggerContext.println(logInfo);

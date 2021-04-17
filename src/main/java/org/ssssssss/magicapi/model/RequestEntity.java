@@ -20,12 +20,9 @@ public class RequestEntity {
 	private final Map<String, Object> parameters;
 
 	private final Map<String, Object> pathVariables;
-
-	private MagicScriptContext magicScriptContext;
-
-	private Map<String, Object> headers;
-
 	private final Long requestTime = System.currentTimeMillis();
+	private MagicScriptContext magicScriptContext;
+	private Map<String, Object> headers;
 
 	private RequestEntity() {
 		this.request = null;
@@ -42,7 +39,8 @@ public class RequestEntity {
 		this.requestedFromTest = requestedFromTest;
 		this.parameters = parameters;
 		this.pathVariables = pathVariables;
-		this.apiInfo = MappingHandlerMapping.getMappingApiInfo(request);
+		ApiInfo info = MappingHandlerMapping.getMappingApiInfo(request);
+		this.apiInfo = info != null ? info.copy() : null;
 	}
 
 	public static RequestEntity empty() {

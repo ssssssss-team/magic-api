@@ -16,7 +16,7 @@ public class IoUtils {
 
 	private static Pattern FILE_NAME_PATTERN = Pattern.compile("^[\\u4e00-\\u9fa5_a-zA-Z0-9]+$");
 
-	public static boolean validateFileName(String name){
+	public static boolean validateFileName(String name) {
 		return FILE_NAME_PATTERN.matcher(name).matches();
 	}
 
@@ -59,7 +59,7 @@ public class IoUtils {
 		try {
 			return Files.readAllBytes(file.toPath());
 		} catch (IOException e) {
-			logger.error("读取文件失败",e);
+			logger.error("读取文件失败", e);
 			return new byte[0];
 		}
 	}
@@ -78,7 +78,7 @@ public class IoUtils {
 			}
 			return baos.toByteArray();
 		} catch (IOException e) {
-			logger.error("读取InputStream失败",e);
+			logger.error("读取InputStream失败", e);
 			return new byte[0];
 		}
 	}
@@ -97,7 +97,7 @@ public class IoUtils {
 			}
 			return result.toString();
 		} catch (IOException e) {
-			logger.error("读取InputStream失败",e);
+			logger.error("读取InputStream失败", e);
 			return "";
 		}
 	}
@@ -107,7 +107,7 @@ public class IoUtils {
 			Files.write(file.toPath(), bytes);
 			return true;
 		} catch (IOException e) {
-			logger.error("写文件失败",e);
+			logger.error("写文件失败", e);
 			return false;
 		}
 	}

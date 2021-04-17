@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.model;
 
-public class MagicEntity implements Cloneable{
+public class MagicEntity implements Cloneable {
 
 	protected String id;
 

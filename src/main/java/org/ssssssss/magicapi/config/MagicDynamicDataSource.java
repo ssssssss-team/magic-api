@@ -112,6 +112,14 @@ public class MagicDynamicDataSource {
 		return dataSourceNode;
 	}
 
+	public void setDefault(DataSource dataSource) {
+		put(dataSource);
+	}
+
+	public void add(String dataSourceKey, DataSource dataSource) {
+		put(dataSourceKey, dataSource);
+	}
+
 	public static class DataSourceNode {
 
 		private final String id;
@@ -182,13 +190,5 @@ public class MagicDynamicDataSource {
 			}
 			return dialect;
 		}
-	}
-
-	public void setDefault(DataSource dataSource) {
-		put(dataSource);
-	}
-
-	public void add(String dataSourceKey, DataSource dataSource) {
-		put(dataSourceKey, dataSource);
 	}
 }

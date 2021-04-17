@@ -18,22 +18,24 @@ public interface MagicLoggerContext {
 
 	/**
 	 * 创建sseEmitter推送
-	 * @param sessionId	会话id
+	 *
+	 * @param sessionId 会话id
 	 */
-	static SseEmitter createEmitter(String sessionId){
+	static SseEmitter createEmitter(String sessionId) {
 		SseEmitter sseEmitter = new SseEmitter(0L);
-		emitterMap.put(sessionId,sseEmitter);
+		emitterMap.put(sessionId, sseEmitter);
 		return sseEmitter;
 	}
 
 	/**
 	 * 删除会话
-	 * @param sessionId	会话id
+	 *
+	 * @param sessionId 会话id
 	 */
-	static void remove(String sessionId){
+	static void remove(String sessionId) {
 		SseEmitter sseEmitter = emitterMap.remove(sessionId);
 		SESSION.remove();
-		if(sseEmitter != null){
+		if (sseEmitter != null) {
 			try {
 				sseEmitter.send(SseEmitter.event().data(sessionId).name("close"));
 			} catch (IOException ignored) {
@@ -44,20 +46,21 @@ public interface MagicLoggerContext {
 
 	/**
 	 * 打印日志
+	 *
 	 * @param logInfo 日志信息
 	 */
-	static void println(LogInfo logInfo){
+	static void println(LogInfo logInfo) {
 		// 获取SessionId
 		MagicScriptContext context = MagicScriptContext.get();
 		String sessionId;
-		if(context instanceof MagicScriptDebugContext){
+		if (context instanceof MagicScriptDebugContext) {
 			sessionId = ((MagicScriptDebugContext) context).getId();
-		}else{
+		} else {
 			sessionId = SESSION.get();
 		}
-		if(sessionId != null){
+		if (sessionId != null) {
 			SseEmitter sseEmitter = emitterMap.get(sessionId);
-			if(sseEmitter != null){
+			if (sseEmitter != null) {
 				try {
 					// 推送日志事件
 					sseEmitter.send(SseEmitter.event().data(logInfo).name("log"));

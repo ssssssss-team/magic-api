@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.model;
 
-public class Header extends BaseDefinition{
+public class Header extends BaseDefinition {
 
 	public Header() {
 	}

@@ -14,15 +14,11 @@ import java.util.stream.Collectors;
 
 public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
-	private Map<String, Group> cacheApiTree = new HashMap<>();
-
-	private Map<String, Group> cacheFunctionTree = new HashMap<>();
-
 	private final Map<String, Resource> mappings = new HashMap<>();
-
 	private final Resource workspace;
-
 	private final String metabase = "group.json";
+	private Map<String, Group> cacheApiTree = new HashMap<>();
+	private Map<String, Group> cacheFunctionTree = new HashMap<>();
 
 	public DefaultGroupServiceProvider(Resource workspace) {
 		this.workspace = workspace;
@@ -30,7 +26,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	@Override
 	public boolean insert(Group group) {
-		if(StringUtils.isBlank(group.getId())){
+		if (StringUtils.isBlank(group.getId())) {
 			group.setId(UUID.randomUUID().toString().replace("-", ""));
 		}
 		Resource directory = this.getGroupResource(group.getParentId());
@@ -53,9 +49,9 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	public boolean update(Group group) {
 		Resource oldResource = this.getGroupResource(group.getId());
 		Resource newResource = this.getGroupResource(group.getParentId());
-		newResource = newResource == null ? getGroupResource(group.getType(),group.getName()) : newResource.getDirectory(group.getName());
+		newResource = newResource == null ? getGroupResource(group.getType(), group.getName()) : newResource.getDirectory(group.getName());
 		// 重命名或移动目录
-		if(oldResource.renameTo(newResource)){
+		if (oldResource.renameTo(newResource)) {
 			Resource target = newResource.getResource(metabase);
 			if (target.write(JsonUtils.toJsonString(group))) {
 				mappings.put(group.getId(), target);
@@ -74,8 +70,8 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	@Override
 	public boolean exists(Group group) {
 		Resource resource = getGroupResource(group.getParentId());
-		if(resource == null){
-			return getGroupResource(group.getType(),group.getName()).exists();
+		if (resource == null) {
+			return getGroupResource(group.getType(), group.getName()).exists();
 		}
 		return resource.getDirectory(group.getName()).exists();
 	}
@@ -87,7 +83,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	@Override
 	public Group readGroup(Resource resource) {
-		return JsonUtils.readValue(resource.read(),Group.class);
+		return JsonUtils.readValue(resource.read(), Group.class);
 	}
 
 	@Override

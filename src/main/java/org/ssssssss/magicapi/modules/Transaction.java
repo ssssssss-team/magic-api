@@ -11,11 +11,9 @@ import org.ssssssss.script.annotation.Comment;
  */
 public class Transaction {
 
-	private final DataSourceTransactionManager dataSourceTransactionManager;
-
-	private final TransactionStatus transactionStatus;
-
 	private static final TransactionDefinition TRANSACTION_DEFINITION = new DefaultTransactionDefinition();
+	private final DataSourceTransactionManager dataSourceTransactionManager;
+	private final TransactionStatus transactionStatus;
 
 	public Transaction(DataSourceTransactionManager dataSourceTransactionManager) {
 		this.dataSourceTransactionManager = dataSourceTransactionManager;
@@ -26,7 +24,7 @@ public class Transaction {
 	 * 回滚事务
 	 */
 	@Comment("回滚事务")
-	public void rollback(){
+	public void rollback() {
 		this.dataSourceTransactionManager.rollback(this.transactionStatus);
 	}
 
@@ -34,7 +32,7 @@ public class Transaction {
 	 * 提交事务
 	 */
 	@Comment("提交事务")
-	public void commit(){
+	public void commit() {
 		this.dataSourceTransactionManager.commit(this.transactionStatus);
 	}
 }

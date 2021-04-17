@@ -95,7 +95,7 @@ public class BaseDefinition {
 	}
 
 	public DataType getDataType() {
-		return dataType;
+		return dataType == null ? DataType.String : dataType;
 	}
 
 	public void setDataType(DataType dataType) {

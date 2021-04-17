@@ -109,33 +109,33 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		this.sqlInterceptors = sqlInterceptors;
 	}
 
-	@UnableCall
-	public void setSqlCache(SqlCache sqlCache) {
-		this.sqlCache = sqlCache;
-	}
-
 	private void setDataSourceNode(DataSourceNode dataSourceNode) {
 		this.dataSourceNode = dataSourceNode;
-	}
-
-	private void setCacheName(String cacheName) {
-		this.cacheName = cacheName;
-	}
-
-	private void setTtl(long ttl) {
-		this.ttl = ttl;
 	}
 
 	protected String getCacheName() {
 		return cacheName;
 	}
 
+	private void setCacheName(String cacheName) {
+		this.cacheName = cacheName;
+	}
+
 	protected long getTtl() {
 		return ttl;
 	}
 
+	private void setTtl(long ttl) {
+		this.ttl = ttl;
+	}
+
 	protected SqlCache getSqlCache() {
 		return sqlCache;
+	}
+
+	@UnableCall
+	public void setSqlCache(SqlCache sqlCache) {
+		this.sqlCache = sqlCache;
 	}
 
 	@UnableCall

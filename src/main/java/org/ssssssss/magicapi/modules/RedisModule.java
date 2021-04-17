@@ -14,22 +14,22 @@ import java.util.List;
  */
 public class RedisModule implements MagicModule, DynamicMethod {
 
-	@Override
-	public String getModuleName() {
-		return "redis";
-	}
-
 	private final StringRedisTemplate redisTemplate;
 
 	public RedisModule(RedisConnectionFactory connectionFactory) {
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
 	}
 
+	@Override
+	public String getModuleName() {
+		return "redis";
+	}
+
 	/**
 	 * 序列化
 	 */
 	private byte[] serializer(Object value) {
-		if(value == null || value instanceof String){
+		if (value == null || value instanceof String) {
 			return redisTemplate.getStringSerializer().serialize((String) value);
 		}
 		return serializer(value.toString());
@@ -58,8 +58,9 @@ public class RedisModule implements MagicModule, DynamicMethod {
 
 	/**
 	 * 执行命令
-	 * @param methodName	命令名称
-	 * @param parameters	命令参数
+	 *
+	 * @param methodName 命令名称
+	 * @param parameters 命令参数
 	 */
 	@Override
 	public Object execute(String methodName, List<Object> parameters) {

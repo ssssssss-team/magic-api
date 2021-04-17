@@ -7,21 +7,21 @@ public class RequestContext {
 
 	private static final ThreadLocal<RequestAttribute> REQUEST_ATTRIBUTE_THREAD_LOCAL = new InheritableThreadLocal<>();
 
-	public static void setRequestAttribute(HttpServletRequest request,HttpServletResponse response){
+	public static void setRequestAttribute(HttpServletRequest request, HttpServletResponse response) {
 		REQUEST_ATTRIBUTE_THREAD_LOCAL.set(new RequestAttribute(request, response));
 	}
-	
-	public static HttpServletRequest getHttpServletRequest(){
+
+	public static HttpServletRequest getHttpServletRequest() {
 		RequestAttribute requestAttribute = REQUEST_ATTRIBUTE_THREAD_LOCAL.get();
-		return  requestAttribute == null ? null : requestAttribute.request;
+		return requestAttribute == null ? null : requestAttribute.request;
 	}
 
-	public static HttpServletResponse getHttpServletResponse(){
+	public static HttpServletResponse getHttpServletResponse() {
 		RequestAttribute requestAttribute = REQUEST_ATTRIBUTE_THREAD_LOCAL.get();
-		return  requestAttribute == null ? null : requestAttribute.response;
+		return requestAttribute == null ? null : requestAttribute.response;
 	}
 
-	public static void remove(){
+	public static void remove() {
 		REQUEST_ATTRIBUTE_THREAD_LOCAL.remove();
 	}
 

@@ -13,23 +13,15 @@ import java.util.stream.Collectors;
 
 public abstract class StoreServiceProvider<T extends MagicEntity> {
 
-	String separatorWithCRLF = "\r\n================================\r\n";
-
-	String separatorWithLF = "\n================================\n";
-
-	protected Resource workspace;
-
-	protected Resource backupResource;
-
-	protected Map<String, Resource> mappings = new HashMap<>();
-
-	protected Map<String, T> infos = new HashMap<>();
-
-	protected GroupServiceProvider groupServiceProvider;
-
-	protected Class<T> clazz;
-
 	private static Logger logger = LoggerFactory.getLogger(StoreServiceProvider.class);
+	protected Resource workspace;
+	protected Resource backupResource;
+	protected Map<String, Resource> mappings = new HashMap<>();
+	protected Map<String, T> infos = new HashMap<>();
+	protected GroupServiceProvider groupServiceProvider;
+	protected Class<T> clazz;
+	String separatorWithCRLF = "\r\n================================\r\n";
+	String separatorWithLF = "\n================================\n";
 
 	public StoreServiceProvider(Class<T> clazz, Resource workspace, GroupServiceProvider groupServiceProvider) {
 		this.clazz = clazz;
@@ -154,7 +146,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	/**
 	 * 重新加载分组
 	 */
-	public void reload(String groupId){
+	public void reload(String groupId) {
 		Resource dest = groupServiceProvider.getGroupResource(groupId);
 		dest.files(".ms").forEach(r -> {
 			T info = deserialize(r.read());
@@ -265,7 +257,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		String content = new String(data, StandardCharsets.UTF_8);
 		String separator = separatorWithCRLF;
 		int index = content.indexOf(separator);
-		if(index == -1){
+		if (index == -1) {
 			separator = separatorWithLF;
 			index = content.indexOf(separatorWithLF);
 		}

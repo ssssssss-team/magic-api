@@ -14,31 +14,22 @@ import java.util.stream.Collectors;
 
 /**
  * http 模块
+ *
  * @since 1.1.0
  */
 public class HttpModule implements MagicModule {
 
 	private final RestTemplate template;
-
-	private String url;
-
 	private final HttpHeaders httpHeaders = new HttpHeaders();
-
-	private HttpMethod method = HttpMethod.GET;
-
-	private HttpEntity<Object> entity = null;
-
-	private Object requestBody;
-
 	private final Class<?> responseType = Object.class;
-
 	private final MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
-
 	private final MultiValueMap<String, Object> data = new LinkedMultiValueMap<>();
-
 	private final Map<String, ?> variables = new HashMap<>();
-
-	private ResponseEntity<Object>  responseEntity;
+	private String url;
+	private HttpMethod method = HttpMethod.GET;
+	private HttpEntity<Object> entity = null;
+	private Object requestBody;
+	private ResponseEntity<Object> responseEntity;
 
 	public HttpModule(RestTemplate template) {
 		this.template = template;
@@ -99,7 +90,7 @@ public class HttpModule implements MagicModule {
 	}
 
 	@Comment("自定义`HttpEntity`")
-	public HttpModule entity(@Comment("`HttpEntity`")HttpEntity<Object> entity) {
+	public HttpModule entity(@Comment("`HttpEntity`") HttpEntity<Object> entity) {
 		this.entity = entity;
 		return this;
 	}

@@ -23,7 +23,7 @@ public class ZipResource implements Resource {
 
 	public ZipResource(InputStream is) throws IOException {
 		cachedContent = new HashMap<>();
-		try (ZipArchiveInputStream zis = new ZipArchiveInputStream (is)) {
+		try (ZipArchiveInputStream zis = new ZipArchiveInputStream(is)) {
 			ArchiveEntry entry;
 			byte[] buf = new byte[4096];
 			int len = -1;
@@ -37,7 +37,7 @@ public class ZipResource implements Resource {
 		}
 	}
 
-	ZipResource(String name, Map<String, byte[]> cachedContent,Resource parent) {
+	ZipResource(String name, Map<String, byte[]> cachedContent, Resource parent) {
 		this.path = name;
 		this.cachedContent = cachedContent;
 		this.parent = parent;
@@ -60,12 +60,12 @@ public class ZipResource implements Resource {
 
 	@Override
 	public Resource getResource(String name) {
-		return new ZipResource(this.path + name, this.cachedContent,this);
+		return new ZipResource(this.path + name, this.cachedContent, this);
 	}
 
 	@Override
 	public Resource getDirectory(String name) {
-		return new ZipResource(this.path + name + "/", this.cachedContent,this);
+		return new ZipResource(this.path + name + "/", this.cachedContent, this);
 	}
 
 	@Override
@@ -97,18 +97,18 @@ public class ZipResource implements Resource {
 	public List<Resource> dirs() {
 		int len = this.path.length();
 		return this.cachedContent.keySet().stream()
-				.filter(it -> it.endsWith("/")  && it.startsWith(this.path) && it.indexOf("/",len + 1) == it.length() - 1)
-				.map(it -> this.getDirectory(it.substring(len,it.length() - 1)))
+				.filter(it -> it.endsWith("/") && it.startsWith(this.path) && it.indexOf("/", len + 1) == it.length() - 1)
+				.map(it -> this.getDirectory(it.substring(len, it.length() - 1)))
 				.collect(Collectors.toList());
 	}
 
 
 	@Override
 	public List<Resource> files(String suffix) {
-		if(isDirectory()){
+		if (isDirectory()) {
 			int len = this.path.length();
 			return this.cachedContent.keySet().stream()
-					.filter(it -> it.startsWith(this.path) && it.endsWith(suffix) && it.indexOf("/",len) == -1)
+					.filter(it -> it.startsWith(this.path) && it.endsWith(suffix) && it.indexOf("/", len) == -1)
 					.map(it -> this.getResource(it.substring(len)))
 					.collect(Collectors.toList());
 		}

@@ -45,12 +45,12 @@ public class LogInfo {
 	}
 
 	public void setThrowable(Throwable throwable) {
-		if(throwable != null){
+		if (throwable != null) {
 			try (StringWriter writer = new StringWriter();
-				PrintWriter printWriter = new PrintWriter(writer)){
+				 PrintWriter printWriter = new PrintWriter(writer)) {
 				throwable.printStackTrace(printWriter);
 				this.throwable = writer.toString();
-			} catch (IOException ignored){
+			} catch (IOException ignored) {
 
 			}
 		}

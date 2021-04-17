@@ -50,10 +50,10 @@ public abstract class KeyValueResource implements Resource {
 
 	@Override
 	public final boolean renameTo(Resource resource) {
-		if(readonly()){
+		if (readonly()) {
 			return false;
 		}
-		if(resource.getAbsolutePath().equalsIgnoreCase(this.getAbsolutePath())){
+		if (resource.getAbsolutePath().equalsIgnoreCase(this.getAbsolutePath())) {
 			return true;
 		}
 		if (!(resource instanceof KeyValueResource)) {
@@ -74,10 +74,10 @@ public abstract class KeyValueResource implements Resource {
 
 	@Override
 	public boolean delete() {
-		if(readonly()){
+		if (readonly()) {
 			return false;
 		}
-		if(isDirectory()){
+		if (isDirectory()) {
 			return this.keys().stream().allMatch(this::deleteByKey);
 		}
 		return deleteByKey(getAbsolutePath());

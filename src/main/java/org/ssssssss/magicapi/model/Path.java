@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.model;
 
-public class Path extends BaseDefinition{
+public class Path extends BaseDefinition {
 
 	public Path() {
 	}
