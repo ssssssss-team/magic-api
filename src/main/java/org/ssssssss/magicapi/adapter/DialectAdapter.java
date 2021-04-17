@@ -31,7 +31,7 @@ public class DialectAdapter {
 		add(new DmDialect());
 	}
 
-	public void add(Dialect dialect){
+	public void add(Dialect dialect) {
 		this.dialectList.add(dialect);
 	}
 

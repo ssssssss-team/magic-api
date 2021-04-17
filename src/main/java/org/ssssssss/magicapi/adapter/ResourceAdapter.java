@@ -49,7 +49,7 @@ public abstract class ResourceAdapter {
 			String entryName = (springBootClassPath ? SPRING_BOOT_CLASS_PATH : "") + connection.getEntryName();
 			JarFile jarFile = connection.getJarFile();
 			List<JarEntry> entries = jarFile.stream().filter(it -> it.getName().startsWith(entryName)).collect(Collectors.toList());
-			if(entries.isEmpty()){
+			if (entries.isEmpty()) {
 				entries = jarFile.stream().filter(it -> it.getName().startsWith(connection.getEntryName())).collect(Collectors.toList());
 				return new JarResource(jarFile, connection.getEntryName(), entries, springBootClassPath);
 			}

@@ -65,7 +65,7 @@ public interface Resource {
 		return false;
 	}
 
-	default String separator(){
+	default String separator() {
 		return null;
 	}
 
