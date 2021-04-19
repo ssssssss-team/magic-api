@@ -1,5 +1,8 @@
 package org.ssssssss.magicapi.spring.boot.starter;
 
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
+import org.ssssssss.magicapi.swagger.SwaggerEntity;
+
 /**
  * Swagger 配置
  */
@@ -24,6 +27,9 @@ public class SwaggerConfig {
 	 * 文档描述
 	 */
 	private String description = "MagicAPI 接口信息";
+
+	@NestedConfigurationProperty
+	private SwaggerEntity.Concat concat = new SwaggerEntity.Concat();
 
 	/**
 	 * 文档版本
@@ -68,5 +74,13 @@ public class SwaggerConfig {
 
 	public void setVersion(String version) {
 		this.version = version;
+	}
+
+	public SwaggerEntity.Concat getConcat() {
+		return concat;
+	}
+
+	public void setConcat(SwaggerEntity.Concat concat) {
+		this.concat = concat;
 	}
 }

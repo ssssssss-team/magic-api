@@ -13,6 +13,7 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
+import org.ssssssss.magicapi.swagger.SwaggerEntity;
 import org.ssssssss.magicapi.swagger.SwaggerProvider;
 import springfox.documentation.swagger.web.SwaggerResource;
 import springfox.documentation.swagger.web.SwaggerResourcesProvider;
@@ -38,7 +39,7 @@ public class MagicSwaggerConfiguration {
 	@Autowired
 	private ApplicationContext context;
 
-	private MagicAPIProperties properties;
+	private final MagicAPIProperties properties;
 
 	public MagicSwaggerConfiguration(MagicAPIProperties properties) {
 		this.properties = properties;
@@ -54,9 +55,8 @@ public class MagicSwaggerConfiguration {
 		SwaggerProvider swaggerProvider = new SwaggerProvider();
 		swaggerProvider.setGroupServiceProvider(groupServiceProvider);
 		swaggerProvider.setMappingHandlerMapping(handlerMapping);
-		swaggerProvider.setTitle(config.getTitle());
-		swaggerProvider.setDescription(config.getDescription());
-		swaggerProvider.setVersion(config.getVersion());
+		SwaggerEntity.License license = new SwaggerEntity.License("MIT", "https://gitee.com/ssssssss-team/magic-api/blob/master/LICENSE");
+		swaggerProvider.setInfo(new SwaggerEntity.Info(config.getDescription(), config.getVersion(), config.getTitle(), license, config.getConcat()));
 		swaggerProvider.setBasePath(servletContext.getContextPath());
 
 
@@ -69,7 +69,7 @@ public class MagicSwaggerConfiguration {
 			// 获取已定义的文档信息
 			if (beans != null) {
 				for (Map.Entry<String, SwaggerResourcesProvider> entry : beans.entrySet()) {
-					if(!"magicSwaggerResourcesProvider".equalsIgnoreCase(entry.getKey())){
+					if (!"magicSwaggerResourcesProvider".equalsIgnoreCase(entry.getKey())) {
 						resources.addAll(entry.getValue().get());
 					}
 				}
