@@ -116,6 +116,39 @@ public class SwaggerEntity {
 		return paths;
 	}
 
+	public static class Concat {
+
+		private String name;
+
+		private String url;
+
+		private String email;
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public String getUrl() {
+			return url;
+		}
+
+		public void setUrl(String url) {
+			this.url = url;
+		}
+
+		public String getEmail() {
+			return email;
+		}
+
+		public void setEmail(String email) {
+			this.email = email;
+		}
+	}
+
 	public static class Info {
 
 		private String description;
@@ -126,11 +159,14 @@ public class SwaggerEntity {
 
 		private License license;
 
-		public Info(String description, String version, String title, License license) {
+		private Concat concat;
+
+		public Info(String description, String version, String title, License license, Concat concat) {
 			this.description = description;
 			this.version = version;
 			this.title = title;
 			this.license = license;
+			this.concat = concat;
 		}
 
 		public String getDescription() {
@@ -163,6 +199,14 @@ public class SwaggerEntity {
 
 		public void setLicense(License license) {
 			this.license = license;
+		}
+
+		public Concat getConcat() {
+			return concat;
+		}
+
+		public void setConcat(Concat concat) {
+			this.concat = concat;
 		}
 	}
 

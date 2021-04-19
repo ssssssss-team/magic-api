@@ -22,26 +22,13 @@ public class SwaggerProvider {
 	private MappingHandlerMapping mappingHandlerMapping;
 
 	/**
-	 * 描述信息
-	 */
-	private String description;
-
-	/**
-	 * 标题
-	 */
-	private String title;
-
-	/**
-	 * 版本号
-	 */
-	private String version;
-
-	/**
 	 * 基础路径
 	 */
 	private String basePath;
 
 	private GroupServiceProvider groupServiceProvider;
+
+	private SwaggerEntity.Info info;
 
 	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
@@ -51,16 +38,8 @@ public class SwaggerProvider {
 		this.groupServiceProvider = groupServiceProvider;
 	}
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
-	}
-
-	public void setVersion(String version) {
-		this.version = version;
+	public void setInfo(SwaggerEntity.Info info) {
+		this.info = info;
 	}
 
 	public void setBasePath(String basePath) {
@@ -71,8 +50,7 @@ public class SwaggerProvider {
 	public SwaggerEntity swaggerJson() {
 		List<ApiInfo> infos = mappingHandlerMapping.getApiInfos();
 		SwaggerEntity swaggerEntity = new SwaggerEntity();
-		SwaggerEntity.License license = new SwaggerEntity.License("MIT", "https://gitee.com/ssssssss-team/magic-api/blob/master/LICENSE");
-		swaggerEntity.setInfo(new SwaggerEntity.Info(this.description, this.version, this.title, license));
+		swaggerEntity.setInfo(info);
 		swaggerEntity.setBasePath(this.basePath);
 		ObjectMapper mapper = new ObjectMapper();
 		for (ApiInfo info : infos) {
