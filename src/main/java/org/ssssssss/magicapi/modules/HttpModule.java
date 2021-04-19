@@ -30,7 +30,6 @@ public class HttpModule implements MagicModule {
 	private HttpMethod method = HttpMethod.GET;
 	private HttpEntity<Object> entity = null;
 	private Object requestBody;
-	private ResponseEntity<Object> responseEntity;
 
 	public HttpModule(RestTemplate template) {
 		this.template = template;
@@ -47,7 +46,7 @@ public class HttpModule implements MagicModule {
 	}
 
 	@Comment("创建连接")
-	public HttpModule connection(@Comment("目标URL") String url) {
+	public HttpModule connect(@Comment("目标URL") String url) {
 		return new HttpModule(template, url);
 	}
 
