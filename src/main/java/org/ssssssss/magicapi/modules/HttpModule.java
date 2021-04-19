@@ -10,6 +10,7 @@ import org.ssssssss.script.annotation.Comment;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +61,12 @@ public class HttpModule implements MagicModule {
 		return this;
 	}
 
+	@Comment("批量设置URL参数")
+	public HttpModule param(@Comment("参数值") Map<String, Object> values) {
+		values.forEach((key, value) -> param(key, Objects.toString(value, "")));
+		return this;
+	}
+
 	@Comment("设置form参数")
 	public HttpModule data(@Comment("参数名") String key, @Comment("参数值") Object... values) {
 		if (values != null) {
@@ -70,9 +77,24 @@ public class HttpModule implements MagicModule {
 		return this;
 	}
 
+	@Comment("批量设置form参数")
+	public HttpModule data(@Comment("参数值") Map<String, Object> values) {
+		values.forEach((key, value) -> data(key, Objects.toString(value, "")));
+		return this;
+	}
+
 	@Comment("设置header")
 	public HttpModule header(@Comment("header名") String key, @Comment("header值") String value) {
 		httpHeaders.add(key, value);
+		return this;
+	}
+
+	@Comment("批量设置header")
+	public HttpModule header(@Comment("header值") Map<String, Object> values) {
+		values.entrySet()
+				.stream()
+				.filter(it -> it.getValue() != null)
+				.forEach(entry -> header(entry.getKey(), entry.getValue().toString()));
 		return this;
 	}
 
