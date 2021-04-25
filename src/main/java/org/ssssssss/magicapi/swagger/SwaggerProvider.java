@@ -96,7 +96,7 @@ public class SwaggerProvider {
 		try {
 			Object object = mapper.readValue(info.getRequestBody(), Object.class);
 			if ((object instanceof List || object instanceof Map) && BooleanLiteral.isTrue(object)) {
-				parameters.add(new SwaggerEntity.Parameter(true, "body", "body", object instanceof List ? "array" : "object", null, object));
+				parameters.add(new SwaggerEntity.Parameter(false, "body", "body", object instanceof List ? "array" : "object", null, object));
 			}
 		} catch (Exception ignored) {
 		}
