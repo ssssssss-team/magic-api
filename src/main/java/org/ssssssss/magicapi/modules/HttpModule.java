@@ -167,6 +167,8 @@ public class HttpModule implements MagicModule {
 			this.entity = new HttpEntity<>(this.data, this.httpHeaders);
 		} else if (this.entity == null && this.requestBody != null) {
 			this.entity = new HttpEntity<>(this.requestBody, this.httpHeaders);
+		} else {
+			this.entity = new HttpEntity<>(null, this.httpHeaders);
 		}
 		return template.exchange(url, this.method, entity, Object.class, responseType, variables);
 	}
