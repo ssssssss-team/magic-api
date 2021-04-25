@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.interceptor;
 
+import org.ssssssss.magicapi.model.RequestEntity;
 import org.ssssssss.magicapi.modules.BoundSql;
 
 /**
@@ -8,8 +9,17 @@ import org.ssssssss.magicapi.modules.BoundSql;
 public interface SQLInterceptor {
 
 	/**
-	 * 执行SQL之前
+	 * 1.1.1 新增，
 	 */
+	default void preHandle(BoundSql boundSql, RequestEntity requestEntity) {
+		preHandle(boundSql);
+	}
+
+
+	/**
+	 * @see SQLInterceptor#preHandle(BoundSql, RequestEntity)
+	 */
+	@Deprecated
 	void preHandle(BoundSql boundSql);
 
 }

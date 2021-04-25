@@ -36,7 +36,6 @@ import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.exception.MagicScriptAssertException;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
-import org.ssssssss.script.functions.StreamExtension;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 import org.ssssssss.script.reflection.JavaInvoker;
@@ -264,7 +263,7 @@ public class RequestHandler extends MagicController {
 	private Object invokeRequest(RequestEntity requestEntity) throws Throwable {
 		HttpServletRequest request = requestEntity.getRequest();
 		try {
-			RequestContext.setRequestAttribute(request, requestEntity.getResponse());
+			RequestContext.setRequestEntity(requestEntity);
 			Object result = ScriptManager.executeScript(requestEntity.getApiInfo().getScript(), requestEntity.getMagicScriptContext());
 			Object value = result;
 			// 执行后置拦截器
@@ -384,7 +383,7 @@ public class RequestHandler extends MagicController {
 			MagicLoggerContext.remove(sessionId);
 		});
 		context.onStart(() -> {
-			RequestContext.setRequestAttribute(request, requestEntity.getResponse());
+			RequestContext.setRequestEntity(requestEntity);
 			MagicLoggerContext.SESSION.set(sessionId);
 			logger.info("Create Console Session : {}", sessionId);
 		});

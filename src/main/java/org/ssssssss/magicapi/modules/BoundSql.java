@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.modules;
 
 import org.ssssssss.magicapi.cache.SqlCache;
+import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.interceptor.SQLInterceptor;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.functions.StreamExtension;
@@ -156,7 +157,7 @@ public class BoundSql {
 	 * 获取缓存值
 	 */
 	<T> T getCacheValue(List<SQLInterceptor> interceptors, Supplier<T> supplier) {
-		interceptors.forEach(interceptor -> interceptor.preHandle(this));
+		interceptors.forEach(interceptor -> interceptor.preHandle(this, RequestContext.getRequestEntity()));
 		return getCacheValue(this.getSql(), this.getParameters(), supplier);
 	}
 }

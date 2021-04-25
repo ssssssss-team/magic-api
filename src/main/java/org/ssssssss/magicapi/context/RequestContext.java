@@ -1,40 +1,28 @@
 package org.ssssssss.magicapi.context;
 
+import org.ssssssss.magicapi.model.RequestEntity;
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 public class RequestContext {
 
-	private static final ThreadLocal<RequestAttribute> REQUEST_ATTRIBUTE_THREAD_LOCAL = new InheritableThreadLocal<>();
+	private static final ThreadLocal<RequestEntity> REQUEST_ENTITY_THREAD_LOCAL = new InheritableThreadLocal<>();
 
-	public static void setRequestAttribute(HttpServletRequest request, HttpServletResponse response) {
-		REQUEST_ATTRIBUTE_THREAD_LOCAL.set(new RequestAttribute(request, response));
+	public static void setRequestEntity(RequestEntity requestEntity) {
+		REQUEST_ENTITY_THREAD_LOCAL.set(requestEntity);
 	}
 
 	public static HttpServletRequest getHttpServletRequest() {
-		RequestAttribute requestAttribute = REQUEST_ATTRIBUTE_THREAD_LOCAL.get();
-		return requestAttribute == null ? null : requestAttribute.request;
+		RequestEntity requestEntity = REQUEST_ENTITY_THREAD_LOCAL.get();
+		return requestEntity == null ? null : requestEntity.getRequest();
 	}
 
-	public static HttpServletResponse getHttpServletResponse() {
-		RequestAttribute requestAttribute = REQUEST_ATTRIBUTE_THREAD_LOCAL.get();
-		return requestAttribute == null ? null : requestAttribute.response;
+	public static RequestEntity getRequestEntity(){
+		return REQUEST_ENTITY_THREAD_LOCAL.get();
 	}
 
 	public static void remove() {
-		REQUEST_ATTRIBUTE_THREAD_LOCAL.remove();
+		REQUEST_ENTITY_THREAD_LOCAL.remove();
 	}
 
-
-	private static class RequestAttribute {
-
-		private final HttpServletRequest request;
-
-		private final HttpServletResponse response;
-
-		public RequestAttribute(HttpServletRequest request, HttpServletResponse response) {
-			this.request = request;
-			this.response = response;
-		}
-	}
 }
