@@ -108,6 +108,7 @@ public class MagicDataSourceController extends MagicController implements MagicE
 		isTrue(keyStream.noneMatch(key::equals), DATASOURCE_KEY_EXISTS);
 
 		int maxRows = ObjectConvertExtension.asInt(properties.get("maxRows"), -1);
+		properties.remove("id");
 		// 注册数据源
 		configuration.getMagicDynamicDataSource().put(dsId, key, name, createDataSource(properties), maxRows);
 		properties.put("id", dsId);
