@@ -165,8 +165,9 @@ public class MagicDataSourceController extends MagicController implements MagicE
 			if (properties != null) {
 				String key = properties.get("key");
 				String name = properties.getOrDefault("name", key);
+				String dsId = properties.remove("id");
 				int maxRows = ObjectConvertExtension.asInt(properties.get("maxRows"), -1);
-				configuration.getMagicDynamicDataSource().put(properties.get("id"), key, name, createDataSource(properties), maxRows);
+				configuration.getMagicDynamicDataSource().put(dsId, key, name, createDataSource(properties), maxRows);
 			}
 		}
 	}
