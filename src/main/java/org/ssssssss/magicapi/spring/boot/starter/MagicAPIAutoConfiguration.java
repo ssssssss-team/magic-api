@@ -48,6 +48,7 @@ import org.ssssssss.magicapi.modules.*;
 import org.ssssssss.magicapi.provider.*;
 import org.ssssssss.magicapi.provider.impl.*;
 import org.ssssssss.magicapi.utils.ClassScanner;
+import org.ssssssss.magicapi.utils.Mapping;
 import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScript;
@@ -229,12 +230,13 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			// 配置静态资源路径
 			registry.addResourceHandler(web + "/**").addResourceLocations("classpath:/magic-editor/");
 			try {
-				// 默认首页设置
-				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(web).build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("redirectIndex", HttpServletRequest.class));
-				// 读取配置
-				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(web + "/config.json").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readConfig"));
-				// 读取配置
-				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(web + "/classes.txt").produces("text/plain").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readClass"));
+				Mapping.create(requestMappingHandlerMapping)
+						// 默认首页设置
+						.register(RequestMappingInfo.paths(web).build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("redirectIndex", HttpServletRequest.class))
+						// 读取配置
+						.register(RequestMappingInfo.paths(web + "/config.json").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readConfig"))
+						// 读取配置
+						.register(RequestMappingInfo.paths(web + "/classes.txt").produces("text/plain").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readClass"));
 			} catch (NoSuchMethodException ignored) {
 			}
 		}

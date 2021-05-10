@@ -15,6 +15,7 @@ import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
 import org.ssssssss.magicapi.swagger.SwaggerEntity;
 import org.ssssssss.magicapi.swagger.SwaggerProvider;
+import org.ssssssss.magicapi.utils.Mapping;
 import springfox.documentation.swagger.web.SwaggerResource;
 import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
@@ -61,7 +62,7 @@ public class MagicSwaggerConfiguration {
 
 
 		// 注册swagger.json
-		requestMappingHandlerMapping.registerMapping(requestMappingInfo, swaggerProvider, SwaggerProvider.class.getDeclaredMethod("swaggerJson"));
+		Mapping.create(requestMappingHandlerMapping).register(requestMappingInfo, swaggerProvider, SwaggerProvider.class.getDeclaredMethod("swaggerJson"));
 
 		return () -> {
 			List<SwaggerResource> resources = new ArrayList<>();
