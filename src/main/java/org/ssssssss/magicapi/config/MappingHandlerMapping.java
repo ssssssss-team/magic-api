@@ -18,6 +18,7 @@ import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.TreeNode;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
+import org.ssssssss.magicapi.utils.Mapping;
 import org.ssssssss.magicapi.utils.PathUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,10 +62,8 @@ public class MappingHandlerMapping {
 	 * 缓存已映射的接口信息
 	 */
 	private final List<ApiInfo> apiInfos = Collections.synchronizedList(new ArrayList<>());
-	/**
-	 * spring中的请求映射处理器
-	 */
-	private RequestMappingHandlerMapping requestMappingHandlerMapping;
+
+	private Mapping mappingHelper;
 	/**
 	 * 请求处理器
 	 */
@@ -130,7 +129,7 @@ public class MappingHandlerMapping {
 	}
 
 	public void setRequestMappingHandlerMapping(RequestMappingHandlerMapping requestMappingHandlerMapping) {
-		this.requestMappingHandlerMapping = requestMappingHandlerMapping;
+		this.mappingHelper = Mapping.create(requestMappingHandlerMapping);
 	}
 
 	public void setHandler(Object handler) {
@@ -215,7 +214,7 @@ public class MappingHandlerMapping {
 				return true;
 			}
 			if (!allowOverride) {
-				Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.requestMappingHandlerMapping.getHandlerMethods();
+				Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.mappingHelper.getHandlerMethods();
 				if (handlerMethods.get(getRequestMapping(info.getMethod(), path)) != null) {
 					return true;
 				}
@@ -308,7 +307,7 @@ public class MappingHandlerMapping {
 			return !mappings.get(mappingKey).getInfo().getId().equals(info.getId());
 		}
 		if (!allowOverride) {
-			Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.requestMappingHandlerMapping.getHandlerMethods();
+			Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.mappingHelper.getHandlerMethods();
 			return handlerMethods.get(getRequestMapping(info)) != null;
 		}
 		return false;
@@ -358,7 +357,7 @@ public class MappingHandlerMapping {
 			logger.info("取消注册接口:{},{}", oldInfo.getName(), oldMappingKey);
 			// 取消注册
 			mappings.remove(oldMappingKey);
-			requestMappingHandlerMapping.unregisterMapping(getRequestMapping(oldInfo));
+			mappingHelper.unregister(getRequestMapping(oldInfo));
 		}
 		mappingNode = new MappingNode(info);
 		mappingNode.setMappingKey(newMappingKey);
@@ -386,7 +385,7 @@ public class MappingHandlerMapping {
 	}
 
 	private void registerMapping(RequestMappingInfo requestMapping, Object handler, Method method) {
-		requestMappingHandlerMapping.registerMapping(requestMapping, handler, method);
+		mappingHelper.register(requestMapping, handler, method);
 	}
 
 	/**
@@ -398,7 +397,7 @@ public class MappingHandlerMapping {
 			ApiInfo info = mappingNode.getInfo();
 			logger.info("取消注册接口:{}", info.getName());
 			mappings.remove(mappingNode.getMappingKey());
-			requestMappingHandlerMapping.unregisterMapping(mappingNode.getRequestMappingInfo());
+			mappingHelper.unregister(mappingNode.getRequestMappingInfo());
 			if (delete) {   //刷新缓存
 				apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
 			}
@@ -429,7 +428,7 @@ public class MappingHandlerMapping {
 			RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
 			if (requestMapping != null) {
 				String[] paths = Stream.of(requestMapping.value()).map(value -> base + value).toArray(String[]::new);
-				requestMappingHandlerMapping.registerMapping(RequestMappingInfo.paths(paths).build(), target, method);
+				mappingHelper.register(RequestMappingInfo.paths(paths).build(), target, method);
 			}
 		}
 	}
@@ -450,14 +449,14 @@ public class MappingHandlerMapping {
 	 * 覆盖应用接口
 	 */
 	private boolean overrideApplicationMapping(RequestMappingInfo requestMapping) {
-		if (requestMappingHandlerMapping.getHandlerMethods().containsKey(requestMapping)) {
+		if (mappingHelper.getHandlerMethods().containsKey(requestMapping)) {
 			if (!allowOverride) {
 				// 不允许覆盖
 				return false;
 			}
 			logger.warn("取消注册应用接口:{}", requestMapping);
 			// 取消注册原接口
-			requestMappingHandlerMapping.unregisterMapping(requestMapping);
+			mappingHelper.unregister(requestMapping);
 		}
 		return true;
 	}
