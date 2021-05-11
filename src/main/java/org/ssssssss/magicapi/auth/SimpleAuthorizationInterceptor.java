@@ -19,11 +19,12 @@ import java.util.Map;
 
 /**
  * 自定义多用户名密码登录，以及权限控制
- * #magic-api.ext.auth.enable=true
- * #magic-api.ext.auth.users.zhangsan=123456
- * #magic-api.ext.auth.denyOptions.zhangsan=DELETE
- * #magic-api.ext.auth.users.wangwu=123456
- * #magic-api.ext.auth.denyOptions.wangwu=DELETE
+ * 使用方式在项目工程中@import 或者 @Bean注解使spring管理。
+ * magic-api.ext.auth.enable=true #启用
+ * #magic-api.ext.auth.users.用户名=123456  #配置用户信息
+ * #magic-api.ext.auth.denyOptions.用户名=DELETE #配置用户禁用的权限 {@linkplain Authorization}
+ * #magic-api.ext.auth.users.xx=password
+ * #magic-api.ext.auth.denyOptions.xx=DELETE
  * @author 冰点
  * @date 2021-5-11 17:17:52
  */
@@ -31,8 +32,8 @@ import java.util.Map;
 @Configuration
 @ConditionalOnProperty(prefix = "magic-api.ext.auth", name = "enable", havingValue = "true", matchIfMissing = false)
 @ConfigurationProperties(prefix = "magic-api.ext.auth")
-public class CustomAuthorizationInterceptor implements AuthorizationInterceptor {
-    private static final Logger log = LoggerFactory.getLogger(CustomAuthorizationInterceptor.class);
+public class SimpleAuthorizationInterceptor implements AuthorizationInterceptor {
+    private static final Logger log = LoggerFactory.getLogger(SimpleAuthorizationInterceptor.class);
     /**
      * 加密因子
      */
@@ -48,7 +49,7 @@ public class CustomAuthorizationInterceptor implements AuthorizationInterceptor 
     private Map<String, String> denyOptions;
 
 
-    public CustomAuthorizationInterceptor() {
+    public SimpleAuthorizationInterceptor() {
         log.info("已启用多用户登录扩展，如需关闭请magic-api.ext.auth.enable=false");
     }
 
