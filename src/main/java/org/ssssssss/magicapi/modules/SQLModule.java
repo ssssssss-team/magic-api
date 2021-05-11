@@ -12,9 +12,11 @@ import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.config.MagicDynamicDataSource;
 import org.ssssssss.magicapi.config.MagicDynamicDataSource.DataSourceNode;
 import org.ssssssss.magicapi.config.MagicModule;
+import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.dialect.Dialect;
 import org.ssssssss.magicapi.interceptor.SQLInterceptor;
 import org.ssssssss.magicapi.model.Page;
+import org.ssssssss.magicapi.model.RequestEntity;
 import org.ssssssss.magicapi.modules.table.NamedTable;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
@@ -338,26 +340,27 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@Comment("执行分页查询，分页条件手动传入")
 	public Object page(@Comment("`SQL`语句") String sql, @Comment("限制条数") long limit, @Comment("跳过条数") long offset) {
 		BoundSql boundSql = new BoundSql(sql, this);
-		return page(boundSql, limit, offset);
+		return page(boundSql, new Page(limit, offset));
 	}
 
 	@UnableCall
 	public Object page(BoundSql boundSql) {
 		Page page = pageProvider.getPage(MagicScriptContext.get());
-		return page(boundSql, page.getLimit(), page.getOffset());
+		return page(boundSql, page);
 	}
 
-	private Object page(BoundSql boundSql, long limit, long offset) {
+	private Object page(BoundSql boundSql, Page page) {
 		Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
 		BoundSql countBoundSql = boundSql.copy(dialect.getCountSql(boundSql.getSql()));
 		int count = countBoundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().queryForObject(countBoundSql.getSql(), Integer.class, countBoundSql.getParameters()));
 		List<Map<String, Object>> list = null;
 		if (count > 0) {
-			String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, offset, limit);
+			String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, page.getOffset(), page.getLimit());
 			BoundSql pageBoundSql = boundSql.copy(pageSql);
 			list = pageBoundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), this.columnMapRowMapper, pageBoundSql.getParameters()));
 		}
-		return resultProvider.buildPageResult(count, list);
+		RequestEntity requestEntity = RequestContext.getRequestEntity();
+		return resultProvider.buildPageResult(requestEntity, page, count, list);
 	}
 
 	/**

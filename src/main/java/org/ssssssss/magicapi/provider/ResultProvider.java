@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.model.PageResult;
 import org.ssssssss.magicapi.model.RequestEntity;
 import org.ssssssss.script.exception.MagicScriptAssertException;
@@ -84,9 +85,20 @@ public interface ResultProvider {
 	Object buildResult(RequestEntity requestEntity, int code, String message, Object data);
 
 	/**
+	 * @param requestEntity 请求相关信息
+	 * @param page 分页对象
 	 * @param total 总数
 	 * @param data  数据内容
 	 */
+	default Object buildPageResult(RequestEntity requestEntity, Page page, long total, List<Map<String, Object>> data) {
+		return buildPageResult(total, data);
+	}
+
+	/**
+	 * @param total 总数
+	 * @param data  数据内容
+	 */
+	@Deprecated
 	default Object buildPageResult(long total, List<Map<String, Object>> data) {
 		return new PageResult<>(total, data);
 	}
