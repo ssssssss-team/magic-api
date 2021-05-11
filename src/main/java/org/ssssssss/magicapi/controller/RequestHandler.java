@@ -87,7 +87,7 @@ public class RequestHandler extends MagicController {
 		Map<String, Object> headers = new HashMap<String, Object>() {
 			@Override
 			public Object get(Object key) {
-				return getOrDefault(key, request.getHeader(key.toString()));
+				return request.getHeader(key.toString());
 			}
 		};
 		requestEntity.setHeaders(headers);
@@ -112,6 +112,7 @@ public class RequestHandler extends MagicController {
 		}
 		MagicScriptContext context = createMagicScriptContext(requestEntity);
 		requestEntity.setMagicScriptContext(context);
+		RequestContext.setRequestEntity(requestEntity);
 		// 执行前置拦截器
 		if ((value = doPreHandle(requestEntity)) != null) {
 			if (requestEntity.isRequestedFromTest()) {
@@ -263,7 +264,6 @@ public class RequestHandler extends MagicController {
 	private Object invokeRequest(RequestEntity requestEntity) throws Throwable {
 		HttpServletRequest request = requestEntity.getRequest();
 		try {
-			RequestContext.setRequestEntity(requestEntity);
 			Object result = ScriptManager.executeScript(requestEntity.getApiInfo().getScript(), requestEntity.getMagicScriptContext());
 			Object value = result;
 			// 执行后置拦截器
