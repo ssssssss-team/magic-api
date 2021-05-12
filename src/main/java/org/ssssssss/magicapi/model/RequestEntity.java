@@ -61,10 +61,6 @@ public class RequestEntity {
 		return new RequestEntity();
 	}
 
-	public static RequestEntityBuilder builder() {
-		return new RequestEntityBuilder();
-	}
-
 	public ApiInfo getApiInfo() {
 		return apiInfo;
 	}
@@ -134,56 +130,4 @@ public class RequestEntity {
 	}
 
 
-	public static class RequestEntityBuilder {
-		private HttpServletRequest request;
-		private HttpServletResponse response;
-		private boolean requestedFromTest;
-		private Map<String, Object> parameters;
-		private Map<String, Object> pathVariables;
-		private MagicScriptContext magicScriptContext;
-		private Map<String, Object> headers;
-
-		RequestEntityBuilder() {
-		}
-
-		public RequestEntityBuilder request(HttpServletRequest request) {
-			this.request = request;
-			return this;
-		}
-
-		public RequestEntityBuilder response(HttpServletResponse response) {
-			this.response = response;
-			return this;
-		}
-
-		public RequestEntityBuilder requestedFromTest(boolean requestedFromTest) {
-			this.requestedFromTest = requestedFromTest;
-			return this;
-		}
-
-		public RequestEntityBuilder parameters(Map<String, Object> parameters) {
-			this.parameters = parameters;
-			return this;
-		}
-
-		public RequestEntityBuilder pathVariables(Map<String, Object> pathVariables) {
-			this.pathVariables = pathVariables;
-			return this;
-		}
-
-		public RequestEntityBuilder magicScriptContext(MagicScriptContext magicScriptContext) {
-			this.magicScriptContext = magicScriptContext;
-			return this;
-		}
-
-		public RequestEntityBuilder headers(Map<String, Object> headers) {
-			this.headers = headers;
-			return this;
-		}
-
-		public RequestEntity build() {
-			return new RequestEntity(request,response,requestedFromTest,parameters,pathVariables,magicScriptContext,headers);
-		}
-
-	}
 }
