@@ -40,9 +40,6 @@ import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 import org.ssssssss.script.reflection.JavaInvoker;
 
-import static org.ssssssss.magicapi.model.Constants.RESPONSE_CODE_EXCEPTION;
-import static org.ssssssss.magicapi.model.Constants.RESPONSE_CODE_INVALID;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -103,11 +100,8 @@ public class RequestHandler extends MagicController {
 		MappingHandlerMapping.findGroups(requestEntity.getApiInfo().getGroupId())
 				.stream()
 				.flatMap(it -> it.getPaths().stream())
-				.forEach(it -> {
-					if (!paths.contains(it)) {
-						paths.add(it);
-					}
-				});
+				.filter(it -> !paths.contains(it))
+				.forEach(paths::add);
 		// 验证 path
 		value = doValidate(requestEntity, "path", paths, requestEntity.getPathVariables());
 		if (value != null) {
@@ -146,15 +140,13 @@ public class RequestHandler extends MagicController {
 				}
 				try {
 					Object value = convertValue(parameter.getDataType(), parameter.getName(), requestValue);
-					String validateType = parameter.getValidateType();
-					if (VALIDATE_TYPE_PATTERN.equals(validateType)) {    // 正则验证
+					if (VALIDATE_TYPE_PATTERN.equals(parameter.getValidateType())) {    // 正则验证
 						String expression = parameter.getExpression();
 						if (StringUtils.isNotBlank(expression) && !PatternUtils.match(Objects.toString(value, EMPTY), expression)) {
 							return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足正则表达式", comment, parameter.getName())));
 						}
 					}
 					parameters.put(parameter.getName(), value);
-
 				} catch (Exception e) {
 					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不合法", comment, parameter.getName())));
 				}
