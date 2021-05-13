@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.model.PageResult;
 import org.ssssssss.magicapi.model.RequestEntity;
@@ -41,9 +42,9 @@ public interface ResultProvider {
 		} while ((parent = parent.getCause()) != null);
 		logger.error("调用接口出错", root);
 		if (se != null) {
-			return buildResult(requestEntity, -1, se.getSimpleMessage());
+			return buildResult(requestEntity, Constants.RESPONSE_CODE_EXCEPTION, se.getSimpleMessage());
 		}
-		return buildResult(requestEntity, -1, root.getMessage());
+		return buildResult(requestEntity, Constants.RESPONSE_CODE_EXCEPTION, root.getMessage());
 	}
 
 	/**
@@ -60,7 +61,7 @@ public interface ResultProvider {
 			String message = values.length > 1 ? Objects.toString(values[1], "success") : "success";
 			return buildResult(requestEntity, code, message, values.length > 2 ? values[2] : null);
 		}
-		return buildResult(requestEntity, 1, "success", data);
+		return buildResult(requestEntity, Constants.RESPONSE_CODE_SUCCESS, "success", data);
 	}
 
 	/**

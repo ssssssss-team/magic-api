@@ -107,4 +107,19 @@ public class Constants {
 
 	public static final String MAGIC_TOKEN_HEADER = "Magic-Token";
 
+	/**
+	 * 执行成功的code值
+	 */
+	public static int RESPONSE_CODE_SUCCESS = 1;
+
+	/**
+	 * 执行出现异常的code值
+	 */
+	public static int RESPONSE_CODE_EXCEPTION = -1;
+
+	/**
+	 * 参数验证未通过的code值
+	 */
+	public static int RESPONSE_CODE_INVALID = 0;
+
 }

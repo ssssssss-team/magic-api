@@ -40,6 +40,9 @@ import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 import org.ssssssss.script.reflection.JavaInvoker;
 
+import static org.ssssssss.magicapi.model.Constants.RESPONSE_CODE_EXCEPTION;
+import static org.ssssssss.magicapi.model.Constants.RESPONSE_CODE_INVALID;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -139,7 +142,7 @@ public class RequestHandler extends MagicController {
 					if (!parameter.isRequired()) {
 						continue;
 					}
-					return resultProvider.buildResult(requestEntity, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
+					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
 				}
 				try {
 					Object value = convertValue(parameter.getDataType(), parameter.getName(), requestValue);
@@ -147,13 +150,13 @@ public class RequestHandler extends MagicController {
 					if (VALIDATE_TYPE_PATTERN.equals(validateType)) {    // 正则验证
 						String expression = parameter.getExpression();
 						if (StringUtils.isNotBlank(expression) && !PatternUtils.match(Objects.toString(value, EMPTY), expression)) {
-							return resultProvider.buildResult(requestEntity, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足正则表达式", comment, parameter.getName())));
+							return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足正则表达式", comment, parameter.getName())));
 						}
 					}
 					parameters.put(parameter.getName(), value);
 
 				} catch (Exception e) {
-					return resultProvider.buildResult(requestEntity, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不合法", comment, parameter.getName())));
+					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不合法", comment, parameter.getName())));
 				}
 			}
 		}
@@ -166,7 +169,7 @@ public class RequestHandler extends MagicController {
 			// 设置自身变量
 			context.set(EXPRESSION_DEFAULT_VAR_NAME, parameters.get(parameter.getName()));
 			if (!BooleanLiteral.isTrue(ScriptManager.executeExpression(parameter.getExpression(), context))) {
-				return resultProvider.buildResult(requestEntity, 0, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足表达式", comment, parameter.getName())));
+				return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足表达式", comment, parameter.getName())));
 			}
 		}
 		return null;
@@ -284,7 +287,7 @@ public class RequestHandler extends MagicController {
 				throw root;
 			}
 			logger.error("接口{}请求出错", request.getRequestURI(), root);
-			return resultProvider.buildResult(requestEntity, -1, "系统内部出现错误");
+			return resultProvider.buildResult(requestEntity, RESPONSE_CODE_EXCEPTION, "系统内部出现错误");
 		} finally {
 			RequestContext.remove();
 		}
@@ -313,7 +316,7 @@ public class RequestHandler extends MagicController {
 			return ResponseEntity.ok(new JsonBean<>(convertToBase64(entity.getBody())));
 		} else if (result instanceof ResponseModule.NullValue) {
 			// 对于return response.end() 的特殊处理
-			return new JsonBean<>(1, "empty.");
+			return new JsonBean<>(RESPONSE_CODE_SUCCESS, "empty.");
 		}
 		return new JsonBean<>(resultProvider.buildResult(requestEntity, result));
 	}
@@ -356,7 +359,7 @@ public class RequestHandler extends MagicController {
 			Span.Line line = se.getLine();
 			return new JsonBodyBean<>(-1000, se.getSimpleMessage(), resultProvider.buildResult(requestEntity, -1000, se.getSimpleMessage()), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol()));
 		}
-		return new JsonBean<>(-1, root.getMessage(), resultProvider.buildResult(requestEntity, -1, root.getMessage()));
+		return new JsonBean<>(-1, root.getMessage(), resultProvider.buildResult(requestEntity, RESPONSE_CODE_EXCEPTION, root.getMessage()));
 	}
 
 	/**
