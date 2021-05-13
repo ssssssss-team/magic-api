@@ -10,6 +10,7 @@ import org.ssssssss.magicapi.adapter.DialectAdapter;
 import org.ssssssss.magicapi.dialect.Dialect;
 import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.utils.Assert;
+import org.ssssssss.magicapi.utils.IoUtils;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -59,7 +60,10 @@ public class MagicDynamicDataSource {
 			dataSourceKey = "";
 		}
 		logger.info("注册数据源：{}", StringUtils.isNotBlank(dataSourceKey) ? dataSourceKey : "default");
-		this.dataSourceMap.put(dataSourceKey, new MagicDynamicDataSource.DataSourceNode(dataSource, dataSourceKey, datasourceName, id, maxRows));
+		DataSourceNode node = this.dataSourceMap.put(dataSourceKey, new DataSourceNode(dataSource, dataSourceKey, datasourceName, id, maxRows));
+		if(node != null){
+			node.close();
+		}
 		if (id != null) {
 			String finalDataSourceKey = dataSourceKey;
 			this.dataSourceMap.entrySet().stream()
@@ -67,7 +71,7 @@ public class MagicDynamicDataSource {
 					.findFirst()
 					.ifPresent(it -> {
 						logger.info("移除旧数据源:{}", it.getValue().getKey());
-						this.dataSourceMap.remove(it.getValue().getKey());
+						this.dataSourceMap.remove(it.getValue().getKey()).close();
 					});
 		}
 	}
@@ -95,7 +99,11 @@ public class MagicDynamicDataSource {
 		boolean result = false;
 		// 检查参数是否合法
 		if (datasourceKey != null && !datasourceKey.isEmpty()) {
-			result = this.dataSourceMap.remove(datasourceKey) != null;
+			DataSourceNode node = this.dataSourceMap.remove(datasourceKey);
+			result = node!= null;
+			if(result){
+				node.close();
+			}
 		}
 		logger.info("删除数据源：{}:{}", datasourceKey, result ? "成功" : "失败");
 		return result;
@@ -215,6 +223,10 @@ public class MagicDynamicDataSource {
 
 		public DataSource getDataSource() {
 			return dataSource;
+		}
+
+		public void close(){
+			IoUtils.closeDataSource(this.dataSource);
 		}
 	}
 }

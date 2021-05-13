@@ -3,9 +3,12 @@ package org.ssssssss.magicapi.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -137,5 +140,20 @@ public class IoUtils {
 			return true;
 		}
 		return file.delete();
+	}
+
+	public static void closeDataSource(DataSource dataSource) {
+		if (dataSource != null) {
+			if (dataSource instanceof Closeable) {
+				try {
+					((Closeable) dataSource).close();
+				} catch (Exception e) {
+					logger.warn("Close DataSource error", e);
+				}
+			} else {
+				logger.warn("DataSource can not close");
+			}
+		}
+
 	}
 }

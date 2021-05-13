@@ -71,11 +71,14 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	@RequestMapping("/datasource/test")
 	@ResponseBody
 	public JsonBean<String> test(@RequestBody Map<String, String> properties) {
+		DataSource dataSource = null;
 		try {
-			DataSource dataSource = createDataSource(properties);
+			dataSource = createDataSource(properties);
 			dataSource.getConnection();
 		} catch (Exception e) {
 			return new JsonBean<>(e.getMessage());
+		} finally {
+			IoUtils.closeDataSource(dataSource);
 		}
 		return new JsonBean<>();
 	}
