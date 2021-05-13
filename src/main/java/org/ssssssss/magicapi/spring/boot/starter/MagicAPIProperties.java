@@ -113,6 +113,10 @@ public class MagicAPIProperties {
 	@NestedConfigurationProperty
 	private ResourceConfig resource = new ResourceConfig();
 
+	@NestedConfigurationProperty
+	private ResponseCodeConfig responseCodeConfig = new ResponseCodeConfig();
+
+
 	public String getEditorConfig() {
 		return editorConfig;
 	}
@@ -291,5 +295,13 @@ public class MagicAPIProperties {
 
 	public void setResponse(String response) {
 		this.response = response;
+	}
+
+	public ResponseCodeConfig getResponseCodeConfig() {
+		return responseCodeConfig;
+	}
+
+	public void setResponseCodeConfig(ResponseCodeConfig responseCodeConfig) {
+		this.responseCodeConfig = responseCodeConfig;
 	}
 }

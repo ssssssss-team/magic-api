@@ -44,6 +44,7 @@ import org.ssssssss.magicapi.interceptor.DefaultAuthorizationInterceptor;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.interceptor.SQLInterceptor;
 import org.ssssssss.magicapi.logging.LoggerManager;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.modules.*;
 import org.ssssssss.magicapi.provider.*;
 import org.ssssssss.magicapi.provider.impl.*;
@@ -456,6 +457,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		logger.info("magic-api工作目录:{}", magicResource);
 		setupSpringSecurity();
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
+		// 设置响应结果的code值
+		ResponseCodeConfig responseCodeConfig = properties.getResponseCodeConfig();
+		Constants.RESPONSE_CODE_SUCCESS = responseCodeConfig.getSuccess();
+		Constants.RESPONSE_CODE_INVALID = responseCodeConfig.getInvalid();
+		Constants.RESPONSE_CODE_EXCEPTION = responseCodeConfig.getException();
 		// 设置模块和扩展方法
 		setupMagicModules(resultProvider, magicModules, extensionMethods, languageProviders);
 		MagicConfiguration configuration = new MagicConfiguration();
