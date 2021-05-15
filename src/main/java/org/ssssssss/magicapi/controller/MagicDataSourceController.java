@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyN
 import org.springframework.boot.context.properties.source.ConfigurationPropertySource;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 import org.springframework.boot.jdbc.DatabaseDriver;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +28,7 @@ import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -74,7 +76,8 @@ public class MagicDataSourceController extends MagicController implements MagicE
 		DataSource dataSource = null;
 		try {
 			dataSource = createDataSource(properties);
-			dataSource.getConnection();
+			Connection connection = dataSource.getConnection();
+			DataSourceUtils.doCloseConnection(connection, dataSource);
 		} catch (Exception e) {
 			return new JsonBean<>(e.getMessage());
 		} finally {

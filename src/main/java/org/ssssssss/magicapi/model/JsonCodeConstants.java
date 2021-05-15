@@ -1,5 +1,8 @@
 package org.ssssssss.magicapi.model;
 
+import org.apache.commons.lang3.StringUtils;
+import org.ssssssss.magicapi.exception.InvalidArgumentException;
+
 public interface JsonCodeConstants {
 
 	JsonCode SUCCESS = new JsonCode(1, "success");
@@ -70,4 +73,20 @@ public interface JsonCodeConstants {
 	JsonCode DATASOURCE_NOT_FOUND = new JsonCode(0, "找不到对应的数据源");
 
 	JsonCode DATASOURCE_TYPE_NOT_SET = new JsonCode(0, "请设置数据源类型");
+
+	default void notNull(Object value, JsonCode jsonCode) {
+		if (value == null) {
+			throw new InvalidArgumentException(jsonCode);
+		}
+	}
+
+	default void isTrue(boolean value, JsonCode jsonCode) {
+		if (!value) {
+			throw new InvalidArgumentException(jsonCode);
+		}
+	}
+
+	default void notBlank(String value, JsonCode jsonCode) {
+		isTrue(StringUtils.isNotBlank(value), jsonCode);
+	}
 }

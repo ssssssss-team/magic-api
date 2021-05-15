@@ -5,10 +5,7 @@ import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.controller.RequestHandler;
 import org.ssssssss.magicapi.interceptor.AuthorizationInterceptor;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
-import org.ssssssss.magicapi.provider.ApiServiceProvider;
-import org.ssssssss.magicapi.provider.FunctionServiceProvider;
-import org.ssssssss.magicapi.provider.GroupServiceProvider;
-import org.ssssssss.magicapi.provider.ResultProvider;
+import org.ssssssss.magicapi.provider.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,39 +13,33 @@ import java.util.List;
 public class MagicConfiguration {
 
 	/**
+	 * 拦截器
+	 */
+	private final List<RequestInterceptor> requestInterceptors = new ArrayList<>();
+	/**
 	 * 接口映射
 	 */
 	private MappingHandlerMapping mappingHandlerMapping;
-
 	/**
 	 * 函数管理
 	 */
 	private MagicFunctionManager magicFunctionManager;
-
 	/**
 	 * 用户名
 	 */
 	private String username;
-
 	/**
 	 * 密码
 	 */
 	private String password;
-
 	/**
 	 * 编辑器配置文件
 	 */
 	private String editorConfig;
-
-	/**
-	 * 拦截器
-	 */
-	private final List<RequestInterceptor> requestInterceptors = new ArrayList<>();
-
 	/**
 	 * 接口查询Service
 	 */
-	private ApiServiceProvider magicApiService;
+	private ApiServiceProvider apiServiceProvider;
 
 	/**
 	 * 分组查询Service
@@ -64,6 +55,8 @@ public class MagicConfiguration {
 	 * 动态数据源
 	 */
 	private MagicDynamicDataSource magicDynamicDataSource;
+
+	private MagicAPIService magicAPIService;
 
 	/**
 	 * 请求出错时，是否抛出异常
@@ -88,64 +81,32 @@ public class MagicConfiguration {
 
 	private boolean enableWeb = false;
 
-	public void setEnableWeb(boolean enableWeb) {
-		this.enableWeb = enableWeb;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
 	public void addRequestInterceptor(RequestInterceptor requestInterceptor) {
 		this.requestInterceptors.add(requestInterceptor);
-	}
-
-	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
-		this.mappingHandlerMapping = mappingHandlerMapping;
-	}
-
-	public void setMagicApiService(ApiServiceProvider magicApiService) {
-		this.magicApiService = magicApiService;
-	}
-
-	public void setGroupServiceProvider(GroupServiceProvider groupServiceProvider) {
-		this.groupServiceProvider = groupServiceProvider;
-	}
-
-	public void setResultProvider(ResultProvider resultProvider) {
-		this.resultProvider = resultProvider;
-	}
-
-	public void setThrowException(boolean throwException) {
-		this.throwException = throwException;
-	}
-
-	public void setHttpMessageConverters(List<HttpMessageConverter<?>> httpMessageConverters) {
-		this.httpMessageConverters = httpMessageConverters;
-	}
-
-	public void setDebugTimeout(int debugTimeout) {
-		this.debugTimeout = debugTimeout;
-	}
-
-	public void setMagicDynamicDataSource(MagicDynamicDataSource magicDynamicDataSource) {
-		this.magicDynamicDataSource = magicDynamicDataSource;
 	}
 
 	public MappingHandlerMapping getMappingHandlerMapping() {
 		return mappingHandlerMapping;
 	}
 
+	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
+		this.mappingHandlerMapping = mappingHandlerMapping;
+	}
+
 	public String getUsername() {
 		return username;
 	}
 
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
 	public String getPassword() {
 		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 
 	public AuthorizationInterceptor getAuthorizationInterceptor() {
@@ -160,36 +121,68 @@ public class MagicConfiguration {
 		return requestInterceptors;
 	}
 
-	public ApiServiceProvider getMagicApiService() {
-		return magicApiService;
+	public ApiServiceProvider getApiServiceProvider() {
+		return apiServiceProvider;
+	}
+
+	public void setApiServiceProvider(ApiServiceProvider apiServiceProvider) {
+		this.apiServiceProvider = apiServiceProvider;
 	}
 
 	public GroupServiceProvider getGroupServiceProvider() {
 		return groupServiceProvider;
 	}
 
+	public void setGroupServiceProvider(GroupServiceProvider groupServiceProvider) {
+		this.groupServiceProvider = groupServiceProvider;
+	}
+
 	public MagicDynamicDataSource getMagicDynamicDataSource() {
 		return magicDynamicDataSource;
+	}
+
+	public void setMagicDynamicDataSource(MagicDynamicDataSource magicDynamicDataSource) {
+		this.magicDynamicDataSource = magicDynamicDataSource;
 	}
 
 	public boolean isThrowException() {
 		return throwException;
 	}
 
+	public void setThrowException(boolean throwException) {
+		this.throwException = throwException;
+	}
+
 	public ResultProvider getResultProvider() {
 		return resultProvider;
+	}
+
+	public void setResultProvider(ResultProvider resultProvider) {
+		this.resultProvider = resultProvider;
 	}
 
 	public List<HttpMessageConverter<?>> getHttpMessageConverters() {
 		return httpMessageConverters;
 	}
 
+	public void setHttpMessageConverters(List<HttpMessageConverter<?>> httpMessageConverters) {
+		this.httpMessageConverters = httpMessageConverters;
+	}
+
 	public int getDebugTimeout() {
 		return debugTimeout;
 	}
 
+	public void setDebugTimeout(int debugTimeout) {
+		this.debugTimeout = debugTimeout;
+	}
+
 	public boolean isEnableWeb() {
 		return enableWeb;
+	}
+
+	public void setEnableWeb(boolean enableWeb) {
+		this.enableWeb = enableWeb;
 	}
 
 	public FunctionServiceProvider getFunctionServiceProvider() {
@@ -222,6 +215,14 @@ public class MagicConfiguration {
 
 	public void setWorkspace(Resource workspace) {
 		this.workspace = workspace;
+	}
+
+	public MagicAPIService getMagicAPIService() {
+		return magicAPIService;
+	}
+
+	public void setMagicAPIService(MagicAPIService magicAPIService) {
+		this.magicAPIService = magicAPIService;
 	}
 
 	/**

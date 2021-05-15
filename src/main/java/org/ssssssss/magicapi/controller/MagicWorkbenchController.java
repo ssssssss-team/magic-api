@@ -226,7 +226,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		}
 		Resource backups = configuration.getWorkspace().getDirectory(Constants.PATH_BACKUPS);
 		// 保存
-		write(configuration.getMagicApiService(), backups, apiInfos);
+		write(configuration.getApiServiceProvider(), backups, apiInfos);
 		write(configuration.getFunctionServiceProvider(), backups, functionInfos);
 		// 重新注册
 		configuration.getMappingHandlerMapping().registerAllMapping();
@@ -260,7 +260,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 			for (Resource file : root.files(".ms")) {
 				boolean conflict;
 				if (isApi) {
-					ApiInfo info = configuration.getMagicApiService().deserialize(file.read());
+					ApiInfo info = configuration.getApiServiceProvider().deserialize(file.read());
 					apiInfos.add(info);
 					conflict = !apiPaths.add(Objects.toString(info.getMethod(), "GET") + ":" + PathUtils.replaceSlash(parentPath + "/" + path + "/" + info.getPath()));
 				} else {

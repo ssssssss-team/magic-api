@@ -1,6 +1,5 @@
 package org.ssssssss.magicapi.controller;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
@@ -11,7 +10,6 @@ import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.interceptor.MagicUser;
 import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.JsonBean;
-import org.ssssssss.magicapi.model.JsonCode;
 import org.ssssssss.magicapi.model.JsonCodeConstants;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,22 +31,6 @@ public class MagicController implements JsonCodeConstants {
 				throw new InvalidArgumentException(PERMISSION_INVALID);
 			}
 		}
-	}
-
-	public void notNull(Object value, JsonCode jsonCode) {
-		if (value == null) {
-			throw new InvalidArgumentException(jsonCode);
-		}
-	}
-
-	public void isTrue(boolean value, JsonCode jsonCode) {
-		if (!value) {
-			throw new InvalidArgumentException(jsonCode);
-		}
-	}
-
-	public void notBlank(String value, JsonCode jsonCode) {
-		isTrue(StringUtils.isNotBlank(value), jsonCode);
 	}
 
 	/**

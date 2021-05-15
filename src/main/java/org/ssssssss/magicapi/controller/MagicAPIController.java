@@ -1,6 +1,5 @@
 package org.ssssssss.magicapi.controller;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -10,21 +9,23 @@ import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
-import org.ssssssss.magicapi.utils.IoUtils;
+import org.ssssssss.magicapi.provider.MagicAPIService;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 接口相关操作
  */
 public class MagicAPIController extends MagicController implements MagicExceptionHandler {
 
-	private final ApiServiceProvider magicApiService;
+	private final ApiServiceProvider apiServiceProvider;
+
+	private final MagicAPIService magicAPIService;
 
 	public MagicAPIController(MagicConfiguration configuration) {
 		super(configuration);
-		this.magicApiService = configuration.getMagicApiService();
+		this.apiServiceProvider = configuration.getApiServiceProvider();
+		this.magicAPIService = configuration.getMagicAPIService();
 	}
 
 	/**
@@ -36,11 +37,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(readonly = false, authorization = Authorization.DELETE)
 	public JsonBean<Boolean> delete(String id) {
-		boolean success = magicApiService.delete(id);
-		if (success) {    //删除成功时在取消注册
-			configuration.getMappingHandlerMapping().unregisterMapping(id, true);
-		}
-		return new JsonBean<>(success);
+		return new JsonBean<>(magicAPIService.deleteApi(id));
 	}
 
 	/**
@@ -50,7 +47,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<List<ApiInfo>> list() {
-		return new JsonBean<>(magicApiService.list());
+		return new JsonBean<>(magicAPIService.apiList());
 	}
 
 	/**
@@ -62,7 +59,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<ApiInfo> get(String id) {
-		return new JsonBean<>(magicApiService.get(id));
+		return new JsonBean<>(apiServiceProvider.get(id));
 	}
 
 	/**
@@ -74,7 +71,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<List<Long>> backups(String id) {
-		return new JsonBean<>(magicApiService.backupList(id));
+		return new JsonBean<>(apiServiceProvider.backupList(id));
 	}
 
 	/**
@@ -87,7 +84,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<ApiInfo> backups(String id, Long timestamp) {
-		return new JsonBean<>(magicApiService.backupInfo(id, timestamp));
+		return new JsonBean<>(apiServiceProvider.backupInfo(id, timestamp));
 	}
 
 	/**
@@ -97,14 +94,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(readonly = false, authorization = Authorization.SAVE)
 	public JsonBean<Boolean> apiMove(String id, String groupId) {
-		// 验证分组是否存在
-		isTrue(configuration.getGroupServiceProvider().containsApiGroup(groupId), GROUP_NOT_FOUND);
-		// 验证移动后名字是否有冲突
-		isTrue(magicApiService.allowMove(id, groupId), NAME_CONFLICT);
-		// 验证路径是否有冲突
-		isTrue(configuration.getMappingHandlerMapping().move(id, groupId), REQUEST_PATH_CONFLICT);
-
-		return new JsonBean<>(magicApiService.move(id, groupId));
+		return new JsonBean<>(magicAPIService.moveApi(id, groupId));
 	}
 
 	/**
@@ -116,34 +106,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(readonly = false, authorization = Authorization.SAVE)
 	public JsonBean<String> save(@RequestBody ApiInfo info) {
-		// 非空验证
-		notBlank(info.getMethod(), REQUEST_METHOD_REQUIRED);
-		notBlank(info.getPath(), REQUEST_PATH_REQUIRED);
-		notBlank(info.getName(), API_NAME_REQUIRED);
-		notBlank(info.getScript(), SCRIPT_REQUIRED);
-		// 验证名字
-		isTrue(IoUtils.validateFileName(info.getName()), NAME_INVALID);
-		// 验证路径是否有冲突
-		isTrue(!configuration.getMappingHandlerMapping().hasRegisterMapping(info), REQUEST_PATH_CONFLICT);
-		if (StringUtils.isBlank(info.getId())) {
-			// 先判断接口是否存在
-			isTrue(!magicApiService.exists(info), API_ALREADY_EXISTS.format(info.getMethod(), info.getPath()));
-
-			isTrue(magicApiService.insert(info), API_SAVE_FAILURE);
-		} else {
-			// 先判断接口是否存在
-			isTrue(!magicApiService.existsWithoutId(info), API_ALREADY_EXISTS.format(info.getMethod(), info.getPath()));
-			Optional<ApiInfo> optional = configuration.getMappingHandlerMapping().getApiInfos().stream()
-					.filter(it -> it.getId().equals(info.getId()))
-					.findFirst();
-			if (optional.isPresent() && !optional.get().equals(info)) {
-				isTrue(magicApiService.update(info), API_SAVE_FAILURE);
-				magicApiService.backup(info);
-			}
-		}
-		// 注册接口
-		configuration.getMappingHandlerMapping().registerMapping(info, true);
-		return new JsonBean<>(info.getId());
+		return new JsonBean<>(magicAPIService.saveApi(info));
 	}
 
 }
