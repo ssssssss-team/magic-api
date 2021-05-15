@@ -25,11 +25,11 @@ public class Mapping {
 		return this;
 	}
 
-	public Map<RequestMappingInfo, HandlerMethod> getHandlerMethods(){
+	public Map<RequestMappingInfo, HandlerMethod> getHandlerMethods() {
 		return this.methodMapping.getHandlerMethods();
 	}
 
-	public Mapping unregister(RequestMappingInfo requestMappingInfo){
+	public Mapping unregister(RequestMappingInfo requestMappingInfo) {
 		this.methodMapping.unregisterMapping(requestMappingInfo);
 		return this;
 	}

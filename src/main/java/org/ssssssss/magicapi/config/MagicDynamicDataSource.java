@@ -42,7 +42,7 @@ public class MagicDynamicDataSource {
 	 * 注册数据源（可以运行时注册）
 	 *
 	 * @param dataSourceKey 数据源Key
-	 * @param maxRows 最大返回行数
+	 * @param maxRows       最大返回行数
 	 */
 	public void put(String dataSourceKey, DataSource dataSource, int maxRows) {
 		put(null, dataSourceKey, dataSourceKey, dataSource, maxRows);
@@ -61,7 +61,7 @@ public class MagicDynamicDataSource {
 		}
 		logger.info("注册数据源：{}", StringUtils.isNotBlank(dataSourceKey) ? dataSourceKey : "default");
 		DataSourceNode node = this.dataSourceMap.put(dataSourceKey, new DataSourceNode(dataSource, dataSourceKey, datasourceName, id, maxRows));
-		if(node != null){
+		if (node != null) {
 			node.close();
 		}
 		if (id != null) {
@@ -100,8 +100,8 @@ public class MagicDynamicDataSource {
 		// 检查参数是否合法
 		if (datasourceKey != null && !datasourceKey.isEmpty()) {
 			DataSourceNode node = this.dataSourceMap.remove(datasourceKey);
-			result = node!= null;
-			if(result){
+			result = node != null;
+			if (result) {
 				node.close();
 			}
 		}
@@ -139,7 +139,8 @@ public class MagicDynamicDataSource {
 
 	/**
 	 * 设置默认数据源
-	 * @param maxRows	最大返回行数
+	 *
+	 * @param maxRows 最大返回行数
 	 */
 	public void setDefault(DataSource dataSource, int maxRows) {
 		put(null, null, null, dataSource, maxRows);
@@ -225,7 +226,7 @@ public class MagicDynamicDataSource {
 			return dataSource;
 		}
 
-		public void close(){
+		public void close() {
 			IoUtils.closeDataSource(this.dataSource);
 		}
 	}

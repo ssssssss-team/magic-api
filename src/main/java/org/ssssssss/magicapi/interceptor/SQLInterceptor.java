@@ -20,7 +20,7 @@ public interface SQLInterceptor {
 	 * @see SQLInterceptor#preHandle(BoundSql, RequestEntity)
 	 */
 	@Deprecated
-	default void preHandle(BoundSql boundSql){
+	default void preHandle(BoundSql boundSql) {
 
 	}
 

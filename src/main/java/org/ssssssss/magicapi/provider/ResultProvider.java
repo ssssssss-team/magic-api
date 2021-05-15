@@ -87,9 +87,9 @@ public interface ResultProvider {
 
 	/**
 	 * @param requestEntity 请求相关信息
-	 * @param page 分页对象
-	 * @param total 总数
-	 * @param data  数据内容
+	 * @param page          分页对象
+	 * @param total         总数
+	 * @param data          数据内容
 	 */
 	default Object buildPageResult(RequestEntity requestEntity, Page page, long total, List<Map<String, Object>> data) {
 		return buildPageResult(total, data);

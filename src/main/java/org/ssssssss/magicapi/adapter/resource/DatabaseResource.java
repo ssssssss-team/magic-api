@@ -21,13 +21,10 @@ import java.util.stream.Collectors;
 
 public class DatabaseResource extends KeyValueResource {
 
-	private final JdbcTemplate template;
-
-	private final String tableName;
-
-	private Map<String, String> cachedContent = new ConcurrentHashMap<>();
-
 	private static final Logger logger = LoggerFactory.getLogger(DatabaseResource.class);
+	private final JdbcTemplate template;
+	private final String tableName;
+	private Map<String, String> cachedContent = new ConcurrentHashMap<>();
 
 	public DatabaseResource(JdbcTemplate template, String tableName) {
 		this(template, tableName, false);

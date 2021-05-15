@@ -16,11 +16,10 @@ import java.util.stream.Collectors;
 
 public abstract class ResourceAdapter {
 
+	public static final String SPRING_BOOT_CLASS_PATH = "BOOT-INF/classes/";
 	private static PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
-	public static final String SPRING_BOOT_CLASS_PATH = "BOOT-INF/classes/";
-
-	public static Resource getResource(String location,boolean readonly) throws IOException {
+	public static Resource getResource(String location, boolean readonly) throws IOException {
 		if (location == null) {
 			return null;
 		}

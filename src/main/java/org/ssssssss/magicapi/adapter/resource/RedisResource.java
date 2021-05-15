@@ -16,10 +16,8 @@ import java.util.function.Function;
 
 public class RedisResource extends KeyValueResource {
 
-	private final StringRedisTemplate redisTemplate;
-
 	private static final Logger logger = LoggerFactory.getLogger(RedisResource.class);
-
+	private final StringRedisTemplate redisTemplate;
 	private final Map<String, String> cachedContent = new ConcurrentHashMap<>();
 
 	public RedisResource(StringRedisTemplate redisTemplate, String path, boolean readonly, RedisResource parent) {

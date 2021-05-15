@@ -22,10 +22,8 @@ public class JarResource implements Resource {
 	private final List<JarEntry> entries;
 
 	private final String entryName;
-
-	private JarResource parent = this;
-
 	private final boolean inSpringBoot;
+	private JarResource parent = this;
 
 	public JarResource(JarFile jarFile, String entryName, List<JarEntry> entries, boolean inSpringBoot) {
 		this.jarFile = jarFile;

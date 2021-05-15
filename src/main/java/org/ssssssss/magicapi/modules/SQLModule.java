@@ -355,8 +355,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		int count = countBoundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().queryForObject(countBoundSql.getSql(), Integer.class, countBoundSql.getParameters()));
 		List<Map<String, Object>> list = null;
 		if (count > 0) {
-			String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, page.getOffset(), page.getLimit());
-			BoundSql pageBoundSql = boundSql.copy(pageSql);
+			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, page.getOffset(), page.getLimit());
 			list = pageBoundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), this.columnMapRowMapper, pageBoundSql.getParameters()));
 		}
 		RequestEntity requestEntity = RequestContext.getRequestEntity();
@@ -383,7 +382,9 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@UnableCall
 	public Map<String, Object> selectOne(BoundSql boundSql) {
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
-			List<Map<String, Object>> list = dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.columnMapRowMapper, boundSql.getParameters());
+			Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
+			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, 0, 1);
+			List<Map<String, Object>> list = dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), this.columnMapRowMapper, pageBoundSql.getParameters());
 			return list.size() > 0 ? list.get(0) : null;
 		});
 	}
@@ -394,12 +395,21 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@Comment("查询单行单列的值")
 	public Object selectValue(@Comment("`SQL`语句") String sql) {
 		BoundSql boundSql = new BoundSql(sql, this);
-		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().queryForObject(boundSql.getSql(), boundSql.getParameters(), Object.class));
+		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
+			Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
+			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, 0, 1);
+			return dataSourceNode.getJdbcTemplate().queryForObject(pageBoundSql.getSql(), Object.class, pageBoundSql.getParameters());
+		});
 	}
 
 	@Comment("指定table，进行单表操作")
 	public NamedTable table(String tableName) {
 		return new NamedTable(tableName, this, rowMapColumnMapper);
+	}
+
+	private BoundSql buildPageBoundSql(Dialect dialect, BoundSql boundSql, long offset, long limit) {
+		String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, offset, limit);
+		return boundSql.copy(pageSql);
 	}
 
 	@UnableCall

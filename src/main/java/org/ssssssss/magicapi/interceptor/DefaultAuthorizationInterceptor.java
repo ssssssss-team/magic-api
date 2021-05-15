@@ -7,11 +7,9 @@ import java.util.Objects;
 
 public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor {
 
-	private String validToken;
-
-	private MagicUser configMagicUser;
-
 	private final boolean requireLogin;
+	private String validToken;
+	private MagicUser configMagicUser;
 
 	public DefaultAuthorizationInterceptor(String username, String password) {
 		if (this.requireLogin = username != null && password != null) {

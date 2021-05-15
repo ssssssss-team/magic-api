@@ -2,13 +2,10 @@ package org.ssssssss.magicapi.adapter.resource;
 
 import org.ssssssss.magicapi.adapter.Resource;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public abstract class KeyValueResource implements Resource {
 
