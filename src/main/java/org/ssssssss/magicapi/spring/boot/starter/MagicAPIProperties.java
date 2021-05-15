@@ -48,6 +48,7 @@ public class MagicAPIProperties {
 	 * 自动刷新间隔，单位为秒，默认不开启
 	 * @since 0.3.4
 	 */
+	@Deprecated
 	private int refreshInterval = 0;
 
 	/**
