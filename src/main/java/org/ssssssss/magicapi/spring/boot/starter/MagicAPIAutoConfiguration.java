@@ -94,6 +94,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	private RequestMappingHandlerMapping requestMappingHandlerMapping;
 
 	@Autowired
+	private MagicFunctionManager magicFunctionManager;
+
+	@Autowired
 	private ApplicationContext springContext;
 
 	/**
@@ -144,6 +147,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Autowired
 	MappingHandlerMapping mappingHandlerMapping;
+
+	@Autowired
+	MagicAPIService magicAPIService;
 
 	@Autowired
 	ResultProvider resultProvider;
@@ -322,13 +328,18 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return new DefaultApiServiceProvider(groupServiceProvider, magicResource);
 	}
 
+	@Bean
+	public MagicFunctionManager magicFunctionManager(GroupServiceProvider groupServiceProvider, FunctionServiceProvider functionServiceProvider) {
+		return new MagicFunctionManager(groupServiceProvider, functionServiceProvider);
+	}
+
 
 	/**
 	 * 注入API调用Service
 	 */
 	@Bean
-	public MagicAPIService magicAPIService(MappingHandlerMapping mappingHandlerMapping, ResultProvider resultProvider) {
-		return new DefaultMagicAPIService(mappingHandlerMapping, resultProvider, properties.isThrowException());
+	public MagicAPIService magicAPIService(MappingHandlerMapping mappingHandlerMapping, ApiServiceProvider apiServiceProvider, FunctionServiceProvider functionServiceProvider, GroupServiceProvider groupServiceProvider, ResultProvider resultProvider, MagicFunctionManager magicFunctionManager) {
+		return new DefaultMagicAPIService(mappingHandlerMapping, apiServiceProvider, functionServiceProvider, groupServiceProvider, resultProvider, magicFunctionManager, properties.isThrowException());
 	}
 
 	private void setupSpringSecurity() {
@@ -465,7 +476,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		// 设置模块和扩展方法
 		setupMagicModules(resultProvider, magicModules, extensionMethods, languageProviders);
 		MagicConfiguration configuration = new MagicConfiguration();
-		configuration.setMagicApiService(apiServiceProvider);
+		configuration.setMagicAPIService(magicAPIService);
+		configuration.setApiServiceProvider(apiServiceProvider);
 		configuration.setGroupServiceProvider(groupServiceProvider);
 		configuration.setMappingHandlerMapping(mappingHandlerMapping);
 		configuration.setFunctionServiceProvider(functionServiceProvider);
@@ -511,7 +523,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		if (this.properties.isBanner()) {
 			configuration.printBanner();
 		}
-		MagicFunctionManager magicFunctionManager = new MagicFunctionManager(groupServiceProvider, functionServiceProvider);
 		configuration.setMagicFunctionManager(magicFunctionManager);
 		// 注册函数加载器
 		magicFunctionManager.registerFunctionLoader();
