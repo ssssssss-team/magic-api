@@ -9,7 +9,7 @@ import org.ssssssss.magicapi.modules.BoundSql;
 public interface SQLInterceptor {
 
 	/**
-	 * 1.1.1 新增，
+	 * 1.1.1 新增
 	 */
 	default void preHandle(BoundSql boundSql, RequestEntity requestEntity) {
 		preHandle(boundSql);
@@ -20,6 +20,8 @@ public interface SQLInterceptor {
 	 * @see SQLInterceptor#preHandle(BoundSql, RequestEntity)
 	 */
 	@Deprecated
-	void preHandle(BoundSql boundSql);
+	default void preHandle(BoundSql boundSql){
+
+	}
 
 }

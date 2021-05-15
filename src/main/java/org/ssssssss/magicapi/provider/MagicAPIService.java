@@ -16,7 +16,7 @@ public interface MagicAPIService extends MagicModule {
 	 * @param path    请求路径
 	 * @param context 请求上下文，主要给脚本中使用
 	 */
-	public Object execute(String method, String path, Map<String, Object> context);
+	Object execute(String method, String path, Map<String, Object> context);
 
 	/**
 	 * 执行MagicAPI中的接口,带code和message信息
