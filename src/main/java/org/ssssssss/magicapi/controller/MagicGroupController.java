@@ -61,6 +61,6 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	@ResponseBody
 	@Valid(readonly = false, authorization = Authorization.SAVE)
 	public JsonBean<String> createGroup(@RequestBody Group group) {
-		return new JsonBean<>(group.getId());
+		return new JsonBean<>(magicAPIService.createGroup(group));
 	}
 }
