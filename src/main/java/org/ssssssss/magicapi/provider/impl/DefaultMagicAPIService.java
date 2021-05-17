@@ -142,6 +142,11 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
+	public ApiInfo getApiInfo(String id) {
+		return apiServiceProvider.get(id);
+	}
+
+	@Override
 	public List<ApiInfo> apiList() {
 		return apiServiceProvider.list();
 	}
@@ -184,6 +189,11 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		}
 		magicFunctionManager.register(functionInfo);
 		return functionInfo.getId();
+	}
+
+	@Override
+	public FunctionInfo getFunctionInfo(String id) {
+		return functionServiceProvider.get(id);
 	}
 
 	@Override

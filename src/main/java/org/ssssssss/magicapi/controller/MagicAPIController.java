@@ -59,7 +59,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<ApiInfo> get(String id) {
-		return new JsonBean<>(apiServiceProvider.get(id));
+		return new JsonBean<>(magicAPIService.getApiInfo(id));
 	}
 
 	/**

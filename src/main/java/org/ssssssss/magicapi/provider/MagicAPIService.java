@@ -39,6 +39,13 @@ public interface MagicAPIService extends MagicModule {
 	String saveApi(ApiInfo apiInfo);
 
 	/**
+	 * 获取接口详情
+	 * @param id	接口id
+	 * @return
+	 */
+	ApiInfo getApiInfo(String id);
+
+	/**
 	 * 获取接口列表
 	 */
 	List<ApiInfo> apiList();
@@ -64,6 +71,12 @@ public interface MagicAPIService extends MagicModule {
 	 * @return 保存成功后，返回Id
 	 */
 	String saveFunction(FunctionInfo functionInfo);
+
+	/**
+	 * 获取函数详情
+	 * @param id	函数id
+	 */
+	FunctionInfo getFunctionInfo(String id);
 
 	/**
 	 * 获取函数列表

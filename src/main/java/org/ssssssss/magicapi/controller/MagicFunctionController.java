@@ -36,7 +36,7 @@ public class MagicFunctionController extends MagicController implements MagicExc
 	@ResponseBody
 	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<FunctionInfo> get(String id) {
-		return new JsonBean<>(functionService.get(id));
+		return new JsonBean<>(magicAPIService.getFunctionInfo(id));
 	}
 
 	@RequestMapping("/function/backup/get")
