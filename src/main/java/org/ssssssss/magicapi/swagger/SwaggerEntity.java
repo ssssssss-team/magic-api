@@ -336,6 +336,8 @@ public class SwaggerEntity {
 				this.schema = doProcessSchema(example);
 			} else {
 				this.example = example;
+				// fix swagger文档使用knife4j时无法显示接口详情的问题
+				this.schema = doProcessSchema(example);
 			}
 		}
 
