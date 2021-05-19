@@ -336,6 +336,11 @@ public class SwaggerEntity {
 				this.schema = doProcessSchema(example);
 			} else {
 				this.example = example;
+				/*
+				 * fix swagger文档使用knife4j时无法显示接口详情的问题（query类型参数）
+				 * schema 需设置为空字符串，否则请求参数中数据类型字段显示不正确
+				 */
+				this.schema = "";
 			}
 		}
 
