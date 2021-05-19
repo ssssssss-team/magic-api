@@ -352,7 +352,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	private Object page(BoundSql boundSql, Page page) {
 		Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
 		BoundSql countBoundSql = boundSql.copy(dialect.getCountSql(boundSql.getSql()));
-		int count = countBoundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().queryForObject(countBoundSql.getSql(), Integer.class, countBoundSql.getParameters()));
+		int count = countBoundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(countBoundSql.getSql(), new SingleRowResultSetExtractor<>(Integer.class), countBoundSql.getParameters()));
 		List<Map<String, Object>> list = null;
 		if (count > 0) {
 			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, page.getOffset(), page.getLimit());
@@ -368,7 +368,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@Comment("查询int值，适合单行单列int的结果")
 	public Integer selectInt(@Comment("`SQL`语句") String sql) {
 		BoundSql boundSql = new BoundSql(sql, this);
-		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().queryForObject(boundSql.getSql(), boundSql.getParameters(), Integer.class));
+		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(),new SingleRowResultSetExtractor<>(Integer.class), boundSql.getParameters()));
 	}
 
 	/**
@@ -384,8 +384,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
 			Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
 			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, 0, 1);
-			List<Map<String, Object>> list = dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), this.columnMapRowMapper, pageBoundSql.getParameters());
-			return list.size() > 0 ? list.get(0) : null;
+			return dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), new SingleRowResultSetExtractor<>(this.columnMapRowMapper), pageBoundSql.getParameters());
 		});
 	}
 
@@ -398,7 +397,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
 			Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
 			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, 0, 1);
-			return dataSourceNode.getJdbcTemplate().queryForObject(pageBoundSql.getSql(), Object.class, pageBoundSql.getParameters());
+			return dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), new SingleRowResultSetExtractor<>(Object.class), pageBoundSql.getParameters());
 		});
 	}
 
