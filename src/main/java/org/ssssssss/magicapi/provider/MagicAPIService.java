@@ -4,6 +4,7 @@ import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.FunctionInfo;
 import org.ssssssss.magicapi.model.Group;
+import org.ssssssss.magicapi.model.MagicNotify;
 
 import java.util.List;
 import java.util.Map;
@@ -127,4 +128,9 @@ public interface MagicAPIService extends MagicModule {
 	 * @param type 分组类型，1 接口分组，2 函数分组
 	 */
 	List<Group> groupList(String type);
+
+	/**
+	 * 处理刷新通知
+	 */
+	boolean processNotify(MagicNotify magicNotify);
 }

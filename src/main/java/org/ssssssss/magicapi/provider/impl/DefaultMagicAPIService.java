@@ -17,10 +17,7 @@ import org.ssssssss.script.parsing.ast.Expression;
 
 import javax.script.ScriptContext;
 import javax.script.SimpleScriptContext;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstants {
@@ -39,13 +36,18 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	private final MagicFunctionManager magicFunctionManager;
 
-	public DefaultMagicAPIService(MappingHandlerMapping mappingHandlerMapping, ApiServiceProvider apiServiceProvider, FunctionServiceProvider functionServiceProvider, GroupServiceProvider groupServiceProvider, ResultProvider resultProvider, MagicFunctionManager magicFunctionManager, boolean throwException) {
+	private final MagicNotifyService magicNotifyService;
+
+	private final String instanceId = UUID.randomUUID().toString();
+
+	public DefaultMagicAPIService(MappingHandlerMapping mappingHandlerMapping, ApiServiceProvider apiServiceProvider, FunctionServiceProvider functionServiceProvider, GroupServiceProvider groupServiceProvider, ResultProvider resultProvider, MagicFunctionManager magicFunctionManager, MagicNotifyService magicNotifyService, boolean throwException) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
 		this.apiServiceProvider = apiServiceProvider;
 		this.functionServiceProvider = functionServiceProvider;
 		this.groupServiceProvider = groupServiceProvider;
 		this.resultProvider = resultProvider;
 		this.magicFunctionManager = magicFunctionManager;
+		this.magicNotifyService = magicNotifyService;
 		this.throwException = throwException;
 		MagicResourceLoader.addFunctionLoader((name) -> {
 			int index = name.indexOf(":");
@@ -120,11 +122,12 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		isTrue(IoUtils.validateFileName(info.getName()), NAME_INVALID);
 		// 验证路径是否有冲突
 		isTrue(!mappingHandlerMapping.hasRegisterMapping(info), REQUEST_PATH_CONFLICT);
+		int action = Constants.NOTIFY_ACTION_UPDATE;
 		if (StringUtils.isBlank(info.getId())) {
 			// 先判断接口是否存在
 			isTrue(!apiServiceProvider.exists(info), API_ALREADY_EXISTS.format(info.getMethod(), info.getPath()));
-
 			isTrue(apiServiceProvider.insert(info), API_SAVE_FAILURE);
+			action = Constants.NOTIFY_ACTION_ADD;
 		} else {
 			// 先判断接口是否存在
 			isTrue(!apiServiceProvider.existsWithoutId(info), API_ALREADY_EXISTS.format(info.getMethod(), info.getPath()));
@@ -138,6 +141,8 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		}
 		// 注册接口
 		mappingHandlerMapping.registerMapping(info, true);
+		// 通知更新接口
+		magicNotifyService.sendNotify(new MagicNotify(instanceId, info.getId(), action, Constants.NOTIFY_ACTION_API));
 		return info.getId();
 	}
 
@@ -156,6 +161,8 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		boolean success = apiServiceProvider.delete(id);
 		if (success) {    //删除成功时在取消注册
 			mappingHandlerMapping.unregisterMapping(id, true);
+			// 通知删除接口
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, id, Constants.NOTIFY_ACTION_DELETE, Constants.NOTIFY_ACTION_API));
 		}
 		return success;
 	}
@@ -168,7 +175,12 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		isTrue(apiServiceProvider.allowMove(id, groupId), NAME_CONFLICT);
 		// 验证路径是否有冲突
 		isTrue(mappingHandlerMapping.move(id, groupId), REQUEST_PATH_CONFLICT);
-		return apiServiceProvider.move(id, groupId);
+		if (apiServiceProvider.move(id, groupId)) {
+			// 通知更新接口
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, id, Constants.NOTIFY_ACTION_UPDATE, Constants.NOTIFY_ACTION_API));
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -178,16 +190,18 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		notBlank(functionInfo.getPath(), FUNCTION_PATH_REQUIRED);
 		notBlank(functionInfo.getScript(), SCRIPT_REQUIRED);
 		isTrue(!magicFunctionManager.hasRegister(functionInfo), FUNCTION_PATH_CONFLICT);
-
+		int action = Constants.NOTIFY_ACTION_UPDATE;
 		if (StringUtils.isBlank(functionInfo.getId())) {
 			isTrue(!functionServiceProvider.exists(functionInfo), FUNCTION_ALREADY_EXISTS.format(functionInfo.getPath()));
 			isTrue(functionServiceProvider.insert(functionInfo), FUNCTION_SAVE_FAILURE);
+			action = Constants.NOTIFY_ACTION_ADD;
 		} else {
 			isTrue(!functionServiceProvider.existsWithoutId(functionInfo), FUNCTION_ALREADY_EXISTS.format(functionInfo.getPath()));
 			isTrue(functionServiceProvider.update(functionInfo), FUNCTION_SAVE_FAILURE);
 			functionServiceProvider.backup(functionInfo);
 		}
 		magicFunctionManager.register(functionInfo);
+		magicNotifyService.sendNotify(new MagicNotify(instanceId, functionInfo.getId(), action, Constants.NOTIFY_ACTION_FUNCTION));
 		return functionInfo.getId();
 	}
 
@@ -206,6 +220,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		boolean success = functionServiceProvider.delete(id);
 		if (success) {
 			magicFunctionManager.unregister(id);
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, id, Constants.NOTIFY_ACTION_DELETE, Constants.NOTIFY_ACTION_FUNCTION));
 		}
 		return success;
 	}
@@ -214,7 +229,11 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	public boolean moveFunction(String id, String groupId) {
 		isTrue(functionServiceProvider.allowMove(id, groupId), NAME_CONFLICT);
 		isTrue(magicFunctionManager.move(id, groupId), FUNCTION_PATH_CONFLICT);
-		return functionServiceProvider.move(id, groupId);
+		if (functionServiceProvider.move(id, groupId)) {
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, id, Constants.NOTIFY_ACTION_UPDATE, Constants.NOTIFY_ACTION_FUNCTION));
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -231,6 +250,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		} else {
 			magicFunctionManager.loadGroup();
 		}
+		magicNotifyService.sendNotify(new MagicNotify(instanceId, group.getId(), Constants.NOTIFY_ACTION_ADD, Constants.NOTIFY_ACTION_GROUP));
 		return group.getId();
 	}
 
@@ -258,6 +278,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			functionServiceProvider.reload(group.getId());
 			return true;
 		}
+		magicNotifyService.sendNotify(new MagicNotify(instanceId, group.getId(), Constants.NOTIFY_ACTION_UPDATE, Constants.NOTIFY_ACTION_GROUP));
 		return false;
 	}
 
@@ -291,6 +312,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				magicFunctionManager.loadGroup();
 			}
 		}
+		magicNotifyService.sendNotify(new MagicNotify(instanceId, groupId, Constants.NOTIFY_ACTION_DELETE, Constants.NOTIFY_ACTION_GROUP));
 		return success;
 	}
 
@@ -298,6 +320,58 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	public List<Group> groupList(String type) {
 		return groupServiceProvider.groupList(type);
 	}
+
+	@Override
+	public boolean processNotify(MagicNotify magicNotify) {
+		if (magicNotify == null || instanceId.equals(magicNotify.getFrom())) {
+			return false;
+		}
+		String id = magicNotify.getId();
+		int action = magicNotify.getAction();
+		switch (magicNotify.getType()) {
+			case Constants.NOTIFY_ACTION_API:
+				return processApiNotify(id, action);
+			case Constants.NOTIFY_ACTION_FUNCTION:
+				return processFunctionNotify(id, action);
+			case Constants.NOTIFY_ACTION_GROUP:
+				return processGroupNotify(id, action);
+		}
+		return false;
+	}
+
+	private boolean processApiNotify(String id, int action) {
+		if(action == Constants.NOTIFY_ACTION_DELETE){
+			mappingHandlerMapping.unregisterMapping(id, true);
+		} else {
+			// 刷新缓存
+			apiServiceProvider.list();
+			ApiInfo info = apiServiceProvider.get(id);
+			if(info != null){
+				mappingHandlerMapping.registerMapping(info, true);
+			}
+		}
+		return true;
+	}
+	private boolean processFunctionNotify(String id, int action) {
+		if(action == Constants.NOTIFY_ACTION_DELETE){
+			magicFunctionManager.unregister(id);
+		} else {
+			// 刷新缓存
+			functionServiceProvider.list();
+			FunctionInfo functionInfo = functionServiceProvider.get(id);
+			if(functionInfo != null){
+				magicFunctionManager.register(functionInfo);
+			}
+		}
+		return true;
+	}
+	private boolean processGroupNotify(String id, int action) {
+		if(action == Constants.NOTIFY_ACTION_ADD){
+			groupServiceProvider.getGroupResource(id);
+		}
+		return true;
+	}
+
 
 	@Override
 	public String getModuleName() {

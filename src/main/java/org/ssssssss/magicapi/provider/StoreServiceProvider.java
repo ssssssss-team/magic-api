@@ -113,6 +113,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 			}
 			src.renameTo(dest);
 		}
+		info.setUpdateTime(System.currentTimeMillis());
 		if (dest.write(serialize(info))) {
 			mappings.put(info.getId(), dest);
 			infos.put(info.getId(), info);

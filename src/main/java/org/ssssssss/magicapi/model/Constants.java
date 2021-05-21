@@ -122,4 +122,44 @@ public class Constants {
 	 */
 	public static int RESPONSE_CODE_INVALID = 0;
 
+	/**
+	 * 通知新增
+	 */
+	public static final int NOTIFY_ACTION_ADD = 1;
+
+	/**
+	 * 通知修改
+	 */
+	public static final int NOTIFY_ACTION_UPDATE = 2;
+
+	/**
+	 * 通知删除
+	 */
+	public static final int NOTIFY_ACTION_DELETE = 3;
+
+	/**
+	 * 通知更新全部
+	 */
+	public static final int NOTIFY_ACTION_ALL = 4;
+
+	/**
+	 * 通知接口刷新
+	 */
+	public static final int NOTIFY_ACTION_API = 1;
+
+	/**
+	 * 通知分组刷新
+	 */
+	public static final int NOTIFY_ACTION_GROUP = 2;
+
+	/**
+	 * 通知函数刷新
+	 */
+	public static final int NOTIFY_ACTION_FUNCTION = 3;
+
+	/**
+	 * 通知数据源刷新
+	 */
+	public static final int NOTIFY_ACTION_DATASOURCE = 4;
+
 }
