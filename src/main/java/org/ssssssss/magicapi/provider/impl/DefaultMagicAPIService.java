@@ -38,9 +38,9 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	private final MagicNotifyService magicNotifyService;
 
-	private final String instanceId = UUID.randomUUID().toString();
+	private final String instanceId;
 
-	public DefaultMagicAPIService(MappingHandlerMapping mappingHandlerMapping, ApiServiceProvider apiServiceProvider, FunctionServiceProvider functionServiceProvider, GroupServiceProvider groupServiceProvider, ResultProvider resultProvider, MagicFunctionManager magicFunctionManager, MagicNotifyService magicNotifyService, boolean throwException) {
+	public DefaultMagicAPIService(MappingHandlerMapping mappingHandlerMapping, ApiServiceProvider apiServiceProvider, FunctionServiceProvider functionServiceProvider, GroupServiceProvider groupServiceProvider, ResultProvider resultProvider, MagicFunctionManager magicFunctionManager, MagicNotifyService magicNotifyService, String instanceId, boolean throwException) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
 		this.apiServiceProvider = apiServiceProvider;
 		this.functionServiceProvider = functionServiceProvider;
@@ -49,6 +49,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		this.magicFunctionManager = magicFunctionManager;
 		this.magicNotifyService = magicNotifyService;
 		this.throwException = throwException;
+		this.instanceId = StringUtils.defaultIfBlank(instanceId, UUID.randomUUID().toString());
 		MagicResourceLoader.addFunctionLoader((name) -> {
 			int index = name.indexOf(":");
 			if (index > -1) {
@@ -268,14 +269,12 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		if (isApiGroup && mappingHandlerMapping.checkGroup(group)) {
 			isTrue(groupServiceProvider.update(group), GROUP_SAVE_FAILURE);
 			// 如果数据库修改成功，则修改接口路径
-			mappingHandlerMapping.updateGroup(group);
-			apiServiceProvider.reload(group.getId());
+			mappingHandlerMapping.updateGroup(group.getId());
 			return true;
 		} else if (isFunctionGroup && magicFunctionManager.checkGroup(group)) {
 			isTrue(groupServiceProvider.update(group), GROUP_SAVE_FAILURE);
 			// 如果数据库修改成功，则修改接口路径
-			magicFunctionManager.updateGroup(group);
-			functionServiceProvider.reload(group.getId());
+			magicFunctionManager.updateGroup(group.getId());
 			return true;
 		}
 		magicNotifyService.sendNotify(new MagicNotify(instanceId, group.getId(), Constants.NOTIFY_ACTION_UPDATE, Constants.NOTIFY_ACTION_GROUP));
@@ -299,8 +298,6 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				// 取消注册
 				mappingHandlerMapping.deleteGroup(children);
 				children.forEach(groupServiceProvider::delete);
-				// 重新加载分组
-				mappingHandlerMapping.loadGroup();
 			}
 		} else {
 			// 删除函数
@@ -308,8 +305,6 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				// 取消注册
 				magicFunctionManager.deleteGroup(children);
 				children.forEach(groupServiceProvider::delete);
-				// 重新加载分组
-				magicFunctionManager.loadGroup();
 			}
 		}
 		magicNotifyService.sendNotify(new MagicNotify(instanceId, groupId, Constants.NOTIFY_ACTION_DELETE, Constants.NOTIFY_ACTION_GROUP));
@@ -340,34 +335,52 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	private boolean processApiNotify(String id, int action) {
-		if(action == Constants.NOTIFY_ACTION_DELETE){
+		// 刷新缓存
+		this.apiList();
+		if (action == Constants.NOTIFY_ACTION_DELETE) {
 			mappingHandlerMapping.unregisterMapping(id, true);
 		} else {
-			// 刷新缓存
-			apiServiceProvider.list();
-			ApiInfo info = apiServiceProvider.get(id);
-			if(info != null){
-				mappingHandlerMapping.registerMapping(info, true);
-			}
+			mappingHandlerMapping.registerMapping(apiServiceProvider.get(id), true);
 		}
 		return true;
 	}
+
 	private boolean processFunctionNotify(String id, int action) {
-		if(action == Constants.NOTIFY_ACTION_DELETE){
+		// 刷新缓存
+		this.functionList();
+		if (action == Constants.NOTIFY_ACTION_DELETE) {
 			magicFunctionManager.unregister(id);
 		} else {
-			// 刷新缓存
-			functionServiceProvider.list();
-			FunctionInfo functionInfo = functionServiceProvider.get(id);
-			if(functionInfo != null){
-				magicFunctionManager.register(functionInfo);
-			}
+			magicFunctionManager.register(functionServiceProvider.get(id));
 		}
 		return true;
 	}
+
 	private boolean processGroupNotify(String id, int action) {
-		if(action == Constants.NOTIFY_ACTION_ADD){
-			groupServiceProvider.getGroupResource(id);
+		if (action == Constants.NOTIFY_ACTION_ADD) {    // 新增分组
+			// 新增时只需要刷新分组缓存即可
+			mappingHandlerMapping.loadGroup();
+			magicFunctionManager.loadGroup();
+			return true;
+		}
+		if (action == Constants.NOTIFY_ACTION_UPDATE) {    // 修改分组，包括移动分组
+			if (!mappingHandlerMapping.updateGroup(id)) {
+				return magicFunctionManager.updateGroup(id);
+			}
+		} else if (action == Constants.NOTIFY_ACTION_DELETE) {    // 删除分组
+			TreeNode<Group> treeNode = groupServiceProvider.apiGroupTree().findTreeNode(group -> group.getId().equals(id));
+			if (treeNode == null) {
+				// 删除函数分组
+				treeNode = groupServiceProvider.functionGroupTree().findTreeNode(group -> group.getId().equals(id));
+				magicFunctionManager.deleteGroup(treeNode.flat().stream().map(Group::getId).collect(Collectors.toList()));
+				// 刷新函数缓存
+				this.functionList();
+			} else {
+				// 删除接口分组
+				mappingHandlerMapping.deleteGroup(treeNode.flat().stream().map(Group::getId).collect(Collectors.toList()));
+				// 刷新接口缓存
+				this.apiList();
+			}
 		}
 		return true;
 	}

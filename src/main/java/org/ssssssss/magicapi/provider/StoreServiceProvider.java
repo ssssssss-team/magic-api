@@ -147,13 +147,17 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	/**
 	 * 重新加载分组
 	 */
-	public void reload(String groupId) {
+	public boolean reload(String groupId) {
 		Resource dest = groupServiceProvider.getGroupResource(groupId);
-		dest.files(".ms").forEach(r -> {
-			T info = deserialize(r.read());
-			infos.put(info.getId(), info);
-			mappings.put(info.getId(), r);
-		});
+		if(dest != null){
+			dest.files(".ms").forEach(r -> {
+				T info = deserialize(r.read());
+				infos.put(info.getId(), info);
+				mappings.put(info.getId(), r);
+			});
+			return true;
+		}
+		return false;
 	}
 
 	/**

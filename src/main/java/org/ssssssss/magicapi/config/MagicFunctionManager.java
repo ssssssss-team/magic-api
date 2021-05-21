@@ -103,6 +103,9 @@ public class MagicFunctionManager {
 
 
 	public void register(FunctionInfo functionInfo) {
+		if (functionInfo == null) {
+			return;
+		}
 		FunctionInfo oldFunctionInfo = mappings.get(functionInfo.getId());
 		if (oldFunctionInfo != null) {
 			// 完全一致时不用注册
@@ -176,10 +179,11 @@ public class MagicFunctionManager {
 		}
 	}
 
-	public void updateGroup(Group group) {
+	public boolean updateGroup(String groupId) {
 		loadGroup();    // 重新加载分组
-		TreeNode<Group> groupTreeNode = groups.findTreeNode((item) -> item.getId().equals(group.getId()));
+		TreeNode<Group> groupTreeNode = groups.findTreeNode((item) -> item.getId().equals(groupId));
 		recurseUpdateGroup(groupTreeNode, true);
+		return functionServiceProvider.reload(groupId);
 	}
 
 	public void deleteGroup(List<String> groupIds) {
@@ -188,6 +192,8 @@ public class MagicFunctionManager {
 				.distinct()
 				.collect(Collectors.toList())
 				.forEach(info -> unregister(info.getId()));
+		// 刷新分组缓存
+		loadGroup();
 	}
 
 	public void unregister(String id) {

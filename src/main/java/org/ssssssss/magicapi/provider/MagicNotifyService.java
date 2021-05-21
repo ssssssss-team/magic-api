@@ -6,5 +6,4 @@ public interface MagicNotifyService {
 
 	void sendNotify(MagicNotify magicNotify);
 
-	void onNotifyReceived(MagicNotify magicNotify);
 }

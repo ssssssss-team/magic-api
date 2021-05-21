@@ -90,13 +90,21 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	public TreeNode<Group> apiGroupTree() {
 		List<Group> groups = groupList(Constants.GROUP_TYPE_API);
 		cacheApiTree = groups.stream().collect(Collectors.toMap(Group::getId, value -> value));
+		clearMappings();
 		return convertToTree(groups);
+	}
+
+	private void clearMappings(){
+		Set<String> apiGroups = cacheApiTree.keySet();
+		Set<String> functionGroups = cacheFunctionTree.keySet();
+		mappings.entrySet().removeIf(entry -> !apiGroups.contains(entry.getKey()) && !functionGroups.contains(entry.getKey()));
 	}
 
 	@Override
 	public TreeNode<Group> functionGroupTree() {
 		List<Group> groups = groupList(Constants.GROUP_TYPE_FUNCTION);
 		cacheFunctionTree = groups.stream().collect(Collectors.toMap(Group::getId, value -> value));
+		clearMappings();
 		return convertToTree(groups);
 	}
 
@@ -104,13 +112,14 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	public List<Group> groupList(String type) {
 		Resource resource = this.workspace.getDirectory(Constants.GROUP_TYPE_API.equals(type) ? Constants.PATH_API : Constants.PATH_FUNCTION);
 		resource.readAll();
-		return resource.dirs().stream().map(it -> it.getResource(metabase)).filter(Resource::exists)
+		List<Group> groups = resource.dirs().stream().map(it -> it.getResource(metabase)).filter(Resource::exists)
 				.map(it -> {
 					Group group = JsonUtils.readValue(it.read(), Group.class);
 					mappings.put(group.getId(), it);
 					return group;
 				})
 				.collect(Collectors.toList());
+		return groups;
 	}
 
 	@Override

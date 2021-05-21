@@ -264,15 +264,18 @@ public class MappingHandlerMapping {
 		}
 		// 全部删除
 		apiInfos.removeAll(deleteInfos);
+		// 刷新分组缓存
+		loadGroup();
 	}
 
 	/**
 	 * 修改分组
 	 */
-	public void updateGroup(Group group) {
+	public boolean updateGroup(String groupId) {
 		loadGroup();    // 重新加载分组
-		TreeNode<Group> groupTreeNode = groups.findTreeNode((item) -> item.getId().equals(group.getId()));
+		TreeNode<Group> groupTreeNode = groups.findTreeNode((item) -> item.getId().equals(groupId));
 		recurseUpdateGroup(groupTreeNode, true);
+		return magicApiService.reload(groupId);
 	}
 
 	private void recurseUpdateGroup(TreeNode<Group> node, boolean updateGroupId) {
@@ -335,6 +338,9 @@ public class MappingHandlerMapping {
 	 * 注册请求映射
 	 */
 	public void registerMapping(ApiInfo info, boolean delete) {
+		if(info == null){
+			return;
+		}
 		// 先判断是否已注册，如果已注册，则先取消注册在进行注册。
 		MappingNode mappingNode = mappings.get(info.getId());
 		String newMappingKey = getMappingKey(info);
