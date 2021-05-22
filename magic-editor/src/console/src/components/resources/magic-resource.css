@@ -1,0 +1,93 @@
+.ma-api-tree {
+    text-align: left;
+    float: left;
+    border-right: 1px solid var(--toolbox-border-right-color);
+    overflow: auto;
+    width: 250px;
+    min-width: 250px;
+    background: var(--toolbox-background);
+    position: relative;
+}
+
+.ma-api-tree .ma-tree-item .ma-tree-item-header {
+    font-weight: bold;
+    height: 20px;
+    line-height: 20px;
+}
+
+.ma-api-tree .ma-tree-item .ma-tree-sub-items > * {
+    line-height: 20px;
+    /* padding-left: 17px; */
+    white-space: nowrap;
+}
+
+.ma-api-tree .ma-tree-hover:hover,
+.ma-api-tree .ma-tree-select {
+    background: var(--toolbox-list-hover-background);
+}
+
+.ma-api-tree .ma-tree-item .ma-tree-sub-items > *.selected {
+    background: var(--toolbox-list-selected-background);
+}
+
+.ma-api-tree .ma-icon {
+    color: var(--toolbox-list-icon-color);
+    padding-right: 2px;
+    font-size: 14px;
+}
+.ma-api-tree .ma-icon-arrow-bottom {
+    color: var(--toolbox-list-arrow-color);
+}
+
+.ma-api-tree span {
+    color: var(--toolbox-list-span-color);
+}
+
+.ma-api-tree label {
+    color: var(--toolbox-list-label-color);
+}
+
+.ma-api-tree .ma-tree-toolbar-search {
+    flex: 1;
+}
+
+.ma-api-tree .ma-tree-toolbar-search input {
+    border: none;
+    background: none;
+    height: 100%;
+    color: var(--input-color);
+}
+
+.ma-api-tree .ma-tree-toolbar-search input:focus {
+    outline: none;
+}
+
+.ma-api-tree .ma-tree-toolbar {
+    background: var(--background);
+    color: var(--toolbox-list-label-color);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    /* flex-direction: row-reverse; */
+    padding: 1px;
+}
+
+.ma-api-tree .ma-tree-toolbar-btn {
+    padding: 2px;
+    align-self: flex-end;
+    display: inline-block;
+}
+
+.ma-api-tree .ma-tree-toolbar-btn:hover,
+.ma-api-tree .ma-tree-toolbar-btn.hover {
+    background: var(--toolbox-list-hover-background);
+}
+
+.ma-api-tree .ma-tree-toolbar i {
+    color: var(--toolbox-list-header-icon-color);
+}
+
+.ma-api-tree .ma-tree-container {
+    height: calc(100% - 25px);
+    overflow: auto;
+}

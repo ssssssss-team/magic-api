@@ -45,6 +45,7 @@
     </properties>
 	<modules>
 		<module>magic-api</module>
+        <module>magic-editor</module>
 		<module>magic-api-spring-boot-starter</module>
 	</modules>
     <dependencyManagement>
