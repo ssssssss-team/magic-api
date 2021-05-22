@@ -126,6 +126,10 @@ public class MappingHandlerMapping {
 		return groups;
 	}
 
+	public TreeNode<Group> findGroupTree(String groupId){
+		return groups.findTreeNode(it -> it.getId().equals(groupId));
+	}
+
 	public void setRequestMappingHandlerMapping(RequestMappingHandlerMapping requestMappingHandlerMapping) {
 		this.mappingHelper = Mapping.create(requestMappingHandlerMapping);
 	}

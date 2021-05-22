@@ -601,10 +601,10 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				return magicFunctionManager.updateGroup(id);
 			}
 		} else if (action == Constants.NOTIFY_ACTION_DELETE) {    // 删除分组
-			TreeNode<Group> treeNode = groupServiceProvider.apiGroupTree().findTreeNode(group -> group.getId().equals(id));
+			TreeNode<Group> treeNode = mappingHandlerMapping.findGroupTree(id);
 			if (treeNode == null) {
 				// 删除函数分组
-				treeNode = groupServiceProvider.functionGroupTree().findTreeNode(group -> group.getId().equals(id));
+				treeNode = magicFunctionManager.findGroupTree(id);
 				magicFunctionManager.deleteGroup(treeNode.flat().stream().map(Group::getId).collect(Collectors.toList()));
 				// 刷新函数缓存
 				this.functionList();

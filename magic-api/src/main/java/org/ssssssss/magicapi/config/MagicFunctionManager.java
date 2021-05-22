@@ -147,6 +147,10 @@ public class MagicFunctionManager {
 		return false;
 	}
 
+	public TreeNode<Group> findGroupTree(String groupId){
+		return groups.findTreeNode(it -> it.getId().equals(groupId));
+	}
+
 	public boolean checkGroup(Group group) {
 		TreeNode<Group> oldTree = groups.findTreeNode((item) -> item.getId().equals(group.getId()));
 		// 如果只改了名字，则不做任何操作
