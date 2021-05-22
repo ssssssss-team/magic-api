@@ -281,7 +281,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	@UnableCall
 	public int update(BoundSql boundSql) {
-		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql));
+		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql, RequestContext.getRequestEntity()));
 		int value = dataSourceNode.getJdbcTemplate().update(boundSql.getSql(), boundSql.getParameters());
 		if (this.cacheName != null) {
 			this.sqlCache.delete(this.cacheName);
@@ -308,7 +308,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	}
 
 	void insert(BoundSql boundSql, MagicKeyHolder keyHolder) {
-		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql));
+		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql, RequestContext.getRequestEntity()));
 		dataSourceNode.getJdbcTemplate().update(con -> {
 			PreparedStatement ps = keyHolder.createPrepareStatement(con, boundSql.getSql());
 			new ArgumentPreparedStatementSetter(boundSql.getParameters()).setValues(ps);

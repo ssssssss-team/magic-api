@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.functions.ObjectConvertExtension;
@@ -50,7 +51,7 @@ public class ResponseModule {
 	 */
 	@Comment("返回自定义分页结果")
 	public Object page(@Comment("总条数") long total, @Comment("当前结果集") List<Map<String, Object>> values) {
-		return resultProvider.buildPageResult(total, values);
+		return resultProvider.buildPageResult(RequestContext.getRequestEntity(),null, total, values);
 	}
 
 	/**
