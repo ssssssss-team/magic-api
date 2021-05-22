@@ -1,0 +1,27 @@
+{
+  "groups": [
+    {
+      "sourceType": "org.ssssssss.magicapi.spring.boot.starter.MagicAPIProperties",
+      "name": "magic-api",
+      "type": "org.ssssssss.magicapi.spring.boot.starter.MagicAPIProperties"
+    },
+    {
+      "sourceType": "org.ssssssss.magicapi.spring.boot.starter.MagicAPIProperties",
+      "name": "page-config",
+      "sourceMethod": "getPageConfig()",
+      "type": "org.ssssssss.magicapi.spring.boot.starter.PageConfig"
+    },
+    {
+      "sourceType": "org.ssssssss.magicapi.spring.boot.starter.MagicAPIProperties",
+      "name": "cache-config",
+      "sourceMethod": "getCacheConfig()",
+      "type": "org.ssssssss.magicapi.spring.boot.starter.CacheConfig"
+    },
+    {
+      "sourceType": "org.ssssssss.magicapi.spring.boot.starter.MagicAPIProperties",
+      "name": "debug-config",
+      "sourceMethod": "getDebugConfig()",
+      "type": "org.ssssssss.magicapi.spring.boot.starter.DebugConfig"
+    }
+  ]
+}
