@@ -15,8 +15,6 @@ import org.ssssssss.script.MagicScriptContext;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -201,12 +199,6 @@ public class MagicFunctionManager {
 		if (functionInfo != null) {
 			mappings.remove(functionInfo.getMappingPath());
 			logger.info("取消注册函数:[{},{}]", functionInfo.getName(), functionInfo.getMappingPath());
-		}
-	}
-
-	public void enableRefresh(int interval) {
-		if (interval > 0) {
-			Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this::registerAllFunction, interval, interval, TimeUnit.SECONDS);
 		}
 	}
 }

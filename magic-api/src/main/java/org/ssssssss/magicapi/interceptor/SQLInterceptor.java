@@ -11,17 +11,7 @@ public interface SQLInterceptor {
 	/**
 	 * 1.1.1 新增
 	 */
-	default void preHandle(BoundSql boundSql, RequestEntity requestEntity) {
-		preHandle(boundSql);
-	}
+	void preHandle(BoundSql boundSql, RequestEntity requestEntity);
 
-
-	/**
-	 * @see SQLInterceptor#preHandle(BoundSql, RequestEntity)
-	 */
-	@Deprecated
-	default void preHandle(BoundSql boundSql) {
-
-	}
 
 }

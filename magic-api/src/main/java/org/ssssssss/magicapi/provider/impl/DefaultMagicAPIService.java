@@ -1,24 +1,50 @@
 package org.ssssssss.magicapi.provider.impl;
 
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
+import org.springframework.boot.context.properties.bind.Bindable;
+import org.springframework.boot.context.properties.bind.Binder;
+import org.springframework.boot.context.properties.source.ConfigurationPropertyName;
+import org.springframework.boot.context.properties.source.ConfigurationPropertyNameAliases;
+import org.springframework.boot.context.properties.source.ConfigurationPropertySource;
+import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
+import org.springframework.boot.jdbc.DatabaseDriver;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.util.ClassUtils;
+import org.ssssssss.magicapi.adapter.Resource;
+import org.ssssssss.magicapi.adapter.resource.ZipResource;
+import org.ssssssss.magicapi.config.MagicDynamicDataSource;
 import org.ssssssss.magicapi.config.MagicFunctionManager;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
+import org.ssssssss.magicapi.controller.MagicDataSourceController;
+import org.ssssssss.magicapi.exception.InvalidArgumentException;
 import org.ssssssss.magicapi.exception.MagicServiceException;
 import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.provider.*;
 import org.ssssssss.magicapi.script.ScriptManager;
 import org.ssssssss.magicapi.utils.IoUtils;
+import org.ssssssss.magicapi.utils.JsonUtils;
+import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
 
 import javax.script.ScriptContext;
 import javax.script.SimpleScriptContext;
+import javax.sql.DataSource;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstants {
 
@@ -34,22 +60,54 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	private final GroupServiceProvider groupServiceProvider;
 
+	private final MagicDynamicDataSource magicDynamicDataSource;
+
 	private final MagicFunctionManager magicFunctionManager;
 
 	private final MagicNotifyService magicNotifyService;
 
 	private final String instanceId;
 
-	public DefaultMagicAPIService(MappingHandlerMapping mappingHandlerMapping, ApiServiceProvider apiServiceProvider, FunctionServiceProvider functionServiceProvider, GroupServiceProvider groupServiceProvider, ResultProvider resultProvider, MagicFunctionManager magicFunctionManager, MagicNotifyService magicNotifyService, String instanceId, boolean throwException) {
+	private final Resource workspace;
+
+	private final Resource datasourceResource;
+
+	private final static Logger logger = LoggerFactory.getLogger(DefaultMagicAPIService.class);
+
+	private static final ClassLoader classLoader = MagicDataSourceController.class.getClassLoader();
+
+	// copy from DataSourceBuilder
+	private static final String[] DATA_SOURCE_TYPE_NAMES = new String[]{
+			"com.zaxxer.hikari.HikariDataSource",
+			"org.apache.tomcat.jdbc.pool.DataSource",
+			"org.apache.commons.dbcp2.BasicDataSource"};
+
+	public DefaultMagicAPIService(MappingHandlerMapping mappingHandlerMapping,
+								  ApiServiceProvider apiServiceProvider,
+								  FunctionServiceProvider functionServiceProvider,
+								  GroupServiceProvider groupServiceProvider,
+								  ResultProvider resultProvider,
+								  MagicDynamicDataSource magicDynamicDataSource,
+								  MagicFunctionManager magicFunctionManager,
+								  MagicNotifyService magicNotifyService,
+								  String instanceId,
+								  Resource workspace,
+								  boolean throwException) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
 		this.apiServiceProvider = apiServiceProvider;
 		this.functionServiceProvider = functionServiceProvider;
 		this.groupServiceProvider = groupServiceProvider;
 		this.resultProvider = resultProvider;
+		this.magicDynamicDataSource = magicDynamicDataSource;
 		this.magicFunctionManager = magicFunctionManager;
 		this.magicNotifyService = magicNotifyService;
+		this.workspace = workspace;
 		this.throwException = throwException;
 		this.instanceId = StringUtils.defaultIfBlank(instanceId, UUID.randomUUID().toString());
+		this.datasourceResource = workspace.getDirectory(Constants.PATH_DATASOURCE);
+		if (!this.datasourceResource.exists()) {
+			this.datasourceResource.mkdir();
+		}
 		MagicResourceLoader.addFunctionLoader((name) -> {
 			int index = name.indexOf(":");
 			if (index > -1) {
@@ -270,15 +328,14 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			isTrue(groupServiceProvider.update(group), GROUP_SAVE_FAILURE);
 			// 如果数据库修改成功，则修改接口路径
 			mappingHandlerMapping.updateGroup(group.getId());
-			return true;
+
 		} else if (isFunctionGroup && magicFunctionManager.checkGroup(group)) {
 			isTrue(groupServiceProvider.update(group), GROUP_SAVE_FAILURE);
 			// 如果数据库修改成功，则修改接口路径
 			magicFunctionManager.updateGroup(group.getId());
-			return true;
 		}
 		magicNotifyService.sendNotify(new MagicNotify(instanceId, group.getId(), Constants.NOTIFY_ACTION_UPDATE, Constants.NOTIFY_ACTION_GROUP));
-		return false;
+		return true;
 	}
 
 	@Override
@@ -317,10 +374,161 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
+	public void registerAllDataSource() {
+		datasourceResource.readAll();
+		List<Resource> resources = datasourceResource.files(".json");
+		// 删除旧的数据源
+		magicDynamicDataSource.datasourceNodes().stream()
+				.filter(it -> it.getId() != null)
+				.map(MagicDynamicDataSource.DataSourceNode::getKey)
+				.collect(Collectors.toList())
+				.forEach(magicDynamicDataSource::delete);
+		TypeFactory factory = TypeFactory.defaultInstance();
+		for (Resource item : resources) {
+			registerDataSource(JsonUtils.readValue(item.read(), factory.constructMapType(HashMap.class, String.class, String.class)));
+		}
+	}
+
+	private void registerDataSource(Map<String, String> properties){
+		if (properties != null) {
+			String key = properties.get("key");
+			String name = properties.getOrDefault("name", key);
+			String dsId = properties.remove("id");
+			int maxRows = ObjectConvertExtension.asInt(properties.get("maxRows"), -1);
+			magicDynamicDataSource.put(dsId, key, name, createDataSource(properties), maxRows);
+		}
+	}
+
+	@Override
+	public Map<String, String> getDataSource(String id) {
+		Resource resource = this.datasourceResource.getResource(id + ".json");
+		byte[] bytes = resource.read();
+		isTrue(bytes != null && bytes.length > 0, DATASOURCE_NOT_FOUND);
+		TypeFactory factory = TypeFactory.defaultInstance();
+		return JsonUtils.readValue(bytes, factory.constructMapType(LinkedHashMap.class, String.class, String.class));
+	}
+
+	@Override
+	public List<Map<String, Object>> datasourceList() {
+		return magicDynamicDataSource.datasourceNodes().stream().map(it -> {
+			Map<String, Object> row = new HashMap<>();
+			row.put("id", it.getId());    // id为空的则认为是不可修改的
+			row.put("key", it.getKey());    // 如果为null 说明是主数据源
+			row.put("name", it.getName());
+			return row;
+		}).collect(Collectors.toList());
+	}
+
+	@Override
+	public String testDataSource(Map<String, String> properties) {
+		DataSource dataSource = null;
+		try {
+			dataSource = createDataSource(properties);
+			Connection connection = dataSource.getConnection();
+			DataSourceUtils.doCloseConnection(connection, dataSource);
+		} catch (Exception e) {
+			return e.getMessage();
+		} finally {
+			IoUtils.closeDataSource(dataSource);
+		}
+		return null;
+	}
+
+	@Override
+	public String saveDataSource(Map<String, String> properties) {
+		String key = properties.get("key");
+		// 校验key是否符合规则
+		notBlank(key, DATASOURCE_KEY_REQUIRED);
+		isTrue(IoUtils.validateFileName(key), DATASOURCE_KEY_INVALID);
+		String name = properties.getOrDefault("name", key);
+		String id = properties.get("id");
+		Stream<String> keyStream;
+		int action = Constants.NOTIFY_ACTION_UPDATE;
+		if (StringUtils.isBlank(id)) {
+			action = Constants.NOTIFY_ACTION_ADD;
+			keyStream = magicDynamicDataSource.datasources().stream();
+		} else {
+			keyStream = magicDynamicDataSource.datasourceNodes().stream()
+					.filter(it -> !id.equals(it.getId()))
+					.map(MagicDynamicDataSource.DataSourceNode::getKey);
+		}
+		String dsId = StringUtils.isBlank(id) ? UUID.randomUUID().toString().replace("-", "") : id;
+		// 验证是否有冲突
+		isTrue(keyStream.noneMatch(key::equals), DATASOURCE_KEY_EXISTS);
+
+		int maxRows = ObjectConvertExtension.asInt(properties.get("maxRows"), -1);
+		properties.remove("id");
+		// 注册数据源
+		magicDynamicDataSource.put(dsId, key, name, createDataSource(properties), maxRows);
+		properties.put("id", dsId);
+		datasourceResource.getResource(dsId + ".json").write(JsonUtils.toJsonString(properties));
+		magicNotifyService.sendNotify(new MagicNotify(instanceId, dsId, action, Constants.NOTIFY_ACTION_DATASOURCE));
+		return dsId;
+	}
+
+	@Override
+	public boolean deleteDataSource(String id) {
+		// 查询数据源是否存在
+		Optional<MagicDynamicDataSource.DataSourceNode> dataSourceNode = magicDynamicDataSource.datasourceNodes().stream()
+				.filter(it -> id.equals(it.getId()))
+				.findFirst();
+		isTrue(dataSourceNode.isPresent(), DATASOURCE_NOT_FOUND);
+		Resource resource = this.datasourceResource.getResource(id + ".json");
+		// 删除数据源
+		isTrue(resource.delete(), DATASOURCE_NOT_FOUND);
+		// 取消注册数据源
+		dataSourceNode.ifPresent(it -> magicDynamicDataSource.delete(it.getKey()));
+		magicNotifyService.sendNotify(new MagicNotify(instanceId, id, Constants.NOTIFY_ACTION_DELETE, Constants.NOTIFY_ACTION_DATASOURCE));
+		return true;
+	}
+
+	@Override
+	public void upload(InputStream inputStream, boolean force) throws IOException {
+		ZipResource root = new ZipResource(inputStream);
+		Set<String> apiPaths = new HashSet<>();
+		Set<String> functionPaths = new HashSet<>();
+		Set<Group> groups = new HashSet<>();
+		Set<ApiInfo> apiInfos = new HashSet<>();
+		Set<FunctionInfo> functionInfos = new HashSet<>();
+		// 检查上传资源中是否有冲突
+		isTrue(readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, "/", root), UPLOAD_PATH_CONFLICT);
+		// 判断是否是强制上传
+		if (!force) {
+			// 检测与已注册的接口和函数是否有冲突
+			isTrue(!mappingHandlerMapping.hasRegister(apiPaths), UPLOAD_PATH_CONFLICT.format("接口"));
+			isTrue(!magicFunctionManager.hasRegister(apiPaths), UPLOAD_PATH_CONFLICT.format("函数"));
+		}
+		Resource item = root.getResource(Constants.GROUP_METABASE);
+		if (item.exists()) {
+			Group group = groupServiceProvider.readGroup(item);
+			// 检查分组是否存在
+			isTrue("0".equals(group.getParentId()) || groupServiceProvider.getGroupResource(group.getParentId()).exists(), GROUP_NOT_FOUND);
+			groups.removeIf(it -> it.getId().equalsIgnoreCase(group.getId()));
+		}
+		for (Group group : groups) {
+			Resource groupResource = groupServiceProvider.getGroupResource(group.getId());
+			if (groupResource != null && groupResource.exists()) {
+				groupServiceProvider.update(group);
+			} else {
+				groupServiceProvider.insert(group);
+			}
+		}
+		Resource backups = workspace.getDirectory(Constants.PATH_BACKUPS);
+		// 保存
+		write(apiServiceProvider, backups, apiInfos);
+		write(functionServiceProvider, backups, functionInfos);
+		// 重新注册
+		mappingHandlerMapping.registerAllMapping();
+		magicFunctionManager.registerAllFunction();
+		magicNotifyService.sendNotify(new MagicNotify(instanceId));
+	}
+
+	@Override
 	public boolean processNotify(MagicNotify magicNotify) {
 		if (magicNotify == null || instanceId.equals(magicNotify.getFrom())) {
 			return false;
 		}
+		logger.info("收到通知消息:{}", magicNotify);
 		String id = magicNotify.getId();
 		int action = magicNotify.getAction();
 		switch (magicNotify.getType()) {
@@ -330,8 +538,17 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				return processFunctionNotify(id, action);
 			case Constants.NOTIFY_ACTION_GROUP:
 				return processGroupNotify(id, action);
+			case Constants.NOTIFY_ACTION_DATASOURCE:
+				return processDataSourceNotify(id, action);
+			case Constants.NOTIFY_ACTION_ALL:
+				return processAllNotify();
 		}
 		return false;
+	}
+
+	@Override
+	public String getModuleName() {
+		return "magic";
 	}
 
 	private boolean processApiNotify(String id, int action) {
@@ -352,6 +569,22 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			magicFunctionManager.unregister(id);
 		} else {
 			magicFunctionManager.register(functionServiceProvider.get(id));
+		}
+		return true;
+	}
+
+	private boolean processDataSourceNotify(String id, int action) {
+		if (action == Constants.NOTIFY_ACTION_DELETE) {
+			// 查询数据源是否存在
+			magicDynamicDataSource.datasourceNodes().stream()
+					.filter(it -> id.equals(it.getId()))
+					.findFirst()
+					.ifPresent(it -> magicDynamicDataSource.delete(it.getKey()));
+		} else {
+			// 刷新数据源缓存
+			datasourceResource.readAll();
+			// 注册数据源
+			registerDataSource(getDataSource(id));
 		}
 		return true;
 	}
@@ -385,9 +618,95 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		return true;
 	}
 
-
-	@Override
-	public String getModuleName() {
-		return "magic";
+	private boolean processAllNotify() {
+		mappingHandlerMapping.registerAllMapping();
+		magicFunctionManager.registerAllFunction();
+		registerAllDataSource();
+		return true;
 	}
+
+	// copy from DataSourceBuilder
+	private DataSource createDataSource(Map<String, String> properties) {
+		Class<? extends DataSource> dataSourceType = getDataSourceType(properties.get("type"));
+		if (!properties.containsKey("driverClassName")
+				&& properties.containsKey("url")) {
+			String url = properties.get("url");
+			String driverClass = DatabaseDriver.fromJdbcUrl(url).getDriverClassName();
+			properties.put("driverClassName", driverClass);
+		}
+		DataSource dataSource = BeanUtils.instantiateClass(dataSourceType);
+		ConfigurationPropertySource source = new MapConfigurationPropertySource(properties);
+		ConfigurationPropertyNameAliases aliases = new ConfigurationPropertyNameAliases();
+		aliases.addAliases("url", "jdbc-url");
+		aliases.addAliases("username", "user");
+		Binder binder = new Binder(source.withAliases(aliases));
+		binder.bind(ConfigurationPropertyName.EMPTY, Bindable.ofInstance(dataSource));
+		return dataSource;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Class<? extends DataSource> getDataSourceType(String datasourceType) {
+		if (StringUtils.isNotBlank(datasourceType)) {
+			try {
+				return (Class<? extends DataSource>) ClassUtils.forName(datasourceType, classLoader);
+			} catch (Exception e) {
+				throw new InvalidArgumentException(DATASOURCE_TYPE_NOT_FOUND.format(datasourceType));
+			}
+		}
+		for (String name : DATA_SOURCE_TYPE_NAMES) {
+			try {
+				return (Class<? extends DataSource>) ClassUtils.forName(name, classLoader);
+			} catch (Exception ignored) {
+			}
+		}
+		throw new InvalidArgumentException(DATASOURCE_TYPE_NOT_SET);
+	}
+
+	private <T extends MagicEntity> void write(StoreServiceProvider<T> provider, Resource backups, Set<T> infos) {
+		for (T info : infos) {
+			Resource resource = groupServiceProvider.getGroupResource(info.getGroupId());
+			resource = resource.getResource(info.getName() + ".ms");
+			byte[] content = provider.serialize(info);
+			resource.write(content);
+			Resource directory = backups.getDirectory(info.getId());
+			if (!directory.exists()) {
+				directory.mkdir();
+			}
+			directory.getResource(System.currentTimeMillis() + ".ms").write(content);
+			resource.write(content);
+		}
+	}
+
+	private boolean readPaths(Set<Group> groups, Set<String> apiPaths, Set<String> functionPaths, Set<ApiInfo> apiInfos, Set<FunctionInfo> functionInfos, String parentPath, Resource root) {
+		Resource resource = root.getResource(Constants.GROUP_METABASE);
+		String path = "";
+		if (resource.exists()) {
+			Group group = JsonUtils.readValue(resource.read(), Group.class);
+			groups.add(group);
+			path = Objects.toString(group.getPath(), "");
+			boolean isApi = Constants.GROUP_TYPE_API.equals(group.getType());
+			for (Resource file : root.files(".ms")) {
+				boolean conflict;
+				if (isApi) {
+					ApiInfo info = apiServiceProvider.deserialize(file.read());
+					apiInfos.add(info);
+					conflict = !apiPaths.add(Objects.toString(info.getMethod(), "GET") + ":" + PathUtils.replaceSlash(parentPath + "/" + path + "/" + info.getPath()));
+				} else {
+					FunctionInfo info = functionServiceProvider.deserialize(file.read());
+					functionInfos.add(info);
+					conflict = !functionPaths.add(PathUtils.replaceSlash(parentPath + "/" + path + "/" + info.getPath()));
+				}
+				if (conflict) {
+					return false;
+				}
+			}
+		}
+		for (Resource directory : root.dirs()) {
+			if (!readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, PathUtils.replaceSlash(parentPath + "/" + path), directory)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 }

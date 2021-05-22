@@ -74,6 +74,8 @@ public class MagicConfiguration {
 
 	private AuthorizationInterceptor authorizationInterceptor;
 
+	private MagicNotifyService magicNotifyService;
+
 	/**
 	 * debug 超时时间
 	 */
@@ -223,6 +225,14 @@ public class MagicConfiguration {
 
 	public void setMagicAPIService(MagicAPIService magicAPIService) {
 		this.magicAPIService = magicAPIService;
+	}
+
+	public MagicNotifyService getMagicNotifyService() {
+		return magicNotifyService;
+	}
+
+	public void setMagicNotifyService(MagicNotifyService magicNotifyService) {
+		this.magicNotifyService = magicNotifyService;
 	}
 
 	/**

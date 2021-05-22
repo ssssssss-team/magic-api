@@ -44,13 +44,7 @@ public class MagicAPIProperties {
 	 * @since 0.4.0
 	 */
 	private String autoImportPackage;
-	/**
-	 * 自动刷新间隔，单位为秒，默认不开启
-	 *
-	 * @since 0.3.4
-	 */
-	@Deprecated
-	private int refreshInterval = 0;
+
 	/**
 	 * 是否允许覆盖应用接口，默认为false
 	 *
@@ -224,14 +218,6 @@ public class MagicAPIProperties {
 
 	public List<String> getAutoImportModuleList() {
 		return Arrays.asList(autoImportModule.replaceAll("\\s", "").split(","));
-	}
-
-	public int getRefreshInterval() {
-		return refreshInterval;
-	}
-
-	public void setRefreshInterval(int refreshInterval) {
-		this.refreshInterval = refreshInterval;
 	}
 
 	public boolean isAllowOverride() {

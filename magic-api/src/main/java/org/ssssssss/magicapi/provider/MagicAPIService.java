@@ -6,6 +6,8 @@ import org.ssssssss.magicapi.model.FunctionInfo;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.MagicNotify;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +44,6 @@ public interface MagicAPIService extends MagicModule {
 	/**
 	 * 获取接口详情
 	 * @param id	接口id
-	 * @return
 	 */
 	ApiInfo getApiInfo(String id);
 
@@ -128,6 +129,48 @@ public interface MagicAPIService extends MagicModule {
 	 * @param type 分组类型，1 接口分组，2 函数分组
 	 */
 	List<Group> groupList(String type);
+
+	/**
+	 * 注册数据源
+	 */
+	void registerAllDataSource();
+
+	/**
+	 * 获取数据源详情
+	 * @param id	数据源id
+	 */
+	Map<String, String> getDataSource(String id);
+
+	/**
+	 * 数据源列表
+	 */
+	List<Map<String, Object>> datasourceList();
+
+	/**
+	 * 测试数据源
+	 * @param properties	数据源属性
+	 * @return	返回错误说明，连接正常返回 null
+	 */
+	String testDataSource(Map<String, String> properties);
+
+	/**
+	 * 保存数据源
+	 * @param properties	数据源属性
+	 * @return 返回数据源ID
+	 */
+	String saveDataSource(Map<String, String> properties);
+
+	/**
+	 * 删除数据源
+	 * @param id	数据源id
+	 */
+	boolean deleteDataSource(String id);
+
+
+	/**
+	 * 上传
+	 */
+	void upload(InputStream inputStream, boolean force) throws IOException;
 
 	/**
 	 * 处理刷新通知

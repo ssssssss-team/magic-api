@@ -26,7 +26,7 @@ public class MagicNotify {
 	}
 
 	public MagicNotify(String from) {
-		this(from, null, Constants.NOTIFY_ACTION_ALL, -1);
+		this(from, null, Constants.NOTIFY_ACTION_ALL, Constants.NOTIFY_ACTION_ALL);
 	}
 
 	public MagicNotify(String from, String id, int action, int type) {
@@ -66,5 +66,52 @@ public class MagicNotify {
 
 	public void setType(int type) {
 		this.type = type;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("MagicNotify(from=");
+		builder.append(from);
+		builder.append(", action=");
+		switch (action) {
+			case Constants.NOTIFY_ACTION_ADD:
+				builder.append("新增");
+				break;
+			case Constants.NOTIFY_ACTION_UPDATE:
+				builder.append("修改");
+				break;
+			case Constants.NOTIFY_ACTION_DELETE:
+				builder.append("删除");
+				break;
+			case Constants.NOTIFY_ACTION_ALL:
+				builder.append("刷新全部");
+				break;
+			default:
+				builder.append("未知");
+		}
+		if(action != Constants.NOTIFY_ACTION_ALL){
+			builder.append(", type=");
+			switch (type) {
+				case Constants.NOTIFY_ACTION_API:
+					builder.append("接口");
+					break;
+				case Constants.NOTIFY_ACTION_FUNCTION:
+					builder.append("函数");
+					break;
+				case Constants.NOTIFY_ACTION_DATASOURCE:
+					builder.append("数据源");
+					break;
+				case Constants.NOTIFY_ACTION_GROUP:
+					builder.append("分组");
+					break;
+				default:
+					builder.append("未知");
+			}
+			builder.append(", id=");
+			builder.append(id);
+		}
+		builder.append(")");
+		return builder.toString();
 	}
 }

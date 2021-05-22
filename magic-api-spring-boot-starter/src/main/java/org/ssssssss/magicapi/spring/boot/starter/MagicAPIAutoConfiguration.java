@@ -144,7 +144,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 									 ObjectProvider<AuthorizationInterceptor> authorizationInterceptorProvider,
 									 Environment environment,
 									 ApplicationContext applicationContext
-									 ) {
+	) {
 		this.properties = properties;
 		this.dialects = dialectsProvider.getIfAvailable(Collections::emptyList);
 		this.requestInterceptors = requestInterceptorsProvider.getIfAvailable(Collections::emptyList);
@@ -323,6 +323,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	@ConditionalOnMissingBean(MagicNotifyService.class)
 	public MagicNotifyService magicNotifyService() {
+		logger.info("未配置集群通知服务，本实例不会推送通知，集群环境下可能会有问题，如需开启，请配置magic-api.cluster-config.enable=true");
 		return magicNotify -> {
 		};
 	}
@@ -342,9 +343,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 										   FunctionServiceProvider functionServiceProvider,
 										   GroupServiceProvider groupServiceProvider,
 										   ResultProvider resultProvider,
+										   MagicDynamicDataSource magicDynamicDataSource,
 										   MagicFunctionManager magicFunctionManager,
-										   MagicNotifyService magicNotifyService) {
-		return new DefaultMagicAPIService(mappingHandlerMapping, apiServiceProvider, functionServiceProvider, groupServiceProvider, resultProvider, magicFunctionManager, magicNotifyService, properties.getClusterConfig().getInstanceId(), properties.isThrowException());
+										   MagicNotifyService magicNotifyService,
+										   Resource workspace) {
+		return new DefaultMagicAPIService(mappingHandlerMapping, apiServiceProvider, functionServiceProvider, groupServiceProvider, resultProvider, magicDynamicDataSource, magicFunctionManager, magicNotifyService, properties.getClusterConfig().getInstanceId(), workspace, properties.isThrowException());
 	}
 
 	private void setupSpringSecurity() {
@@ -467,6 +470,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 												 Resource magicResource,
 												 ResultProvider resultProvider,
 												 MagicAPIService magicAPIService,
+												 MagicNotifyService magicNotifyService,
 												 ApiServiceProvider apiServiceProvider,
 												 GroupServiceProvider groupServiceProvider,
 												 MappingHandlerMapping mappingHandlerMapping,
@@ -487,6 +491,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		configuration.setApiServiceProvider(apiServiceProvider);
 		configuration.setGroupServiceProvider(groupServiceProvider);
 		configuration.setMappingHandlerMapping(mappingHandlerMapping);
+		configuration.setMagicNotifyService(magicNotifyService);
 		configuration.setFunctionServiceProvider(functionServiceProvider);
 		SecurityConfig securityConfig = properties.getSecurityConfig();
 		configuration.setUsername(securityConfig.getUsername());
@@ -520,7 +525,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			));
 			controllers.forEach(item -> mappingHandlerMapping.registerController(item, base));
 		}
-		dataSourceController.registerDataSource();
+		magicAPIService.registerAllDataSource();
 		// 设置拦截器信息
 		this.requestInterceptors.forEach(interceptor -> {
 			logger.info("注册请求拦截器：{}", interceptor.getClass());
@@ -533,21 +538,13 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		configuration.setMagicFunctionManager(magicFunctionManager);
 		// 注册函数加载器
 		magicFunctionManager.registerFunctionLoader();
-		// 注册所有函数a
+		// 注册所有函数
 		magicFunctionManager.registerAllFunction();
-		// 自动刷新
-		magicFunctionManager.enableRefresh(properties.getRefreshInterval());
 		mappingHandlerMapping.setHandler(new RequestHandler(configuration));
 		mappingHandlerMapping.setMagicApiService(apiServiceProvider);
 		mappingHandlerMapping.setGroupServiceProvider(groupServiceProvider);
 		// 注册所有映射
 		mappingHandlerMapping.registerAllMapping();
-		int refreshInterval = properties.getRefreshInterval();
-		// 自动刷新
-		mappingHandlerMapping.enableRefresh(refreshInterval);
-		if (refreshInterval > 0) {
-			Executors.newScheduledThreadPool(1).scheduleAtFixedRate(dataSourceController::registerDataSource, refreshInterval, refreshInterval, TimeUnit.SECONDS);
-		}
 		return configuration;
 	}
 
@@ -556,7 +553,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return new DefaultAuthorizationInterceptor(securityConfig.getUsername(), securityConfig.getPassword());
 	}
 
-	private RestTemplate createRestTemplate(){
+	private RestTemplate createRestTemplate() {
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.getMessageConverters().add(new StringHttpMessageConverter(StandardCharsets.UTF_8) {
 			{

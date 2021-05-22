@@ -16,7 +16,6 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	private final Map<String, Resource> mappings = new HashMap<>();
 	private final Resource workspace;
-	private final String metabase = "group.json";
 	private Map<String, Group> cacheApiTree = new HashMap<>();
 	private Map<String, Group> cacheFunctionTree = new HashMap<>();
 
@@ -32,7 +31,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 		Resource directory = this.getGroupResource(group.getParentId());
 		directory = directory == null ? this.getGroupResource(group.getType(), group.getName()) : directory.getDirectory(group.getName());
 		if (!directory.exists() && directory.mkdir()) {
-			Resource resource = directory.getResource(metabase);
+			Resource resource = directory.getResource(Constants.GROUP_METABASE);
 			if (resource.write(JsonUtils.toJsonString(group))) {
 				mappings.put(group.getId(), resource);
 				return true;
@@ -52,7 +51,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 		newResource = newResource == null ? getGroupResource(group.getType(), group.getName()) : newResource.getDirectory(group.getName());
 		// 重命名或移动目录
 		if (oldResource.renameTo(newResource)) {
-			Resource target = newResource.getResource(metabase);
+			Resource target = newResource.getResource(Constants.GROUP_METABASE);
 			if (target.write(JsonUtils.toJsonString(group))) {
 				mappings.put(group.getId(), target);
 				return true;
@@ -112,14 +111,13 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	public List<Group> groupList(String type) {
 		Resource resource = this.workspace.getDirectory(Constants.GROUP_TYPE_API.equals(type) ? Constants.PATH_API : Constants.PATH_FUNCTION);
 		resource.readAll();
-		List<Group> groups = resource.dirs().stream().map(it -> it.getResource(metabase)).filter(Resource::exists)
+		return resource.dirs().stream().map(it -> it.getResource(Constants.GROUP_METABASE)).filter(Resource::exists)
 				.map(it -> {
 					Group group = JsonUtils.readValue(it.read(), Group.class);
 					mappings.put(group.getId(), it);
 					return group;
 				})
 				.collect(Collectors.toList());
-		return groups;
 	}
 
 	@Override

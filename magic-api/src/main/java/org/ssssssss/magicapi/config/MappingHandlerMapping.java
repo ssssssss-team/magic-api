@@ -1,8 +1,8 @@
 package org.ssssssss.magicapi.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -26,8 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -107,7 +105,7 @@ public class MappingHandlerMapping {
 	 * @param requestMapping 请求路径
 	 */
 	private static String buildMappingKey(String requestMethod, String requestMapping) {
-		if (!StringUtils.isEmpty(requestMapping) && !requestMapping.startsWith("/")) {
+		if (StringUtils.isNotBlank(requestMapping) && !requestMapping.startsWith("/")) {
 			requestMapping = "/" + requestMapping;
 		}
 		return Objects.toString(requestMethod, "GET").toUpperCase() + ":" + requestMapping;
@@ -479,13 +477,6 @@ public class MappingHandlerMapping {
 	 */
 	private RequestMappingInfo getRequestMapping(String method, String path) {
 		return RequestMappingInfo.paths(path).methods(RequestMethod.valueOf(method.toUpperCase())).build();
-	}
-
-	public void enableRefresh(int interval) {
-		if (interval > 0) {
-			logger.info("启动自动刷新magic-api");
-			Executors.newScheduledThreadPool(1).scheduleAtFixedRate(this::registerAllMapping, interval, interval, TimeUnit.SECONDS);
-		}
 	}
 
 	static class MappingNode {

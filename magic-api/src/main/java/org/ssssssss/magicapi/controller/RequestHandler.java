@@ -491,11 +491,19 @@ public class RequestHandler extends MagicController {
 	 * 执行前置拦截器
 	 */
 	private Object doPreHandle(RequestEntity requestEntity) throws Exception {
-		for (RequestInterceptor requestInterceptor : configuration.getRequestInterceptors()) {
-			Object value = requestInterceptor.preHandle(requestEntity);
-			if (value != null) {
-				return value;
+		try {
+			for (RequestInterceptor requestInterceptor : configuration.getRequestInterceptors()) {
+				Object value = requestInterceptor.preHandle(requestEntity);
+				if (value != null) {
+					return value;
+				}
 			}
+		} catch (Exception e) {
+			if(requestEntity.isRequestedFromTest()){
+				// 修正前端显示，原样输出显示
+				requestEntity.getResponse().setHeader(HEADER_RESPONSE_WITH_MAGIC_API, CONST_STRING_FALSE);
+			}
+			throw e;
 		}
 		return null;
 	}

@@ -107,6 +107,8 @@ public class Constants {
 
 	public static final String MAGIC_TOKEN_HEADER = "Magic-Token";
 
+	public static final String GROUP_METABASE = "group.json";
+
 	/**
 	 * 执行成功的code值
 	 */
@@ -140,7 +142,7 @@ public class Constants {
 	/**
 	 * 通知更新全部
 	 */
-	public static final int NOTIFY_ACTION_ALL = 4;
+	public static final int NOTIFY_ACTION_ALL = 0;
 
 	/**
 	 * 通知接口刷新

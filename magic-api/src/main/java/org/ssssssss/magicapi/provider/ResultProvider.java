@@ -92,15 +92,7 @@ public interface ResultProvider {
 	 * @param data          数据内容
 	 */
 	default Object buildPageResult(RequestEntity requestEntity, Page page, long total, List<Map<String, Object>> data) {
-		return buildPageResult(total, data);
-	}
-
-	/**
-	 * @param total 总数
-	 * @param data  数据内容
-	 */
-	@Deprecated
-	default Object buildPageResult(long total, List<Map<String, Object>> data) {
 		return new PageResult<>(total, data);
 	}
+
 }
