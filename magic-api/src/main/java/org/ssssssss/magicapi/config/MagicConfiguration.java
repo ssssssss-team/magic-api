@@ -25,14 +25,6 @@ public class MagicConfiguration {
 	 */
 	private MagicFunctionManager magicFunctionManager;
 	/**
-	 * 用户名
-	 */
-	private String username;
-	/**
-	 * 密码
-	 */
-	private String password;
-	/**
 	 * 编辑器配置文件
 	 */
 	private String editorConfig;
@@ -50,11 +42,6 @@ public class MagicConfiguration {
 	 * 函数查询Service
 	 */
 	private FunctionServiceProvider functionServiceProvider;
-
-	/**
-	 * 动态数据源
-	 */
-	private MagicDynamicDataSource magicDynamicDataSource;
 
 	private MagicAPIService magicAPIService;
 
@@ -74,8 +61,6 @@ public class MagicConfiguration {
 
 	private AuthorizationInterceptor authorizationInterceptor;
 
-	private MagicNotifyService magicNotifyService;
-
 	/**
 	 * debug 超时时间
 	 */
@@ -93,22 +78,6 @@ public class MagicConfiguration {
 
 	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
 	}
 
 	public AuthorizationInterceptor getAuthorizationInterceptor() {
@@ -137,14 +106,6 @@ public class MagicConfiguration {
 
 	public void setGroupServiceProvider(GroupServiceProvider groupServiceProvider) {
 		this.groupServiceProvider = groupServiceProvider;
-	}
-
-	public MagicDynamicDataSource getMagicDynamicDataSource() {
-		return magicDynamicDataSource;
-	}
-
-	public void setMagicDynamicDataSource(MagicDynamicDataSource magicDynamicDataSource) {
-		this.magicDynamicDataSource = magicDynamicDataSource;
 	}
 
 	public boolean isThrowException() {
@@ -227,13 +188,6 @@ public class MagicConfiguration {
 		this.magicAPIService = magicAPIService;
 	}
 
-	public MagicNotifyService getMagicNotifyService() {
-		return magicNotifyService;
-	}
-
-	public void setMagicNotifyService(MagicNotifyService magicNotifyService) {
-		this.magicNotifyService = magicNotifyService;
-	}
 
 	/**
 	 * 打印banner

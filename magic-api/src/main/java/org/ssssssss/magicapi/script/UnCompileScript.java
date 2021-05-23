@@ -7,9 +7,9 @@ import javax.script.ScriptException;
 
 public class UnCompileScript extends CompiledScript {
 
-	private ScriptEngine engine;
+	private final ScriptEngine engine;
 
-	private String script;
+	private final String script;
 
 	public UnCompileScript(String script, ScriptEngine engine) {
 		this.script = script;

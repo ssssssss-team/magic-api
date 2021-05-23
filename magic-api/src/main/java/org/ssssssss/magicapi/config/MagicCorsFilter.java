@@ -22,9 +22,9 @@ public class MagicCorsFilter implements Filter {
 	}
 
 	public void process(HttpServletRequest request, HttpServletResponse response) {
-		String value = request.getHeader("Origin");
+		String value = request.getHeader(HttpHeaders.ORIGIN);
 		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, StringUtils.isBlank(value) ? "*" : value);
-		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+		response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, Constants.CONST_STRING_TRUE);
 		value = request.getHeader(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS);
 		if (StringUtils.isNotBlank(value)) {
 			response.setHeader(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS, value);

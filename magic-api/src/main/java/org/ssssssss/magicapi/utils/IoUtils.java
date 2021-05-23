@@ -13,9 +13,9 @@ import java.util.regex.Pattern;
 
 public class IoUtils {
 
-	private static Logger logger = LoggerFactory.getLogger(IoUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(IoUtils.class);
 
-	private static Pattern FILE_NAME_PATTERN = Pattern.compile("^[\\u4e00-\\u9fa5_a-zA-Z0-9]+$");
+	private static final Pattern FILE_NAME_PATTERN = Pattern.compile("^[\\u4e00-\\u9fa5_a-zA-Z0-9]+$");
 
 	public static boolean validateFileName(String name) {
 		return FILE_NAME_PATTERN.matcher(name).matches();
@@ -73,7 +73,7 @@ public class IoUtils {
 		try {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			byte[] buf = new byte[4096];
-			int len = -1;
+			int len;
 			while ((len = inputStream.read(buf, 0, buf.length)) != -1) {
 				baos.write(buf, 0, len);
 			}

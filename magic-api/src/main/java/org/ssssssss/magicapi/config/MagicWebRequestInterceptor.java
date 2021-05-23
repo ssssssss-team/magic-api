@@ -17,7 +17,7 @@ public class MagicWebRequestInterceptor implements HandlerInterceptor {
 
 	private final MagicCorsFilter magicCorsFilter;
 
-	private AuthorizationInterceptor authorizationInterceptor;
+	private final AuthorizationInterceptor authorizationInterceptor;
 
 	public MagicWebRequestInterceptor(MagicCorsFilter magicCorsFilter, AuthorizationInterceptor authorizationInterceptor) {
 		this.magicCorsFilter = magicCorsFilter;

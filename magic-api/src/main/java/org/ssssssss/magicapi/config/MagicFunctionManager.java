@@ -21,9 +21,9 @@ import java.util.stream.Collectors;
 public class MagicFunctionManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicFunctionManager.class);
-	private static Map<String, FunctionInfo> mappings = new ConcurrentHashMap<>();
-	private GroupServiceProvider groupServiceProvider;
-	private FunctionServiceProvider functionServiceProvider;
+	private static final Map<String, FunctionInfo> mappings = new ConcurrentHashMap<>();
+	private final GroupServiceProvider groupServiceProvider;
+	private final FunctionServiceProvider functionServiceProvider;
 	private TreeNode<Group> groups;
 
 	public MagicFunctionManager(GroupServiceProvider groupServiceProvider, FunctionServiceProvider functionServiceProvider) {

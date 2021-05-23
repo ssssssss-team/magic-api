@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggerManager {
 
-	private static Logger logger = LoggerFactory.getLogger(LoggerManager.class);
+	private static final Logger logger = LoggerFactory.getLogger(LoggerManager.class);
 
 	/**
 	 * 创建一个新的appender至项目中，用于UI界面
 	 */
-	public static MagicLoggerContext createMagicAppender() {
+	public static void createMagicAppender() {
 		ILoggerFactory loggerFactory = LoggerFactory.getILoggerFactory();
 		String loggerFactoryClassName = loggerFactory.getClass().getName();
 		MagicLoggerContext magicLoggerContext = null;
@@ -30,6 +30,5 @@ public class LoggerManager {
 		} else {
 			magicLoggerContext.generateAppender();
 		}
-		return magicLoggerContext;
 	}
 }

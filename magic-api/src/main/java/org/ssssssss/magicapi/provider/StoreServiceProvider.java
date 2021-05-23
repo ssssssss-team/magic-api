@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public abstract class StoreServiceProvider<T extends MagicEntity> {
 
-	private static Logger logger = LoggerFactory.getLogger(StoreServiceProvider.class);
+	private static final Logger logger = LoggerFactory.getLogger(StoreServiceProvider.class);
 	protected Resource workspace;
 	protected Resource backupResource;
 	protected Map<String, Resource> mappings = new HashMap<>();

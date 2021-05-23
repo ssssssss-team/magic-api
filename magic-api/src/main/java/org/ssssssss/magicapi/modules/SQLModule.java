@@ -417,7 +417,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return "db";
 	}
 
-	class MagicKeyHolder extends GeneratedKeyHolder {
+	static class MagicKeyHolder extends GeneratedKeyHolder {
 
 		private final boolean useGeneratedKeys;
 

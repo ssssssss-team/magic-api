@@ -139,6 +139,7 @@ public class BoundSql {
 	/**
 	 * 获取缓存值
 	 */
+	@SuppressWarnings({"unchecked"})
 	private <T> T getCacheValue(String sql, Object[] params, Supplier<T> supplier) {
 		if (cacheName == null) {
 			return supplier.get();

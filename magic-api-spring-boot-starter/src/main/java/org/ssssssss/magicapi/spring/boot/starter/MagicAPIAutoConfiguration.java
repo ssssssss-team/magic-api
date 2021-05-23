@@ -66,8 +66,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
 @Configuration
@@ -466,11 +464,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	public MagicConfiguration magicConfiguration(List<MagicModule> magicModules,
 												 List<LanguageProvider> languageProviders,
-												 @Autowired(required = false) MagicDynamicDataSource magicDynamicDataSource,
 												 Resource magicResource,
 												 ResultProvider resultProvider,
 												 MagicAPIService magicAPIService,
-												 MagicNotifyService magicNotifyService,
 												 ApiServiceProvider apiServiceProvider,
 												 GroupServiceProvider groupServiceProvider,
 												 MappingHandlerMapping mappingHandlerMapping,
@@ -491,16 +487,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		configuration.setApiServiceProvider(apiServiceProvider);
 		configuration.setGroupServiceProvider(groupServiceProvider);
 		configuration.setMappingHandlerMapping(mappingHandlerMapping);
-		configuration.setMagicNotifyService(magicNotifyService);
 		configuration.setFunctionServiceProvider(functionServiceProvider);
 		SecurityConfig securityConfig = properties.getSecurityConfig();
-		configuration.setUsername(securityConfig.getUsername());
-		configuration.setPassword(securityConfig.getPassword());
 		configuration.setDebugTimeout(properties.getDebugConfig().getTimeout());
 		configuration.setHttpMessageConverters(Optional.ofNullable(httpMessageConverters).orElse(Collections.emptyList()));
 		configuration.setResultProvider(resultProvider);
 		configuration.setThrowException(properties.isThrowException());
-		configuration.setMagicDynamicDataSource(magicDynamicDataSource);
 		configuration.setEditorConfig(properties.getEditorConfig());
 		configuration.setWorkspace(magicResource);
 		configuration.setAuthorizationInterceptor(authorizationInterceptor);

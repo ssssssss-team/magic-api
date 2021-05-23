@@ -39,7 +39,7 @@ public class MagicSwaggerConfiguration {
 
 	private final MagicAPIProperties properties;
 
-	private ApplicationContext applicationContext;
+	private final ApplicationContext applicationContext;
 
 	public MagicSwaggerConfiguration(MagicAPIProperties properties,ApplicationContext applicationContext) {
 		this.properties = properties;
@@ -69,11 +69,9 @@ public class MagicSwaggerConfiguration {
 			List<SwaggerResource> resources = new ArrayList<>();
 			Map<String, SwaggerResourcesProvider> beans = applicationContext.getBeansOfType(SwaggerResourcesProvider.class);
 			// 获取已定义的文档信息
-			if (beans != null) {
-				for (Map.Entry<String, SwaggerResourcesProvider> entry : beans.entrySet()) {
-					if (!"magicSwaggerResourcesProvider".equalsIgnoreCase(entry.getKey())) {
-						resources.addAll(entry.getValue().get());
-					}
+			for (Map.Entry<String, SwaggerResourcesProvider> entry : beans.entrySet()) {
+				if (!"magicSwaggerResourcesProvider".equalsIgnoreCase(entry.getKey())) {
+					resources.addAll(entry.getValue().get());
 				}
 			}
 			// 追加Magic Swagger信息
@@ -87,7 +85,6 @@ public class MagicSwaggerConfiguration {
 	 *
 	 * @param name     名字
 	 * @param location 位置
-	 * @return
 	 */
 	private SwaggerResource swaggerResource(String name, String location) {
 		SwaggerResource resource = new SwaggerResource();
