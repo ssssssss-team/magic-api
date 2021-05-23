@@ -1,0 +1,45 @@
+import * as monaco from 'monaco-editor';
+import {HighLightOptions} from './high-light.js';
+import CompletionItemProvider from './completion.js';
+import FoldingRangeProvider from './folding.js';
+import SignatureHelpProvider from './signature.js';
+import HoverProvider from './hover.js';
+
+export const initializeMagicScript = () => {
+    const language = 'magicscript';
+    // 注册语言
+    monaco.languages.register({id: language});
+    // 设置语言选项
+    monaco.languages.setLanguageConfiguration(language, {
+        wordPattern: /(-?\d*\.\d\w*)|([^`~!#%^&*()\-=+[{\]}\\|;:'",.<>/?\s]+)/g,
+        brackets: [
+            ['{', '}'],
+            ['[', ']'],
+            ['(', ')'],
+        ],
+        comments: {
+            lineComment: '//',
+            blockComment: ['/*', '*/'],
+        },
+        operators: ['<=', '>=', '==', '!=', '+', '-', '*', '/', '%', '&', '|', '!', '&&', '||', '?', ':', '++', '--', '+=', '-=', '*=', '/='],
+        autoClosingPairs: [
+            {open: '{', close: '}'},
+            {open: '[', close: ']'},
+            {open: '(', close: ')'},
+            {open: '"""', close: '"""', notIn: ['string.multi']},
+            {open: '"', close: '"', notIn: ['string']},
+            {open: '\'', close: '\'', notIn: ['string']},
+        ],
+    })
+
+    // 设置高亮
+    monaco.languages.setMonarchTokensProvider(language, HighLightOptions);
+    // 设置代码提示
+    monaco.languages.registerCompletionItemProvider(language, CompletionItemProvider);
+    // 设置折叠
+    monaco.languages.registerFoldingRangeProvider(language, FoldingRangeProvider);
+    // 设置参数提示
+    monaco.languages.registerSignatureHelpProvider(language, SignatureHelpProvider);
+    // 设置悬浮提示
+    monaco.languages.registerHoverProvider(language, HoverProvider);
+}

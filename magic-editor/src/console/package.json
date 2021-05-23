@@ -1,0 +1,73 @@
+{
+  "name": "magic-editor",
+  "version": "1.2.0",
+  "private": false,
+  "description": "magic-editor for magic-api",
+  "main": "dist/magic-editor.umd.min.js",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "build:lib": "vue-cli-service build --name magic-editor --target lib --entry ./src/index.js"
+  },
+  "dependencies": {
+    "axios": "^0.21.0",
+    "core-js": "^3.6.5",
+    "monaco-editor": "^0.21.2",
+    "qs": "^6.9.4",
+    "vue": "^2.6.11",
+    "worker-loader": "^3.0.6"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-vue": "^6.2.2",
+    "vue-template-compiler": "^2.6.11",
+    "webpack": "^4.44.0"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "parserOptions": {
+      "parser": "babel-eslint"
+    },
+    "rules": {
+      "generator-star-spacing": "off",
+      "no-tabs": "off",
+      "no-unused-vars": "off",
+      "no-console": "off",
+      "no-irregular-whitespace": "off",
+      "no-debugger": "off"
+    }
+  },
+  "files": [
+    "/dist/*",
+    "/src/*",
+    "*.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://gitee.com/ssssssss-team/magic-api.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitee.com/ssssssss-team/magic-api/issues"
+  },
+  "author": "javaxd",
+  "homepage": "https://ssssssss.org",
+  "keywords": [
+    "vue",
+    "magic-api",
+    "magic-editor",
+    "magic-api-vue"
+  ]
+}
