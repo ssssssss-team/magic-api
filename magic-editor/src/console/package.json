@@ -56,11 +56,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/ssssssss-team/magic-editor.git"
+    "url": "https://gitee.com/ssssssss-team/magic-api.git"
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://gitee.com/ssssssss-team/magic-editor/issues"
+    "url": "https://gitee.com/ssssssss-team/magic-api/issues"
   },
   "author": "javaxd",
   "homepage": "https://ssssssss.org",
