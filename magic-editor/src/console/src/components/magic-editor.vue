@@ -89,6 +89,7 @@ export default {
         this.$refs.apiList.initData()
         this.$refs.functionList.initData()
         this.$refs.datasourceList.initData()
+        bus.$emit('login');
       }
     }
   },
@@ -179,6 +180,7 @@ export default {
         this.toolbarIndex = 1
       }
     })
+    bus.$on('logout', ()=> this.showLogin = true)
   },
   destroyed() {
     bus.$off();

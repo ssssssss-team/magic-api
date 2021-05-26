@@ -106,7 +106,6 @@ export default {
     },
     // 初始化数据
     initData() {
-      this.tree = []
       request.send('datasource/list').success(data => {
         this.datasources = data;
         JavaClass.setExtensionAttribute('org.ssssssss.magicapi.modules.SQLModule',this.datasources.filter(it => it.key).map(it => {
@@ -274,6 +273,7 @@ export default {
     }
   },
   mounted() {
+    this.bus.$on('logout', () => this.datasources = []);
     this.bus.$on('refresh-resource',() => {
       this.initData()
     })

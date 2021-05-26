@@ -65,6 +65,9 @@ export default {
       }
     })
     bus.$on('opened', info => {
+      if(info.empty){
+        return;
+      }
       this.isApi = info._type === 'api';
       this.info = info
       if (this.isApi) {
@@ -156,6 +159,7 @@ export default {
   color: var(--icon-color);
   padding: 0 2px;
   display: inline-block;
+  vertical-align: top;
 }
 
 .ma-bottom-tab li:hover {

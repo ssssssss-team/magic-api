@@ -753,6 +753,7 @@ export default {
     }
   },
   mounted() {
+    this.bus.$on('logout', () => this.tree = [])
     this.bus.$on('opened', item => {
       this.currentFileItem = item
     })

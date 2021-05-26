@@ -11,6 +11,10 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+.ma-icon-logout:before {
+  content: "\e65a";
+}
+
 .ma-icon-datasource:before {
   content: "\e615";
 }

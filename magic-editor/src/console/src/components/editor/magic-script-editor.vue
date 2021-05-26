@@ -192,6 +192,7 @@ export default {
     bus.$on('doTest', this.doTest)
     bus.$on('doContinue', this.doContinue)
     bus.$on('doStepInto', this.doStepInto)
+    bus.$on('logout', this.closeAll)
     bus.$on('ready-delete', () => {
       if (this.info) {
         bus.$emit('delete-api', this.info)
@@ -757,6 +758,12 @@ export default {
         bus.$emit('opened', {empty: true})
       }
     },
+    closeAll() {
+      let items = [...this.scripts]
+      items.forEach(element => {
+        this.close(element.id || element.tmp_id)
+      })
+    },
     changed(info) {
       if (info && info === this.selected) {
         let index = -1
@@ -816,10 +823,7 @@ export default {
           {
             label: '全部关闭',
             onClick: () => {
-              let items = [...this.scripts]
-              items.forEach(element => {
-                this.close(element.id || element.tmp_id)
-              })
+              this.closeAll()
             }
           }
         ],

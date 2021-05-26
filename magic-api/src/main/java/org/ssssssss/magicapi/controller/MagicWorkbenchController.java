@@ -101,6 +101,26 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		return new JsonBean<>(true);
 	}
 
+	@RequestMapping("/user")
+	@ResponseBody
+	public JsonBean<MagicUser> user(HttpServletRequest request){
+		if (configuration.getAuthorizationInterceptor().requireLogin()) {
+			try {
+				return new JsonBean<>(configuration.getAuthorizationInterceptor().getUserByToken(request.getHeader(Constants.MAGIC_TOKEN_HEADER)));
+			} catch (MagicLoginException ignored) {
+
+			}
+		}
+		return new JsonBean<>(MagicUser.guest());
+	}
+
+	@RequestMapping("/logout")
+	@ResponseBody
+	public JsonBean<Void> logout(HttpServletRequest request){
+		configuration.getAuthorizationInterceptor().logout(request.getHeader(Constants.MAGIC_TOKEN_HEADER));
+		return new JsonBean<>();
+	}
+
 
 	/**
 	 * 创建控制台输出

@@ -37,4 +37,8 @@ public class MagicUser {
 	public void setToken(String token) {
 		this.token = token;
 	}
+
+	public static MagicUser guest(){
+		return new MagicUser(null, "guest", null);
+	}
 }

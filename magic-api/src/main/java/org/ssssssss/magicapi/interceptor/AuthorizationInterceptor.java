@@ -32,6 +32,13 @@ public interface AuthorizationInterceptor {
 	}
 
 	/**
+	 * 退出登录
+	 */
+	default void logout(String token){
+
+	}
+
+	/**
 	 * 是否拥有页面按钮的权限
 	 */
 	default boolean allowVisit(MagicUser magicUser, HttpServletRequest request, Authorization authorization) {
