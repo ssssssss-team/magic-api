@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.provider.impl;
 
+import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -389,7 +390,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		}
 	}
 
-	private void registerDataSource(Map<String, String> properties){
+	private void registerDataSource(Map<String, String> properties) {
 		if (properties != null) {
 			String key = properties.get("key");
 			String name = properties.getOrDefault("name", key);
@@ -520,6 +521,17 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		// 重新注册
 		mappingHandlerMapping.registerAllMapping();
 		magicFunctionManager.registerAllFunction();
+		Resource datasourceResource = root.getResource(Constants.PATH_DATASOURCE + "/");
+		if (datasourceResource.exists()) {
+			MapType mapType = TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, String.class);
+			datasourceResource.files(".json").forEach(it -> {
+				byte[] content = it.read();
+				// 注册数据源
+				registerDataSource(JsonUtils.readValue(content, mapType));
+				// 保存数据源
+				datasourceResource.getResource(it.name()).write(content);
+			});
+		}
 		magicNotifyService.sendNotify(new MagicNotify(instanceId));
 	}
 
