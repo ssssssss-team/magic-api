@@ -83,6 +83,10 @@ public class MagicDynamicDataSource {
 		return new ArrayList<>(this.dataSourceMap.keySet());
 	}
 
+	public boolean isEmpty(){
+		return this.dataSourceMap.isEmpty();
+	}
+
 	/**
 	 * 获取全部数据源
 	 */

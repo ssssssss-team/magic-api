@@ -203,6 +203,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@ConditionalOnProperty(prefix = "magic-api", name = "resource.type", havingValue = "database")
 	public Resource magicDatabaseResource(MagicDynamicDataSource magicDynamicDataSource) {
 		ResourceConfig resourceConfig = properties.getResource();
+		if(magicDynamicDataSource.isEmpty()){
+			throw new MagicAPIException("当前未配置数据源，如已配置，请引入 spring-boot-starter-jdbc 后在试!");
+		}
 		MagicDynamicDataSource.DataSourceNode dataSourceNode = magicDynamicDataSource.getDataSource(resourceConfig.getDatasource());
 		if (dataSourceNode == null) {
 			throw new IllegalArgumentException(String.format("找不到数据源:%s", resourceConfig.getDatasource()));
@@ -322,7 +325,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Bean
 	@ConditionalOnMissingBean(MagicNotifyService.class)
 	public MagicNotifyService magicNotifyService() {
-		logger.info("未配置集群通知服务，本实例不会推送通知，集群环境下可能会有问题，如需开启，请配置magic-api.cluster-config.enable=true");
+		logger.info("未配置集群通知服务，本实例不会推送通知，集群环境下可能会有问题，如需开启，请配置magic-api.cluster-config.enable=true，若开启后本提示还在，请检查 spring-boot-starter-data-redis 是否引入");
 		return magicNotify -> {
 		};
 	}
@@ -371,7 +374,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 * 注入数据库查询模块
 	 */
 	@Bean
-	@ConditionalOnBean({DataSource.class})
+	@ConditionalOnBean({MagicDynamicDataSource.class})
 	public SQLModule magicSqlModule(MagicDynamicDataSource dynamicDataSource,
 									ResultProvider resultProvider,
 									PageProvider pageProvider,
