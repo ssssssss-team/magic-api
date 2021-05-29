@@ -83,6 +83,20 @@ public class MagicAPIProperties {
 	 */
 	private String response;
 
+	/**
+	 * 远程推送时的秘钥，未配置则不开启
+	 *
+	 * @since 1.2.1
+	 */
+	private String secretKey;
+
+	/**
+	 * 远程推送的路径，默认为/_magic-api-sync
+	 *
+	 * @since 1.2.1
+	 */
+	private String pushPath = "/_magic-api-sync";
+
 
 	@NestedConfigurationProperty
 	private SecurityConfig securityConfig = new SecurityConfig();
@@ -294,5 +308,21 @@ public class MagicAPIProperties {
 
 	public void setClusterConfig(ClusterConfig clusterConfig) {
 		this.clusterConfig = clusterConfig;
+	}
+
+	public String getSecretKey() {
+		return secretKey;
+	}
+
+	public void setSecretKey(String secretKey) {
+		this.secretKey = secretKey;
+	}
+
+	public String getPushPath() {
+		return pushPath;
+	}
+
+	public void setPushPath(String pushPath) {
+		this.pushPath = pushPath;
 	}
 }

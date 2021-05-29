@@ -24,6 +24,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -471,7 +472,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 												 GroupServiceProvider groupServiceProvider,
 												 MappingHandlerMapping mappingHandlerMapping,
 												 FunctionServiceProvider functionServiceProvider,
-												 MagicFunctionManager magicFunctionManager) {
+												 MagicFunctionManager magicFunctionManager) throws NoSuchMethodException {
 		logger.info("magic-api工作目录:{}", magicResource);
 		setupSpringSecurity();
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
@@ -506,16 +507,23 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		String base = properties.getWeb();
 		mappingHandlerMapping.setRequestMappingHandlerMapping(requestMappingHandlerMapping);
 		MagicDataSourceController dataSourceController = new MagicDataSourceController(configuration);
+		MagicWorkbenchController magicWorkbenchController = new MagicWorkbenchController(configuration, properties.getSecretKey());
 		if (base != null) {
 			configuration.setEnableWeb(true);
 			List<MagicController> controllers = new ArrayList<>(Arrays.asList(
 					new MagicAPIController(configuration),
 					dataSourceController,
-					new MagicWorkbenchController(configuration),
+					magicWorkbenchController,
 					new MagicGroupController(configuration),
 					new MagicFunctionController(configuration)
 			));
 			controllers.forEach(item -> mappingHandlerMapping.registerController(item, base));
+		}
+		// 注册接收推送的接口
+		if(StringUtils.isNotBlank(properties.getSecretKey())){
+			RequestMappingInfo requestMappingInfo = RequestMappingInfo.paths(properties.getPushPath()).build();
+			Method method = MagicWorkbenchController.class.getDeclaredMethod("receivePush", MultipartFile.class, String.class, Long.class, String.class);
+			Mapping.create(requestMappingHandlerMapping).register(requestMappingInfo,magicWorkbenchController, method);
 		}
 		magicAPIService.registerAllDataSource();
 		// 设置拦截器信息

@@ -23,6 +23,9 @@
     <span title="导出接口" @click="download">
       <i class="ma-icon ma-icon-download"></i>
     </span>
+    <span title="远程推送" @click="showPushDialog = true">
+      <i class="ma-icon ma-icon-push"></i>
+    </span>
     <span v-if="config.header.skin !== false" title="换肤" @click.stop="skinVisible = true">
       <i class="ma-icon ma-icon-skin"></i>
     </span>
@@ -58,6 +61,22 @@
         <button class="ma-button" @click="() => doUpload('full')">全量上传</button>
       </template>
     </magic-dialog>
+    <magic-dialog title="远程推送" :value="showPushDialog" align="right" @onClose="showPushDialog = false" class="ma-remote-push-container" width="400px">
+        <template #content>
+            <div>
+                <label>远程地址：</label>
+                <magic-input placeholder="请输入远程地址" v-model="target" width="300px"/>
+            </div>
+            <div>
+                <label>秘钥：</label>
+                <magic-input placeholder="请输入秘钥" v-model="secretKey" width="300px"/>
+            </div>
+        </template>
+        <template #buttons>
+            <button class="ma-button active" @click="() => doPush('increment')">增量推送</button>
+            <button class="ma-button" @click="() => doPush('full')">全量推送</button>
+        </template>
+    </magic-dialog>
     <magic-search ref="search" style="flex: none"></magic-search>
   </div>
 </template>
@@ -91,7 +110,10 @@ export default {
       Themes,
       skinVisible: false,
       showUploadDialog: false,
+      showPushDialog: false,
       filename: null,
+      target: 'http://host:port/_magic-api-sync',
+      secretKey: '123456789',
       skinRight: 15 + ((this.config.header.repo ? 2 : 0) + (this.config.header.qqGroup ? 1 : 0) + (this.config.header.document ? 1 : 0)) * 25 + 'px',
     }
   },
@@ -125,6 +147,18 @@ export default {
     },
     upload() {
       this.showUploadDialog = true;
+    },
+    doPush(mode){
+        request.send('/push',{
+            target: this.target,
+            secretKey: this.secretKey,
+            mode: mode
+        }).success(() => {
+            this.$magicAlert({
+                content: '推送成功!'
+            })
+            this.showPushDialog = false;
+        })
     },
     doUpload(mode) {
       let file = this.$refs.file.files[0];
@@ -247,6 +281,11 @@ export default {
   color: var(--button-run-color);
 }
 
+.ma-header .ma-icon-push {
+    color: var(--button-run-color);
+    font-weight: bold;
+}
+
 .ma-header > span:hover:not(.disabled) {
   background: var(--button-hover-background);
 }
@@ -269,7 +308,11 @@ export default {
   border-bottom: 1px solid var(--border-color);
   padding: 2px 5px;
 }
-
+.ma-remote-push-container label{
+  width: 80px;
+  text-align: right;
+  display: inline-block;
+}
 ul li {
   height: 24px;
   line-height: 24px;

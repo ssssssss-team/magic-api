@@ -24,6 +24,8 @@ import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.magicapi.provider.MagicAPIService;
+import org.ssssssss.magicapi.utils.IoUtils;
+import org.ssssssss.magicapi.utils.SignUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.ScriptClass;
@@ -31,6 +33,7 @@ import org.ssssssss.script.parsing.Span;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -44,8 +47,14 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicWorkbenchController.class);
 
-	public MagicWorkbenchController(MagicConfiguration configuration) {
+	private final MagicAPIService magicApiService;
+
+	private final String secretKey;
+
+	public MagicWorkbenchController(MagicConfiguration configuration, String secretKey) {
 		super(configuration);
+		magicApiService = configuration.getMagicAPIService();
+		this.secretKey = secretKey;
 		// 给前端添加代码提示
 		MagicScriptEngine.addScriptClass(SQLModule.class);
 		MagicScriptEngine.addScriptClass(MagicAPIService.class);
@@ -103,7 +112,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	@RequestMapping("/user")
 	@ResponseBody
-	public JsonBean<MagicUser> user(HttpServletRequest request){
+	public JsonBean<MagicUser> user(HttpServletRequest request) {
 		if (configuration.getAuthorizationInterceptor().requireLogin()) {
 			try {
 				return new JsonBean<>(configuration.getAuthorizationInterceptor().getUserByToken(request.getHeader(Constants.MAGIC_TOKEN_HEADER)));
@@ -116,7 +125,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	@RequestMapping("/logout")
 	@ResponseBody
-	public JsonBean<Void> logout(HttpServletRequest request){
+	public JsonBean<Void> logout(HttpServletRequest request) {
 		configuration.getAuthorizationInterceptor().logout(request.getHeader(Constants.MAGIC_TOKEN_HEADER));
 		return new JsonBean<>();
 	}
@@ -210,8 +219,26 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@ResponseBody
 	public JsonBean<Boolean> upload(MultipartFile file, String mode) throws IOException {
 		notNull(file, FILE_IS_REQUIRED);
-		configuration.getMagicAPIService().upload(file.getInputStream(), mode);
+		magicApiService.upload(file.getInputStream(), mode);
 		return new JsonBean<>(SUCCESS, true);
+	}
+
+	@RequestMapping("/push")
+	@ResponseBody
+	public JsonBean<?> push(String target, String secretKey, String mode) {
+		return magicApiService.push(target, secretKey, mode);
+	}
+
+	@ResponseBody
+	public JsonBean<Void> receivePush(MultipartFile file, String mode, Long timestamp, String sign) throws IOException {
+		notNull(timestamp, SIGN_IS_INVALID);
+		notBlank(mode, SIGN_IS_INVALID);
+		notBlank(sign, SIGN_IS_INVALID);
+		notNull(file, SIGN_IS_INVALID);
+		byte[] bytes = IoUtils.bytes(file.getInputStream());
+		isTrue(sign.equals(SignUtils.sign(timestamp, secretKey, mode, bytes)), SIGN_IS_INVALID);
+		magicApiService.upload(new ByteArrayInputStream(bytes), mode);
+		return new JsonBean<>();
 	}
 
 	private ResponseEntity<?> download(Resource resource, String filename) throws IOException {
@@ -219,4 +246,5 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		resource.export(os, Constants.PATH_BACKUPS);
 		return ResponseModule.download(os.toByteArray(), filename);
 	}
+
 }

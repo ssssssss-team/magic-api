@@ -255,6 +255,7 @@ export default {
 }
 .magic-contextmenu-item .magic-contextmenu-item-icon i{
     font-size: 12px;
+    color: var(--icon-color);
 }
 
 .magic-contextmenu-item .magic-contextmenu-item-label {

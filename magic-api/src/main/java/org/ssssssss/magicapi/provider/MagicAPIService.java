@@ -1,10 +1,7 @@
 package org.ssssssss.magicapi.provider;
 
 import org.ssssssss.magicapi.config.MagicModule;
-import org.ssssssss.magicapi.model.ApiInfo;
-import org.ssssssss.magicapi.model.FunctionInfo;
-import org.ssssssss.magicapi.model.Group;
-import org.ssssssss.magicapi.model.MagicNotify;
+import org.ssssssss.magicapi.model.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,7 +40,8 @@ public interface MagicAPIService extends MagicModule {
 
 	/**
 	 * 获取接口详情
-	 * @param id	接口id
+	 *
+	 * @param id 接口id
 	 */
 	ApiInfo getApiInfo(String id);
 
@@ -76,7 +74,8 @@ public interface MagicAPIService extends MagicModule {
 
 	/**
 	 * 获取函数详情
-	 * @param id	函数id
+	 *
+	 * @param id 函数id
 	 */
 	FunctionInfo getFunctionInfo(String id);
 
@@ -137,7 +136,8 @@ public interface MagicAPIService extends MagicModule {
 
 	/**
 	 * 获取数据源详情
-	 * @param id	数据源id
+	 *
+	 * @param id 数据源id
 	 */
 	Map<String, String> getDataSource(String id);
 
@@ -148,21 +148,24 @@ public interface MagicAPIService extends MagicModule {
 
 	/**
 	 * 测试数据源
-	 * @param properties	数据源属性
-	 * @return	返回错误说明，连接正常返回 null
+	 *
+	 * @param properties 数据源属性
+	 * @return 返回错误说明，连接正常返回 null
 	 */
 	String testDataSource(Map<String, String> properties);
 
 	/**
 	 * 保存数据源
-	 * @param properties	数据源属性
+	 *
+	 * @param properties 数据源属性
 	 * @return 返回数据源ID
 	 */
 	String saveDataSource(Map<String, String> properties);
 
 	/**
 	 * 删除数据源
-	 * @param id	数据源id
+	 *
+	 * @param id 数据源id
 	 */
 	boolean deleteDataSource(String id);
 
@@ -171,6 +174,8 @@ public interface MagicAPIService extends MagicModule {
 	 * 上传
 	 */
 	void upload(InputStream inputStream, String mode) throws IOException;
+
+	JsonBean<?> push(String target, String secretKey, String mode);
 
 	/**
 	 * 处理刷新通知

@@ -13,8 +13,15 @@ import org.springframework.boot.context.properties.source.ConfigurationPropertyN
 import org.springframework.boot.context.properties.source.ConfigurationPropertySource;
 import org.springframework.boot.context.properties.source.MapConfigurationPropertySource;
 import org.springframework.boot.jdbc.DatabaseDriver;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.adapter.resource.ZipResource;
 import org.ssssssss.magicapi.config.MagicDynamicDataSource;
@@ -29,6 +36,7 @@ import org.ssssssss.magicapi.script.ScriptManager;
 import org.ssssssss.magicapi.utils.IoUtils;
 import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.magicapi.utils.PathUtils;
+import org.ssssssss.magicapi.utils.SignUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
@@ -40,6 +48,8 @@ import org.ssssssss.script.parsing.ast.Expression;
 import javax.script.ScriptContext;
 import javax.script.SimpleScriptContext;
 import javax.sql.DataSource;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -49,39 +59,25 @@ import java.util.stream.Stream;
 
 public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstants {
 
-	private final MappingHandlerMapping mappingHandlerMapping;
-
-	private final boolean throwException;
-
-	private final ResultProvider resultProvider;
-
-	private final ApiServiceProvider apiServiceProvider;
-
-	private final FunctionServiceProvider functionServiceProvider;
-
-	private final GroupServiceProvider groupServiceProvider;
-
-	private final MagicDynamicDataSource magicDynamicDataSource;
-
-	private final MagicFunctionManager magicFunctionManager;
-
-	private final MagicNotifyService magicNotifyService;
-
-	private final String instanceId;
-
-	private final Resource workspace;
-
-	private final Resource datasourceResource;
-
 	private final static Logger logger = LoggerFactory.getLogger(DefaultMagicAPIService.class);
-
 	private static final ClassLoader classLoader = MagicDataSourceController.class.getClassLoader();
-
 	// copy from DataSourceBuilder
 	private static final String[] DATA_SOURCE_TYPE_NAMES = new String[]{
 			"com.zaxxer.hikari.HikariDataSource",
 			"org.apache.tomcat.jdbc.pool.DataSource",
 			"org.apache.commons.dbcp2.BasicDataSource"};
+	private final MappingHandlerMapping mappingHandlerMapping;
+	private final boolean throwException;
+	private final ResultProvider resultProvider;
+	private final ApiServiceProvider apiServiceProvider;
+	private final FunctionServiceProvider functionServiceProvider;
+	private final GroupServiceProvider groupServiceProvider;
+	private final MagicDynamicDataSource magicDynamicDataSource;
+	private final MagicFunctionManager magicFunctionManager;
+	private final MagicNotifyService magicNotifyService;
+	private final String instanceId;
+	private final Resource workspace;
+	private final Resource datasourceResource;
 
 	public DefaultMagicAPIService(MappingHandlerMapping mappingHandlerMapping,
 								  ApiServiceProvider apiServiceProvider,
@@ -226,8 +222,8 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		return false;
 	}
 
-	private boolean deleteApiWithoutNotify(String id){
-		if(apiServiceProvider.delete(id)){	//删除成功时在取消注册
+	private boolean deleteApiWithoutNotify(String id) {
+		if (apiServiceProvider.delete(id)) {    //删除成功时在取消注册
 			mappingHandlerMapping.unregisterMapping(id, true);
 			return true;
 		}
@@ -568,6 +564,39 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 		}
 		magicNotifyService.sendNotify(new MagicNotify(instanceId));
+	}
+
+	@Override
+	public JsonBean<?> push(String target, String secretKey, String mode) {
+		notBlank(target, TARGET_IS_REQUIRED);
+		notBlank(secretKey, SECRET_KEY_IS_REQUIRED);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try {
+			workspace.export(baos, Constants.PATH_BACKUPS);
+		} catch (IOException e) {
+			return new JsonBean<>(-1, e.getMessage());
+		}
+		byte[] bytes = baos.toByteArray();
+		long timestamp = System.currentTimeMillis();
+		RestTemplate restTemplate = new RestTemplate();
+		MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+		param.add("timestamp", timestamp);
+		param.add("mode", mode);
+		param.add("sign", SignUtils.sign(timestamp, secretKey, mode, bytes));
+		param.add("file", new InputStreamResource(new ByteArrayInputStream(bytes)) {
+			@Override
+			public String getFilename() {
+				return "magic-api.zip";
+			}
+
+			@Override
+			public long contentLength() {
+				return bytes.length;
+			}
+		});
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+		return restTemplate.postForObject(target, new HttpEntity<>(param, headers), JsonBean.class);
 	}
 
 	@Override

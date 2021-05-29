@@ -13,6 +13,10 @@ public interface JsonCodeConstants {
 
 	JsonCode GROUP_NOT_FOUND = new JsonCode(0, "找不到分组信息");
 
+	JsonCode TARGET_IS_REQUIRED = new JsonCode(0, "目标网址不能为空");
+
+	JsonCode SECRET_KEY_IS_REQUIRED = new JsonCode(0, "secretKey不能为空");
+
 	JsonCode NAME_CONFLICT = new JsonCode(0, "移动后名称会重复，请修改名称后在试。");
 
 	JsonCode REQUEST_PATH_CONFLICT = new JsonCode(0, "该路径已被映射,请换一个请求方法或路径");
@@ -58,6 +62,8 @@ public interface JsonCodeConstants {
 	JsonCode PATH_VARIABLE_INVALID = new JsonCode(0, "路径变量验证失败");
 
 	JsonCode FILE_IS_REQUIRED = new JsonCode(0, "请上传文件");
+
+	JsonCode SIGN_IS_INVALID = new JsonCode(0, "签名验证失败");
 
 	JsonCode UPLOAD_PATH_CONFLICT = new JsonCode(0, "上传后%s路径会有冲突，请检查");
 
