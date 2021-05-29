@@ -109,6 +109,10 @@ public class Constants {
 
 	public static final String GROUP_METABASE = "group.json";
 
+	public static final String UPLOAD_MODE_INCREMENT = "increment";
+
+	public static final String UPLOAD_MODE_FULL = "full";
+
 	/**
 	 * 执行成功的code值
 	 */

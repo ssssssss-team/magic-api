@@ -236,6 +236,12 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		return true;
 	}
 
+	public List<String> getIdsWithoutIds(List<String> idList){
+		return this.mappings.keySet().stream()
+				.filter(id -> !idList.contains(id))
+				.collect(Collectors.toList());
+	}
+
 	/**
 	 * 包装信息（可用于加密）
 	 */

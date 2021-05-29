@@ -170,7 +170,7 @@ public interface MagicAPIService extends MagicModule {
 	/**
 	 * 上传
 	 */
-	void upload(InputStream inputStream, boolean force) throws IOException;
+	void upload(InputStream inputStream, String mode) throws IOException;
 
 	/**
 	 * 处理刷新通知

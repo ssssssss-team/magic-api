@@ -218,13 +218,20 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	@Override
 	public boolean deleteApi(String id) {
-		boolean success = apiServiceProvider.delete(id);
-		if (success) {    //删除成功时在取消注册
-			mappingHandlerMapping.unregisterMapping(id, true);
+		if (deleteApiWithoutNotify(id)) {
 			// 通知删除接口
 			magicNotifyService.sendNotify(new MagicNotify(instanceId, id, Constants.NOTIFY_ACTION_DELETE, Constants.NOTIFY_ACTION_API));
+			return true;
 		}
-		return success;
+		return false;
+	}
+
+	private boolean deleteApiWithoutNotify(String id){
+		if(apiServiceProvider.delete(id)){	//删除成功时在取消注册
+			mappingHandlerMapping.unregisterMapping(id, true);
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -277,12 +284,19 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	@Override
 	public boolean deleteFunction(String id) {
-		boolean success = functionServiceProvider.delete(id);
-		if (success) {
-			magicFunctionManager.unregister(id);
+		if (deleteFunctionWithoutNotify(id)) {
 			magicNotifyService.sendNotify(new MagicNotify(instanceId, id, Constants.NOTIFY_ACTION_DELETE, Constants.NOTIFY_ACTION_FUNCTION));
+			return true;
 		}
-		return success;
+		return false;
+	}
+
+	private boolean deleteFunctionWithoutNotify(String id) {
+		if (functionServiceProvider.delete(id)) {
+			magicFunctionManager.unregister(id);
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -341,6 +355,12 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	@Override
 	public boolean deleteGroup(String groupId) {
+		boolean success = deleteGroupWithoutNotify(groupId);
+		magicNotifyService.sendNotify(new MagicNotify(instanceId, groupId, Constants.NOTIFY_ACTION_DELETE, Constants.NOTIFY_ACTION_GROUP));
+		return success;
+	}
+
+	private boolean deleteGroupWithoutNotify(String groupId) {
 		boolean isApi = true;
 		TreeNode<Group> treeNode = groupServiceProvider.apiGroupTree().findTreeNode(group -> group.getId().equals(groupId));
 		if (treeNode == null) {
@@ -365,7 +385,6 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				children.forEach(groupServiceProvider::delete);
 			}
 		}
-		magicNotifyService.sendNotify(new MagicNotify(instanceId, groupId, Constants.NOTIFY_ACTION_DELETE, Constants.NOTIFY_ACTION_GROUP));
 		return success;
 	}
 
@@ -390,14 +409,16 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		}
 	}
 
-	private void registerDataSource(Map<String, String> properties) {
+	private String registerDataSource(Map<String, String> properties) {
 		if (properties != null) {
 			String key = properties.get("key");
 			String name = properties.getOrDefault("name", key);
 			String dsId = properties.remove("id");
 			int maxRows = ObjectConvertExtension.asInt(properties.get("maxRows"), -1);
 			magicDynamicDataSource.put(dsId, key, name, createDataSource(properties), maxRows);
+			return key;
 		}
+		return null;
 	}
 
 	@Override
@@ -484,7 +505,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
-	public void upload(InputStream inputStream, boolean force) throws IOException {
+	public void upload(InputStream inputStream, String mode) throws IOException {
 		ZipResource root = new ZipResource(inputStream);
 		Set<String> apiPaths = new HashSet<>();
 		Set<String> functionPaths = new HashSet<>();
@@ -493,12 +514,6 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		Set<FunctionInfo> functionInfos = new HashSet<>();
 		// 检查上传资源中是否有冲突
 		isTrue(readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, "/", root), UPLOAD_PATH_CONFLICT);
-		// 判断是否是强制上传
-		if (!force) {
-			// 检测与已注册的接口和函数是否有冲突
-			isTrue(!mappingHandlerMapping.hasRegister(apiPaths), UPLOAD_PATH_CONFLICT.format("接口"));
-			isTrue(!magicFunctionManager.hasRegister(apiPaths), UPLOAD_PATH_CONFLICT.format("函数"));
-		}
 		Resource item = root.getResource(Constants.GROUP_METABASE);
 		if (item.exists()) {
 			Group group = groupServiceProvider.readGroup(item);
@@ -521,16 +536,36 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		// 重新注册
 		mappingHandlerMapping.registerAllMapping();
 		magicFunctionManager.registerAllFunction();
-		Resource datasourceResource = root.getResource(Constants.PATH_DATASOURCE + "/");
-		if (datasourceResource.exists()) {
+		Resource uploadDatasourceResource = root.getResource(Constants.PATH_DATASOURCE + "/");
+		List<String> datasourceKeys = new ArrayList<>();
+		if (uploadDatasourceResource.exists()) {
 			MapType mapType = TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, String.class);
-			datasourceResource.files(".json").forEach(it -> {
+			uploadDatasourceResource.files(".json").forEach(it -> {
 				byte[] content = it.read();
 				// 注册数据源
-				registerDataSource(JsonUtils.readValue(content, mapType));
+				datasourceKeys.add(registerDataSource(JsonUtils.readValue(content, mapType)));
 				// 保存数据源
-				datasourceResource.getResource(it.name()).write(content);
+				this.datasourceResource.getResource(it.name()).write(content);
 			});
+		}
+		// 全量模式
+		if (Constants.UPLOAD_MODE_FULL.equals(mode)) {
+			// 删掉多余的分组
+			groupServiceProvider.getGroupsWithoutGroups(groups.stream().map(Group::getId).collect(Collectors.toList())).forEach(this::deleteGroupWithoutNotify);
+			// 删除多余的接口
+			apiServiceProvider.getIdsWithoutIds(apiInfos.stream().map(ApiInfo::getId).collect(Collectors.toList())).forEach(this::deleteApiWithoutNotify);
+			// 删除多余的函数
+			functionServiceProvider.getIdsWithoutIds(functionInfos.stream().map(FunctionInfo::getId).collect(Collectors.toList())).forEach(this::deleteFunctionWithoutNotify);
+			// 删除多余的数据源
+			magicDynamicDataSource.datasourceNodes().stream()
+					.filter(it -> StringUtils.isNotBlank(it.getId()) && !datasourceKeys.contains(it.getKey()))
+					.collect(Collectors.toList())
+					.forEach(it -> {
+						// 删除数据源
+						this.datasourceResource.getResource(it.getId() + ".json").delete();
+						this.magicDynamicDataSource.delete(it.getKey());
+					});
+
 		}
 		magicNotifyService.sendNotify(new MagicNotify(instanceId));
 	}

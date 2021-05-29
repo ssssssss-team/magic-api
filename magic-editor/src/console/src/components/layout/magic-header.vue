@@ -54,8 +54,8 @@
                      :value="filename"/>
       </template>
       <template #buttons>
-        <button class="ma-button active" @click="() => doUpload(false)">上传</button>
-        <button class="ma-button" @click="() => doUpload(true)">强制上传</button>
+        <button class="ma-button active" @click="() => doUpload('increment')">增量上传</button>
+        <button class="ma-button" @click="() => doUpload('full')">全量上传</button>
       </template>
     </magic-dialog>
     <magic-search ref="search" style="flex: none"></magic-search>
@@ -126,15 +126,13 @@ export default {
     upload() {
       this.showUploadDialog = true;
     },
-    doUpload(force) {
+    doUpload(mode) {
       let file = this.$refs.file.files[0];
       if (file) {
         this.showUploadDialog = false;
         let formData = new FormData();
         formData.append('file', file, this.filename);
-        if (force) {
-          formData.append('mode', 'force');
-        }
+        formData.append('mode', mode);
         request.send('/upload', formData, {
           method: 'post',
           headers: {

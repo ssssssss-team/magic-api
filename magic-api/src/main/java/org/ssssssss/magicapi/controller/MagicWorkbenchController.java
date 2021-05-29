@@ -210,7 +210,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@ResponseBody
 	public JsonBean<Boolean> upload(MultipartFile file, String mode) throws IOException {
 		notNull(file, FILE_IS_REQUIRED);
-		configuration.getMagicAPIService().upload(file.getInputStream(), "force".equals(mode));
+		configuration.getMagicAPIService().upload(file.getInputStream(), mode);
 		return new JsonBean<>(SUCCESS, true);
 	}
 

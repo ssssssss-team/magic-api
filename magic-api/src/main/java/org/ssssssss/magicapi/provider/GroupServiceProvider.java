@@ -5,6 +5,7 @@ import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.TreeNode;
 
 import java.util.List;
+import java.util.Set;
 
 
 public interface GroupServiceProvider {
@@ -62,4 +63,6 @@ public interface GroupServiceProvider {
 	String getFullName(String groupId);
 
 	Resource getGroupResource(String groupId);
+
+	List<String> getGroupsWithoutGroups(List<String> groupIds);
 }

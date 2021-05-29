@@ -162,6 +162,11 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 		return resource == null ? null : resource.parent();
 	}
 
+	@Override
+	public List<String> getGroupsWithoutGroups(List<String> groupIds) {
+		return this.mappings.keySet().stream().filter(groupId -> !groupIds.contains(groupId)).collect(Collectors.toList());
+	}
+
 	private TreeNode<Group> convertToTree(List<Group> groups) {
 		TreeNode<Group> root = new TreeNode<>();
 		root.setNode(new Group("0", "root"));
