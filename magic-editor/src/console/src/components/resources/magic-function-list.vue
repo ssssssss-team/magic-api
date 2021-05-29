@@ -6,10 +6,10 @@
       </div>
       <div>
         <div class="ma-tree-toolbar-btn" title="新建分组" @click="openCreateGroupModal()">
-          <i class="ma-icon ma-icon-tianjiawenjianjia"></i>
+          <i class="ma-icon ma-icon-group-add"></i>
         </div>
         <div class="ma-tree-toolbar-btn" title="刷新函数" @click="initData()">
-          <i class="ma-icon ma-icon-shuaxin"></i>
+          <i class="ma-icon ma-icon-refresh"></i>
         </div>
         <div class="ma-tree-toolbar-btn" title="折叠" @click="rebuildTree(true)">
           <i class="ma-icon ma-icon-folding"></i>
@@ -294,6 +294,7 @@ export default {
         menus: [
           {
             label: '新建函数',
+            icon: 'ma-icon-plus',
             onClick: () => {
               let newItem = {
                 id: '',
@@ -315,6 +316,7 @@ export default {
           },
           {
             label: '刷新函数',
+            icon: 'ma-icon-refresh',
             divided: true,
             onClick: () => {
               this.initData()
@@ -322,18 +324,21 @@ export default {
           },
           {
             label: '新建分组(Alt+G)',
+            icon: 'ma-icon-group-add',
             onClick: () => {
               this.openCreateGroupModal(null, item)
             }
           },
           {
             label: '修改分组',
+            icon: 'ma-icon-update',
             onClick: () => {
               this.openCreateGroupModal(item)
             }
           },
           {
             label: '删除分组',
+            icon: 'ma-icon-delete',
             divided: true,
             onClick: () => {
               this.deleteGroupAction(item)
@@ -341,6 +346,7 @@ export default {
           },
           {
             label: '移动到根节点',
+            icon: 'ma-icon-move',
             onClick: () => {
               item.parentId = '0'
               requestGroup('group/update', item).success(data => {
@@ -371,6 +377,7 @@ export default {
         menus: [
           {
             label: '复制函数',
+            icon: 'ma-icon-copy',
             onClick: () => {
               if (!item.id) {
                 this.$magicAlert({content: '请先保存在复制！'})
@@ -389,12 +396,14 @@ export default {
           },
           {
             label: '刷新函数',
+            icon: 'ma-icon-refresh',
             onClick: () => {
               this.initData()
             }
           },
           {
             label: '删除函数',
+            icon: 'ma-icon-delete',
             divided: true,
             onClick: () => {
               this.deleteApiInfo(item)

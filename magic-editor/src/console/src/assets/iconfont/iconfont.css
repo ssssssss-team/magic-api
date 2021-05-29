@@ -11,6 +11,22 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+.ma-icon-push:before {
+  content: "\e79d";
+}
+
+.ma-icon-copy:before {
+  content: "\ec7a";
+}
+
+.ma-icon-move:before {
+  content: "\e727";
+}
+
+.ma-icon-update:before {
+  content: "\e7e4";
+}
+
 .ma-icon-logout:before {
   content: "\e65a";
 }
@@ -42,7 +58,7 @@
   content: "\e608";
 }
 
-.ma-icon-shuaxin:before {
+.ma-icon-refresh:before {
   content: "\e747";
 }
 
@@ -54,7 +70,7 @@
   content: "\e7a8";
 }
 
-.ma-icon-tianjiawenjianjia:before {
+.ma-icon-group-add:before {
   content: "\e6cd";
 }
 

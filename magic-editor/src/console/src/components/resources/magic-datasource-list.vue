@@ -8,10 +8,10 @@
         </div>
         <div>
           <div class="ma-tree-toolbar-btn" title="新建数据源" @click="toogleDialog(true,true)">
-            <i class="ma-icon ma-icon-tianjiawenjianjia"></i>
+            <i class="ma-icon ma-icon-group-add"></i>
           </div>
           <div class="ma-tree-toolbar-btn" title="刷新数据源" @click="initData()">
-            <i class="ma-icon ma-icon-shuaxin"></i>
+            <i class="ma-icon ma-icon-refresh"></i>
           </div>
         </div>
       </div>

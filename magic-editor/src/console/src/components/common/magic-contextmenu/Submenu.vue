@@ -19,7 +19,7 @@
               ]"
           >
             <div v-if="hasIcon" class="magic-contextmenu-item-icon">
-              <i v-if="item.icon" :class="item.icon"></i>
+              <i v-if="item.icon" :class="'ma-icon ' + item.icon"></i>
             </div>
             <span class="magic-contextmenu-item-label">{{ item.label }}</span>
             <div class="magic-contextmenu-item-expand-icon"></div>
@@ -36,7 +36,7 @@
               @mouseenter="($event)=>enterItem($event,item,index)"
           >
             <div v-if="hasIcon" class="magic-contextmenu-item-icon">
-              <i v-if="item.icon" :class="item.icon"></i>
+              <i v-if="item.icon" :class="'ma-icon ' + item.icon"></i>
             </div>
             <span class="magic-contextmenu-item-label">{{ item.label }}</span>
             <div class="magic-contextmenu-item-expand-icon">▶</div>
@@ -53,7 +53,7 @@
               @mouseenter="($event)=>enterItem($event,item,index)"
           >
             <div v-if="hasIcon" class="magic-contextmenu-item-icon">
-              <i v-if="item.icon" :class="item.icon"></i>
+              <i v-if="item.icon" :class="'ma-icon ' + item.icon"></i>
             </div>
             <span class="magic-contextmenu-item-label">{{ item.label }}</span>
             <div class="magic-contextmenu-item-expand-icon"></div>
@@ -252,6 +252,9 @@ export default {
 .magic-contextmenu-item .magic-contextmenu-item-icon {
   margin-right: 5px;
   width: 13px;
+}
+.magic-contextmenu-item .magic-contextmenu-item-icon i{
+    font-size: 12px;
 }
 
 .magic-contextmenu-item .magic-contextmenu-item-label {
