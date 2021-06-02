@@ -86,8 +86,9 @@ export default {
       })
     },
     doSearch(keyword) {
+      keyword = keyword.toLowerCase()
       this.datasources.forEach(it => {
-        it._searchShow = keyword ? (it.name&&it.name.indexOf(keyword) > -1) || (it.key && it.key.indexOf(keyword) > -1) : true;
+        it._searchShow = keyword ? (it.name&&it.name.toLowerCase().indexOf(keyword) > -1) || (it.key && it.key.toLowerCase().indexOf(keyword) > -1) : true;
       })
       this.$forceUpdate();
     },

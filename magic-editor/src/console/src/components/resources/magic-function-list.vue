@@ -137,12 +137,13 @@ export default {
   },
   methods: {
     doSearch(keyword) {
+      keyword = keyword.toLowerCase();
       let loopSearch = (row, parentName, parentPath) => {
         if (row.folder) {
           row.children.forEach(it => loopSearch(it, parentName + '/' + (row.name || ''), parentPath + '/' + (row.path || '')))
           row._searchShow = row.children.some(it => it._searchShow)
         } else {
-          row._searchShow = replaceURL(parentName + '/' + (row.name || '')).indexOf(keyword) > -1 || replaceURL(parentPath + '/' + (row.path || '')).indexOf(keyword) > -1
+          row._searchShow = replaceURL(parentName + '/' + (row.name || '')).toLowerCase().indexOf(keyword) > -1 || replaceURL(parentPath + '/' + (row.path || '')).toLowerCase().indexOf(keyword) > -1
         }
       }
       this.tree.forEach(it => loopSearch(it, '', ''))
