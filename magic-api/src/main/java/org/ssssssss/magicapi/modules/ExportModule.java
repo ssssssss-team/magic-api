@@ -42,27 +42,14 @@ public class ExportModule implements MagicModule {
      * @throws IOException
      */
     @Comment("对象转换为Excel文件")
-    public static byte[] buildExcelByMap(@Comment("表格列头定义") Map<String, String> columnHeaders, @Comment("导出对象集合") List<Object> exportObjList, @Comment("表格title") String title, @Comment("sheet名称") String sheetName) throws IOException {
+    public static byte[] buildExcelByMap(@Comment("表格列头定义") Map<String, String> columnHeaders, @Comment("导出对象集合") List<Map<String,Object>> exportObjList, @Comment("表格title") String title, @Comment("sheet名称") String sheetName) throws IOException {
         byte[] bytes;
         Workbook workbook = null;
-        List<Map<String, String>> exportMapList = new ArrayList<>(exportObjList.size());
-        ObjectMapper mapper = new ObjectMapper();
-        exportObjList.forEach(item -> {
-            String itemStr = "";
-            try {
-                itemStr = mapper.writeValueAsString(item);
-                Map map = mapper.readValue(itemStr, Map.class);
-                exportMapList.add(map);
-            } catch (IOException e) {
-                log.error("对象转换为Excel文件,此条数据转换失败itemStr:[{}]", itemStr, e);
-            }
-        });
-
         try {
             List<ExcelExportEntity> colEntity = new ArrayList<>();
             columnHeaders.forEach((key, value) -> colEntity.add(new ExcelExportEntity(value, key)));
             ExportParams param = new ExportParams(title, sheetName);
-            workbook = ExcelExportUtil.exportExcel(param, colEntity, exportMapList);
+            workbook = ExcelExportUtil.exportExcel(param, colEntity, exportObjList);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             workbook.write(bos);
             bytes = bos.toByteArray();
@@ -87,7 +74,7 @@ public class ExportModule implements MagicModule {
      * @throws IOException
      */
     @Comment("Excel文件导出")
-    public static ResponseEntity<?> excel(@Comment("表格列头定义") Map<String, String> columnHeaders, @Comment("导出对象集合") List<Object> exportObjList, @Comment("表格title") String title, @Comment("sheet名称") String sheetName) throws IOException {
+    public static ResponseEntity<?> excel(@Comment("表格列头定义") Map<String, String> columnHeaders, @Comment("导出对象集合") List<Map<String,Object>> exportObjList, @Comment("表格title") String title, @Comment("sheet名称") String sheetName) throws IOException {
         Object value = buildExcelByMap(columnHeaders, exportObjList, title, sheetName);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncoder.encode(title, "UTF-8") + ".xls")
@@ -102,7 +89,7 @@ public class ExportModule implements MagicModule {
      * @throws IOException
      */
     @Comment("Excel文件导出")
-    public static ResponseEntity<?> excel(@Comment("表格列头定义") Map<String, String> columnHeaders, @Comment("导出对象集合") List<Object> exportObjList, @Comment("表格title") String title) throws IOException {
+    public static ResponseEntity<?> excel(@Comment("表格列头定义") Map<String, String> columnHeaders, @Comment("导出对象集合") List<Map<String,Object>> exportObjList, @Comment("表格title") String title) throws IOException {
         Object value = buildExcelByMap(columnHeaders, exportObjList, title, "");
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncoder.encode(title, "UTF-8") + ".xls")
