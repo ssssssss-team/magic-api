@@ -35,11 +35,14 @@ public class ApplicationUriPrinter implements CommandLineRunner {
         String port = springEnv.getProperty("server.port","port");
         String path =springEnv.getProperty("server.servlet.context-path","");
         String magicWebPath =springEnv.getProperty("magic-api.web","/magic/web");
+        if(!magicWebPath.startsWith("/")){
+            magicWebPath="/"+magicWebPath;
+        }
         System.out.println(
                 "服务启动成功，magic-api已内置启动! Access URLs:\n\t" +
                         "接口本地地址: \t\thttp://localhost:" + port + path + "/\n\t" +
                         "接口外部访问地址: \thttp://" + ip + ":" + port + path + "/\n\t" +
-                        "接口配置平台: \thttp://" + ip + ":" + port + magicWebPath + "/index.html\n"
+                        "接口配置平台: \thttp://" + ip + ":" + port +path+ magicWebPath + "/index.html\n"
         );
         System.out.println("****************************************************当前服务相关地址end 可通过配置关闭输出spring.ex.config.access.url.show=false****************************************************");
 
