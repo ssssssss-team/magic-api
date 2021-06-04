@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.ssssssss.magicapi.model.Constants.RESPONSE_CODE_EXCEPTION;
+
 /**
  * 结果构建接口
  */
@@ -73,6 +75,16 @@ public interface ResultProvider {
 	 */
 	default Object buildResult(RequestEntity requestEntity, int code, String message) {
 		return buildResult(requestEntity, code, message, null);
+	}
+
+	/**
+	 * 构建异常返回结果
+	 * @param requestEntity	请求相关信息
+	 * @param throwable	异常信息
+	 * @since 1.2.2
+	 */
+	default Object buildException(RequestEntity requestEntity, Throwable throwable){
+		return buildResult(requestEntity, RESPONSE_CODE_EXCEPTION, "系统内部出现错误");
 	}
 
 	/**

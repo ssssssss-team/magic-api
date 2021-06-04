@@ -279,7 +279,7 @@ public class RequestHandler extends MagicController {
 				throw root;
 			}
 			logger.error("接口{}请求出错", request.getRequestURI(), root);
-			return resultProvider.buildResult(requestEntity, RESPONSE_CODE_EXCEPTION, "系统内部出现错误");
+			return resultProvider.buildException(requestEntity, root);
 		} finally {
 			RequestContext.remove();
 		}
@@ -349,9 +349,9 @@ public class RequestHandler extends MagicController {
 		logger.error("测试脚本出错", root);
 		if (se != null) {
 			Span.Line line = se.getLine();
-			return new JsonBodyBean<>(-1000, se.getSimpleMessage(), resultProvider.buildResult(requestEntity, -1000, se.getSimpleMessage()), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol()));
+			return new JsonBodyBean<>(-1000, se.getSimpleMessage(), resultProvider.buildException(requestEntity, se), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol()));
 		}
-		return new JsonBean<>(-1, root.getMessage(), resultProvider.buildResult(requestEntity, RESPONSE_CODE_EXCEPTION, root.getMessage()));
+		return new JsonBean<>(-1, root.getMessage(), resultProvider.buildException(requestEntity, root));
 	}
 
 	/**
