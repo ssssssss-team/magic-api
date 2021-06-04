@@ -72,7 +72,7 @@ import java.util.function.BiFunction;
 @Configuration
 @ConditionalOnClass({RequestMappingHandlerMapping.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
-@Import({MagicRedisAutoConfiguration.class, MagicMongoAutoConfiguration.class, MagicSwaggerConfiguration.class, MagicJsonAutoConfiguration.class,ApplicationUriPrinter.class,ExportModule.class})
+@Import({MagicRedisAutoConfiguration.class, MagicMongoAutoConfiguration.class, MagicSwaggerConfiguration.class, MagicJsonAutoConfiguration.class, ApplicationUriPrinter.class, ExportModule.class})
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
@@ -80,40 +80,40 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	/**
 	 * 请求拦截器
 	 */
-	private final List<RequestInterceptor> requestInterceptors;
+	private final ObjectProvider<List<RequestInterceptor>> requestInterceptorsProvider;
 
 	/**
 	 * SQL拦截器
 	 */
-	private final List<SQLInterceptor> sqlInterceptors;
+	private final ObjectProvider<List<SQLInterceptor>> sqlInterceptorsProvider;
 
 	/**
 	 * 自定义的类型扩展
 	 */
-	private final List<ExtensionMethod> extensionMethods;
+	private final ObjectProvider<List<ExtensionMethod>> extensionMethodsProvider;
 
 	/**
 	 * 内置的消息转换
 	 */
-	private final List<HttpMessageConverter<?>> httpMessageConverters;
+	private final ObjectProvider<List<HttpMessageConverter<?>>> httpMessageConvertersProvider;
 
 	/**
 	 * 自定义的方言
 	 */
-	private final List<Dialect> dialects;
+	private final ObjectProvider<List<Dialect>> dialectsProvider;
 
 	/**
 	 * 自定义的列名转换
 	 */
-	private final List<ColumnMapperProvider> columnMapperProviders;
+	private final ObjectProvider<List<ColumnMapperProvider>> columnMapperProvidersProvider;
 
 
-	private final AuthorizationInterceptor authorizationInterceptor;
+	private final ObjectProvider<AuthorizationInterceptor> authorizationInterceptorProvider;
 
 	/**
 	 * 自定义的函数
 	 */
-	private final List<MagicFunction> magicFunctions;
+	private final ObjectProvider<List<MagicFunction>> magicFunctionsProvider;
 
 	private final Environment environment;
 
@@ -127,7 +127,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@Lazy
 	private RequestMappingHandlerMapping requestMappingHandlerMapping;
 
-	private final RestTemplate restTemplate;
+	private final ObjectProvider<RestTemplate> restTemplateProvider;
 
 	private String ALL_CLASS_TXT;
 
@@ -145,15 +145,15 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 									 ApplicationContext applicationContext
 	) {
 		this.properties = properties;
-		this.dialects = dialectsProvider.getIfAvailable(Collections::emptyList);
-		this.requestInterceptors = requestInterceptorsProvider.getIfAvailable(Collections::emptyList);
-		this.sqlInterceptors = sqlInterceptorsProvider.getIfAvailable(Collections::emptyList);
-		this.extensionMethods = extensionMethodsProvider.getIfAvailable(Collections::emptyList);
-		this.httpMessageConverters = httpMessageConvertersProvider.getIfAvailable(Collections::emptyList);
-		this.columnMapperProviders = columnMapperProvidersProvider.getIfAvailable(Collections::emptyList);
-		this.magicFunctions = magicFunctionsProvider.getIfAvailable(Collections::emptyList);
-		this.restTemplate = restTemplateProvider.getIfAvailable(this::createRestTemplate);
-		this.authorizationInterceptor = authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor);
+		this.dialectsProvider = dialectsProvider;
+		this.requestInterceptorsProvider = requestInterceptorsProvider;
+		this.sqlInterceptorsProvider = sqlInterceptorsProvider;
+		this.extensionMethodsProvider = extensionMethodsProvider;
+		this.httpMessageConvertersProvider = httpMessageConvertersProvider;
+		this.columnMapperProvidersProvider = columnMapperProvidersProvider;
+		this.magicFunctionsProvider = magicFunctionsProvider;
+		this.restTemplateProvider = restTemplateProvider;
+		this.authorizationInterceptorProvider = authorizationInterceptorProvider;
 		this.environment = environment;
 		this.applicationContext = applicationContext;
 	}
@@ -203,7 +203,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	@ConditionalOnProperty(prefix = "magic-api", name = "resource.type", havingValue = "database")
 	public Resource magicDatabaseResource(MagicDynamicDataSource magicDynamicDataSource) {
 		ResourceConfig resourceConfig = properties.getResource();
-		if(magicDynamicDataSource.isEmpty()){
+		if (magicDynamicDataSource.isEmpty()) {
 			throw new MagicAPIException("当前未配置数据源，如已配置，请引入 spring-boot-starter-jdbc 后在试!");
 		}
 		MagicDynamicDataSource.DataSourceNode dataSourceNode = magicDynamicDataSource.getDataSource(resourceConfig.getDatasource());
@@ -245,7 +245,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(new MagicWebRequestInterceptor(properties.isSupportCrossDomain() ? magicCorsFilter : null, authorizationInterceptor))
+		registry.addInterceptor(new MagicWebRequestInterceptor(properties.isSupportCrossDomain() ? magicCorsFilter : null, authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor)))
 				.addPathPatterns("/**");
 	}
 
@@ -382,16 +382,16 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		SQLModule sqlModule = new SQLModule(dynamicDataSource);
 		sqlModule.setResultProvider(resultProvider);
 		sqlModule.setPageProvider(pageProvider);
-		sqlModule.setSqlInterceptors(sqlInterceptors);
+		sqlModule.setSqlInterceptors(sqlInterceptorsProvider.getIfAvailable(Collections::emptyList));
 		ColumnMapperAdapter columnMapperAdapter = new ColumnMapperAdapter();
-		this.columnMapperProviders.stream().filter(mapperProvider -> !"default".equals(mapperProvider.name())).forEach(columnMapperAdapter::add);
+		this.columnMapperProvidersProvider.getIfAvailable(Collections::emptyList).stream().filter(mapperProvider -> !"default".equals(mapperProvider.name())).forEach(columnMapperAdapter::add);
 		columnMapperAdapter.setDefault(properties.getSqlColumnCase());
 		sqlModule.setColumnMapperProvider(columnMapperAdapter);
 		sqlModule.setColumnMapRowMapper(columnMapperAdapter.getDefaultColumnMapRowMapper());
 		sqlModule.setRowMapColumnMapper(columnMapperAdapter.getDefaultRowMapColumnMapper());
 		sqlModule.setSqlCache(sqlCache);
 		DialectAdapter dialectAdapter = new DialectAdapter();
-		dialects.forEach(dialectAdapter::add);
+		dialectsProvider.getIfAvailable(Collections::emptyList).forEach(dialectAdapter::add);
 		sqlModule.setDialectAdapter(dialectAdapter);
 		return sqlModule;
 	}
@@ -444,7 +444,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		});
 		if (MagicResourceLoader.loadModule("http") == null) {
 			logger.info("注册模块:{} -> {}", "http", HttpModule.class);
-			MagicResourceLoader.addModule("http", new HttpModule(this.restTemplate));
+			MagicResourceLoader.addModule("http", new HttpModule(this.restTemplateProvider.getIfAvailable(this::createRestTemplate)));
 		}
 		MagicResourceLoader.getModuleNames().stream().filter(importModules::contains).forEach(moduleName -> {
 			logger.info("自动导入模块：{}", moduleName);
@@ -485,7 +485,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		Constants.RESPONSE_CODE_INVALID = responseCodeConfig.getInvalid();
 		Constants.RESPONSE_CODE_EXCEPTION = responseCodeConfig.getException();
 		// 设置模块和扩展方法
-		setupMagicModules(resultProvider, magicModules, extensionMethods, languageProviders);
+		setupMagicModules(resultProvider, magicModules, extensionMethodsProvider.getIfAvailable(Collections::emptyList), languageProviders);
 		MagicConfiguration configuration = new MagicConfiguration();
 		configuration.setMagicAPIService(magicAPIService);
 		configuration.setApiServiceProvider(apiServiceProvider);
@@ -494,14 +494,14 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		configuration.setFunctionServiceProvider(functionServiceProvider);
 		SecurityConfig securityConfig = properties.getSecurityConfig();
 		configuration.setDebugTimeout(properties.getDebugConfig().getTimeout());
-		configuration.setHttpMessageConverters(Optional.ofNullable(httpMessageConverters).orElse(Collections.emptyList()));
+		configuration.setHttpMessageConverters(httpMessageConvertersProvider.getIfAvailable(Collections::emptyList));
 		configuration.setResultProvider(resultProvider);
 		configuration.setThrowException(properties.isThrowException());
 		configuration.setEditorConfig(properties.getEditorConfig());
 		configuration.setWorkspace(magicResource);
-		configuration.setAuthorizationInterceptor(authorizationInterceptor);
+		configuration.setAuthorizationInterceptor(authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor));
 		// 注册函数
-		this.magicFunctions.forEach(JavaReflection::registerFunction);
+		this.magicFunctionsProvider.getIfAvailable(Collections::emptyList).forEach(JavaReflection::registerFunction);
 		// 向页面传递配置信息时不传递用户名密码，增强安全性
 		securityConfig.setUsername(null);
 		securityConfig.setPassword(null);
@@ -523,14 +523,14 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 			controllers.forEach(item -> mappingHandlerMapping.registerController(item, base));
 		}
 		// 注册接收推送的接口
-		if(StringUtils.isNotBlank(properties.getSecretKey())){
+		if (StringUtils.isNotBlank(properties.getSecretKey())) {
 			RequestMappingInfo requestMappingInfo = RequestMappingInfo.paths(properties.getPushPath()).build();
 			Method method = MagicWorkbenchController.class.getDeclaredMethod("receivePush", MultipartFile.class, String.class, Long.class, String.class);
-			Mapping.create(requestMappingHandlerMapping).register(requestMappingInfo,magicWorkbenchController, method);
+			Mapping.create(requestMappingHandlerMapping).register(requestMappingInfo, magicWorkbenchController, method);
 		}
 		magicAPIService.registerAllDataSource();
 		// 设置拦截器信息
-		this.requestInterceptors.forEach(interceptor -> {
+		this.requestInterceptorsProvider.getIfAvailable(Collections::emptyList).forEach(interceptor -> {
 			logger.info("注册请求拦截器：{}", interceptor.getClass());
 			configuration.addRequestInterceptor(interceptor);
 		});
