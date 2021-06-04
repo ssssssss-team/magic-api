@@ -515,7 +515,6 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			Group group = groupServiceProvider.readGroup(item);
 			// 检查分组是否存在
 			isTrue("0".equals(group.getParentId()) || groupServiceProvider.getGroupResource(group.getParentId()).exists(), GROUP_NOT_FOUND);
-			groups.removeIf(it -> it.getId().equalsIgnoreCase(group.getId()));
 		}
 		for (Group group : groups) {
 			Resource groupResource = groupServiceProvider.getGroupResource(group.getId());
