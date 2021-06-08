@@ -38,7 +38,7 @@
       <i class="ma-icon ma-icon-git"></i>
     </span>
     <span v-if="config.header.qqGroup !== false" title="加入QQ群"
-          @click="open('https://shang.qq.com/wpa/qunwpa?idkey=10faa4cf9743e0aa379a72f2ad12a9e576c81462742143c8f3391b52e8c3ed8d')">
+          @click="open('https://qm.qq.com/cgi-bin/qm/qr?k=Q6dLmVS8cHwoaaP18A3tteK_o0244e6B&jump_from=webapi')">
       <i class="ma-icon ma-icon-qq"></i>
     </span>
     <span v-if="config.header.document !== false" title="帮助文档"
