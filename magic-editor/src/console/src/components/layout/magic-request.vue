@@ -296,6 +296,7 @@
           newBody += this.createJsonStr(requestBody.children, true)
           newBody += '\r\n]';
         }
+        this.editorJson = formatJson(newBody)
         this.bodyEditor && this.bodyEditor.setValue(formatJson(newBody))
       },
       createJsonStr(data, arrayFlag = false) {
