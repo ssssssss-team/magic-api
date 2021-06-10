@@ -488,9 +488,9 @@ export default {
       }
       if (this.info.requestBody) {
         try {
-          JSON.parse(this.info.requestBody)
+         let requestBody = JSON.parse(this.info.requestBody)
           requestConfig.params = params
-          requestConfig.data = this.info.requestBody
+          requestConfig.data = this.buildRequestBodyData(requestBody)
           requestConfig.headers['Content-Type'] = 'application/json'
           requestConfig.transformRequest = []
         } catch (e) {
@@ -528,6 +528,47 @@ export default {
       info.ext.eventSource.addEventListener('close', e => {
         info.ext.eventSource.close()
       })
+    },
+    buildRequestBodyData(o) {
+      let requestBody = o
+      let newBody = '';
+      if ('Object' == requestBody.dataType) {
+        newBody += '{';
+        newBody += this.createJsonStr(requestBody.children)
+        newBody += '}';
+      } else if ('Array' == requestBody.dataType) {
+        newBody += '[';
+        newBody += this.createJsonStr(requestBody.children, true)
+        newBody += ']';
+      }
+      return newBody
+    },
+    createJsonStr(data, arrayFlag = false) {
+      let body = '';
+      data.map((item, index) => {
+        if (index > 0) {
+          body += ','
+        }
+        if (!arrayFlag) {
+          body += `"${item.name}": `;
+        }
+        if ('Object' == item.dataType) {
+          body += '{';
+          body += this.createJsonStr(item.children)
+          body += '}';
+        } else if ('Array' == item.dataType) {
+          body += '[';
+          body += this.createJsonStr(item.children, true)
+          body += ']';
+        } else {
+          if ('String' == item.dataType) {
+            body += `"${item.value}"`;
+          } else {
+            body += `${item.value}`;
+          }
+        }
+      })
+      return body;
     },
     viewHistory() {
       if (!this.selected) {

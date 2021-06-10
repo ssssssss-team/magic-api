@@ -1,0 +1,222 @@
+<template>
+  <div class="ma-json-container">
+    <div class="json-view f_c">
+      <!-- 解决子组件不强制刷新 -->
+      <div v-show="forceUpdate"></div>
+      <div class="header">视图</div>
+      <magic-json-tree :jsonData="jsonData" :forceUpdate="forceUpdate" class="view-box" v-on:jsonClick="handleJsonClick"></magic-json-tree>
+    </div>
+    <div class="json-panel f_c">
+      <div class="header">属性</div>
+      <div class="panel-box f_c" v-if="fieldObj.dataType && fieldObj.dataType != 'Object' && fieldObj.dataType != 'Array'">
+        <div class="box-item">
+          <div class="item-title">Key</div>
+          <div class="item-content">{{fieldObj.name}}</div>
+        </div>
+        <div class="box-item">
+          <div class="item-title">Value</div>
+          <div class="item-content">{{fieldObj.value}}</div>
+        </div>
+        <div class="box-item">
+          <div class="item-title">参数类型</div>
+          <div class="item-content">
+            <magic-select :border="false" :options="bodyTypes"
+                          :value.sync="fieldObj.dataType" default-value="String" style="width: 100%"/>
+          </div>
+        </div>
+        <div class="box-item">
+          <div class="item-title">是否必填</div>
+          <div class="item-content">
+            <div style="width: 25px; height: 25px;"><magic-checkbox :value.sync="fieldObj.required"/></div>
+          </div>
+        </div>
+        <div class="box-item">
+          <div class="item-title">默认值</div>
+          <div class="item-content">
+            <magic-input :value.sync="fieldObj.defaultValue" style="width: 100%"/>
+          </div>
+        </div>
+        <div class="box-item">
+          <div class="item-title">验证方式</div>
+          <div class="item-content">
+            <magic-select :border="false" :options="validates"
+                          :value.sync="fieldObj.validateType" default-value="pass" style="width: 100%"/>
+          </div>
+        </div>
+        <div class="box-item">
+          <div class="item-title">表达式或正则表达式</div>
+          <div class="item-content">
+            <magic-input :value.sync="fieldObj.expression" style="width: 100%"/>
+          </div>
+        </div>
+        <div class="box-item">
+          <div class="item-title">验证说明</div>
+          <div class="item-content">
+            <magic-input :value.sync="fieldObj.error" style="width: 100%"/>
+          </div>
+        </div>
+        <div class="box-item">
+          <div class="item-title">字段注释</div>
+          <div class="item-content">
+            <magic-input :value.sync="fieldObj.description" style="width: 100%"/>
+          </div>
+        </div>
+
+      </div>
+      <div class="panel-box f_c" v-else>
+        <div class="box-item">
+          <div class="item-title">对象VO</div>
+          <div class="item-content"><magic-input :value.sync="fieldObj.name" style="width: 100%" :placeholder="'请输入对象VO名称'"/></div>
+        </div>
+        <div class="box-item">
+          <div class="item-title">对象注释</div>
+          <div class="item-content">
+            <magic-input :value.sync="fieldObj.description" style="width: 100%"/>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+
+  import MagicInput from '@/components/common/magic-input.vue'
+  import MagicSelect from '@/components/common/magic-select.vue'
+  import MagicCheckbox from '@/components/common/magic-checkbox.vue'
+  import MagicJsonTree from './magic-json-tree'
+
+  export default {
+    name: 'MagicJson',
+    props: {
+      jsonData: {
+        type: [Object, Array, String, Number, Boolean, Function],
+        required: true
+      },
+      // 解决子组件不强制刷新
+      forceUpdate: Boolean
+    },
+    data() {
+      return {
+        validates: [
+          {value: 'pass', text: '不验证'},
+          {value: 'expression', text: '表达式验证'},
+          {value: 'pattern', text: '正则验证'},
+        ],
+        bodyTypes: [
+          {value: 'String', text: 'String'},
+          {value: 'Integer', text: 'Integer'},
+          {value: 'Double', text: 'Double'},
+          {value: 'Long', text: 'Long'},
+          {value: 'Short', text: 'Short'},
+          {value: 'Float', text: 'Float'},
+          {value: 'Byte', text: 'Byte'},
+          {value: 'Boolean', text: 'Boolean'},
+        ],
+        fieldObj: {dataType: "Object"}
+      }
+    },
+    components: {
+      MagicInput,
+      MagicSelect,
+      MagicCheckbox,
+      MagicJsonTree
+    },
+    watch: {
+      jsonData: {
+        handler(newVal, oldVal) {
+          if (newVal && newVal.length > 0) {
+            this.getActiveNode(newVal)
+          } else {
+            this.fieldObj = {dataType: "Object"}
+          }
+        },
+        deep: true
+      }
+    },
+    methods: {
+      getActiveNode(node) {
+        node.forEach(item => {
+          if (item.selected) {
+            this.fieldObj = item;
+            return;
+          } else {
+            this.getActiveNode(item.children)
+          }
+        })
+      },
+      recurveChildren(children) {
+        children.map(item => {
+          item.selected = false;
+          item.children = this.recurveChildren(item.children)
+        })
+        return children
+      },
+      handleJsonClick(e) {
+        this.jsonData.map(item => {
+          item.selected = false;
+          item.children = this.recurveChildren(item.children)
+        })
+        this.fieldObj = e;
+      }
+    }
+  }
+</script>
+<style>
+  .ma-json-container {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .f_c {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .json-view {
+    width: 55%;
+    margin: 0px 10px;
+    border: 1px solid #c9c9c9;
+    background-color: #ffffff;
+  }
+
+  .json-view .view-box {
+    padding: 15px 20px;
+    height: 335px;
+    overflow: scroll;
+  }
+
+  .json-panel {
+    flex: 1;
+    margin: 0px 10px;
+    border: 1px solid #c9c9c9;
+    background-color: #ffffff;
+  }
+
+  .json-panel .panel-box {
+    padding: 5px 20px;
+  }
+
+  .json-panel .panel-box .box-item {
+    height: 35px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border-bottom: 1px solid #E3E3E3;
+  }
+  .json-panel .panel-box .box-item .item-title {
+    width: 150px;
+  }
+  .json-panel .panel-box .box-item .item-content {
+    flex: 1;
+  }
+  .header {
+    height: 30px;
+    line-height: 30px;
+    font-size: 14px;
+    text-align: left;
+    padding-left: 20px;
+    background-color: #f2f2f2;
+    width: 100%;
+  }
+</style>

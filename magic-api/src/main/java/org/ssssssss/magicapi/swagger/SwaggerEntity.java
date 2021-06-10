@@ -17,7 +17,7 @@ public class SwaggerEntity {
 
 	private Set<Tag> tags = new TreeSet<>(Comparator.comparing(Tag::getName));
 
-	private Map<String, String> definitions = Collections.emptyMap();
+	private Map<String, Object> definitions = Collections.emptyMap();
 
 	private Map<String, Map<String, Path>> paths = new HashMap<>();
 
@@ -40,6 +40,7 @@ public class SwaggerEntity {
 			result.put("properties", properties);
 		} else {
 			result.put("example", target == null ? "" : target);
+			result.put("description", target == null ? "" : target);
 		}
 		return result;
 	}
@@ -104,10 +105,12 @@ public class SwaggerEntity {
 		this.basePath = basePath;
 	}
 
-	public Map<String, String> getDefinitions() {
+	public Map<String, Object> getDefinitions() {
 		return definitions;
 	}
-
+	public void addDefinitions(String path, Object definition) {
+		definitions.put(path, definition);
+	}
 	public Set<Tag> getTags() {
 		return tags;
 	}
@@ -334,6 +337,7 @@ public class SwaggerEntity {
 				schema.put("type", type);
 				schema.put("example", example);
 				this.schema = doProcessSchema(example);
+				this.schema = "";
 			} else {
 				this.example = example;
 				/*

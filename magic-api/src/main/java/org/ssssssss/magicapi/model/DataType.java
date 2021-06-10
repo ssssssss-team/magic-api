@@ -9,6 +9,9 @@ import java.math.BigDecimal;
 import static org.ssssssss.script.reflection.JavaReflection.findInvoker;
 
 public enum DataType {
+	Object("object"),
+	Array("array"),
+	Boolean("boolean"),
 	String("string"),
 	Integer(true, findInvoker(BigDecimal.class, "intValue"), "number"),
 	Double(true, findInvoker(BigDecimal.class, "doubleValue"), "number"),
@@ -18,6 +21,7 @@ public enum DataType {
 	Short(true, findInvoker(BigDecimal.class, "shortValue"), "number"),
 	MultipartFile(findInvoker(RequestModule.class, "getFile", new Class<?>[]{String.class}), true, false, "file"),
 	MultipartFiles(findInvoker(RequestModule.class, "getFiles", new Class<?>[]{String.class}), true, false, "file");
+
 
 	private boolean isNumber;
 

@@ -82,12 +82,23 @@ public class Constants {
 	 * 脚本中header的变量名
 	 */
 	public static final String VAR_NAME_HEADER = "header";
+	/**
+	 * 脚本中query的变量名
+	 */
+	public static final String VAR_NAME_QUERY = "query";
 
 	/**
 	 * 脚本中RequestBody的变量名
 	 */
 	public static final String VAR_NAME_REQUEST_BODY = "body";
-
+	/**
+	 * 脚本中RequestBody的变量值字段类型
+	 */
+	public static final String VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT = "object";
+	/**
+	 * 脚本中RequestBody的变量名字段类型
+	 */
+	public static final String VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY = "array";
 	/**
 	 * 脚本中RequestBody的变量名
 	 */

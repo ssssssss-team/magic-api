@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.model;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class BaseDefinition {
@@ -53,6 +54,11 @@ public class BaseDefinition {
 	 * 验证表达式
 	 */
 	private String expression;
+
+	/**
+	 * @Description 子集，数据类型为对象或数组时有数据
+	 */
+	private ArrayList<BaseDefinition> children;
 
 	public BaseDefinition() {
 	}
@@ -142,16 +148,24 @@ public class BaseDefinition {
 		this.type = type;
 	}
 
+	public ArrayList<BaseDefinition> getChildren() {
+		return children;
+	}
+
+	public void setChildren(ArrayList<BaseDefinition> children) {
+		this.children = children;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof BaseDefinition)) return false;
 		BaseDefinition that = (BaseDefinition) o;
-		return required == that.required && Objects.equals(name, that.name) && Objects.equals(value, that.value) && Objects.equals(description, that.description) && dataType == that.dataType && Objects.equals(defaultValue, that.defaultValue) && Objects.equals(validateType, that.validateType) && Objects.equals(error, that.error) && Objects.equals(expression, that.expression);
+		return required == that.required && Objects.equals(name, that.name) && Objects.equals(value, that.value) && Objects.equals(description, that.description) && dataType == that.dataType && Objects.equals(defaultValue, that.defaultValue) && Objects.equals(validateType, that.validateType) && Objects.equals(error, that.error) && Objects.equals(expression, that.expression) && Objects.equals(children, that.children);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(name, value, description, required, dataType, defaultValue, validateType, error, expression);
+		return Objects.hash(name, value, description, required, dataType, defaultValue, validateType, error, expression, children);
 	}
 }
