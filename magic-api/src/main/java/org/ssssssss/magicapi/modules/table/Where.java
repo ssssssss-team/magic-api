@@ -370,6 +370,11 @@ public class Where {
 		return namedTable.update();
 	}
 
+	@Comment("执行delete语句")
+	public int delete() {
+		return namedTable.delete();
+	}
+
 	@Comment("执行update语句")
 	public int update(@Comment("各项列和值") Map<String, Object> data) {
 		return namedTable.update(data);
