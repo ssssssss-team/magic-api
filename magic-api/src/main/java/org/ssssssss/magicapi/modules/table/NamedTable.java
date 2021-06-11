@@ -157,20 +157,42 @@ public class NamedTable {
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
 	public Object save() {
-		return this.save(null);
+		return this.save(null,false);
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
-	public Object save(@Comment("各项列和值") Map<String, Object> data) {
+	public Object save(@Comment("各项列和值") Map<String, Object> data, @Comment("是否根据id查询有没有数据") boolean beforeQuery) {
 		if (StringUtils.isBlank(this.primary)) {
 			throw new MagicAPIException("请设置主键");
 		}
-		if (StringUtils.isNotBlank(Objects.toString(this.columns.get(this.primary), "")) || (data != null && StringUtils.isNotBlank(Objects.toString(data.get(this.primary), "")))) {
+		String primaryValue = Objects.toString(this.columns.get(this.primary), "");
+		if(StringUtils.isBlank(primaryValue) && data != null){
+			primaryValue = Objects.toString(data.get(this.primary), "");
+		}
+		if(beforeQuery){
+			if(StringUtils.isNotBlank(primaryValue)){
+				List<Object> params = new ArrayList<>();
+				params.add(primaryValue);
+				Map<String, Object> oneMap = sqlModule.selectOne(new BoundSql("select count(1) count from " + this.tableName + " where " + this.primary + " = ?", params, sqlModule));
+				Integer count = new Integer(oneMap.get("count").toString());
+				if(count == 0){
+					return insert(data);
+				}
+				return update(data);
+			} else {
+				return insert(data);
+			}
+		}
+		if (StringUtils.isNotBlank(primaryValue)) {
 			return update(data);
 		}
 		return insert(data);
 	}
 
+	@Comment("保存到表中，当主键有值时则修改，否则插入")
+	public Object save(boolean beforeQuery) {
+		return this.save(null, beforeQuery);
+	}
 
 	@Comment("执行`select`查询")
 	public List<Map<String, Object>> select() {

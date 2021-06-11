@@ -351,8 +351,18 @@ public class Where {
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
+	public Object save(@Comment("是否根据id查询有没有数据") boolean beforeQuery) {
+		return namedTable.save(beforeQuery);
+	}
+
+	@Comment("保存到表中，当主键有值时则修改，否则插入")
 	public Object save(@Comment("各项列和值") Map<String, Object> data) {
-		return namedTable.save(data);
+		return namedTable.save(data, false);
+	}
+
+	@Comment("保存到表中，当主键有值时则修改，否则插入")
+	public Object save(@Comment("各项列和值") Map<String, Object> data, @Comment("是否根据id查询有没有数据") boolean beforeQuery) {
+		return namedTable.save(data, beforeQuery);
 	}
 
 	@Comment("执行插入语句，返回主键")
