@@ -194,6 +194,11 @@ public class NamedTable {
 		return this.save(null, beforeQuery);
 	}
 
+	@Comment("保存到表中，当主键有值时则修改，否则插入")
+	public Object save(@Comment("各项列和值") Map<String, Object> data) {
+		return this.save(data, false);
+	}
+
 	@Comment("执行`select`查询")
 	public List<Map<String, Object>> select() {
 		return sqlModule.select(buildSelect());

@@ -357,7 +357,7 @@ public class Where {
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
 	public Object save(@Comment("各项列和值") Map<String, Object> data) {
-		return namedTable.save(data, false);
+		return namedTable.save(data);
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
