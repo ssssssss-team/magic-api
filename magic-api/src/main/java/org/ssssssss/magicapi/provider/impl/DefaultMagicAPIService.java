@@ -509,7 +509,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		Set<ApiInfo> apiInfos = new HashSet<>();
 		Set<FunctionInfo> functionInfos = new HashSet<>();
 		// 检查上传资源中是否有冲突
-		isTrue(readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, "/", root), UPLOAD_PATH_CONFLICT);
+		readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, "/", root);
 		Resource item = root.getResource(Constants.GROUP_METABASE);
 		if (item.exists()) {
 			Group group = groupServiceProvider.readGroup(item);
@@ -752,7 +752,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		}
 	}
 
-	private boolean readPaths(Set<Group> groups, Set<String> apiPaths, Set<String> functionPaths, Set<ApiInfo> apiInfos, Set<FunctionInfo> functionInfos, String parentPath, Resource root) {
+	private void readPaths(Set<Group> groups, Set<String> apiPaths, Set<String> functionPaths, Set<ApiInfo> apiInfos, Set<FunctionInfo> functionInfos, String parentPath, Resource root) {
 		Resource resource = root.getResource(Constants.GROUP_METABASE);
 		String path = "";
 		if (resource.exists()) {
@@ -761,27 +761,21 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			path = Objects.toString(group.getPath(), "");
 			boolean isApi = Constants.GROUP_TYPE_API.equals(group.getType());
 			for (Resource file : root.files(".ms")) {
-				boolean conflict;
 				if (isApi) {
 					ApiInfo info = apiServiceProvider.deserialize(file.read());
 					apiInfos.add(info);
-					conflict = !apiPaths.add(Objects.toString(info.getMethod(), "GET") + ":" + PathUtils.replaceSlash(parentPath + "/" + path + "/" + info.getPath()));
+					String apiPath = Objects.toString(info.getMethod(), "GET") + ":" + PathUtils.replaceSlash(parentPath + "/" + path + "/" + info.getPath());
+					isTrue(apiPaths.add(apiPath), UPLOAD_PATH_CONFLICT.format(apiPath));
 				} else {
 					FunctionInfo info = functionServiceProvider.deserialize(file.read());
 					functionInfos.add(info);
-					conflict = !functionPaths.add(PathUtils.replaceSlash(parentPath + "/" + path + "/" + info.getPath()));
-				}
-				if (conflict) {
-					return false;
+					String functionPath = PathUtils.replaceSlash(parentPath + "/" + path + "/" + info.getPath());
+					isTrue(functionPaths.add(functionPath), UPLOAD_PATH_CONFLICT.format(functionPath));
 				}
 			}
 		}
 		for (Resource directory : root.dirs()) {
-			if (!readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, PathUtils.replaceSlash(parentPath + "/" + path), directory)) {
-				return false;
-			}
+			readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, PathUtils.replaceSlash(parentPath + "/" + path), directory);
 		}
-		return true;
 	}
-
 }
