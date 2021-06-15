@@ -176,8 +176,8 @@
   .json-view {
     width: 55%;
     margin: 0px 10px;
-    border: 1px solid #c9c9c9;
-    background-color: #ffffff;
+    background-color: var(--input-background);
+    border: 1px solid var(--border-color);
   }
 
   .json-view .view-box {
@@ -189,8 +189,8 @@
   .json-panel {
     flex: 1;
     margin: 0px 10px;
-    border: 1px solid #c9c9c9;
-    background-color: #ffffff;
+    background-color: var(--input-background);
+    border: 1px solid var(--border-color);
   }
 
   .json-panel .panel-box {
@@ -216,7 +216,7 @@
     font-size: 14px;
     text-align: left;
     padding-left: 20px;
-    background-color: #f2f2f2;
+    background-color: var(--selected-background);
     width: 100%;
   }
 </style>

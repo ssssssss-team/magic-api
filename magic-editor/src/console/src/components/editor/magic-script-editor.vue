@@ -490,7 +490,7 @@ export default {
         try {
          let requestBody = JSON.parse(this.info.requestBody)
           requestConfig.params = params
-          requestConfig.data = this.buildRequestBodyData(requestBody)
+          requestConfig.data = JSON.stringify(this.buildRequestBodyData(requestBody))
           requestConfig.headers['Content-Type'] = 'application/json'
           requestConfig.transformRequest = []
         } catch (e) {
@@ -541,7 +541,7 @@ export default {
         newBody += this.createJsonStr(requestBody.children, true)
         newBody += ']';
       }
-      return newBody
+      return JSON.parse(newBody)
     },
     createJsonStr(data, arrayFlag = false) {
       let body = '';

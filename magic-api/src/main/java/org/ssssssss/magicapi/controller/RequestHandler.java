@@ -1,6 +1,5 @@
 package org.ssssssss.magicapi.controller;
 
-import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +30,7 @@ import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
+import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.magicapi.utils.PatternUtils;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
@@ -110,11 +110,27 @@ public class RequestHandler extends MagicController {
 		}
 		MagicScriptContext context = createMagicScriptContext(requestEntity);
 
-		if (StringUtils.isNotBlank(requestEntity.getApiInfo().getRequestBody()) && JSONUtil.toBean(requestEntity.getApiInfo().getRequestBody(), BaseDefinition.class).getChildren().size() > 0) {
+		if (context.get(VAR_NAME_REQUEST_BODY) != null && StringUtils.isNotBlank(requestEntity.getApiInfo().getRequestBody()) && JsonUtils.readValue(requestEntity.getApiInfo().getRequestBody(), BaseDefinition.class).getChildren().size() > 0) {
 			// 验证 body
-			value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, JSONUtil.toBean(requestEntity.getApiInfo().getRequestBody(), BaseDefinition.class).getChildren(), JSONUtil.parseObj(context.get(VAR_NAME_REQUEST_BODY)));
-			if (value != null) {
-				return requestEntity.isRequestedFromTest() ? new JsonBean<>(PATH_VARIABLE_INVALID, value) : value;
+			BaseDefinition body = JsonUtils.readValue(requestEntity.getApiInfo().getRequestBody(), BaseDefinition.class);
+			// 请求体首层是数组的时候单独处理
+            if (context.get(VAR_NAME_REQUEST_BODY) instanceof List) {
+				if (!VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(body.getDataType().getJavascriptType())) {
+                    Object result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("body参数错误，应为[%s]", body.getDataType().getJavascriptType()));
+                    return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, result) : result;
+				}
+
+				for (Object objMap : (List)context.get(VAR_NAME_REQUEST_BODY)) {
+					value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, body.getChildren().get(0).getChildren(), (Map)objMap);
+					if (value != null) {
+						return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, value) : value;
+					}
+				}
+			} else {
+				value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, body.getChildren(), (Map)context.get(VAR_NAME_REQUEST_BODY));
+				if (value != null) {
+					return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, value) : value;
+				}
 			}
 		}
 
@@ -143,17 +159,17 @@ public class RequestHandler extends MagicController {
 
 			// 针对requestBody多层级的情况
 			if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
-				Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren(), JSONUtil.parseObj(parameters.get(parameter.getName())));
+				Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren(), (Map)parameters.get(parameter.getName()));
 				if (result != null) {
 					return result;
 				}
 			}
             if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
-                for (Object obj : JSONUtil.parseArray(parameters.get(parameter.getName()))) {
-                    Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren().get(0).getChildren(), JSONUtil.parseObj(obj));
-                    if (result != null) {
-                        return result;
-                    }
+                for (Object objMap : (List)parameters.get(parameter.getName())) {
+					Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren().get(0).getChildren(), (Map)objMap);
+					if (result != null) {
+						return result;
+					}
                 }
             }
 
@@ -460,6 +476,8 @@ public class RequestHandler extends MagicController {
 					}
 				}
 			} catch (HttpMessageNotReadableException ignored) {
+				System.out.println(ignored.getHttpInputMessage().getBody().toString());
+				ignored.printStackTrace();
 				return null;
 			}
 		}
