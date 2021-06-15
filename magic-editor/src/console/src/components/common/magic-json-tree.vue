@@ -97,7 +97,7 @@
   }
 
   .ma-tree .item-selected {
-    background-color: #d9e8fb;
+    background-color: var(--toolbox-list-hover-background);
   }
 
   .item-inline {

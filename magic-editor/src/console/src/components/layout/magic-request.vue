@@ -264,6 +264,7 @@
     mounted() {
       let that = this;
       bus.$on('update-request-body', (newVal) => {
+        console.log('update-request-body', newVal);
         this.initRequestBodyDom()
         if (!newVal || newVal == null) {
           that.bodyEditorFlag = false

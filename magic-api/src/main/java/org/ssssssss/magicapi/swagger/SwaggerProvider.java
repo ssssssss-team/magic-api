@@ -1,6 +1,5 @@
 package org.ssssssss.magicapi.swagger;
 
-import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -9,6 +8,7 @@ import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.BaseDefinition;
 import org.ssssssss.magicapi.model.Path;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
+import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
 import java.util.*;
@@ -61,6 +61,7 @@ public class SwaggerProvider {
 
 	@ResponseBody
 	public SwaggerEntity swaggerJson() {
+		this.DEFINITION_MAP.clear();
 		List<ApiInfo> infos = mappingHandlerMapping.getApiInfos();
 		SwaggerEntity swaggerEntity = new SwaggerEntity();
 		swaggerEntity.setInfo(info);
@@ -76,8 +77,8 @@ public class SwaggerProvider {
 				List<SwaggerEntity.Parameter> parameters = parseParameters(mapper, info);
 				hasBody = parameters.stream().anyMatch(it -> VAR_NAME_REQUEST_BODY.equals(it.getIn()));
                 if (hasBody) {
-                    BaseDefinition baseDefinition = JSONUtil.toBean(info.getRequestBody(), BaseDefinition.class);
-                    doProcessDefinition(baseDefinition, info);
+                    BaseDefinition baseDefinition = JsonUtils.readValue(info.getRequestBody(), BaseDefinition.class);
+                    doProcessDefinition(baseDefinition, info, StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY));
                 }
 				parameters.forEach(path::addParameter);
 				path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), BODY_EMPTY), Object.class));
@@ -89,7 +90,8 @@ public class SwaggerProvider {
 				path.addConsume("*/*");
 			}
 			path.addProduce("application/json");
-			path.setSummary(StringUtils.defaultIfBlank(info.getDescription(), info.getName()));
+			path.setSummary(info.getName());
+			path.setDescription(StringUtils.defaultIfBlank(info.getDescription(), info.getName()));
 
 			swaggerEntity.addPath(requestPath, info.getMethod(), path);
 		}
@@ -120,13 +122,19 @@ public class SwaggerProvider {
 		paths.forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), VAR_NAME_PATH_VARIABLE, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
 		try {
 			if (StringUtils.isNotBlank(info.getRequestBody()) && !BODY_EMPTY.equals(info.getRequestBody().replaceAll("\\s", ""))) {
-				BaseDefinition baseDefinition = JSONUtil.toBean(info.getRequestBody(), BaseDefinition.class);
+				BaseDefinition baseDefinition = JsonUtils.readValue(info.getRequestBody(), BaseDefinition.class);
 				if (BooleanLiteral.isTrue(baseDefinition)) {
 					SwaggerEntity.Parameter parameter = new SwaggerEntity.Parameter(true, StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() : VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, baseDefinition.getDataType().getJavascriptType(), baseDefinition.getDescription(), baseDefinition);
 
-					Map<String, Object> schema = new HashMap<>();
+					Map<String, Object> schema = new HashMap<>(2);
 					String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
-					String voName =  groupName + "<" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "<" + baseDefinition.getName() + ">>";
+					String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«";
+					if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(baseDefinition.getDataType().getJavascriptType())) {
+						voName += StringUtils.defaultIfBlank(baseDefinition.getChildren().get(0).getName(), StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY)) + "»»";
+					} else {
+						voName += StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY) + "»»";
+					}
+
 					schema.put("originalRef", voName);
 					schema.put("$ref", DEFINITION + voName);
 					parameter.setSchema(schema);
@@ -139,27 +147,31 @@ public class SwaggerProvider {
 		return parameters;
 	}
 
-    private Map<String, Object> doProcessDefinition(BaseDefinition target, ApiInfo info) {
+    private Map<String, Object> doProcessDefinition(BaseDefinition target, ApiInfo info, String parentName) {
         Map<String, Object> result = new HashMap<>(4);
         result.put("type", target.getDataType().getJavascriptType());
         result.put("description", target.getDescription());
         if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(target.getDataType().getJavascriptType())) {
             if (target.getChildren().size() > 0) {
-                result.put("items", doProcessDefinition(target.getChildren().get(0), info));
+                result.put("items", doProcessDefinition(target.getChildren().get(0), info, parentName + "_" +target.getName()));
             } else {
                 result.put("items", Collections.emptyList());
             }
 
         } else if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT.equalsIgnoreCase(target.getDataType().getJavascriptType())) {
             String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
-            String voName = groupName + "<" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "<" + target.getName() + ">>";
+            String voName = groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«" + StringUtils.defaultIfBlank(target.getName(), parentName)  + "»»";
+            if (this.DEFINITION_MAP.containsKey(voName)) {
+				// TODO 应该不会出现名字都一样的
+				voName.replace("»»", parentName + "»»");
+			}
             result.put("originalRef", voName);
             result.put("$ref", DEFINITION + voName);
 
             Map<String, Object> definition = new HashMap<>(4);
             Map<String, Map<String, Object>> properties = new HashMap<>(target.getChildren().size());
             for (BaseDefinition obj : target.getChildren()) {
-                properties.put(obj.getName(), doProcessDefinition(obj, info));
+                properties.put(obj.getName(), doProcessDefinition(obj, info, parentName));
             }
             definition.put("properties", properties);
             definition.put("description", target.getDescription());

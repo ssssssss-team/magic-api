@@ -17,7 +17,7 @@ public class SwaggerEntity {
 
 	private Set<Tag> tags = new TreeSet<>(Comparator.comparing(Tag::getName));
 
-	private Map<String, Object> definitions = Collections.emptyMap();
+	private Map<String, Object> definitions = new HashMap<>();
 
 	private Map<String, Map<String, Path>> paths = new HashMap<>();
 
@@ -219,6 +219,8 @@ public class SwaggerEntity {
 
 		private String summary;
 
+		private String description;
+
 		private String operationId = UUID.randomUUID().toString().replace("-", "");
 
 		private List<String> produces = new ArrayList<>();
@@ -307,6 +309,14 @@ public class SwaggerEntity {
 
 		public void setResponses(Map<String, Object> responses) {
 			this.responses = responses;
+		}
+
+		public String getDescription() {
+			return description;
+		}
+
+		public void setDescription(String description) {
+			this.description = description;
 		}
 	}
 

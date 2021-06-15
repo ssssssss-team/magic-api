@@ -13,7 +13,7 @@ public class BaseDefinition {
 	/**
 	 * 值
 	 */
-	private String value;
+	private Object value;
 
 	/**
 	 * 描述
@@ -76,11 +76,11 @@ public class BaseDefinition {
 		this.name = name;
 	}
 
-	public String getValue() {
+	public Object getValue() {
 		return value;
 	}
 
-	public void setValue(String value) {
+	public void setValue(Object value) {
 		this.value = value;
 	}
 

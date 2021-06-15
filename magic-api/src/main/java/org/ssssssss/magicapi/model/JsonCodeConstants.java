@@ -61,6 +61,8 @@ public interface JsonCodeConstants {
 
 	JsonCode PATH_VARIABLE_INVALID = new JsonCode(0, "路径变量验证失败");
 
+	JsonCode BODY_INVALID = new JsonCode(0, "body验证失败");
+
 	JsonCode FILE_IS_REQUIRED = new JsonCode(0, "请上传文件");
 
 	JsonCode SIGN_IS_INVALID = new JsonCode(0, "签名验证失败");
