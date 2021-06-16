@@ -6,18 +6,18 @@
       <div class="item-inline"  :class="item.selected ? 'tree-item item-selected' : 'tree-item'">
         <magic-json-tree-format :item="item" :index="index" :dataLength="jsonData.length" :indentLevel="indentLevel"/>
         <div class="item-inline">
-          <template  v-if="item.dataType == 'Object' || item.dataType == 'Array'" >
-            <img :src="imgObject" v-if="item.dataType == 'Object'"/>
+          <template  v-if="item.dataType === 'Object' || item.dataType === 'Array'" >
+            <img :src="imgObject" v-if="item.dataType === 'Object'"/>
             <img :src="imgArray" v-else/>
           </template>
 
-          {{item.level > 0 ? item.name : ''}}{{item.dataType != 'Object' && item.dataType != 'Array' ? ':' : ''}}
+          {{item.level > 0 ? item.name : ''}}{{item.dataType !== 'Object' && item.dataType !== 'Array' ? ':' : ''}}
           <span :style="item.dataType | color">
-              {{item.dataType == 'String' ? (item.value == 'null' || item.value == null ? 'null' : '"' + item.value + '"') : item.value}}
+              {{item.dataType === 'String' ? (item.value === 'null' || item.value == null ? 'null' : '"' + item.value + '"') : item.value}}
             </span>
         </div>
       </div>
-      <template  v-if="item.dataType == 'Object' || item.dataType == 'Array'" >
+      <template  v-if="item.dataType === 'Object' || item.dataType === 'Array'" >
         <magic-json-tree :jsonData="item.children" :indentLevel="indentLevel | createLevel(jsonData, item, index)" :forceUpdate="forceUpdate" v-on="$listeners"/>
       </template>
     </li>
@@ -49,7 +49,7 @@
         if (!indentLevel) {
           indentLevel = []
         }
-        indentLevel[item.level] = jsonData.length == index + 1 ? 1 : 0
+        indentLevel[item.level] = jsonData.length === index + 1 ? 1 : 0
         return deepClone(indentLevel)
       },
       color(dataType) {

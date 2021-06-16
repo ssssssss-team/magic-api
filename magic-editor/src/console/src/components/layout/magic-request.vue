@@ -152,7 +152,7 @@
 
         <div v-show="showIndex === 3" class="ma-layout-container">
 
-          <div style="display: flex; flex-direction: row; height: 100%;">
+          <div style="display: flex; flex-direction: row; height: calc(100% - 24px);">
             <div style="width: 40%">
               <div class="header">编辑器（停止编辑2s后同步更新视图属性）</div>
               <div ref="bodyEditor" class="ma-body-editor"></div>
@@ -298,10 +298,10 @@
       buildBodyEditorData(o) {
         let requestBody = o
         let newBody = {}
-        if ('Object' == requestBody.dataType) {
+        if ('Object' === requestBody.dataType) {
           let body = {}
           newBody = this.createJsonData(body, requestBody.children)
-        } else if ('Array' == requestBody.dataType) {
+        } else if ('Array' === requestBody.dataType) {
           let body = []
           newBody = this.createJsonData(body, requestBody.children, true)
         }
@@ -315,14 +315,14 @@
           if (!arrayFlag) {
             key = item.name
           }
-          if ('Object' == item.dataType) {
+          if ('Object' === item.dataType) {
             value = {}
             newBody[key] = this.createJsonData(value, item.children)
-          } else if ('Array' == item.dataType) {
+          } else if ('Array' === item.dataType) {
             value = []
             newBody[key] = this.createJsonData(value, item.children, true)
           } else {
-            newBody[key] = (value == 'null' || value == 'undefined') ? null : value
+            newBody[key] = (value === 'null' || value === 'undefined') ? null : value
           }
           if (arrayFlag) {
             newBody.push(value)
@@ -424,7 +424,7 @@
         }
       },
       updateRequestBody(bodyStr) {
-        if (this.bodyEditor.getValue().replace(/\s/g,"") == '{}') {
+        if (this.bodyEditor.getValue().replace(/\s/g,"") === '{}') {
           this.requestBody = []
           return false
         }
@@ -441,7 +441,7 @@
             description: '',
             children: this.processBody(body, 0),
             level: 0,
-            selected: this.requestBody.length > 0 ? false : true
+            selected: this.requestBody.length <= 0
           })
 
           this.requestBody = this.valueCopy(reqBody, this.requestBody)
@@ -454,8 +454,8 @@
         let arr = [], that = this
         Object.keys(body).forEach((key) => {
           let param = {
-            name: 'Array' != this.getType(body) ? key : '',
-            value: 'Object' != that.getType(body[key]) && 'Array' != that.getType(body[key]) ? body[key] : '',
+            name: 'Array' !== this.getType(body) ? key : '',
+            value: 'Object' !== that.getType(body[key]) && 'Array' !== that.getType(body[key]) ? body[key] : '',
             dataType: this.getType(body[key]),
             validateType: '',
             expression: '',
@@ -465,7 +465,7 @@
             level: level + 1,
             selected: false
           }
-          if ('Object' == that.getType(body[key]) || 'Array' == that.getType(body[key])) {
+          if ('Object' === that.getType(body[key]) || 'Array' === that.getType(body[key])) {
             let children = that.processBody(body[key], level + 1);
             param.children = children;
           }
@@ -475,19 +475,19 @@
         return arr;
       },
       getType(object) {
-        if (Object.prototype.toString.call(object) == '[object Number]') {
+        if (Object.prototype.toString.call(object) === '[object Number]') {
           return "Integer";
         }
-        if (Object.prototype.toString.call(object) == '[object String]') {
+        if (Object.prototype.toString.call(object) === '[object String]') {
           return "String";
         }
-        if (Object.prototype.toString.call(object) == '[object Boolean]') {
+        if (Object.prototype.toString.call(object) === '[object Boolean]') {
           return "Boolean";
         }
-        if (Object.prototype.toString.call(object) == '[object Array]') {
+        if (Object.prototype.toString.call(object) === '[object Array]') {
           return "Array";
         }
-        if (Object.prototype.toString.call(object) == '[object Object]') {
+        if (Object.prototype.toString.call(object) === '[object Object]') {
           return "Object";
         }
         return "String";
@@ -496,14 +496,14 @@
         let that = this;
         newBody.map(item => {
           let oldItemArr = oldBody.filter(old => {
-            if (old.level == 0 || arrayFlag) {
+            if (old.level === 0 || arrayFlag) {
               return old
             }
-            return old.name == item.name
+            return old.name === item.name
           })
           if (oldItemArr.length > 0) {
-            if (item.dataType == 'Object' || item.dataType == 'Array') {
-              item.children = that.valueCopy(item.children, oldItemArr[0].children, item.dataType == 'Array' ? true : false)
+            if (item.dataType === 'Object' || item.dataType === 'Array') {
+              item.children = that.valueCopy(item.children, oldItemArr[0].children, item.dataType === 'Array' ? true : false)
             } else {
               item.validateType = oldItemArr[0].validateType
               item.expression = oldItemArr[0].expression

@@ -8,7 +8,7 @@
     </div>
     <div class="json-panel f_c">
       <div class="header">属性</div>
-      <div class="panel-box f_c" v-if="fieldObj.dataType && fieldObj.dataType != 'Object' && fieldObj.dataType != 'Array'">
+      <div class="panel-box f_c" v-if="fieldObj.dataType && fieldObj.dataType !== 'Object' && fieldObj.dataType !== 'Array'">
         <div class="box-item">
           <div class="item-title">Key</div>
           <div class="item-content">{{fieldObj.name}}</div>
@@ -20,8 +20,7 @@
         <div class="box-item">
           <div class="item-title">参数类型</div>
           <div class="item-content">
-            <magic-select :border="false" :options="bodyTypes"
-                          :value.sync="fieldObj.dataType" default-value="String" style="width: 100%"/>
+            <magic-select :options="bodyTypes" :value.sync="fieldObj.dataType" default-value="String" style="width: 100%"/>
           </div>
         </div>
         <div class="box-item">
@@ -39,8 +38,7 @@
         <div class="box-item">
           <div class="item-title">验证方式</div>
           <div class="item-content">
-            <magic-select :border="false" :options="validates"
-                          :value.sync="fieldObj.validateType" default-value="pass" style="width: 100%"/>
+            <magic-select :options="validates" :value.sync="fieldObj.validateType" default-value="pass" style="width: 100%"/>
           </div>
         </div>
         <div class="box-item">
@@ -166,6 +164,7 @@
   .ma-json-container {
     display: flex;
     flex-direction: row;
+    height: 100%;
   }
 
   .f_c {
@@ -176,25 +175,25 @@
   .json-view {
     width: 55%;
     margin: 0px 10px;
-    background-color: var(--input-background);
     border: 1px solid var(--border-color);
+    border-top: none;
   }
 
   .json-view .view-box {
-    padding: 15px 20px;
-    height: 335px;
-    overflow: scroll;
+    padding: 5px 0;
+    height: 100%;
+    overflow: auto;
   }
 
   .json-panel {
     flex: 1;
     margin: 0px 10px;
-    background-color: var(--input-background);
     border: 1px solid var(--border-color);
+    border-top: none;
   }
 
   .json-panel .panel-box {
-    padding: 5px 20px;
+    padding: 5px;
   }
 
   .json-panel .panel-box .box-item {
@@ -202,10 +201,10 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    border-bottom: 1px solid #E3E3E3;
+    border-bottom: 1px solid var(--border-color);
   }
   .json-panel .panel-box .box-item .item-title {
-    width: 150px;
+    width: 125px;
   }
   .json-panel .panel-box .box-item .item-content {
     flex: 1;
@@ -216,7 +215,8 @@
     font-size: 14px;
     text-align: left;
     padding-left: 20px;
-    background-color: var(--selected-background);
+    background-color: var(--background);
+    border-bottom: 1px solid var(--border-color);
     width: 100%;
   }
 </style>
