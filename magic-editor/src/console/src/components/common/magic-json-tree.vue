@@ -13,7 +13,7 @@
 
           {{item.level > 0 ? item.name : ''}}{{item.dataType != 'Object' && item.dataType != 'Array' ? ':' : ''}}
           <span :style="item.dataType | color">
-              {{item.dataType == 'String' ? '"' + item.value + '"': item.value}}
+              {{item.dataType == 'String' ? ((item.value == 'null' || item.value == 'undefined') ? item.value : '"' + item.value + '"') : item.value}}
             </span>
         </div>
       </div>

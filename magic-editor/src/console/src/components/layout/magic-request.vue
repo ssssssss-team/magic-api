@@ -254,8 +254,10 @@
     watch: {
       requestBody: {
         handler(newVal, oldVal) {
+          console.log('watch -handler', newVal);
           if (this.bodyEditorFlag) {
             this.info.requestBody = JSON.stringify(newVal[0])
+            // this.buildEditorValue(this.info.requestBody)
           }
         },
         deep: true
@@ -264,7 +266,7 @@
     mounted() {
       let that = this;
       bus.$on('update-request-body', (newVal) => {
-        console.log('update-request-body', newVal);
+        // console.log('update-request-body', newVal);
         this.initRequestBodyDom()
         if (!newVal || newVal == null) {
           that.bodyEditorFlag = false
@@ -274,8 +276,17 @@
         }
         try {
           let body = JSON.parse(newVal)
-          that.requestBody = [body]
-          that.buildEditorValue(body)
+          if (body.dataType && body.children) {
+            that.requestBody = [body]
+            that.buildBodyEditorData(body)
+          } else {
+            /**
+             * 旧的json结构，不能直接用，需通过editor转换
+             */
+            this.editorJson = formatJson(newVal)
+            this.bodyEditor && this.bodyEditor.setValue(this.editorJson)
+          }
+
         } catch (e) {
           // console.log(e);
         }
@@ -285,48 +296,40 @@
     },
 
     methods: {
-      buildEditorValue(o) {
+      buildBodyEditorData(o) {
         let requestBody = o
-        let newBody = '';
+        let newBody = {}
         if ('Object' == requestBody.dataType) {
-          newBody += '{\r\n';
-          newBody += this.createJsonStr(requestBody.children) || '\t'
-          newBody += '\r\n}';
+          let body = {}
+          newBody = this.createJsonData(body, requestBody.children)
         } else if ('Array' == requestBody.dataType) {
-          newBody += '[\r\n';
-          newBody += this.createJsonStr(requestBody.children, true)
-          newBody += '\r\n]';
+          let body = []
+          newBody = this.createJsonData(body, requestBody.children, true)
         }
-        this.editorJson = formatJson(newBody)
-        this.bodyEditor && this.bodyEditor.setValue(formatJson(newBody))
+        // console.log('buildBodyEditorData', newBody);
+        this.editorJson = formatJson(JSON.stringify(newBody))
+        this.bodyEditor && this.bodyEditor.setValue(this.editorJson)
       },
-      createJsonStr(data, arrayFlag = false) {
-        let body = '';
-        data.map((item, index) => {
-          if (index > 0) {
-            body += ','
-          }
+      createJsonData(newBody, data, arrayFlag = false) {
+        data.map(item => {
+          let key, value = item.value;
           if (!arrayFlag) {
-            body += `"${item.name}": `;
+            key = item.name
           }
-
           if ('Object' == item.dataType) {
-            body += '{\r\n';
-            body += this.createJsonStr(item.children)
-            body += '\r\n}';
+            value = {}
+            newBody[key] = this.createJsonData(value, item.children)
           } else if ('Array' == item.dataType) {
-            body += '[\r\n';
-            body += this.createJsonStr(item.children, true)
-            body += '\r\n]';
+            value = []
+            newBody[key] = this.createJsonData(value, item.children, true)
           } else {
-            if ('String' == item.dataType) {
-              body += `"${item.value}"`;
-            } else {
-              body += `${item.value}`;
-            }
+            newBody[key] = (value == 'null' || value == 'undefined') ? null : value
+          }
+          if (arrayFlag) {
+            newBody.push(value)
           }
         })
-        return body;
+        return newBody;
       },
       layout() {
         this.$nextTick(() => {

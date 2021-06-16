@@ -494,6 +494,7 @@ export default {
           requestConfig.headers['Content-Type'] = 'application/json'
           requestConfig.transformRequest = []
         } catch (e) {
+          console.log('magic-script-editor', e);
           this.$magicAlert({
             content: 'RequestBody 参数有误，请检查！'
           })
@@ -531,44 +532,37 @@ export default {
     },
     buildRequestBodyData(o) {
       let requestBody = o
-      let newBody = '';
+      let newBody = {}
       if ('Object' == requestBody.dataType) {
-        newBody += '{';
-        newBody += this.createJsonStr(requestBody.children)
-        newBody += '}';
+        let body = {}
+        newBody = this.createJsonData(body, requestBody.children)
       } else if ('Array' == requestBody.dataType) {
-        newBody += '[';
-        newBody += this.createJsonStr(requestBody.children, true)
-        newBody += ']';
+        let body = []
+        newBody = this.createJsonData(body, requestBody.children, true)
       }
-      return JSON.parse(newBody)
+      // console.log('buildRequestBodyData', newBody);
+      return newBody
     },
-    createJsonStr(data, arrayFlag = false) {
-      let body = '';
-      data.map((item, index) => {
-        if (index > 0) {
-          body += ','
-        }
+    createJsonData(newBody, data, arrayFlag = false) {
+      data.map(item => {
+        let key, value = item.value;
         if (!arrayFlag) {
-          body += `"${item.name}": `;
+          key = item.name
         }
         if ('Object' == item.dataType) {
-          body += '{';
-          body += this.createJsonStr(item.children)
-          body += '}';
+          value = {}
+          newBody[key] = this.createJsonData(value, item.children)
         } else if ('Array' == item.dataType) {
-          body += '[';
-          body += this.createJsonStr(item.children, true)
-          body += ']';
+          value = []
+          newBody[key] = this.createJsonData(value, item.children, true)
         } else {
-          if ('String' == item.dataType) {
-            body += `"${item.value}"`;
-          } else {
-            body += `${item.value}`;
-          }
+            newBody[key] = (value == 'null' || value == 'undefined') ? null : value
+        }
+        if (arrayFlag) {
+          newBody.push(value)
         }
       })
-      return body;
+      return newBody;
     },
     viewHistory() {
       if (!this.selected) {

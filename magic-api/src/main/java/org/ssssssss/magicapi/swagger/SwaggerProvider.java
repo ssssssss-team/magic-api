@@ -130,7 +130,7 @@ public class SwaggerProvider {
 					String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
 					String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«";
 					if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(baseDefinition.getDataType().getJavascriptType())) {
-						voName += StringUtils.defaultIfBlank(baseDefinition.getChildren().get(0).getName(), StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY)) + "»»";
+						voName += StringUtils.defaultIfBlank(baseDefinition.getChildren().get(0).getName(), VAR_NAME_REQUEST_BODY + "_" + StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY)) + "»»";
 					} else {
 						voName += StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY) + "»»";
 					}
@@ -153,7 +153,7 @@ public class SwaggerProvider {
         result.put("description", target.getDescription());
         if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(target.getDataType().getJavascriptType())) {
             if (target.getChildren().size() > 0) {
-                result.put("items", doProcessDefinition(target.getChildren().get(0), info, parentName + "_" +target.getName()));
+                result.put("items", doProcessDefinition(target.getChildren().get(0), info, parentName + "_" + StringUtils.defaultIfBlank(target.getName(), VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY)));
             } else {
                 result.put("items", Collections.emptyList());
             }
@@ -163,7 +163,7 @@ public class SwaggerProvider {
             String voName = groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«" + StringUtils.defaultIfBlank(target.getName(), parentName)  + "»»";
             if (this.DEFINITION_MAP.containsKey(voName)) {
 				// TODO 应该不会出现名字都一样的
-				voName.replace("»»", parentName + "»»");
+				voName.replace("»»", "_" + parentName + "»»");
 			}
             result.put("originalRef", voName);
             result.put("$ref", DEFINITION + voName);
