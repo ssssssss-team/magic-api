@@ -488,12 +488,13 @@ export default {
       }
       if (this.info.requestBody) {
         try {
-          JSON.parse(this.info.requestBody)
+         let requestBody = JSON.parse(this.info.requestBody)
           requestConfig.params = params
-          requestConfig.data = this.info.requestBody
+          requestConfig.data = JSON.stringify(this.buildRequestBodyData(requestBody))
           requestConfig.headers['Content-Type'] = 'application/json'
           requestConfig.transformRequest = []
         } catch (e) {
+          console.log('magic-script-editor', e);
           this.$magicAlert({
             content: 'RequestBody 参数有误，请检查！'
           })
@@ -528,6 +529,40 @@ export default {
       info.ext.eventSource.addEventListener('close', e => {
         info.ext.eventSource.close()
       })
+    },
+    buildRequestBodyData(o) {
+      let requestBody = o
+      let newBody = {}
+      if ('Object' == requestBody.dataType) {
+        let body = {}
+        newBody = this.createJsonData(body, requestBody.children)
+      } else if ('Array' == requestBody.dataType) {
+        let body = []
+        newBody = this.createJsonData(body, requestBody.children, true)
+      }
+      // console.log('buildRequestBodyData', newBody);
+      return newBody
+    },
+    createJsonData(newBody, data, arrayFlag = false) {
+      data.map(item => {
+        let key, value = item.value;
+        if (!arrayFlag) {
+          key = item.name
+        }
+        if ('Object' == item.dataType) {
+          value = {}
+          newBody[key] = this.createJsonData(value, item.children)
+        } else if ('Array' == item.dataType) {
+          value = []
+          newBody[key] = this.createJsonData(value, item.children, true)
+        } else {
+            newBody[key] = (value == 'null' || value == 'undefined') ? null : value
+        }
+        if (arrayFlag) {
+          newBody.push(value)
+        }
+      })
+      return newBody;
     },
     viewHistory() {
       if (!this.selected) {

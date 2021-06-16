@@ -151,7 +151,17 @@
         </div>
 
         <div v-show="showIndex === 3" class="ma-layout-container">
-          <div ref="bodyEditor" class="ma-body-editor"></div>
+
+          <div style="display: flex; flex-direction: row; height: 100%;">
+            <div style="width: 40%">
+              <div class="header">编辑器（停止编辑2s后同步更新视图属性）</div>
+              <div ref="bodyEditor" class="ma-body-editor"></div>
+            </div>
+            <div style="flex: 1;">
+              <magic-json :jsonData="requestBody" :forceUpdate="forceUpdate"></magic-json>
+            </div>
+          </div>
+
         </div>
         <div v-show="showIndex === 4" class="ma-layout-container" style="overflow: hidden; right: 0">
           <magic-textarea :value.sync="info.description" style="width: 100%; height: 100%; margin: 2px"/>
@@ -166,163 +176,356 @@
 </template>
 
 <script>
-import MagicInput from '@/components/common/magic-input.vue'
-import MagicSelect from '@/components/common/magic-select.vue'
-import MagicCheckbox from '@/components/common/magic-checkbox.vue'
-import MagicTextarea from '@/components/common/magic-textarea.vue'
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
-import {formatJson, isVisible} from '@/scripts/utils.js'
-import bus from '@/scripts/bus.js'
-import store from '@/scripts/store.js'
+  import MagicInput from '@/components/common/magic-input.vue'
+  import MagicSelect from '@/components/common/magic-select.vue'
+  import MagicCheckbox from '@/components/common/magic-checkbox.vue'
+  import MagicTextarea from '@/components/common/magic-textarea.vue'
+  import MagicJson from '@/components/common/magic-json.vue'
 
-export default {
-  name: 'MagicRequest',
-  props: {
-    info: Object
-  },
-  components: {
-    MagicInput,
-    MagicSelect,
-    MagicTextarea,
-    MagicCheckbox
-  },
-  data() {
-    return {
-      navs: ['请求参数', '请求Header', '路径变量',  '请求Body', '接口描述'],
-      options: [
-        {value: 'GET', text: 'GET'},
-        {value: 'POST', text: 'POST'},
-        {value: 'PUT', text: 'PUT'},
-        {value: 'DELETE', text: 'DELETE'}
-      ],
-      headerTypes: [
-        {value: 'String', text: 'String'},
-        {value: 'Integer', text: 'Integer'},
-        {value: 'Double', text: 'Double'},
-        {value: 'Long', text: 'Long'},
-        {value: 'Short', text: 'Short'},
-        {value: 'Float', text: 'Float'},
-        {value: 'Byte', text: 'Byte'},
-      ],
-      types: [
-        {value: 'String', text: 'String'},
-        {value: 'Integer', text: 'Integer'},
-        {value: 'Double', text: 'Double'},
-        {value: 'Long', text: 'Long'},
-        {value: 'Short', text: 'Short'},
-        {value: 'Float', text: 'Float'},
-        {value: 'Byte', text: 'Byte'},
-        {value: 'MultipartFile', text: 'MultipartFile'},
-        {value: 'MultipartFiles', text: 'MultipartFiles'}
-      ],
-      validates: [
-        {value: 'pass', text: '不验证'},
-        {value: 'expression', text: '表达式验证'},
-        {value: 'pattern', text: '正则验证'},
-      ],
-      showIndex: 0,
-      parameterIndex: 0,
-      headerIndex: 0,
-      pathIndex: 0,
-      bodyEditor: null,
-      updating: false
-    }
-  },
-  mounted() {
-    bus.$on('update-request-body', (newVal) => {
-      this.initRequestBodyDom()
-      this.bodyEditor && this.bodyEditor.setValue(formatJson(newVal) || newVal || '{\r\n\t\r\n}')
-    })
-  },
-  methods: {
-    layout() {
-      this.$nextTick(() => {
-        if (this.bodyEditor && isVisible(this.$refs.bodyEditor)) {
-          this.bodyEditor.layout()
+  import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
+  import {formatJson, isVisible, deepClone} from '@/scripts/utils.js'
+  import bus from '@/scripts/bus.js'
+  import store from '@/scripts/store.js'
+
+  let timeout = null;
+  export default {
+    name: 'MagicRequest',
+    props: {
+      info: Object
+    },
+    components: {
+      MagicInput,
+      MagicSelect,
+      MagicTextarea,
+      MagicCheckbox,
+      MagicJson
+    },
+    data() {
+      return {
+        navs: ['请求参数', '请求Header', '路径变量', '请求Body', '接口描述'],
+        options: [
+          {value: 'GET', text: 'GET'},
+          {value: 'POST', text: 'POST'},
+          {value: 'PUT', text: 'PUT'},
+          {value: 'DELETE', text: 'DELETE'}
+        ],
+        headerTypes: [
+          {value: 'String', text: 'String'},
+          {value: 'Integer', text: 'Integer'},
+          {value: 'Double', text: 'Double'},
+          {value: 'Long', text: 'Long'},
+          {value: 'Short', text: 'Short'},
+          {value: 'Float', text: 'Float'},
+          {value: 'Byte', text: 'Byte'},
+        ],
+        types: [
+          {value: 'String', text: 'String'},
+          {value: 'Integer', text: 'Integer'},
+          {value: 'Double', text: 'Double'},
+          {value: 'Long', text: 'Long'},
+          {value: 'Short', text: 'Short'},
+          {value: 'Float', text: 'Float'},
+          {value: 'Byte', text: 'Byte'},
+          {value: 'MultipartFile', text: 'MultipartFile'},
+          {value: 'MultipartFiles', text: 'MultipartFiles'}
+        ],
+        validates: [
+          {value: 'pass', text: '不验证'},
+          {value: 'expression', text: '表达式验证'},
+          {value: 'pattern', text: '正则验证'},
+        ],
+        showIndex: 0,
+        parameterIndex: 0,
+        headerIndex: 0,
+        pathIndex: 0,
+        bodyEditor: null,
+        updating: false,
+        bodyName: '',
+        bodyIndex: 0,
+        requestBody: [],
+        forceUpdate: false,
+        editorJson: '{\n\t\n}',
+        bodyEditorFlag: false
+      }
+    },
+    created() {
+
+    },
+    watch: {
+      requestBody: {
+        handler(newVal, oldVal) {
+          // console.log('watch -handler', newVal);
+          if (this.bodyEditorFlag) {
+            this.info.requestBody = JSON.stringify(newVal[0])
+          }
+        },
+        deep: true
+      }
+    },
+    mounted() {
+      let that = this;
+      bus.$on('update-request-body', (newVal) => {
+        // console.log('update-request-body', newVal);
+        this.initRequestBodyDom()
+        if (!newVal || newVal == null) {
+          that.bodyEditorFlag = false
+          that.requestBody = []
+          that.bodyEditor && that.bodyEditor.setValue('{\r\n\t\r\n}')
+          return
         }
+        try {
+          let body = JSON.parse(newVal)
+          if (body.dataType && body.children) {
+            that.requestBody = [body]
+            that.buildBodyEditorData(body)
+          } else {
+            /**
+             * 旧的json结构，不能直接用，需通过editor转换
+             */
+            this.editorJson = formatJson(newVal)
+            this.bodyEditor && this.bodyEditor.setValue(this.editorJson)
+          }
+
+        } catch (e) {
+          // console.log(e);
+        }
+
       })
+
     },
-    addRow() {
-      if (!this.info.parameters) {
-        this.$magicAlert({
-          content: '请先添加或选择接口'
+
+    methods: {
+      buildBodyEditorData(o) {
+        let requestBody = o
+        let newBody = {}
+        if ('Object' == requestBody.dataType) {
+          let body = {}
+          newBody = this.createJsonData(body, requestBody.children)
+        } else if ('Array' == requestBody.dataType) {
+          let body = []
+          newBody = this.createJsonData(body, requestBody.children, true)
+        }
+        // console.log('buildBodyEditorData', newBody);
+        this.editorJson = formatJson(JSON.stringify(newBody))
+        this.bodyEditor && this.bodyEditor.setValue(this.editorJson)
+      },
+      createJsonData(newBody, data, arrayFlag = false) {
+        data.map(item => {
+          let key, value = item.value;
+          if (!arrayFlag) {
+            key = item.name
+          }
+          if ('Object' == item.dataType) {
+            value = {}
+            newBody[key] = this.createJsonData(value, item.children)
+          } else if ('Array' == item.dataType) {
+            value = []
+            newBody[key] = this.createJsonData(value, item.children, true)
+          } else {
+            newBody[key] = (value == 'null' || value == 'undefined') ? null : value
+          }
+          if (arrayFlag) {
+            newBody.push(value)
+          }
         })
-        return
-      }
-      if (this.showIndex === 0) {
-        this.info.parameters.push({name: '', value: '', description: ''})
-        this.parameterIndex = this.info.parameters.length - 1
-      } else if (this.showIndex === 1) {
-        this.info.headers.push({name: '', value: '', description: ''})
-        this.headerIndex = this.info.headers.length - 1
-      } else if (this.showIndex === 2) {
-        this.info.paths.push({name: '', value: '', description: ''})
-        this.pathIndex = this.info.paths.length - 1
-      }
-      this.$forceUpdate()
-    },
-    removeRow() {
-      if (!this.info.parameters) {
-        this.$magicAlert({
-          content: '请先添加或选择接口'
+        return newBody;
+      },
+      layout() {
+        this.$nextTick(() => {
+          if (this.bodyEditor && isVisible(this.$refs.bodyEditor)) {
+            this.bodyEditor.layout()
+          }
         })
-        return
-      }
-      if (this.showIndex === 0) {
-        this.info.parameters.splice(this.parameterIndex, 1)
-        if (this.info.parameters.length === 0) {
-          this.parameterIndex = 0
-          this.addRow()
-        } else if (this.info.parameters.length <= this.parameterIndex) {
+      },
+      addRow() {
+        if (!this.info.parameters) {
+          this.$magicAlert({
+            content: '请先添加或选择接口'
+          })
+          return
+        }
+        if (this.showIndex === 0) {
+          this.info.parameters.push({name: '', value: '', description: ''})
           this.parameterIndex = this.info.parameters.length - 1
-        }
-      } else if (this.showIndex === 1) {
-        this.info.headers.splice(this.headerIndex, 1)
-        if (this.info.headers.length === 0) {
-          this.headerIndex = 0
-          this.addRow()
-        } else if (this.info.headers.length <= this.headerIndex) {
+        } else if (this.showIndex === 1) {
+          this.info.headers.push({name: '', value: '', description: ''})
           this.headerIndex = this.info.headers.length - 1
-        }
-      } else if (this.showIndex === 2) {
-        this.info.paths.splice(this.pathIndex, 1)
-        if (this.info.paths.length === 0) {
-          this.pathIndex = 0
-          this.addRow()
-        } else if (this.info.paths.length <= this.pathIndex) {
+        } else if (this.showIndex === 2) {
+          this.info.paths.push({name: '', value: '', description: ''})
           this.pathIndex = this.info.paths.length - 1
         }
+        this.$forceUpdate()
+      },
+      removeRow() {
+        if (!this.info.parameters) {
+          this.$magicAlert({
+            content: '请先添加或选择接口'
+          })
+          return
+        }
+        if (this.showIndex === 0) {
+          this.info.parameters.splice(this.parameterIndex, 1)
+          if (this.info.parameters.length === 0) {
+            this.parameterIndex = 0
+            this.addRow()
+          } else if (this.info.parameters.length <= this.parameterIndex) {
+            this.parameterIndex = this.info.parameters.length - 1
+          }
+        } else if (this.showIndex === 1) {
+          this.info.headers.splice(this.headerIndex, 1)
+          if (this.info.headers.length === 0) {
+            this.headerIndex = 0
+            this.addRow()
+          } else if (this.info.headers.length <= this.headerIndex) {
+            this.headerIndex = this.info.headers.length - 1
+          }
+        } else if (this.showIndex === 2) {
+          this.info.paths.splice(this.pathIndex, 1)
+          if (this.info.paths.length === 0) {
+            this.pathIndex = 0
+            this.addRow()
+          } else if (this.info.paths.length <= this.pathIndex) {
+            this.pathIndex = this.info.paths.length - 1
+          }
+        }
+        this.$forceUpdate()
+      },
+      debounce(func, wait = 2000) {
+        // 清除定时器
+        if (timeout !== null) clearTimeout(timeout);
+        timeout = setTimeout(function () {
+          typeof func === 'function' && func();
+        }, wait);
+      },
+      initRequestBodyDom() {
+        if (this.bodyEditor == null && this.showIndex === 3) {
+          this.bodyEditor = monaco.editor.create(this.$refs.bodyEditor, {
+            minimap: {
+              enabled: false
+            },
+            language: 'json',
+            fixedOverflowWidgets: true,
+            folding: true,
+            wordWrap: 'on',
+            lineDecorationsWidth: 35,
+            theme: store.get('skin') || 'default',
+            value: this.editorJson || '{\r\n\t\r\n}'
+          })
+          this.layout()
+          this.bodyEditor.onDidChangeModelContent(() => {
+            // 延时更新，防止还没改完立即更新导致之前填写的属性信息丢失
+            this.debounce(() => {
+              this.bodyEditorFlag = true
+              this.updateRequestBody(this.bodyEditor.getValue())
+            })
+
+          })
+          bus.$on('update-window-size', () => this.layout())
+        }
+      },
+      updateRequestBody(bodyStr) {
+        if (this.bodyEditor.getValue().replace(/\s/g,"") == '{}') {
+          this.requestBody = []
+          return false
+        }
+        try {
+          let body = JSON.parse(bodyStr)
+          let reqBody = []
+          reqBody.push({
+            name: '',
+            value: '',
+            dataType: this.getType(body),
+            validateType: '',
+            expression: '',
+            error: '',
+            description: '',
+            children: this.processBody(body, 0),
+            level: 0,
+            selected: this.requestBody.length > 0 ? false : true
+          })
+
+          this.requestBody = this.valueCopy(reqBody, this.requestBody)
+          this.forceUpdate = !this.forceUpdate;
+        } catch (e) {
+          // console.error(e)
+        }
+      },
+      processBody(body, level) {
+        let arr = [], that = this
+        Object.keys(body).forEach((key) => {
+          let param = {
+            name: 'Array' != this.getType(body) ? key : '',
+            value: 'Object' != that.getType(body[key]) && 'Array' != that.getType(body[key]) ? body[key] : '',
+            dataType: this.getType(body[key]),
+            validateType: '',
+            expression: '',
+            error: '',
+            description: '',
+            children: [],
+            level: level + 1,
+            selected: false
+          }
+          if ('Object' == that.getType(body[key]) || 'Array' == that.getType(body[key])) {
+            let children = that.processBody(body[key], level + 1);
+            param.children = children;
+          }
+          arr.push(param)
+
+        })
+        return arr;
+      },
+      getType(object) {
+        if (Object.prototype.toString.call(object) == '[object Number]') {
+          return "Integer";
+        }
+        if (Object.prototype.toString.call(object) == '[object String]') {
+          return "String";
+        }
+        if (Object.prototype.toString.call(object) == '[object Boolean]') {
+          return "Boolean";
+        }
+        if (Object.prototype.toString.call(object) == '[object Array]') {
+          return "Array";
+        }
+        if (Object.prototype.toString.call(object) == '[object Object]') {
+          return "Object";
+        }
+        return "String";
+      },
+      valueCopy(newBody, oldBody, arrayFlag = false) {
+        let that = this;
+        newBody.map(item => {
+          let oldItemArr = oldBody.filter(old => {
+            if (old.level == 0 || arrayFlag) {
+              return old
+            }
+            return old.name == item.name
+          })
+          if (oldItemArr.length > 0) {
+            if (item.dataType == 'Object' || item.dataType == 'Array') {
+              item.children = that.valueCopy(item.children, oldItemArr[0].children, item.dataType == 'Array' ? true : false)
+            } else {
+              item.validateType = oldItemArr[0].validateType
+              item.expression = oldItemArr[0].expression
+              item.error = oldItemArr[0].error
+            }
+            item.name = oldItemArr[0].name
+            item.description = oldItemArr[0].description
+            item.selected = oldItemArr[0].selected
+            item.required = oldItemArr[0].required
+          }
+
+        })
+        return deepClone(newBody);
       }
-      this.$forceUpdate()
+
     },
-    initRequestBodyDom() {
-      if (this.bodyEditor == null && this.showIndex === 3) {
-        this.bodyEditor = monaco.editor.create(this.$refs.bodyEditor, {
-          minimap: {
-            enabled: false
-          },
-          language: 'json',
-          fixedOverflowWidgets: true,
-          folding: true,
-          wordWrap: 'on',
-          lineDecorationsWidth: 35,
-          theme: store.get('skin') || 'default',
-          value: formatJson(this.info.requestBody) || '{\r\n\t\r\n}'
-        })
-        this.layout()
-        this.bodyEditor.onDidChangeModelContent(() => {
-          this.info.requestBody = this.bodyEditor.getValue()
-        })
-        bus.$on('update-window-size', () => this.layout())
+    destroyed() {
+      if (this.bodyEditor) {
+        this.bodyEditor.dispose()
       }
-    }
-  },
-  destroyed() {
-    if (this.bodyEditor) {
-      this.bodyEditor.dispose()
     }
   }
-}
 </script>
 
 <style scoped>
@@ -330,6 +533,5 @@ export default {
   width: 100%;
   height: 100%;
 }
-
 
 </style>

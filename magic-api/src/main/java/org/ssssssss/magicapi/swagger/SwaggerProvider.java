@@ -5,14 +5,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.model.ApiInfo;
+import org.ssssssss.magicapi.model.BaseDefinition;
 import org.ssssssss.magicapi.model.Path;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
+import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.ssssssss.magicapi.model.Constants.*;
 
 /**
  * 生成swagger用的json
@@ -29,6 +31,17 @@ public class SwaggerProvider {
 	private GroupServiceProvider groupServiceProvider;
 
 	private SwaggerEntity.Info info;
+
+	/**
+	 * swagger Model定义路径前缀
+	 */
+    private static final String DEFINITION = "#/definitions/";
+    /**
+	 * body空对象
+     */
+    private static final String BODY_EMPTY = "{}";
+
+    private final Map<String, Object> DEFINITION_MAP = new ConcurrentHashMap<>();
 
 	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
@@ -48,6 +61,7 @@ public class SwaggerProvider {
 
 	@ResponseBody
 	public SwaggerEntity swaggerJson() {
+		this.DEFINITION_MAP.clear();
 		List<ApiInfo> infos = mappingHandlerMapping.getApiInfos();
 		SwaggerEntity swaggerEntity = new SwaggerEntity();
 		swaggerEntity.setInfo(info);
@@ -61,9 +75,13 @@ public class SwaggerProvider {
 			boolean hasBody = false;
 			try {
 				List<SwaggerEntity.Parameter> parameters = parseParameters(mapper, info);
-				hasBody = parameters.stream().anyMatch(it -> "body".equals(it.getIn()));
+				hasBody = parameters.stream().anyMatch(it -> VAR_NAME_REQUEST_BODY.equals(it.getIn()));
+                if (hasBody) {
+                    BaseDefinition baseDefinition = JsonUtils.readValue(info.getRequestBody(), BaseDefinition.class);
+                    doProcessDefinition(baseDefinition, info, StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY));
+                }
 				parameters.forEach(path::addParameter);
-				path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), "{}"), Object.class));
+				path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), BODY_EMPTY), Object.class));
 			} catch (Exception ignored) {
 			}
 			if (hasBody) {
@@ -72,17 +90,26 @@ public class SwaggerProvider {
 				path.addConsume("*/*");
 			}
 			path.addProduce("application/json");
-			path.setSummary(StringUtils.defaultIfBlank(info.getDescription(), info.getName()));
+			path.setSummary(info.getName());
+			path.setDescription(StringUtils.defaultIfBlank(info.getDescription(), info.getName()));
 
 			swaggerEntity.addPath(requestPath, info.getMethod(), path);
 		}
+
+		if (this.DEFINITION_MAP.size() > 0) {
+			Set<Map.Entry> entries = ((Map) this.DEFINITION_MAP).entrySet();
+			for (Map.Entry entry : entries) {
+				swaggerEntity.addDefinitions(Objects.toString(entry.getKey()), entry.getValue());
+			}
+		}
+
 		return swaggerEntity;
 	}
 
 	private List<SwaggerEntity.Parameter> parseParameters(ObjectMapper mapper, ApiInfo info) {
 		List<SwaggerEntity.Parameter> parameters = new ArrayList<>();
-		info.getParameters().forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), "query", it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
-		info.getHeaders().forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), "header", it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
+		info.getParameters().forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), VAR_NAME_QUERY, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
+		info.getHeaders().forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), VAR_NAME_HEADER, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
 		List<Path> paths = new ArrayList<>(info.getPaths());
 		MappingHandlerMapping.findGroups(info.getGroupId())
 				.stream()
@@ -92,14 +119,67 @@ public class SwaggerProvider {
 						paths.add(it);
 					}
 				});
-		paths.forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), "path", it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
+		paths.forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), VAR_NAME_PATH_VARIABLE, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
 		try {
-			Object object = mapper.readValue(info.getRequestBody(), Object.class);
-			if ((object instanceof List || object instanceof Map) && BooleanLiteral.isTrue(object)) {
-				parameters.add(new SwaggerEntity.Parameter(false, "body", "body", object instanceof List ? "array" : "object", null, object));
+			if (StringUtils.isNotBlank(info.getRequestBody()) && !BODY_EMPTY.equals(info.getRequestBody().replaceAll("\\s", ""))) {
+				BaseDefinition baseDefinition = JsonUtils.readValue(info.getRequestBody(), BaseDefinition.class);
+				if (BooleanLiteral.isTrue(baseDefinition)) {
+					SwaggerEntity.Parameter parameter = new SwaggerEntity.Parameter(true, StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() : VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, baseDefinition.getDataType().getJavascriptType(), baseDefinition.getDescription(), baseDefinition);
+
+					Map<String, Object> schema = new HashMap<>(2);
+					String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
+					String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«";
+					if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(baseDefinition.getDataType().getJavascriptType())) {
+						voName += StringUtils.defaultIfBlank(baseDefinition.getChildren().get(0).getName(), VAR_NAME_REQUEST_BODY + "_" + StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY)) + "»»";
+					} else {
+						voName += StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY) + "»»";
+					}
+
+					schema.put("originalRef", voName);
+					schema.put("$ref", DEFINITION + voName);
+					parameter.setSchema(schema);
+					parameters.add(parameter);
+				}
 			}
+
 		} catch (Exception ignored) {
 		}
 		return parameters;
 	}
+
+    private Map<String, Object> doProcessDefinition(BaseDefinition target, ApiInfo info, String parentName) {
+        Map<String, Object> result = new HashMap<>(4);
+        result.put("type", target.getDataType().getJavascriptType());
+        result.put("description", target.getDescription());
+        if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(target.getDataType().getJavascriptType())) {
+            if (target.getChildren().size() > 0) {
+                result.put("items", doProcessDefinition(target.getChildren().get(0), info, parentName + "_" + StringUtils.defaultIfBlank(target.getName(), VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY)));
+            } else {
+                result.put("items", Collections.emptyList());
+            }
+
+        } else if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT.equalsIgnoreCase(target.getDataType().getJavascriptType())) {
+            String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
+            String voName = groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«" + StringUtils.defaultIfBlank(target.getName(), parentName)  + "»»";
+            if (this.DEFINITION_MAP.containsKey(voName)) {
+				// TODO 应该不会出现名字都一样的
+				voName.replace("»»", "_" + parentName + "»»");
+			}
+            result.put("originalRef", voName);
+            result.put("$ref", DEFINITION + voName);
+
+            Map<String, Object> definition = new HashMap<>(4);
+            Map<String, Map<String, Object>> properties = new HashMap<>(target.getChildren().size());
+            for (BaseDefinition obj : target.getChildren()) {
+                properties.put(obj.getName(), doProcessDefinition(obj, info, parentName));
+            }
+            definition.put("properties", properties);
+            definition.put("description", target.getDescription());
+
+            this.DEFINITION_MAP.put(voName, definition);
+        } else {
+            result.put("example", target.getValue());
+        }
+        return result;
+    }
 }

@@ -152,7 +152,7 @@ public class ApiInfo extends MagicEntity {
 				.flatMap(it -> it.getOptions().stream())
 				.forEach(option -> {
 					if (!map.containsKey(option.getName())) {
-						map.put(option.getName(), option.getValue());
+						map.put(option.getName(), String.valueOf(option.getValue()));
 					}
 				});
 		return map;
@@ -228,8 +228,9 @@ public class ApiInfo extends MagicEntity {
 				.flatMap(it -> it.getOptions().stream())
 				.filter(it -> key.equals(it.getName()))
 				.findFirst()
-				.map(BaseDefinition::getValue)
-				.orElse(null);
+				.map(it -> {
+					return Objects.toString(it.getValue(), null);
+				}).orElse(null);
 	}
 
 	@Override
