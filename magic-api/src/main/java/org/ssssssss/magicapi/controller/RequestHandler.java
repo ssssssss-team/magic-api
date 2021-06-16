@@ -117,20 +117,20 @@ public class RequestHandler extends MagicController {
 			Object bodyValue = ObjectUtils.clone(context.get(VAR_NAME_REQUEST_BODY));
 
 			// 请求体首层是数组的时候单独处理
-            if (bodyValue instanceof List) {
+			if (bodyValue instanceof List) {
 				if (!VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(body.getDataType().getJavascriptType())) {
-                    Object result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("body参数错误，应为[%s]", body.getDataType().getJavascriptType()));
-                    return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, result) : result;
+					Object result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("body参数错误，应为[%s]", body.getDataType().getJavascriptType()));
+					return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, result) : result;
 				}
 
-				for (Map valueMap : (List<Map>)bodyValue) {
+				for (Map valueMap : (List<Map>) bodyValue) {
 					value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, body.getChildren().get(0).getChildren(), ObjectUtils.clone(valueMap));
 					if (value != null) {
 						return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, value) : value;
 					}
 				}
 			} else {
-				value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, body.getChildren(), (Map)bodyValue);
+				value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, body.getChildren(), (Map) bodyValue);
 				if (value != null) {
 					return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, value) : value;
 				}
@@ -162,29 +162,25 @@ public class RequestHandler extends MagicController {
 
 			// 针对requestBody多层级的情况
 			if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
-				Map map = (Map)parameters.get(parameter.getName());
+				Map map = (Map) parameters.get(parameter.getName());
 				Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren(), map);
 				if (result != null) {
 					return result;
 				}
-			}
-
-            if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
-            	if (parameters == null || parameters.get(parameter.getName()) == null) {
+			} else if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
+				if (parameters == null || parameters.get(parameter.getName()) == null) {
 					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
 				}
 				if (!(parameters.get(parameter.getName()) instanceof List)) {
 					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]数据类型错误", comment, parameter.getName())));
 				}
-                for (Map valueMap : (List<Map>)parameters.get(parameter.getName())) {
+				for (Map valueMap : (List<Map>) parameters.get(parameter.getName())) {
 					Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren().get(0).getChildren(), ObjectUtils.clone(valueMap));
 					if (result != null) {
 						return result;
 					}
-                }
-            }
-
-			if (StringUtils.isNotBlank(parameter.getName())) {
+				}
+			} else if (StringUtils.isNotBlank(parameter.getName())) {
 				String requestValue = StringUtils.defaultIfBlank(Objects.toString(parameters.get(parameter.getName()), EMPTY), Objects.toString(parameter.getDefaultValue(), EMPTY));
 				if (StringUtils.isBlank(requestValue)) {
 					if (!parameter.isRequired()) {
@@ -555,7 +551,7 @@ public class RequestHandler extends MagicController {
 				}
 			}
 		} catch (Exception e) {
-			if(requestEntity.isRequestedFromTest()){
+			if (requestEntity.isRequestedFromTest()) {
 				// 修正前端显示，原样输出显示
 				requestEntity.getResponse().setHeader(HEADER_RESPONSE_WITH_MAGIC_API, CONST_STRING_FALSE);
 			}
