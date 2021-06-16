@@ -254,10 +254,9 @@
     watch: {
       requestBody: {
         handler(newVal, oldVal) {
-          console.log('watch -handler', newVal);
+          // console.log('watch -handler', newVal);
           if (this.bodyEditorFlag) {
             this.info.requestBody = JSON.stringify(newVal[0])
-            // this.buildEditorValue(this.info.requestBody)
           }
         },
         deep: true
