@@ -2,7 +2,6 @@ package org.ssssssss.magicapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +58,8 @@ public class RequestHandler extends MagicController {
 
 	private final ResultProvider resultProvider;
 
+	private static final Map<String, Object> EMPTY_MAP = new HashMap<>();
+
 	public RequestHandler(MagicConfiguration configuration) {
 		super(configuration);
 		this.resultProvider = configuration.getResultProvider();
@@ -110,21 +111,18 @@ public class RequestHandler extends MagicController {
 			return requestEntity.isRequestedFromTest() ? new JsonBean<>(PATH_VARIABLE_INVALID, value) : value;
 		}
 		MagicScriptContext context = createMagicScriptContext(requestEntity);
-
-		if (context.get(VAR_NAME_REQUEST_BODY) != null && StringUtils.isNotBlank(requestEntity.getApiInfo().getRequestBody()) && JsonUtils.readValue(requestEntity.getApiInfo().getRequestBody(), BaseDefinition.class).getChildren().size() > 0) {
+		Object bodyValue = context.get(VAR_NAME_REQUEST_BODY);
+		if (bodyValue != null && StringUtils.isNotBlank(requestEntity.getApiInfo().getRequestBody()) && JsonUtils.readValue(requestEntity.getApiInfo().getRequestBody(), BaseDefinition.class).getChildren().size() > 0) {
 			// 验证 body
 			BaseDefinition body = JsonUtils.readValue(requestEntity.getApiInfo().getRequestBody(), BaseDefinition.class);
-			Object bodyValue = ObjectUtils.clone(context.get(VAR_NAME_REQUEST_BODY));
-
 			// 请求体首层是数组的时候单独处理
 			if (bodyValue instanceof List) {
 				if (!VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(body.getDataType().getJavascriptType())) {
 					Object result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("body参数错误，应为[%s]", body.getDataType().getJavascriptType()));
 					return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, result) : result;
 				}
-
 				for (Map valueMap : (List<Map>) bodyValue) {
-					value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, body.getChildren().get(0).getChildren(), ObjectUtils.clone(valueMap));
+					value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, body.getChildren().get(0).getChildren(), valueMap);
 					if (value != null) {
 						return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, value) : value;
 					}
@@ -158,6 +156,7 @@ public class RequestHandler extends MagicController {
 	}
 
 	private <T extends BaseDefinition> Object doValidate(RequestEntity requestEntity, String comment, List<T> validateParameters, Map<String, Object> parameters) {
+		parameters = parameters != null ? parameters : EMPTY_MAP;
 		for (BaseDefinition parameter : validateParameters) {
 
 			// 针对requestBody多层级的情况
@@ -168,14 +167,14 @@ public class RequestHandler extends MagicController {
 					return result;
 				}
 			} else if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
-				if (parameters == null || parameters.get(parameter.getName()) == null) {
+				if (parameters.get(parameter.getName()) == null) {
 					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
 				}
 				if (!(parameters.get(parameter.getName()) instanceof List)) {
 					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]数据类型错误", comment, parameter.getName())));
 				}
 				for (Map valueMap : (List<Map>) parameters.get(parameter.getName())) {
-					Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren().get(0).getChildren(), ObjectUtils.clone(valueMap));
+					Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren().get(0).getChildren(), valueMap);
 					if (result != null) {
 						return result;
 					}
