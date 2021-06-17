@@ -503,11 +503,11 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	@Override
 	public void upload(InputStream inputStream, String mode) throws IOException {
 		ZipResource root = new ZipResource(inputStream);
-		Set<String> apiPaths = new HashSet<>();
-		Set<String> functionPaths = new HashSet<>();
-		Set<Group> groups = new HashSet<>();
-		Set<ApiInfo> apiInfos = new HashSet<>();
-		Set<FunctionInfo> functionInfos = new HashSet<>();
+		Set<String> apiPaths = new LinkedHashSet<>();
+		Set<String> functionPaths = new LinkedHashSet<>();
+		Set<Group> groups = new LinkedHashSet<>();
+		Set<ApiInfo> apiInfos = new LinkedHashSet<>();
+		Set<FunctionInfo> functionInfos = new LinkedHashSet<>();
 		// 检查上传资源中是否有冲突
 		readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, "/", root);
 		Resource item = root.getResource(Constants.GROUP_METABASE);
