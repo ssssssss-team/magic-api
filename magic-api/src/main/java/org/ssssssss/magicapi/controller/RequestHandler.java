@@ -112,22 +112,43 @@ public class RequestHandler extends MagicController {
 		}
 		MagicScriptContext context = createMagicScriptContext(requestEntity);
 		Object bodyValue = context.get(VAR_NAME_REQUEST_BODY);
-		if (bodyValue != null && StringUtils.isNotBlank(requestEntity.getApiInfo().getRequestBody()) && JsonUtils.readValue(requestEntity.getApiInfo().getRequestBody(), BaseDefinition.class).getChildren().size() > 0) {
-			// 验证 body
-			BaseDefinition body = JsonUtils.readValue(requestEntity.getApiInfo().getRequestBody(), BaseDefinition.class);
+		BaseDefinition body = JsonUtils.readValue(requestEntity.getApiInfo().getRequestBody(), BaseDefinition.class);
+		// 验证 body
+		if (body.getChildren() != null && body.getChildren().size() > 0) {
+
 			// 请求体首层是数组的时候单独处理
 			if (bodyValue instanceof List) {
-				if (!VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(body.getDataType().getJavascriptType())) {
-					Object result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("body参数错误，应为[%s]", body.getDataType().getJavascriptType()));
-					return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, result) : result;
+
+				if (body.isRequired()) {
+					Object result = null;
+					if (!VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(body.getDataType().getJavascriptType())) {
+						result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("body参数错误，应为[%s]", body.getDataType().getJavascriptType()));
+					} else if (((List)bodyValue).size() == 0) {
+						result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("%s[%s]为必填项", VAR_NAME_REQUEST_BODY, body.getName()));
+					}
+
+					if (result != null) {
+						return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, result) : result;
+					}
 				}
+
 				for (Map valueMap : (List<Map>) bodyValue) {
+
+					if (body.getChildren().get(0).isRequired() && ((Map)valueMap).size() == 0) {
+						Object result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("%s[%s]为必填项", VAR_NAME_REQUEST_BODY, body.getChildren().get(0).getName()));
+						return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, result) : result;
+					}
+
 					value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, body.getChildren().get(0).getChildren(), valueMap);
 					if (value != null) {
 						return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, value) : value;
 					}
 				}
 			} else {
+				if (body.isRequired() && ((Map)bodyValue).size() == 0) {
+					Object result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("%s[%s]为必填项", VAR_NAME_REQUEST_BODY, body.getName()));
+					return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, result) : result;
+				}
 				value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, body.getChildren(), (Map) bodyValue);
 				if (value != null) {
 					return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, value) : value;
@@ -161,16 +182,29 @@ public class RequestHandler extends MagicController {
 
 			// 针对requestBody多层级的情况
 			if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
-				Map map = (Map) parameters.get(parameter.getName());
-				Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren(), map);
+				if (!parameter.isRequired() && parameters.size() == 0) {
+					continue;
+				}
+				if (parameter.isRequired() && parameters.get(parameter.getName()) == null) {
+					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
+				}
+				if (parameter.isRequired() && (parameters.get(parameter.getName()) instanceof List)) {
+					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]数据类型错误", comment, parameter.getName())));
+				}
+
+				Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren(), (Map) parameters.get(parameter.getName()));
 				if (result != null) {
 					return result;
 				}
 			} else if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
-				if (parameters.get(parameter.getName()) == null) {
+				if (!parameter.isRequired() && parameters.size() == 0) {
+					continue;
+				}
+
+				if (parameter.isRequired() && parameters.get(parameter.getName()) == null) {
 					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
 				}
-				if (!(parameters.get(parameter.getName()) instanceof List)) {
+				if (parameter.isRequired() && !(parameters.get(parameter.getName()) instanceof List)) {
 					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]数据类型错误", comment, parameter.getName())));
 				}
 				for (Map valueMap : (List<Map>) parameters.get(parameter.getName())) {
@@ -482,8 +516,6 @@ public class RequestHandler extends MagicController {
 					}
 				}
 			} catch (HttpMessageNotReadableException ignored) {
-				System.out.println(ignored.getHttpInputMessage().getBody().toString());
-				ignored.printStackTrace();
 				return null;
 			}
 		}

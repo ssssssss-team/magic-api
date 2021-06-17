@@ -154,11 +154,11 @@
 
           <div style="display: flex; flex-direction: row; height: calc(100% - 24px);">
             <div style="width: 40%">
-              <div class="header">编辑器（停止编辑2s后同步更新视图属性）</div>
+              <div class="header">编辑器</div>
               <div ref="bodyEditor" class="ma-body-editor"></div>
             </div>
             <div style="flex: 1;">
-              <magic-json :jsonData="requestBody" :forceUpdate="forceUpdate"></magic-json>
+              <magic-json :jsonData="requestBody" :forceUpdate="forceUpdate" :height="layoutHeight"></magic-json>
             </div>
           </div>
 
@@ -245,16 +245,13 @@
         requestBody: [],
         forceUpdate: false,
         editorJson: '{\n\t\n}',
-        bodyEditorFlag: false
+        bodyEditorFlag: false,
+        layoutHeight: '255px'
       }
-    },
-    created() {
-
     },
     watch: {
       requestBody: {
         handler(newVal, oldVal) {
-          // console.log('watch -handler', newVal);
           if (this.bodyEditorFlag) {
             this.info.requestBody = JSON.stringify(newVal[0])
           }
@@ -265,8 +262,8 @@
     mounted() {
       let that = this;
       bus.$on('update-request-body', (newVal) => {
-        // console.log('update-request-body', newVal);
-        this.initRequestBodyDom()
+       // console.log('update-request-body');
+        that.initRequestBodyDom()
         if (!newVal || newVal == null) {
           that.bodyEditorFlag = false
           that.requestBody = []
@@ -282,8 +279,8 @@
             /**
              * 旧的json结构，不能直接用，需通过editor转换
              */
-            this.editorJson = formatJson(newVal)
-            this.bodyEditor && this.bodyEditor.setValue(this.editorJson)
+            that.editorJson = formatJson(newVal)
+            that.bodyEditor && that.bodyEditor.setValue(that.editorJson)
           }
 
         } catch (e) {
@@ -334,6 +331,9 @@
         this.$nextTick(() => {
           if (this.bodyEditor && isVisible(this.$refs.bodyEditor)) {
             this.bodyEditor.layout()
+            if (this.$refs.bodyEditor && this.$refs.bodyEditor.firstChild) {
+              this.layoutHeight = this.$refs.bodyEditor.firstChild.style.height
+            }
           }
         })
       },
@@ -390,13 +390,6 @@
         }
         this.$forceUpdate()
       },
-      debounce(func, wait = 2000) {
-        // 清除定时器
-        if (timeout !== null) clearTimeout(timeout);
-        timeout = setTimeout(function () {
-          typeof func === 'function' && func();
-        }, wait);
-      },
       initRequestBodyDom() {
         if (this.bodyEditor == null && this.showIndex === 3) {
           this.bodyEditor = monaco.editor.create(this.$refs.bodyEditor, {
@@ -413,12 +406,8 @@
           })
           this.layout()
           this.bodyEditor.onDidChangeModelContent(() => {
-            // 延时更新，防止还没改完立即更新导致之前填写的属性信息丢失
-            this.debounce(() => {
-              this.bodyEditorFlag = true
-              this.updateRequestBody(this.bodyEditor.getValue())
-            })
-
+            this.bodyEditorFlag = true
+            this.updateRequestBody(this.bodyEditor.getValue())
           })
           bus.$on('update-window-size', () => this.layout())
         }
@@ -476,7 +465,19 @@
       },
       getType(object) {
         if (Object.prototype.toString.call(object) === '[object Number]') {
-          return "Integer";
+          if(parseInt(object) !== parseFloat(object)) {
+            return "Float";
+          }
+          // if (object >= -128 && object <= 127) {
+          //   return "Byte";
+          // }
+          // if (object >= -32768 && object <= 32767) {
+          //   return "Short";
+          // }
+          if (object >= -2147483648 && object <= 2147483647) {
+            return "Integer";
+          }
+          return "Long";
         }
         if (Object.prototype.toString.call(object) === '[object String]') {
           return "String";

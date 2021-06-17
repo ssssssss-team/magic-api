@@ -1,12 +1,12 @@
 <template>
   <div class="ma-json-container">
-    <div class="json-view f_c">
+    <div class="json-view f_c" :style="'height:'+ height">
       <!-- 解决子组件不强制刷新 -->
       <div v-show="forceUpdate"></div>
       <div class="header">视图</div>
       <magic-json-tree :jsonData="jsonData" :forceUpdate="forceUpdate" class="view-box" v-on:jsonClick="handleJsonClick"></magic-json-tree>
     </div>
-    <div class="json-panel f_c">
+    <div class="json-panel f_c" :style="'height:'+ height">
       <div class="header">属性</div>
       <div class="panel-box f_c" v-if="fieldObj.dataType && fieldObj.dataType !== 'Object' && fieldObj.dataType !== 'Array'">
         <div class="box-item">
@@ -72,6 +72,12 @@
             <magic-input :value.sync="fieldObj.description" style="width: 100%"/>
           </div>
         </div>
+        <div class="box-item">
+          <div class="item-title">是否必填</div>
+          <div class="item-content">
+            <div style="width: 25px; height: 25px;"><magic-checkbox :value.sync="fieldObj.required"/></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -92,7 +98,8 @@
         required: true
       },
       // 解决子组件不强制刷新
-      forceUpdate: Boolean
+      forceUpdate: Boolean,
+      height: String
     },
     data() {
       return {
@@ -111,7 +118,8 @@
           {value: 'Byte', text: 'Byte'},
           {value: 'Boolean', text: 'Boolean'},
         ],
-        fieldObj: {dataType: "Object"}
+        fieldObj: {dataType: "Object"},
+        activeNodeFlag: false
       }
     },
     components: {
@@ -124,7 +132,11 @@
       jsonData: {
         handler(newVal, oldVal) {
           if (newVal && newVal.length > 0) {
+            this.activeNodeFlag = false;
             this.getActiveNode(newVal)
+            if (!this.activeNodeFlag) {
+              this.fieldObj = newVal[0];
+            }
           } else {
             this.fieldObj = {dataType: "Object"}
           }
@@ -137,6 +149,7 @@
         node.forEach(item => {
           if (item.selected) {
             this.fieldObj = item;
+            this.activeNodeFlag = true;
             return;
           } else {
             this.getActiveNode(item.children)
@@ -173,7 +186,8 @@
   }
 
   .json-view {
-    width: 55%;
+    width: 35vw;
+    overflow: scroll;
     margin: 0px 10px;
     border: 1px solid var(--border-color);
     border-top: none;
@@ -197,7 +211,7 @@
   }
 
   .json-panel .panel-box .box-item {
-    height: 35px;
+    min-height: 35px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -208,6 +222,7 @@
   }
   .json-panel .panel-box .box-item .item-content {
     flex: 1;
+    word-break: break-all;
   }
   .header {
     height: 30px;

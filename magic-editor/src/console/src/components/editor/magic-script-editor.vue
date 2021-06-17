@@ -494,7 +494,6 @@ export default {
           requestConfig.headers['Content-Type'] = 'application/json'
           requestConfig.transformRequest = []
         } catch (e) {
-          console.log('magic-script-editor', e);
           this.$magicAlert({
             content: 'RequestBody 参数有误，请检查！'
           })
