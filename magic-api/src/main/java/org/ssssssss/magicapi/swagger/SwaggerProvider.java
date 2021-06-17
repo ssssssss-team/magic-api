@@ -124,7 +124,7 @@ public class SwaggerProvider {
 			if (StringUtils.isNotBlank(info.getRequestBody()) && !BODY_EMPTY.equals(info.getRequestBody().replaceAll("\\s", ""))) {
 				BaseDefinition baseDefinition = JsonUtils.readValue(info.getRequestBody(), BaseDefinition.class);
 				if (BooleanLiteral.isTrue(baseDefinition)) {
-					SwaggerEntity.Parameter parameter = new SwaggerEntity.Parameter(true, StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() : VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, baseDefinition.getDataType().getJavascriptType(), baseDefinition.getDescription(), baseDefinition);
+					SwaggerEntity.Parameter parameter = new SwaggerEntity.Parameter(baseDefinition.isRequired(), StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() : VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, baseDefinition.getDataType().getJavascriptType(), baseDefinition.getDescription(), baseDefinition);
 
 					Map<String, Object> schema = new HashMap<>(2);
 					String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");

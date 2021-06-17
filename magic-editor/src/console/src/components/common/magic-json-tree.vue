@@ -93,7 +93,6 @@
 
   .ma-tree .tree-item {
     cursor: pointer;
-    height: 20px;
   }
 
   .ma-tree .item-selected {
