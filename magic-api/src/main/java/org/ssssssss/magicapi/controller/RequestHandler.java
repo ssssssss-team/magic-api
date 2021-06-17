@@ -23,6 +23,7 @@ import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.context.CookieContext;
 import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.context.SessionContext;
+import org.ssssssss.magicapi.exception.ValidateException;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
 import org.ssssssss.magicapi.logging.LogInfo;
 import org.ssssssss.magicapi.logging.MagicLoggerContext;
@@ -82,11 +83,6 @@ public class RequestHandler extends MagicController {
 			logger.error("{}找不到对应接口", request.getRequestURI());
 			return buildResult(requestEntity, API_NOT_FOUND, "接口不存在");
 		}
-		// 验证
-		Object value = doValidate(requestEntity, "参数", requestEntity.getApiInfo().getParameters(), parameters);
-		if (value != null) {
-			return requestEntity.isRequestedFromTest() ? new JsonBean<>(PARAMETER_INVALID, value) : value;
-		}
 		Map<String, Object> headers = new HashMap<String, Object>() {
 			@Override
 			public Object get(Object key) {
@@ -94,70 +90,34 @@ public class RequestHandler extends MagicController {
 			}
 		};
 		requestEntity.setHeaders(headers);
-		// 验证 header
-		value = doValidate(requestEntity, "header", requestEntity.getApiInfo().getHeaders(), headers);
-		if (value != null) {
-			return requestEntity.isRequestedFromTest() ? new JsonBean<>(HEADER_INVALID, value) : value;
-		}
 		List<Path> paths = new ArrayList<>(requestEntity.getApiInfo().getPaths());
 		MappingHandlerMapping.findGroups(requestEntity.getApiInfo().getGroupId())
 				.stream()
 				.flatMap(it -> it.getPaths().stream())
 				.filter(it -> !paths.contains(it))
 				.forEach(paths::add);
-		// 验证 path
-		value = doValidate(requestEntity, "path", paths, requestEntity.getPathVariables());
-		if (value != null) {
-			return requestEntity.isRequestedFromTest() ? new JsonBean<>(PATH_VARIABLE_INVALID, value) : value;
-		}
 		MagicScriptContext context = createMagicScriptContext(requestEntity);
-		Object bodyValue = context.get(VAR_NAME_REQUEST_BODY);
-		BaseDefinition body = JsonUtils.readValue(requestEntity.getApiInfo().getRequestBody(), BaseDefinition.class);
-		// 验证 body
-		if (body.getChildren() != null && body.getChildren().size() > 0) {
-
-			// 请求体首层是数组的时候单独处理
-			if (bodyValue instanceof List) {
-
-				if (body.isRequired()) {
-					Object result = null;
-					if (!VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(body.getDataType().getJavascriptType())) {
-						result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("body参数错误，应为[%s]", body.getDataType().getJavascriptType()));
-					} else if (((List)bodyValue).size() == 0) {
-						result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("%s[%s]为必填项", VAR_NAME_REQUEST_BODY, body.getName()));
-					}
-
-					if (result != null) {
-						return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, result) : result;
-					}
-				}
-
-				for (Map valueMap : (List<Map>) bodyValue) {
-
-					if (body.getChildren().get(0).isRequired() && ((Map)valueMap).size() == 0) {
-						Object result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("%s[%s]为必填项", VAR_NAME_REQUEST_BODY, body.getChildren().get(0).getName()));
-						return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, result) : result;
-					}
-
-					value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, body.getChildren().get(0).getChildren(), valueMap);
-					if (value != null) {
-						return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, value) : value;
-					}
-				}
-			} else {
-				if (body.isRequired() && ((Map)bodyValue).size() == 0) {
-					Object result = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, String.format("%s[%s]为必填项", VAR_NAME_REQUEST_BODY, body.getName()));
-					return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, result) : result;
-				}
-				value = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, body.getChildren(), (Map) bodyValue);
-				if (value != null) {
-					return requestEntity.isRequestedFromTest() ? new JsonBean<>(BODY_INVALID, value) : value;
-				}
+		try {
+			// 验证参数
+			doValidate("参数", requestEntity.getApiInfo().getParameters(), parameters, PARAMETER_INVALID);
+			// 验证 header
+			doValidate("header", requestEntity.getApiInfo().getHeaders(), headers, HEADER_INVALID);
+			// 验证 path
+			doValidate("path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID);
+			String requestBody = requestEntity.getApiInfo().getRequestBody();
+			if (StringUtils.isNotBlank(requestBody)) {
+				BaseDefinition body = JsonUtils.readValue(requestBody, BaseDefinition.class);
+				Object bodyValue = context.get(VAR_NAME_REQUEST_BODY);
+				body.setName("root");
+				doValidate(VAR_NAME_REQUEST_BODY, Collections.singletonList(body), Collections.singletonMap(body.getName(), bodyValue), BODY_INVALID);
 			}
+		} catch (ValidateException e) {
+			Object value = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, e.getMessage());
+			return requestEntity.isRequestedFromTest() ? new JsonBean<>(e.getJsonCode(), value) : value;
 		}
-
 		requestEntity.setMagicScriptContext(context);
 		RequestContext.setRequestEntity(requestEntity);
+		Object value;
 		// 执行前置拦截器
 		if ((value = doPreHandle(requestEntity)) != null) {
 			if (requestEntity.isRequestedFromTest()) {
@@ -176,62 +136,61 @@ public class RequestHandler extends MagicController {
 		return resultProvider.buildResult(requestEntity, code.getCode(), code.getMessage(), data);
 	}
 
-	private <T extends BaseDefinition> Object doValidate(RequestEntity requestEntity, String comment, List<T> validateParameters, Map<String, Object> parameters) {
+
+	private boolean doValidateBody(String comment, BaseDefinition parameter, Map<String, Object> parameters, JsonCode jsonCode, Class<?> target) {
+		if (!parameter.isRequired() && parameters.isEmpty()) {
+			return true;
+		}
+		if (parameter.isRequired() && !BooleanLiteral.isTrue(parameters.get(parameter.getName()))) {
+			throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
+		}
+		Object value = parameters.get(parameter.getName());
+		if (value != null && !target.isAssignableFrom(value.getClass())) {
+			throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]数据类型错误", comment, parameter.getName())));
+		}
+		return false;
+	}
+
+	private <T extends BaseDefinition> void doValidate(String comment, List<T> validateParameters, Map<String, Object> parameters, JsonCode jsonCode) {
 		parameters = parameters != null ? parameters : EMPTY_MAP;
 		for (BaseDefinition parameter : validateParameters) {
-
 			// 针对requestBody多层级的情况
 			if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
-				if (!parameter.isRequired() && parameters.size() == 0) {
+				if (doValidateBody(comment, parameter, parameters, jsonCode, Map.class)) {
 					continue;
 				}
-				if (parameter.isRequired() && parameters.get(parameter.getName()) == null) {
-					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
-				}
-				if (parameter.isRequired() && (parameters.get(parameter.getName()) instanceof List)) {
-					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]数据类型错误", comment, parameter.getName())));
-				}
-
-				Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren(), (Map) parameters.get(parameter.getName()));
-				if (result != null) {
-					return result;
-				}
+				doValidate(VAR_NAME_REQUEST_BODY, parameter.getChildren(), (Map) parameters.get(parameter.getName()), jsonCode);
 			} else if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
-				if (!parameter.isRequired() && parameters.size() == 0) {
+				if (doValidateBody(comment, parameter, parameters, jsonCode, List.class)) {
 					continue;
 				}
-
-				if (parameter.isRequired() && parameters.get(parameter.getName()) == null) {
-					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
-				}
-				if (parameter.isRequired() && !(parameters.get(parameter.getName()) instanceof List)) {
-					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]数据类型错误", comment, parameter.getName())));
-				}
-				for (Map valueMap : (List<Map>) parameters.get(parameter.getName())) {
-					Object result = doValidate(requestEntity, VAR_NAME_REQUEST_BODY, parameter.getChildren().get(0).getChildren(), valueMap);
-					if (result != null) {
-						return result;
+				List list = (List) parameters.get(parameter.getName());
+				if (list != null) {
+					for (Object value : list) {
+						List<BaseDefinition> definitions = parameter.getChildren();
+						doValidate(VAR_NAME_REQUEST_BODY, definitions, Collections.singletonMap("", value), jsonCode);
 					}
 				}
+
 			} else if (StringUtils.isNotBlank(parameter.getName())) {
 				String requestValue = StringUtils.defaultIfBlank(Objects.toString(parameters.get(parameter.getName()), EMPTY), Objects.toString(parameter.getDefaultValue(), EMPTY));
 				if (StringUtils.isBlank(requestValue)) {
 					if (!parameter.isRequired()) {
 						continue;
 					}
-					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
+					throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
 				}
 				try {
 					Object value = convertValue(parameter.getDataType(), parameter.getName(), requestValue);
 					if (VALIDATE_TYPE_PATTERN.equals(parameter.getValidateType())) {    // 正则验证
 						String expression = parameter.getExpression();
 						if (StringUtils.isNotBlank(expression) && !PatternUtils.match(Objects.toString(value, EMPTY), expression)) {
-							return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足正则表达式", comment, parameter.getName())));
+							throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足正则表达式", comment, parameter.getName())));
 						}
 					}
 					parameters.put(parameter.getName(), value);
 				} catch (Exception e) {
-					return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不合法", comment, parameter.getName())));
+					throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不合法", comment, parameter.getName())));
 				}
 			}
 		}
@@ -244,10 +203,9 @@ public class RequestHandler extends MagicController {
 			// 设置自身变量
 			context.set(EXPRESSION_DEFAULT_VAR_NAME, parameters.get(parameter.getName()));
 			if (!BooleanLiteral.isTrue(ScriptManager.executeExpression(parameter.getExpression(), context))) {
-				return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足表达式", comment, parameter.getName())));
+				throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足表达式", comment, parameter.getName())));
 			}
 		}
-		return null;
 	}
 
 	/**
