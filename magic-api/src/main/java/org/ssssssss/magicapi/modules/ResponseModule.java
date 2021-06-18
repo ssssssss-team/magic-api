@@ -14,6 +14,8 @@ import org.ssssssss.script.functions.ObjectConvertExtension;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
@@ -123,6 +125,16 @@ public class ResponseModule {
 	public ResponseModule addCookies(@Comment("Cookies") Map<String, String> cookies) {
 		return addCookies(cookies, null);
 
+	}
+
+	/**
+	 * 获取OutputStream
+	 * @since 1.2.3
+	 */
+	@Comment("获取OutputStream")
+	public OutputStream getOutputStream() throws IOException {
+		HttpServletResponse response = getResponse();
+		return response.getOutputStream();
 	}
 
 	/**
