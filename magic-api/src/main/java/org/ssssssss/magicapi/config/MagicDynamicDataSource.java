@@ -213,7 +213,7 @@ public class MagicDynamicDataSource {
 				Connection connection = null;
 				try {
 					connection = this.dataSource.getConnection();
-					this.dialect = dialectAdapter.getDialectFromUrl(connection.getMetaData().getURL());
+					this.dialect = dialectAdapter.getDialectFromConnection(connection);
 					if (this.dialect == null) {
 						throw new MagicAPIException("自动获取数据库方言失败");
 					}

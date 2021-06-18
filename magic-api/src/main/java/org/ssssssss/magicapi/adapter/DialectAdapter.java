@@ -4,21 +4,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ssssssss.magicapi.dialect.*;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class DialectAdapter {
 
 	private static final Logger logger = LoggerFactory.getLogger(DialectAdapter.class);
 
 	private final List<Dialect> dialectList = new ArrayList<>();
-
-	/**
-	 * 缓存已解析的方言
-	 */
-	private final Map<String, Dialect> dialectMap = new ConcurrentHashMap<>();
 
 	public DialectAdapter() {
 		add(new MySQLDialect());
@@ -35,23 +30,19 @@ public class DialectAdapter {
 		this.dialectList.add(dialect);
 	}
 
-	/**
-	 * 获取数据库方言
-	 */
-	public Dialect getDialectFromUrl(String fromUrl) {
-		Dialect cached = dialectMap.get(fromUrl);
-		if (cached == null && !dialectMap.containsKey(fromUrl)) {
-			for (Dialect dialect : dialectList) {
-				if (dialect.match(fromUrl)) {
-					cached = dialect;
-					break;
+	public Dialect getDialectFromConnection(Connection connection) {
+		for (Dialect dialect : dialectList) {
+			try {
+				if (dialect.match(connection)) {
+					return dialect;
 				}
+			} catch (SQLException e) {
+				logger.debug("方言{}匹配失败", dialect, e);
 			}
-			if (cached == null) {
-				logger.warn(String.format("magic-api在%s中无法获取dialect", fromUrl));
-			}
-			dialectMap.put(fromUrl, cached);
 		}
-		return cached;
+		logger.warn("magic-api在{}中无法获取dialect", connection);
+		return null;
 	}
+
+
 }
