@@ -5,7 +5,7 @@ import org.ssssssss.magicapi.exception.InvalidArgumentException;
 
 public interface JsonCodeConstants {
 
-	JsonCode SUCCESS = new JsonCode(1, "success");
+	JsonCode SUCCESS = new JsonCode(1, Constants.RESPONSE_MESSAGE_SUCCESS);
 
 	JsonCode IS_READ_ONLY = new JsonCode(-2, "当前为只读模式，无法操作");
 

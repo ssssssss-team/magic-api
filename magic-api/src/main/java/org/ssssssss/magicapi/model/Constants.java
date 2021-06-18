@@ -130,6 +130,11 @@ public class Constants {
 	public static int RESPONSE_CODE_SUCCESS = 1;
 
 	/**
+	 * 执行成功的message值
+	 */
+	public static final String RESPONSE_MESSAGE_SUCCESS = "success";
+
+	/**
 	 * 执行出现异常的code值
 	 */
 	public static int RESPONSE_CODE_EXCEPTION = -1;

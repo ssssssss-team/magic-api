@@ -2,7 +2,6 @@ package org.ssssssss.magicapi.provider;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.model.PageResult;
 import org.ssssssss.magicapi.model.RequestEntity;
@@ -15,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.ssssssss.magicapi.model.Constants.RESPONSE_CODE_EXCEPTION;
+import static org.ssssssss.magicapi.model.Constants.*;
 
 /**
  * 结果构建接口
@@ -44,9 +43,9 @@ public interface ResultProvider {
 		} while ((parent = parent.getCause()) != null);
 		logger.error("调用接口出错", root);
 		if (se != null) {
-			return buildResult(requestEntity, Constants.RESPONSE_CODE_EXCEPTION, se.getSimpleMessage());
+			return buildException(requestEntity, se);
 		}
-		return buildResult(requestEntity, Constants.RESPONSE_CODE_EXCEPTION, root.getMessage());
+		return buildException(requestEntity, root);
 	}
 
 	/**
@@ -59,11 +58,11 @@ public interface ResultProvider {
 		if (data instanceof Exit.Value) {
 			Exit.Value exitValue = (Exit.Value) data;
 			Object[] values = exitValue.getValues();
-			int code = values.length > 0 ? ObjectConvertExtension.asInt(values[0], 1) : 1;
-			String message = values.length > 1 ? Objects.toString(values[1], "success") : "success";
+			int code = values.length > 0 ? ObjectConvertExtension.asInt(values[0], RESPONSE_CODE_SUCCESS) : RESPONSE_CODE_SUCCESS;
+			String message = values.length > 1 ? Objects.toString(values[1], RESPONSE_MESSAGE_SUCCESS) : RESPONSE_MESSAGE_SUCCESS;
 			return buildResult(requestEntity, code, message, values.length > 2 ? values[2] : null);
 		}
-		return buildResult(requestEntity, Constants.RESPONSE_CODE_SUCCESS, "success", data);
+		return buildResult(requestEntity, RESPONSE_CODE_SUCCESS, RESPONSE_MESSAGE_SUCCESS, data);
 	}
 
 	/**
