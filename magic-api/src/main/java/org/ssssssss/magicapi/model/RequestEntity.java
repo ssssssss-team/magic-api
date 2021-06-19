@@ -6,6 +6,7 @@ import org.ssssssss.script.MagicScriptContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
+import java.util.UUID;
 
 public class RequestEntity {
 
@@ -20,8 +21,13 @@ public class RequestEntity {
 	private Map<String, Object> parameters;
 
 	private Map<String, Object> pathVariables;
-	private Long requestTime = System.currentTimeMillis();
+
+	private final Long requestTime = System.currentTimeMillis();
+
+	private final String requestId = UUID.randomUUID().toString().replace("-", "");
+
 	private MagicScriptContext magicScriptContext;
+
 	private Map<String, Object> headers;
 
 	private RequestEntity() {
@@ -131,5 +137,7 @@ public class RequestEntity {
 		this.headers = headers;
 	}
 
-
+	public String getRequestId() {
+		return requestId;
+	}
 }
