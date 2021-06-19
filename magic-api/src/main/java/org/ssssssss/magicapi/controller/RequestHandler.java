@@ -109,11 +109,15 @@ public class RequestHandler extends MagicController {
 				BaseDefinition body = JsonUtils.readValue(requestBody, BaseDefinition.class);
 				Object bodyValue = context.get(VAR_NAME_REQUEST_BODY);
 				body.setName("root");
-				doValidate(VAR_NAME_REQUEST_BODY, Collections.singletonList(body), Collections.singletonMap(body.getName(), bodyValue), BODY_INVALID);
+				doValidate(VAR_NAME_REQUEST_BODY, Collections.singletonList(body), new HashMap<String, Object>() {{
+					put(body.getName(), bodyValue);
+				}}, BODY_INVALID);
 			}
 		} catch (ValidateException e) {
 			Object value = resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, e.getMessage());
 			return requestEntity.isRequestedFromTest() ? new JsonBean<>(e.getJsonCode(), value) : value;
+		} catch (Throwable root) {
+			return processException(requestEntity, root);
 		}
 		requestEntity.setMagicScriptContext(context);
 		RequestContext.setRequestEntity(requestEntity);
@@ -168,7 +172,9 @@ public class RequestHandler extends MagicController {
 				if (list != null) {
 					for (Object value : list) {
 						List<BaseDefinition> definitions = parameter.getChildren();
-						doValidate(VAR_NAME_REQUEST_BODY, definitions, Collections.singletonMap("", value), jsonCode);
+						doValidate(VAR_NAME_REQUEST_BODY, definitions, new HashMap<String, Object>() {{
+							put("", value);
+						}}, jsonCode);
 					}
 				}
 
@@ -200,10 +206,13 @@ public class RequestHandler extends MagicController {
 			MagicScriptContext context = new MagicScriptContext();
 			// 将其他参数也放置脚本中，以实现“依赖”的情况
 			context.putMapIntoContext(parameters);
-			// 设置自身变量
-			context.set(EXPRESSION_DEFAULT_VAR_NAME, parameters.get(parameter.getName()));
-			if (!BooleanLiteral.isTrue(ScriptManager.executeExpression(parameter.getExpression(), context))) {
-				throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足表达式", comment, parameter.getName())));
+			Object value = parameters.get(parameter.getName());
+			if (value != null) {
+				// 设置自身变量
+				context.set(EXPRESSION_DEFAULT_VAR_NAME, value);
+				if (!BooleanLiteral.isTrue(ScriptManager.executeExpression(parameter.getExpression(), context))) {
+					throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足表达式", comment, parameter.getName())));
+				}
 			}
 		}
 	}
@@ -309,21 +318,25 @@ public class RequestHandler extends MagicController {
 			// 对返回结果包装处理
 			return response(requestEntity, result);
 		} catch (Throwable root) {
-			Throwable parent = root;
-			do {
-				if (parent instanceof MagicScriptAssertException) {
-					MagicScriptAssertException sae = (MagicScriptAssertException) parent;
-					return resultProvider.buildResult(requestEntity, sae.getCode(), sae.getMessage());
-				}
-			} while ((parent = parent.getCause()) != null);
-			if (configuration.isThrowException()) {
-				throw root;
-			}
-			logger.error("接口{}请求出错", request.getRequestURI(), root);
-			return resultProvider.buildException(requestEntity, root);
+			return processException(requestEntity, root);
 		} finally {
 			RequestContext.remove();
 		}
+	}
+
+	private Object processException(RequestEntity requestEntity, Throwable root) throws Throwable {
+		Throwable parent = root;
+		do {
+			if (parent instanceof MagicScriptAssertException) {
+				MagicScriptAssertException sae = (MagicScriptAssertException) parent;
+				return resultProvider.buildResult(requestEntity, sae.getCode(), sae.getMessage());
+			}
+		} while ((parent = parent.getCause()) != null);
+		if (configuration.isThrowException()) {
+			throw root;
+		}
+		logger.error("接口{}请求出错", requestEntity.getRequest().getRequestURI(), root);
+		return resultProvider.buildException(requestEntity, root);
 	}
 
 	/**
