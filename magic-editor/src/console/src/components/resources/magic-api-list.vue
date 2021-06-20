@@ -572,7 +572,7 @@ export default {
         copyText.readOnly = false
         copyText.select()
         document.execCommand('copy')
-        this.$magicAlert({title: '复制接口路径', content: '复制成功'})
+        bus.$emit('status', `接口路径「${path}」复制成功`)
       } catch (e) {
         this.$magicAlert({title: '复制接口路径失败，请手动复制', content: path})
         console.error(e)
