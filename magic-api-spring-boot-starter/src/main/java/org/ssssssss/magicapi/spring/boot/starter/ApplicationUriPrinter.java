@@ -42,15 +42,16 @@ public class ApplicationUriPrinter implements CommandLineRunner {
 		String port = springEnv.getProperty("server.port", "port");
 		String path = springEnv.getProperty("server.servlet.context-path", "");
 		String magicWebPath = properties.getWeb();
-		String localUrl = PathUtils.replaceSlash(String.format("http://localhost:%s/%s/%s/",port,path, Objects.toString(properties.getPrefix(),"")));
-		String externUrl = PathUtils.replaceSlash(String.format("http://%s:%s/%s/%s/",ip,port,path, Objects.toString(properties.getPrefix(),"")));
+		String schema = "http://";
+		String localUrl = schema + PathUtils.replaceSlash(String.format("localhost:%s/%s/%s/",port,path, Objects.toString(properties.getPrefix(),"")));
+		String externUrl = schema + PathUtils.replaceSlash(String.format("%s:%s/%s/%s/",ip,port,path, Objects.toString(properties.getPrefix(),"")));
 		System.out.println(
 				"服务启动成功，magic-api已内置启动! Access URLs:\n\t" +
 						"接口本地地址: \t\t"+localUrl+"\n\t" +
 						"接口外部访问地址: \t" + externUrl
 		);
 		if (!StringUtils.isEmpty(magicWebPath)) {
-            String webPath = PathUtils.replaceSlash(String.format("http://%s:%s/%s/%s/index.html", ip, port, path, magicWebPath));
+            String webPath = schema + PathUtils.replaceSlash(String.format("%s:%s/%s/%s/index.html", ip, port, path, magicWebPath));
             System.out.println("\t接口配置平台: \t\t" + webPath);
 		}
 		System.out.println("\t可通过配置关闭输出: \tmagic-api.show-url=false");
