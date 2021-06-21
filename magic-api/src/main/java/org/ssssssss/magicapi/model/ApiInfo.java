@@ -228,9 +228,7 @@ public class ApiInfo extends MagicEntity {
 				.flatMap(it -> it.getOptions().stream())
 				.filter(it -> key.equals(it.getName()))
 				.findFirst()
-				.map(it -> {
-					return Objects.toString(it.getValue(), null);
-				}).orElse(null);
+				.map(it -> Objects.toString(it.getValue(), null)).orElse(null);
 	}
 
 	@Override
