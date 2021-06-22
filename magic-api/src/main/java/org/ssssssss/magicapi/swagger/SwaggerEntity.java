@@ -346,7 +346,6 @@ public class SwaggerEntity {
 				Map<String, Object> schema = new HashMap<>();
 				schema.put("type", type);
 				schema.put("example", example);
-				this.schema = doProcessSchema(example);
 				this.schema = "";
 			} else {
 				this.example = example;

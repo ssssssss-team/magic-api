@@ -23,36 +23,39 @@
             <magic-select :options="bodyTypes" :value.sync="fieldObj.dataType" default-value="String" style="width: 100%"/>
           </div>
         </div>
-        <div class="box-item">
-          <div class="item-title">是否必填</div>
-          <div class="item-content">
-            <div style="width: 25px; height: 25px;"><magic-checkbox :value.sync="fieldObj.required"/></div>
+        <template v-if="type == 'request'">
+          <div class="box-item">
+            <div class="item-title">是否必填</div>
+            <div class="item-content">
+              <div style="width: 25px; height: 25px;"><magic-checkbox :value.sync="fieldObj.required"/></div>
+            </div>
           </div>
-        </div>
-        <div class="box-item">
-          <div class="item-title">默认值</div>
-          <div class="item-content">
-            <magic-input :value.sync="fieldObj.defaultValue" style="width: 100%"/>
+          <div class="box-item">
+            <div class="item-title">默认值</div>
+            <div class="item-content">
+              <magic-input :value.sync="fieldObj.defaultValue" style="width: 100%"/>
+            </div>
           </div>
-        </div>
-        <div class="box-item">
-          <div class="item-title">验证方式</div>
-          <div class="item-content">
-            <magic-select :options="validates" :value.sync="fieldObj.validateType" default-value="pass" style="width: 100%"/>
+          <div class="box-item">
+            <div class="item-title">验证方式</div>
+            <div class="item-content">
+              <magic-select :options="validates" :value.sync="fieldObj.validateType" default-value="pass" style="width: 100%"/>
+            </div>
           </div>
-        </div>
-        <div class="box-item">
-          <div class="item-title">表达式或正则表达式</div>
-          <div class="item-content">
-            <magic-input :value.sync="fieldObj.expression" style="width: 100%"/>
+          <div class="box-item">
+            <div class="item-title">表达式或正则表达式</div>
+            <div class="item-content">
+              <magic-input :value.sync="fieldObj.expression" style="width: 100%"/>
+            </div>
           </div>
-        </div>
-        <div class="box-item">
-          <div class="item-title">验证说明</div>
-          <div class="item-content">
-            <magic-input :value.sync="fieldObj.error" style="width: 100%"/>
+          <div class="box-item">
+            <div class="item-title">验证说明</div>
+            <div class="item-content">
+              <magic-input :value.sync="fieldObj.error" style="width: 100%"/>
+            </div>
           </div>
-        </div>
+        </template>
+
         <div class="box-item">
           <div class="item-title">字段注释</div>
           <div class="item-content">
@@ -72,12 +75,14 @@
             <magic-input :value.sync="fieldObj.description" style="width: 100%"/>
           </div>
         </div>
-        <div class="box-item">
-          <div class="item-title">是否必填</div>
-          <div class="item-content">
-            <div style="width: 25px; height: 25px;"><magic-checkbox :value.sync="fieldObj.required"/></div>
+        <template v-if="type == 'request'">
+          <div class="box-item">
+            <div class="item-title">是否必填</div>
+            <div class="item-content">
+              <div style="width: 25px; height: 25px;"><magic-checkbox :value.sync="fieldObj.required"/></div>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
     </div>
   </div>
@@ -99,7 +104,8 @@
       },
       // 解决子组件不强制刷新
       forceUpdate: Boolean,
-      height: String
+      height: String,
+      type: String
     },
     data() {
       return {

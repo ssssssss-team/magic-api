@@ -158,7 +158,7 @@
               <div ref="bodyEditor" class="ma-body-editor"></div>
             </div>
             <div style="flex: 1;">
-              <magic-json :jsonData="requestBody" :forceUpdate="forceUpdate" :height="layoutHeight"></magic-json>
+              <magic-json :jsonData="requestBody || []" :forceUpdate="forceUpdate" :height="layoutHeight" type="request"></magic-json>
             </div>
           </div>
 
@@ -244,89 +244,29 @@
         bodyIndex: 0,
         requestBody: [],
         forceUpdate: false,
-        editorJson: '{\n\t\n}',
-        bodyEditorFlag: false,
         layoutHeight: '255px'
       }
     },
     watch: {
       requestBody: {
-        handler(newVal, oldVal) {
-          if (this.bodyEditorFlag) {
-            this.info.requestBody = JSON.stringify(newVal[0])
-          }
+        handler(requestBodyArr) {
+          this.info.requestBodyDefinition = requestBodyArr[0]
         },
         deep: true
       }
     },
     mounted() {
-      let that = this;
-      bus.$on('update-request-body', (newVal) => {
-       // console.log('update-request-body');
-        that.initRequestBodyDom()
-        if (!newVal || newVal == null) {
-          that.bodyEditorFlag = false
-          that.requestBody = []
-          that.bodyEditor && that.bodyEditor.setValue('{\r\n\t\r\n}')
-          return
-        }
-        try {
-          let body = JSON.parse(newVal)
-          if (body.dataType && body.children) {
-            that.requestBody = [body]
-            that.buildBodyEditorData(body)
-          } else {
-            /**
-             * 旧的json结构，不能直接用，需通过editor转换
-             */
-            that.editorJson = formatJson(newVal)
-            that.bodyEditor && that.bodyEditor.setValue(that.editorJson)
-          }
-
-        } catch (e) {
-          // console.log(e);
-        }
-
+      bus.$on('update-request-body', (requestBody) => {
+        this.initRequestBodyDom()
+        this.bodyEditor && this.bodyEditor.setValue(formatJson(requestBody) || requestBody || '{\r\n\t\r\n}')
       })
 
+      bus.$on('update-request-body-definition', (requestBodyDefinition) => {
+        this.requestBody = requestBodyDefinition ? [requestBodyDefinition] : []
+      })
     },
 
     methods: {
-      buildBodyEditorData(o) {
-        let requestBody = o
-        let newBody = {}
-        if ('Object' === requestBody.dataType) {
-          let body = {}
-          newBody = this.createJsonData(body, requestBody.children)
-        } else if ('Array' === requestBody.dataType) {
-          let body = []
-          newBody = this.createJsonData(body, requestBody.children, true)
-        }
-        // console.log('buildBodyEditorData', newBody);
-        this.editorJson = formatJson(JSON.stringify(newBody))
-        this.bodyEditor && this.bodyEditor.setValue(this.editorJson)
-      },
-      createJsonData(newBody, data, arrayFlag = false) {
-        data.map(item => {
-          let key, value = item.value;
-          if (!arrayFlag) {
-            key = item.name
-          }
-          if ('Object' === item.dataType) {
-            value = {}
-            newBody[key] = this.createJsonData(value, item.children)
-          } else if ('Array' === item.dataType) {
-            value = []
-            newBody[key] = this.createJsonData(value, item.children, true)
-          } else {
-            newBody[key] = (value === 'null' || value === 'undefined') ? null : value
-          }
-          if (arrayFlag) {
-            newBody.push(value)
-          }
-        })
-        return newBody;
-      },
       layout() {
         this.$nextTick(() => {
           if (this.bodyEditor && isVisible(this.$refs.bodyEditor)) {
@@ -402,13 +342,14 @@
             wordWrap: 'on',
             lineDecorationsWidth: 35,
             theme: store.get('skin') || 'default',
-            value: this.editorJson || '{\r\n\t\r\n}'
+            value: formatJson(this.info.requestBody) || '{\r\n\t\r\n}'
           })
           this.layout()
           this.bodyEditor.onDidChangeModelContent(() => {
-            this.bodyEditorFlag = true
             this.updateRequestBody(this.bodyEditor.getValue())
+            this.info.requestBody = this.bodyEditor.getValue()
           })
+          this.bodyEditor && this.bodyEditor.setValue(formatJson(this.info.requestBody) || '{\r\n\t\r\n}')
           bus.$on('update-window-size', () => this.layout())
         }
       },
@@ -493,6 +434,9 @@
         return "String";
       },
       valueCopy(newBody, oldBody, arrayFlag = false) {
+        if (oldBody.length == 0) {
+          return newBody
+        }
         let that = this;
         newBody.map(item => {
           let oldItemArr = oldBody.filter(old => {
