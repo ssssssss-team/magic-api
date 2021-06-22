@@ -105,7 +105,7 @@ public class RequestHandler extends MagicController {
 			// 验证 path
 			doValidate("path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID);
 			BaseDefinition requestBody = requestEntity.getApiInfo().getRequestBodyDefinition();
-			if (requestBody.getChildren().size() > 0) {
+			if (requestBody != null && requestBody.getChildren().size() > 0) {
 				Object bodyValue = context.get(VAR_NAME_REQUEST_BODY);
 				requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
 				doValidate(VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
@@ -268,7 +268,7 @@ public class RequestHandler extends MagicController {
 		if (context.isRunning()) {    //判断是否执行完毕
 			return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(requestEntity, 1000, context.getId()), context.getDebugInfo());
 		} else if (context.isException()) {
-			return resolveThrowable(requestEntity, (Throwable) context.getReturnValue());
+			return resolveThrowableForTest(requestEntity, (Throwable) context.getReturnValue());
 		}
 		Object value = context.getReturnValue();
 		// 执行后置拦截器
@@ -289,7 +289,7 @@ public class RequestHandler extends MagicController {
 			if (context.isRunning()) {
 				return new JsonBodyBean<>(1000, context.getId(), resultProvider.buildResult(requestEntity, 1000, context.getId(), result), result);
 			} else if (context.isException()) {    //判断是否出现异常
-				return resolveThrowable(requestEntity, (Throwable) context.getReturnValue());
+				return resolveThrowableForTest(requestEntity, (Throwable) context.getReturnValue());
 			}
 			Object value = result;
 			// 执行后置拦截器
@@ -301,12 +301,11 @@ public class RequestHandler extends MagicController {
 			}
 			return convertResult(requestEntity, result);
 		} catch (Exception e) {
-			return resolveThrowable(requestEntity, e);
+			return resolveThrowableForTest(requestEntity, e);
 		}
 	}
 
 	private Object invokeRequest(RequestEntity requestEntity) throws Throwable {
-		HttpServletRequest request = requestEntity.getRequest();
 		try {
 			Object result = ScriptManager.executeScript(requestEntity.getApiInfo().getScript(), requestEntity.getMagicScriptContext());
 			Object value = result;
@@ -387,7 +386,7 @@ public class RequestHandler extends MagicController {
 	/**
 	 * 解决异常
 	 */
-	private JsonBean<Object> resolveThrowable(RequestEntity requestEntity, Throwable root) {
+	private JsonBean<Object> resolveThrowableForTest(RequestEntity requestEntity, Throwable root) {
 		MagicScriptException se = null;
 		Throwable parent = root;
 		do {
