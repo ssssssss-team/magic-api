@@ -76,17 +76,20 @@ public class SwaggerProvider {
 			try {
 				List<SwaggerEntity.Parameter> parameters = parseParameters(mapper, info);
 				hasBody = parameters.stream().anyMatch(it -> VAR_NAME_REQUEST_BODY.equals(it.getIn()));
-                if (hasBody) {
-                    BaseDefinition baseDefinition = info.getRequestBodyDefinition();
+				BaseDefinition baseDefinition = info.getRequestBodyDefinition();
+                if (hasBody && baseDefinition != null) {
                     doProcessDefinition(baseDefinition, info, StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY), "request");
                 }
+				baseDefinition = info.getResponseBodyDefinition();
 				parameters.forEach(path::addParameter);
-				// path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), BODY_EMPTY), Object.class));
-				Map responseMap = parseResponse(info);
-				if (!responseMap.isEmpty()) {
-					path.setResponses(responseMap);
-					BaseDefinition baseDefinition = info.getResponseBodyDefinition();
-					doProcessDefinition(baseDefinition, info, StringUtils.defaultIfBlank(baseDefinition.getName(), "responseData"), "response");
+                if(baseDefinition != null){
+					Map responseMap = parseResponse(info);
+					if (!responseMap.isEmpty()) {
+						path.setResponses(responseMap);
+						doProcessDefinition(baseDefinition, info, StringUtils.defaultIfBlank(baseDefinition.getName(), "responseData"), "response");
+					}
+				}else{
+					 path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), BODY_EMPTY), Object.class));
 				}
 
 			} catch (Exception ignored) {
@@ -129,10 +132,8 @@ public class SwaggerProvider {
 		paths.forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), VAR_NAME_PATH_VARIABLE, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
 		try {
 			BaseDefinition baseDefinition = info.getRequestBodyDefinition();
-			if (baseDefinition.getChildren().size() > 0) {
-
+			if (baseDefinition!= null && baseDefinition.getChildren().size() > 0) {
 				SwaggerEntity.Parameter parameter = new SwaggerEntity.Parameter(baseDefinition.isRequired(), StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() : VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, baseDefinition.getDataType().getJavascriptType(), baseDefinition.getDescription(), baseDefinition);
-
 				Map<String, Object> schema = new HashMap<>(2);
 				String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
 				String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«request«";
@@ -146,6 +147,11 @@ public class SwaggerProvider {
 				schema.put("$ref", DEFINITION + voName);
 				parameter.setSchema(schema);
 				parameters.add(parameter);
+			}else{
+				Object object = mapper.readValue(info.getRequestBody(), Object.class);
+				if ((object instanceof List || object instanceof Map) && BooleanLiteral.isTrue(object)) {
+					parameters.add(new SwaggerEntity.Parameter(false, VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, object instanceof List ? VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY : VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT, null, object));
+				}
 			}
 
 		} catch (Exception ignored) {
