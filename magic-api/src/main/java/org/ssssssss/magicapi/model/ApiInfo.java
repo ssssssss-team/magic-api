@@ -63,6 +63,16 @@ public class ApiInfo extends MagicEntity {
 	 */
 	private transient JsonNode jsonNode;
 
+	/**
+	 * 请求体属性
+	 */
+	private BaseDefinition requestBodyDefinition;
+
+    /**
+     * 输出结果属性
+     */
+    private BaseDefinition responseBodyDefinition;
+
 	public String getMethod() {
 		return method;
 	}
@@ -231,7 +241,23 @@ public class ApiInfo extends MagicEntity {
 				.map(it -> Objects.toString(it.getValue(), null)).orElse(null);
 	}
 
-	@Override
+    public BaseDefinition getRequestBodyDefinition() {
+        return requestBodyDefinition;
+    }
+
+    public void setRequestBodyDefinition(BaseDefinition requestBodyDefinition) {
+        this.requestBodyDefinition = requestBodyDefinition;
+    }
+
+    public BaseDefinition getResponseBodyDefinition() {
+        return responseBodyDefinition;
+    }
+
+    public void setResponseBodyDefinition(BaseDefinition responseBodyDefinition) {
+        this.responseBodyDefinition = responseBodyDefinition;
+    }
+
+    @Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
@@ -247,13 +273,15 @@ public class ApiInfo extends MagicEntity {
 				Objects.equals(option, apiInfo.option) &&
 				Objects.equals(requestBody, apiInfo.requestBody) &&
 				Objects.equals(headers, apiInfo.headers) &&
-				Objects.equals(description, apiInfo.description);
+				Objects.equals(description, apiInfo.description) &&
+				Objects.equals(requestBodyDefinition, apiInfo.requestBodyDefinition) &&
+				Objects.equals(responseBodyDefinition, apiInfo.responseBodyDefinition);
 	}
 
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, method, path, script, name, groupId, parameters, option, requestBody, headers, responseBody, description);
+		return Objects.hash(id, method, path, script, name, groupId, parameters, option, requestBody, headers, responseBody, description, requestBodyDefinition, responseBodyDefinition);
 	}
 
 	public ApiInfo copy() {
@@ -271,6 +299,8 @@ public class ApiInfo extends MagicEntity {
 		info.setResponseBody(this.responseBody);
 		info.setDescription(this.description);
 		info.setPaths(this.paths);
+		info.setRequestBodyDefinition(this.requestBodyDefinition);
+		info.setResponseBodyDefinition(this.responseBodyDefinition);
 		return info;
 	}
 }

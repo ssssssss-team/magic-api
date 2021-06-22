@@ -104,13 +104,12 @@ public class RequestHandler extends MagicController {
 			doValidate("header", requestEntity.getApiInfo().getHeaders(), headers, HEADER_INVALID);
 			// 验证 path
 			doValidate("path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID);
-			String requestBody = requestEntity.getApiInfo().getRequestBody();
-			if (StringUtils.isNotBlank(requestBody)) {
-				BaseDefinition body = JsonUtils.readValue(requestBody, BaseDefinition.class);
+			BaseDefinition requestBody = requestEntity.getApiInfo().getRequestBodyDefinition();
+			if (requestBody.getChildren().size() > 0) {
 				Object bodyValue = context.get(VAR_NAME_REQUEST_BODY);
-				body.setName("root");
-				doValidate(VAR_NAME_REQUEST_BODY, Collections.singletonList(body), new HashMap<String, Object>() {{
-					put(body.getName(), bodyValue);
+				requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
+				doValidate(VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
+					put(requestBody.getName(), bodyValue);
 				}}, BODY_INVALID);
 			}
 		} catch (ValidateException e) {

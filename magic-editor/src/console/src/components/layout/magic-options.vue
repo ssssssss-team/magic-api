@@ -76,7 +76,9 @@ export default {
           this.selectedTab = this.tabs[0].id
         }
         this.$nextTick(() => {
+          bus.$emit('update-request-body-definition', info.requestBodyDefinition);
           bus.$emit('update-request-body', info.requestBody);
+          bus.$emit('update-response-body-definition', info.responseBodyDefinition);
           bus.$emit('update-response-body', info.responseBody);
         })
       } else {

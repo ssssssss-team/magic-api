@@ -490,7 +490,7 @@ export default {
         try {
          let requestBody = JSON.parse(this.info.requestBody)
           requestConfig.params = params
-          requestConfig.data = JSON.stringify(this.buildRequestBodyData(requestBody))
+          requestConfig.data = this.info.requestBody
           requestConfig.headers['Content-Type'] = 'application/json'
           requestConfig.transformRequest = []
         } catch (e) {
@@ -528,40 +528,6 @@ export default {
       info.ext.eventSource.addEventListener('close', e => {
         info.ext.eventSource.close()
       })
-    },
-    buildRequestBodyData(o) {
-      let requestBody = o
-      let newBody = {}
-      if ('Object' == requestBody.dataType) {
-        let body = {}
-        newBody = this.createJsonData(body, requestBody.children)
-      } else if ('Array' == requestBody.dataType) {
-        let body = []
-        newBody = this.createJsonData(body, requestBody.children, true)
-      }
-      // console.log('buildRequestBodyData', newBody);
-      return newBody
-    },
-    createJsonData(newBody, data, arrayFlag = false) {
-      data.map(item => {
-        let key, value = item.value;
-        if (!arrayFlag) {
-          key = item.name
-        }
-        if ('Object' == item.dataType) {
-          value = {}
-          newBody[key] = this.createJsonData(value, item.children)
-        } else if ('Array' == item.dataType) {
-          value = []
-          newBody[key] = this.createJsonData(value, item.children, true)
-        } else {
-            newBody[key] = (value == 'null' || value == 'undefined') ? null : value
-        }
-        if (arrayFlag) {
-          newBody.push(value)
-        }
-      })
-      return newBody;
     },
     viewHistory() {
       if (!this.selected) {
@@ -681,6 +647,7 @@ export default {
                 }
                 target.responseBody = utils.formatJson(data.data)
                 bus.$emit('switch-tab', 'result')
+                bus.$emit('update-response-body-definition', target.responseBodyDefinition);
                 bus.$emit('update-response-body', target.responseBody)
                 target.ext.eventSource.close();
               } else if (data.code === contants.RESPONSE_CODE_DEBUG) {
@@ -717,6 +684,7 @@ export default {
                     filename = decodeURIComponent(disposition.substring(disposition.indexOf('filename=') + 9))
                   }
                   target.responseBody = utils.formatJson({filename})
+                  bus.$emit('update-response-body-definition', target.responseBodyDefinition);
                   bus.$emit('update-response-body', target.responseBody)
                   let a = document.createElement('a')
                   a.download = filename
@@ -733,6 +701,7 @@ export default {
                   // 图片
                   this.imageUrl = `data:${contentType};base64,${data.data}`
                   this.showImageDialog = true
+                  bus.$emit('update-response-body-definition', target.responseBodyDefinition);
                   target.responseBody = utils.formatJson(data.data)
                   bus.$emit('update-response-body', target.responseBody)
                   bus.$emit('report', 'output_image')
@@ -742,6 +711,7 @@ export default {
                     content: '您没有权限执行测试'
                   })
                 } else {
+                  bus.$emit('update-response-body-definition', target.responseBodyDefinition);
                   target.responseBody = utils.formatJson(data.data)
                   bus.$emit('update-response-body', target.responseBody)
                 }
@@ -758,6 +728,7 @@ export default {
               // })
               try {
                 target.ext.eventSource.close();
+                bus.$emit('update-response-body-definition', target.responseBodyDefinition);
                 target.responseBody = utils.formatJson(res.data)
                 bus.$emit('update-response-body', target.responseBody)
               } catch (ignored) {
