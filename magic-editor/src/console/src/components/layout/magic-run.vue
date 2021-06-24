@@ -89,11 +89,11 @@ export default {
       this.layout()
     },
     updateResponseBody(bodyStr) {
-      if (['{}','[]'].indexOf(bodyStr.replace(/\s/g,"")) > -1) {
-        this.responseBody = []
-        return false
-      }
       try {
+        if (['{}','[]'].indexOf(bodyStr.replace(/\s/g,"")) > -1) {
+          this.responseBody = []
+          return false
+        }
         let body = JSON.parse(bodyStr)
         let reqBody = []
         reqBody.push({
