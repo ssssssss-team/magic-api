@@ -96,6 +96,7 @@ export default {
   beforeMount() {
     contants.BASE_URL = this.config.baseURL || ''
     contants.SERVER_URL = this.config.serverURL || ''
+    contants.DEFAULT_EXPAND = this.config.defaultExpand !== false
     this.config.version = contants.MAGIC_API_VERSION_TEXT
     this.config.title = this.config.title || 'magic-api'
     this.config.themes = this.config.themes || {}

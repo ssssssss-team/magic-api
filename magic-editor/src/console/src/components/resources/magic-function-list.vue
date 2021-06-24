@@ -92,7 +92,7 @@ import MagicInput from '@/components/common/magic-input.vue'
 import { replaceURL, requestGroup } from '@/scripts/utils.js'
 import JavaClass from '@/scripts/editor/java-class.js'
 import Key from '@/scripts/hotkey.js'
-
+import contants from '@/scripts/contants.js'
 export default {
   name: 'MagicFunctionList',
   props: {
@@ -175,7 +175,7 @@ export default {
       this.listGroupData.forEach(element => {
         groupItem[element.id] = []
         element.folder = true
-        this.$set(element, 'opened', true)
+        this.$set(element, 'opened', contants.DEFAULT_EXPAND)
         // 缓存一个name和path给后面使用
         element.tmpName = element.name.indexOf('/') === 0 ? element.name : '/' + element.name
         element.tmpPath = element.path.indexOf('/') === 0 ? element.path : '/' + element.path
@@ -563,7 +563,7 @@ export default {
         item.tmpName = ('/' + item.name).replace(new RegExp('(/)+', 'gm'), '/')
         item.tmpPath = ('/' + item.path).replace(new RegExp('(/)+', 'gm'), '/')
         item.folder = true
-        this.$set(item, 'opened', true)
+        this.$set(item, 'opened', contants.DEFAULT_EXPAND)
         this.$set(item, 'selectRightItem', false)
         tree.push(item)
         return true
@@ -586,7 +586,7 @@ export default {
             item.tmpName = (element.tmpName + '/' + item.name).replace(new RegExp('(/)+', 'gm'), '/')
             item.tmpPath = (element.tmpPath + '/' + item.path).replace(new RegExp('(/)+', 'gm'), '/')
             item.folder = true
-            this.$set(item, 'opened', true)
+            this.$set(item, 'opened', contants.DEFAULT_EXPAND)
             this.$set(item, 'selectRightItem', false)
             element.children.push(item)
             find = true
