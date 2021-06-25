@@ -78,7 +78,7 @@ public class SwaggerProvider {
 				hasBody = parameters.stream().anyMatch(it -> VAR_NAME_REQUEST_BODY.equals(it.getIn()));
 				BaseDefinition baseDefinition = info.getRequestBodyDefinition();
                 if (hasBody && baseDefinition != null) {
-                    doProcessDefinition(baseDefinition, info, StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY), "request");
+                    doProcessDefinition(baseDefinition, info, "root_" + baseDefinition.getName() , "request", 0);
                 }
 				baseDefinition = info.getResponseBodyDefinition();
 				parameters.forEach(path::addParameter);
@@ -86,7 +86,7 @@ public class SwaggerProvider {
 					Map responseMap = parseResponse(info);
 					if (!responseMap.isEmpty()) {
 						path.setResponses(responseMap);
-						doProcessDefinition(baseDefinition, info, StringUtils.defaultIfBlank(baseDefinition.getName(), "responseData"), "response");
+						doProcessDefinition(baseDefinition, info, "root_" + baseDefinition.getName(), "response", 0);
 					}
 				}else{
 					 path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), BODY_EMPTY), Object.class));
@@ -138,9 +138,9 @@ public class SwaggerProvider {
 				String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
 				String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«request«";
 				if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(baseDefinition.getDataType().getJavascriptType())) {
-					voName += StringUtils.defaultIfBlank(baseDefinition.getChildren().get(0).getName(), VAR_NAME_REQUEST_BODY + "_" + StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY)) + "»»»";
+					voName += "root_" + (StringUtils.isNotBlank(baseDefinition.getChildren().get(0).getName()) ? "_" + baseDefinition.getChildren().get(0).getName() : "") +  "»»»";
 				} else {
-					voName += StringUtils.defaultIfBlank(baseDefinition.getName(), VAR_NAME_REQUEST_BODY) + "»»»";
+					voName += "root_" + baseDefinition.getName() + "»»»";
 				}
 
 				schema.put("originalRef", voName);
@@ -166,7 +166,7 @@ public class SwaggerProvider {
 		if (baseDefinition.getChildren().size() > 0) {
 			String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
 			String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«response«";
-			voName += StringUtils.defaultIfBlank(baseDefinition.getName(), "responseData") + "»»»";
+			voName += "root_" + baseDefinition.getName() + "»»»";
 
 			Map<String, Object> schema = new HashMap<>(2);
 			schema.put("originalRef", voName);
@@ -180,35 +180,38 @@ public class SwaggerProvider {
 
 		return result;
 	}
-    private Map<String, Object> doProcessDefinition(BaseDefinition target, ApiInfo info, String parentName, String definitionType) {
-        Map<String, Object> result = new HashMap<>(4);
+    private Map<String, Object> doProcessDefinition(BaseDefinition target, ApiInfo info, String parentName, String definitionType, int level) {
+        Map<String, Object> result = new HashMap<>(3);
         result.put("description", target.getDescription());
         if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(target.getDataType().getJavascriptType())) {
             if (target.getChildren().size() > 0) {
-                result.put("items", doProcessDefinition(target.getChildren().get(0), info, parentName + "_" + StringUtils.defaultIfBlank(target.getName(), VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY), definitionType));
+                result.put("items", doProcessDefinition(target.getChildren().get(0), info, parentName + target.getName() + "_", definitionType, level + 1));
             } else {
                 result.put("items", Collections.emptyList());
             }
 			result.put("type", target.getDataType().getJavascriptType());
         } else if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT.equalsIgnoreCase(target.getDataType().getJavascriptType())) {
             String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
-            String voName = groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + (StringUtils.equals("response", definitionType) ? "«response«" : "«request«") + StringUtils.defaultIfBlank(target.getName(), parentName)  + "»»»";
+            String voName = groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + (StringUtils.equals("response", definitionType) ? "«response«" : "«request«") + parentName + target.getName()  + "»»»";
+
+			Map<String, Object> definition = new HashMap<>(3);
+			Map<String, Map<String, Object>> properties = new HashMap<>(target.getChildren().size());
+			for (BaseDefinition obj : target.getChildren()) {
+				properties.put(obj.getName(), doProcessDefinition(obj, info, parentName + target.getName() + "_", definitionType, level + 1));
+			}
+			definition.put("properties", properties);
+			definition.put("description", target.getDescription());
+			definition.put("type", target.getDataType().getJavascriptType());
+
             if (this.DEFINITION_MAP.containsKey(voName)) {
 				// TODO 应该不会出现名字都一样的
-				voName.replace("»»»", "_" + parentName + "»»»");
+				voName = voName.replace("»»»", "_" + level + "»»»");
 			}
+
+			this.DEFINITION_MAP.put(voName, definition);
             result.put("originalRef", voName);
             result.put("$ref", DEFINITION + voName);
 
-            Map<String, Object> definition = new HashMap<>(4);
-            Map<String, Map<String, Object>> properties = new HashMap<>(target.getChildren().size());
-            for (BaseDefinition obj : target.getChildren()) {
-                properties.put(obj.getName(), doProcessDefinition(obj, info, parentName, definitionType));
-            }
-            definition.put("properties", properties);
-            definition.put("description", target.getDescription());
-			definition.put("type", target.getDataType().getJavascriptType());
-            this.DEFINITION_MAP.put(voName, definition);
         } else {
             result.put("example", target.getValue());
 			result.put("type", target.getDataType().getJavascriptType());
