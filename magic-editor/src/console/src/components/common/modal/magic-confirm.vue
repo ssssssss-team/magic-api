@@ -1,7 +1,7 @@
 <template>
   <magic-dialog ref="dialog" v-model="value" :title="title" align="right" @onClose="closeHandle">
     <template #content>
-      {{ content }}
+      <div v-html="content"/>
     </template>
     <template #buttons>
       <button class="ma-button active" @click="okHandle">{{ ok }}</button>

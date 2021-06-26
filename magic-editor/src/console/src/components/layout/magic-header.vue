@@ -163,23 +163,38 @@ export default {
     doUpload(mode) {
       let file = this.$refs.file.files[0];
       if (file) {
-        this.showUploadDialog = false;
         let formData = new FormData();
         formData.append('file', file, this.filename);
         formData.append('mode', mode);
-        request.send('/upload', formData, {
-          method: 'post',
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        }).success(() => {
-          this.$magicAlert({
-            content: '上传成功!'
+        let _upload = ()=>{
+          this.showUploadDialog = false;
+          request.send('/upload', formData, {
+            method: 'post',
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          }).success(() => {
+            this.$magicAlert({
+              content: '上传成功!'
+            })
+            bus.$emit('refresh-resource')
           })
-          bus.$emit('refresh-resource')
-        })
-        this.filename = '';
-        this.$refs.file.value = '';
+          this.filename = '';
+          this.$refs.file.value = '';
+        }
+        if(mode === 'full'){
+          this.$magicConfirm({
+            title: '上传接口',
+            content: `全量模式上传时，以上传的数据为准进行覆盖更新操作，可能会删除其他接口<br>在非全量导出时，建议使用增量更新，是否继续？`,
+            ok: '继续',
+            cancel: '取消',
+            onOk: () => {
+              _upload();
+            }
+          });
+        }else{
+          _upload();
+        }
       }
     },
     switchTheme($theme) {
