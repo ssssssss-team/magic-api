@@ -157,7 +157,7 @@ public class NamedTable {
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
 	public Object save() {
-		return this.save(null,false);
+		return this.save(null, false);
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
@@ -166,16 +166,15 @@ public class NamedTable {
 			throw new MagicAPIException("请设置主键");
 		}
 		String primaryValue = Objects.toString(this.columns.get(this.primary), "");
-		if(StringUtils.isBlank(primaryValue) && data != null){
+		if (StringUtils.isBlank(primaryValue) && data != null) {
 			primaryValue = Objects.toString(data.get(this.primary), "");
 		}
-		if(beforeQuery){
-			if(StringUtils.isNotBlank(primaryValue)){
+		if (beforeQuery) {
+			if (StringUtils.isNotBlank(primaryValue)) {
 				List<Object> params = new ArrayList<>();
 				params.add(primaryValue);
-				Map<String, Object> oneMap = sqlModule.selectOne(new BoundSql("select count(1) count from " + this.tableName + " where " + this.primary + " = ?", params, sqlModule));
-				Integer count = new Integer(oneMap.get("count").toString());
-				if(count == 0){
+				Integer count = sqlModule.selectInt(new BoundSql("select count(1) count from " + this.tableName + " where " + this.primary + " = ?", params, sqlModule));
+				if (count == 0) {
 					return insert(data);
 				}
 				return update(data);

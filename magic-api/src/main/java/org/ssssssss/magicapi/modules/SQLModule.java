@@ -367,7 +367,11 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("查询int值，适合单行单列int的结果")
 	public Integer selectInt(@Comment("`SQL`语句") String sql) {
-		BoundSql boundSql = new BoundSql(sql, this);
+		return selectInt(new BoundSql(sql, this));
+	}
+
+	@UnableCall
+	public Integer selectInt(BoundSql boundSql){
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(),new SingleRowResultSetExtractor<>(Integer.class), boundSql.getParameters()));
 	}
 
