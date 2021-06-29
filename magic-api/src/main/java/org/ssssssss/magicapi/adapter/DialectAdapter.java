@@ -24,6 +24,7 @@ public class DialectAdapter {
 		add(new SQLServerDialect());
 		add(new SQLServer2005Dialect());
 		add(new DmDialect());
+		add(new KingbaseSQLDialect());
 	}
 
 	public void add(Dialect dialect) {
