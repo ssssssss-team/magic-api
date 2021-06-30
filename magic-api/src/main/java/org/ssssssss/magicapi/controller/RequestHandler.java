@@ -31,7 +31,6 @@ import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
-import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.magicapi.utils.PatternUtils;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
@@ -96,7 +95,7 @@ public class RequestHandler extends MagicController {
 				.flatMap(it -> it.getPaths().stream())
 				.filter(it -> !paths.contains(it))
 				.forEach(paths::add);
-		MagicScriptContext context = createMagicScriptContext(requestEntity);
+		Object bodyValue = readRequestBody(requestEntity.getRequest());
 		try {
 			// 验证参数
 			doValidate("参数", requestEntity.getApiInfo().getParameters(), parameters, PARAMETER_INVALID);
@@ -106,7 +105,6 @@ public class RequestHandler extends MagicController {
 			doValidate("path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID);
 			BaseDefinition requestBody = requestEntity.getApiInfo().getRequestBodyDefinition();
 			if (requestBody != null && requestBody.getChildren().size() > 0) {
-				Object bodyValue = context.get(VAR_NAME_REQUEST_BODY);
 				requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
 				doValidate(VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
 					put(requestBody.getName(), bodyValue);
@@ -118,6 +116,7 @@ public class RequestHandler extends MagicController {
 		} catch (Throwable root) {
 			return processException(requestEntity, root);
 		}
+		MagicScriptContext context = createMagicScriptContext(requestEntity, bodyValue);
 		requestEntity.setMagicScriptContext(context);
 		RequestContext.setRequestEntity(requestEntity);
 		Object value;
@@ -494,7 +493,7 @@ public class RequestHandler extends MagicController {
 	/**
 	 * 构建 MagicScriptContext
 	 */
-	private MagicScriptContext createMagicScriptContext(RequestEntity requestEntity) throws IOException {
+	private MagicScriptContext createMagicScriptContext(RequestEntity requestEntity, Object requestBody) throws IOException {
 		// 构建脚本上下文
 		MagicScriptContext context = requestEntity.isRequestedFromTest() ? new MagicScriptDebugContext() : new MagicScriptContext();
 		Object wrap = requestEntity.getApiInfo().getOptionValue(Options.WRAP_REQUEST_PARAMETERS.getValue());
@@ -507,7 +506,6 @@ public class RequestHandler extends MagicController {
 		context.set(VAR_NAME_HEADER, requestEntity.getHeaders());
 		context.set(VAR_NAME_SESSION, new SessionContext(requestEntity.getRequest().getSession()));
 		context.set(VAR_NAME_PATH_VARIABLE, requestEntity.getPathVariables());
-		Object requestBody = readRequestBody(requestEntity.getRequest());
 		if (requestBody != null) {
 			context.set(VAR_NAME_REQUEST_BODY, requestBody);
 		}
