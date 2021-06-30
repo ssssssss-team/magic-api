@@ -50,6 +50,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS;
 import static org.ssssssss.magicapi.model.Constants.*;
 
 public class RequestHandler extends MagicController {
@@ -76,7 +77,7 @@ public class RequestHandler extends MagicController {
 		RequestEntity requestEntity = new RequestEntity(request, response, isRequestedFromTest(request), parameters, pathVariables);
 		if (requestEntity.isRequestedFromTest()) {
 			response.setHeader(HEADER_RESPONSE_WITH_MAGIC_API, CONST_STRING_TRUE);
-			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
+			response.setHeader(ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
 			if(requestEntity.isRequestedFromContinue()){
 				return invokeContinueRequest(requestEntity);
 			}
@@ -351,7 +352,7 @@ public class RequestHandler extends MagicController {
 			}
 			headers.add(HEADER_RESPONSE_WITH_MAGIC_API);
 			// 允许前端读取自定义的header（跨域情况）。
-			requestEntity.getResponse().setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, String.join(",", headers));
+			requestEntity.getResponse().setHeader(ACCESS_CONTROL_EXPOSE_HEADERS, String.join(",", headers));
 			if (entity.getHeaders().isEmpty()) {
 				return ResponseEntity.ok(new JsonBean<>(entity.getBody()));
 			}
