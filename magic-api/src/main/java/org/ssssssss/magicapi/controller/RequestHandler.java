@@ -77,6 +77,9 @@ public class RequestHandler extends MagicController {
 		if (requestEntity.isRequestedFromTest()) {
 			response.setHeader(HEADER_RESPONSE_WITH_MAGIC_API, CONST_STRING_TRUE);
 			response.setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
+			if(requestEntity.isRequestedFromContinue()){
+				return invokeContinueRequest(requestEntity);
+			}
 		}
 		if (requestEntity.getApiInfo() == null) {
 			logger.error("{}找不到对应接口", request.getRequestURI());
@@ -128,10 +131,7 @@ public class RequestHandler extends MagicController {
 			}
 			return value;
 		}
-		if (requestEntity.isRequestedFromTest()) {
-			return isRequestedFromContinue(request) ? invokeContinueRequest(requestEntity) : invokeTestRequest(requestEntity);
-		}
-		return invokeRequest(requestEntity);
+		return requestEntity.isRequestedFromTest() ?  invokeTestRequest(requestEntity) : invokeRequest(requestEntity);
 	}
 
 	private Object buildResult(RequestEntity requestEntity, JsonCode code, Object data) {
@@ -250,13 +250,12 @@ public class RequestHandler extends MagicController {
 
 	private Object invokeContinueRequest(RequestEntity requestEntity) throws Exception {
 		HttpServletRequest request = requestEntity.getRequest();
-		String sessionId = getRequestedSessionId(request);
-		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(sessionId);
+		MagicScriptDebugContext context = MagicScriptDebugContext.getDebugContext(requestEntity.getRequestedSessionId());
 		if (context == null) {
 			return new JsonBean<>(DEBUG_SESSION_NOT_FOUND, buildResult(requestEntity, DEBUG_SESSION_NOT_FOUND, null));
 		}
 		// 重置断点
-		context.setBreakpoints(getRequestedBreakpoints(request));
+		context.setBreakpoints(requestEntity.getRequestedBreakpoints());
 		// 步进
 		context.setStepInto(CONST_STRING_TRUE.equalsIgnoreCase(request.getHeader(HEADER_REQUEST_STEP_INTO)));
 		try {
@@ -414,9 +413,9 @@ public class RequestHandler extends MagicController {
 		// 由于debug是开启一个新线程，为了防止在子线程中无法获取request对象，所以将request放在InheritableThreadLocal中。
 		RequestContextHolder.setRequestAttributes(RequestContextHolder.getRequestAttributes(), true);
 
-		String sessionId = getRequestedSessionId(request);
+		String sessionId = requestEntity.getRequestedSessionId();
 		// 设置断点
-		context.setBreakpoints(getRequestedBreakpoints(request));
+		context.setBreakpoints(requestEntity.getRequestedBreakpoints());
 		context.setTimeout(configuration.getDebugTimeout());
 		context.setId(sessionId);
 		// 设置相关回调，打印日志，回收资源
@@ -441,33 +440,6 @@ public class RequestHandler extends MagicController {
 	 */
 	private boolean isRequestedFromTest(HttpServletRequest request) {
 		return configuration.isEnableWeb() && request.getHeader(HEADER_REQUEST_SESSION) != null;
-	}
-
-	/**
-	 * 判断是否是恢复断点
-	 */
-	private boolean isRequestedFromContinue(HttpServletRequest request) {
-		return request.getHeader(HEADER_REQUEST_CONTINUE) != null;
-	}
-
-	/**
-	 * 获取测试sessionId
-	 */
-	private String getRequestedSessionId(HttpServletRequest request) {
-		return request.getHeader(HEADER_REQUEST_SESSION);
-	}
-
-	/**
-	 * 获得断点
-	 */
-	private List<Integer> getRequestedBreakpoints(HttpServletRequest request) {
-		String breakpoints = request.getHeader(HEADER_REQUEST_BREAKPOINTS);
-		if (breakpoints != null) {
-			return Arrays.stream(breakpoints.split(","))
-					.map(val -> ObjectConvertExtension.asInt(val, -1))
-					.collect(Collectors.toList());
-		}
-		return null;
 	}
 
 	/**
