@@ -48,14 +48,15 @@ import org.ssssssss.script.parsing.ast.Expression;
 import javax.script.ScriptContext;
 import javax.script.SimpleScriptContext;
 import javax.sql.DataSource;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.sql.Connection;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static org.ssssssss.magicapi.model.Constants.GROUP_METABASE;
 
 public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstants {
 
@@ -510,7 +511,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		Set<FunctionInfo> functionInfos = new LinkedHashSet<>();
 		// 检查上传资源中是否有冲突
 		readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, "/", root);
-		Resource item = root.getResource(Constants.GROUP_METABASE);
+		Resource item = root.getResource(GROUP_METABASE);
 		if (item.exists()) {
 			Group group = groupServiceProvider.readGroup(item);
 			// 检查分组是否存在
@@ -566,12 +567,56 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
-	public JsonBean<?> push(String target, String secretKey, String mode) {
+	public void download(String groupId, List<SelectedResource> resources, OutputStream os) throws IOException {
+		if (StringUtils.isNotBlank(groupId)) {
+			Resource resource = groupServiceProvider.getGroupResource(groupId);
+			notNull(resource, GROUP_NOT_FOUND);
+			resource.parent().export(os);
+		} else {
+			ZipOutputStream zos = new ZipOutputStream(os);
+			for (SelectedResource item : resources) {
+				StoreServiceProvider storeServiceProvider = null;
+				if("root".equals(item.getType())){
+					zos.putNextEntry(new ZipEntry(item.getId() + "/"));
+					zos.closeEntry();
+				} else if ("group".equals(item.getType())) {
+					Resource resource = groupServiceProvider.getGroupResource(item.getId());
+					zos.putNextEntry(new ZipEntry(resource.getFilePath()));
+					zos.closeEntry();
+					resource = resource.getResource(GROUP_METABASE);
+					zos.putNextEntry(new ZipEntry(resource.getFilePath()));
+					zos.write(resource.read());
+					zos.closeEntry();
+				} else if("api".equals(item.getType())){
+					storeServiceProvider = apiServiceProvider;
+				} else if("function".equals(item.getType())){
+					storeServiceProvider = functionServiceProvider;
+				} else if("datasource".equals(item.getType())){
+					String filename = item.getId() + ".json";
+					Resource resource = datasourceResource.getResource(filename);
+					zos.putNextEntry(new ZipEntry(resource.getFilePath()));
+					zos.write(resource.read());
+					zos.closeEntry();
+				}
+				if(storeServiceProvider != null){
+					MagicEntity entity = storeServiceProvider.get(item.getId());
+					Resource resource = groupServiceProvider.getGroupResource(entity.getGroupId());
+					zos.putNextEntry(new ZipEntry(resource.getFilePath() + entity.getName() + ".ms"));
+					zos.write(storeServiceProvider.serialize(entity));
+					zos.closeEntry();
+				}
+			}
+			zos.close();
+		}
+	}
+
+	@Override
+	public JsonBean<?> push(String target, String secretKey, String mode, List<SelectedResource> resources) {
 		notBlank(target, TARGET_IS_REQUIRED);
 		notBlank(secretKey, SECRET_KEY_IS_REQUIRED);
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			workspace.export(baos, Constants.PATH_BACKUPS);
+			download(null, resources, baos);
 		} catch (IOException e) {
 			return new JsonBean<>(-1, e.getMessage());
 		}
@@ -753,7 +798,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	private void readPaths(Set<Group> groups, Set<String> apiPaths, Set<String> functionPaths, Set<ApiInfo> apiInfos, Set<FunctionInfo> functionInfos, String parentPath, Resource root) {
-		Resource resource = root.getResource(Constants.GROUP_METABASE);
+		Resource resource = root.getResource(GROUP_METABASE);
 		String path = "";
 		if (resource.exists()) {
 			Group group = JsonUtils.readValue(resource.read(), Group.class);

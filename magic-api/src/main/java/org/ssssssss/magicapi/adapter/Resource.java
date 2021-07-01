@@ -153,4 +153,13 @@ public interface Resource {
 	 */
 	String getAbsolutePath();
 
+	default String getFilePath() {
+		Resource parent = parent();
+		while (parent.parent() != null){
+			parent = parent.parent();
+		}
+		String path = this.getAbsolutePath().replace(parent.getAbsolutePath(), "");
+		return path.startsWith("/") ? path.substring(1) : path;
+	}
+
 }

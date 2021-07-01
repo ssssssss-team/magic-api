@@ -1,5 +1,5 @@
 <template>
-  <div class="ma-api-tree">
+  <div class="ma-tree-wrapper">
     <div class="ma-tree-toolbar">
       <div class="ma-tree-toolbar-search"><i class="ma-icon ma-icon-search"></i><input placeholder="输入关键字搜索"
                                                                                        @input="e => doSearch(e.target.value)"/>
@@ -370,9 +370,10 @@ export default {
             label: '导出',
             icon: 'ma-icon-download',
             onClick: () => {
-              request.send('download',{
-                groupId: item.id
-              },{
+              request.send(`/download?groupId=${item.id}`,null,{
+                headers: {
+                  'Content-Type': 'application/json'
+                },
                 responseType: 'blob'
               }).success(blob => downloadFile(blob,`${item.name}.zip`))
             }

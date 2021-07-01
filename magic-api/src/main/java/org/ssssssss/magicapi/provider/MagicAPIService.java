@@ -5,6 +5,7 @@ import org.ssssssss.magicapi.model.*;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -175,7 +176,12 @@ public interface MagicAPIService extends MagicModule {
 	 */
 	void upload(InputStream inputStream, String mode) throws IOException;
 
-	JsonBean<?> push(String target, String secretKey, String mode);
+	/**
+	 * 下载
+	 */
+	void download(String groupId, List<SelectedResource> resources, OutputStream os) throws IOException;
+
+	JsonBean<?> push(String target, String secretKey, String mode, List<SelectedResource> resources);
 
 	/**
 	 * 处理刷新通知

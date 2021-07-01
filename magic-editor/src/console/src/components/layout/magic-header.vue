@@ -61,8 +61,19 @@
         <button class="ma-button" @click="() => doUpload('full')">全量上传</button>
       </template>
     </magic-dialog>
-    <magic-dialog title="远程推送" :value="showPushDialog" align="right" @onClose="showPushDialog = false" class="ma-remote-push-container" width="400px">
+    <magic-dialog v-if="exportVisible" v-model="exportVisible" title="导出"  align="right" :moveable="false" width="340px" height="490px" className="ma-tree-wrapper">
+      <template #content>
+        <magic-resource-choose ref="resourceExport" height="400px" max-height="400px"/>
+      </template>
+      <template #buttons>
+        <button class="ma-button" @click="$refs.resourceExport.doSelectAll(true)">全选</button>
+        <button class="ma-button" @click="$refs.resourceExport.doSelectAll(false)">取消全选</button>
+        <button class="ma-button active" @click="doExport">导出</button>
+      </template>
+    </magic-dialog>
+    <magic-dialog title="远程推送" :value="showPushDialog" align="right" @onClose="showPushDialog = false" class="ma-remote-push-container ma-tree-wrapper" width="400px" height="540px">
         <template #content>
+            <magic-resource-choose ref="resourcePush" height="400px" max-height="400px"/>
             <div>
                 <label>远程地址：</label>
                 <magic-input placeholder="请输入远程地址" v-model="target" width="300px"/>
@@ -73,6 +84,8 @@
             </div>
         </template>
         <template #buttons>
+            <button class="ma-button" @click="$refs.resourcePush.doSelectAll(true)">全选</button>
+            <button class="ma-button" @click="$refs.resourcePush.doSelectAll(false)">取消全选</button>
             <button class="ma-button active" @click="() => doPush('increment')">增量推送</button>
             <button class="ma-button" @click="() => doPush('full')">全量推送</button>
         </template>
@@ -90,6 +103,7 @@ import store from '@/scripts/store.js'
 import request from '@/api/request.js'
 import MagicDialog from '@/components/common/modal/magic-dialog.vue'
 import MagicInput from '@/components/common/magic-input.vue'
+import MagicResourceChoose from '@/components/resources/magic-resource-choose.vue'
 import MagicSearch from './magic-search.vue'
 
 export default {
@@ -97,7 +111,8 @@ export default {
   components: {
     MagicDialog,
     MagicInput,
-    MagicSearch
+    MagicSearch,
+    MagicResourceChoose
   },
   props: {
     config: Object,
@@ -111,6 +126,7 @@ export default {
       skinVisible: false,
       showUploadDialog: false,
       showPushDialog: false,
+      exportVisible: false,
       filename: null,
       target: 'http://host:port/_magic-api-sync',
       secretKey: '123456789',
@@ -131,11 +147,27 @@ export default {
       window.open(url)
     },
     download() {
-      request.send('/download', null, {
-        responseType: 'blob'
-      }).success(blob => {
-        downloadFile(blob, 'magic-api-all.zip')
-      });
+      this.exportVisible = true
+      // request.send('/download', null, {
+      //   responseType: 'blob'
+      // }).success(blob => {
+      //   downloadFile(blob, 'magic-api-all.zip')
+      // });
+    },
+    doExport() {
+      let selected = this.$refs.resourceExport.getSelected()
+      if(selected.length > 0){
+        request.send('/download', JSON.stringify(selected), {
+          method: 'post',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          transformRequest: [],
+          responseType: 'blob'
+        }).success(blob => {
+           downloadFile(blob, 'magic-api.zip')
+        });
+      }
     },
     onFileSelected() {
       if (this.$refs.file.files[0]) {
@@ -149,16 +181,24 @@ export default {
       this.showUploadDialog = true;
     },
     doPush(mode){
-        request.send('/push',{
-            target: this.target,
-            secretKey: this.secretKey,
-            mode: mode
-        }).success(() => {
+        let selected = this.$refs.resourcePush.getSelected()
+        if(selected.length > 0) {
+          request.send('/push', JSON.stringify(selected),{
+            method: 'post',
+            headers: {
+              'magic-push-target':  this.target,
+              'magic-push-secret-key': this.secretKey,
+              'magic-push-mode': mode,
+              'Content-Type': 'application/json'
+            },
+            transformRequest: []
+          }).success(() => {
             this.$magicAlert({
-                content: '推送成功!'
+              content: '推送成功!'
             })
             this.showPushDialog = false;
-        })
+          })
+        }
     },
     doUpload(mode) {
       let file = this.$refs.file.files[0];

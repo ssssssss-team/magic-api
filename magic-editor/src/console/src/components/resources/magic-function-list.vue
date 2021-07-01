@@ -1,5 +1,5 @@
 <template>
-  <div class="ma-api-tree">
+  <div class="ma-tree-wrapper">
     <div class="ma-tree-toolbar">
       <div class="ma-tree-toolbar-search"><i class="ma-icon ma-icon-search"></i><input placeholder="输入关键字搜索"
                                                                                        @input="e => doSearch(e.target.value)"/>

@@ -1,6 +1,6 @@
 <template>
   <div style="width: 100%;height: 100%;background: var(--toolbox-background)">
-    <div class="ma-api-tree">
+    <div class="ma-tree-wrapper">
       <div class="ma-tree-toolbar">
         <div class="ma-tree-toolbar-search">
           <i class="ma-icon ma-icon-search"></i>
@@ -294,9 +294,6 @@ ul li {
 ul li:hover{
   background: var(--toolbox-list-hover-background);
 }
-.ma-icon-datasource{
-  color: #089910;
-}
 .ds-form{
   margin-bottom: 5px;
 }
@@ -312,7 +309,7 @@ ul li:hover{
 .ma-editor span{
   color: unset;
 }
-.ma-api-tree{
+.ma-tree-wrapper{
   width: 100%;
   height: 100%;
 }

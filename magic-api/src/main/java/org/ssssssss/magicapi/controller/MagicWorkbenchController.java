@@ -9,6 +9,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ResourceUtils;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -204,13 +206,13 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@RequestMapping("/download")
 	@Valid(authorization = Authorization.DOWNLOAD)
 	@ResponseBody
-	public ResponseEntity<?> download(String groupId) throws IOException {
+	public ResponseEntity<?> download(String groupId, @RequestBody(required = false) List<SelectedResource> resources) throws IOException {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		magicApiService.download(groupId, resources, os);
 		if (StringUtils.isBlank(groupId)) {
-			return download(configuration.getWorkspace(), "magic-api-all.zip");
+			return ResponseModule.download(os.toByteArray(), "magic-api-group.zip");
 		} else {
-			Resource resource = configuration.getGroupServiceProvider().getGroupResource(groupId);
-			notNull(resource, GROUP_NOT_FOUND);
-			return download(resource, "magic-api-group.zip");
+			return ResponseModule.download(os.toByteArray(), "magic-api-all.zip");
 		}
 	}
 
@@ -225,8 +227,9 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	@RequestMapping("/push")
 	@ResponseBody
-	public JsonBean<?> push(String target, String secretKey, String mode) {
-		return magicApiService.push(target, secretKey, mode);
+	public JsonBean<?> push(@RequestHeader("magic-push-target") String target, @RequestHeader("magic-push-secret-key")String secretKey,
+							@RequestHeader("magic-push-mode")String mode, @RequestBody List<SelectedResource> resources) {
+		return magicApiService.push(target, secretKey, mode, resources);
 	}
 
 	@ResponseBody
@@ -240,11 +243,4 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		magicApiService.upload(new ByteArrayInputStream(bytes), mode);
 		return new JsonBean<>();
 	}
-
-	private ResponseEntity<?> download(Resource resource, String filename) throws IOException {
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		resource.export(os, Constants.PATH_BACKUPS);
-		return ResponseModule.download(os.toByteArray(), filename);
-	}
-
 }

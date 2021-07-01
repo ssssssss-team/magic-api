@@ -1,11 +1,11 @@
 <template>
-  <div v-show="value" :class="{ moveable,shade }" class="ma-dialog-wrapper">
+  <div v-show="value" :class="[{ moveable,shade },'ma-dialog-wrapper ' + className]">
     <div :style="{ position, top, left,width,height,'max-width': maxWidth }" class="ma-dialog">
       <div ref="title" class="ma-dialog-header not-select">
         {{ title }}
         <span v-if="showClose" @click="close"><i class="ma-icon ma-icon-close"/></span>
       </div>
-      <div :style="{padding}" class="ma-dialog-content">
+      <div :style="{padding,'max-height': maxHeight,height: contentHeight, overflow: 'auto'}" class="ma-dialog-content">
         <template v-if="content">
           {{ content }}
         </template>
@@ -22,6 +22,10 @@ export default {
   name: 'MagicDialog',
   props: {
     title: String,
+    className: {
+      type: String,
+      default: ''
+    },
     showClose: {
       type: Boolean,
       default: true,
@@ -52,6 +56,12 @@ export default {
       default: 'auto'
     },
     maxWidth: {
+      type: String
+    },
+    maxHeight: {
+      type: String
+    },
+    contentHeight: {
       type: String
     },
     padding: {

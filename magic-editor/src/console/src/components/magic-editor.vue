@@ -256,7 +256,7 @@ export default {
       })
     },
     async checkUpdate() {
-      fetch('https://img.shields.io/maven-central/v/org.ssssssss/magic-api.json')
+      fetch('https://img.shields.io/maven-metadata/v.json?label=maven-central&metadataUrl=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Forg%2Fssssssss%2Fmagic-api%2Fmaven-metadata.xml')
         .then(response => {
           if (response.status === 200) {
             response.json().then(json => {
