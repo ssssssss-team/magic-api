@@ -65,9 +65,9 @@
 
       </div>
       <div class="panel-box f_c" v-else>
-        <div class="box-item">
-          <div class="item-title">对象VO</div>
-          <div class="item-content"><magic-input :value.sync="fieldObj.name" style="width: 100%" :placeholder="'请输入对象VO名称'"/></div>
+        <div class="box-item" v-if="fieldObj.name">
+          <div class="item-title">Key</div>
+          <div class="item-content">{{fieldObj.name}}</div>
         </div>
         <div class="box-item">
           <div class="item-title">对象注释</div>

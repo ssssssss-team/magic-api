@@ -49,7 +49,8 @@ export default {
     maxHeight: {
       type: String,
       required: true
-    }
+    },
+    refreshData: Boolean
   },
   components: {
     MagicCheckbox,
@@ -76,6 +77,12 @@ export default {
     }
   },
   created() {
+  },
+  watch: {
+    refreshData: {
+      immediate: true,
+      handler: "initData"
+    }
   },
   methods: {
     // 初始化数据
@@ -331,12 +338,6 @@ export default {
       handle(this.tree)
       return result
     }
-  },
-  mounted() {
-    console.log('mounted')
-    bus.$on('login',() => {
-      this.initData();
-    })
   }
 }
 </script>

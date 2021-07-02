@@ -63,7 +63,7 @@
     </magic-dialog>
     <magic-dialog v-if="exportVisible" v-model="exportVisible" title="导出"  align="right" :moveable="false" width="340px" height="490px" className="ma-tree-wrapper">
       <template #content>
-        <magic-resource-choose ref="resourceExport" height="400px" max-height="400px"/>
+        <magic-resource-choose ref="resourceExport" :refreshData="exportVisible" height="400px" max-height="400px"/>
       </template>
       <template #buttons>
         <button class="ma-button" @click="$refs.resourceExport.doSelectAll(true)">全选</button>
