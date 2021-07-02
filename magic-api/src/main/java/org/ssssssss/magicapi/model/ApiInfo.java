@@ -257,6 +257,15 @@ public class ApiInfo extends MagicEntity {
         this.responseBodyDefinition = responseBodyDefinition;
     }
 
+	public ApiInfo simple(){
+		ApiInfo target = new ApiInfo();
+		target.setId(this.getId());
+		target.setName(this.getName());
+		target.setGroupId(this.getGroupId());
+		target.setPath(this.getPath());
+		return target;
+	}
+
     @Override
 	public boolean equals(Object o) {
 		if (this == o) return true;

@@ -12,6 +12,7 @@ import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 接口相关操作
@@ -47,7 +48,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(authorization = Authorization.VIEW)
 	public JsonBean<List<ApiInfo>> list() {
-		return new JsonBean<>(magicAPIService.apiList());
+		return new JsonBean<>(magicAPIService.apiList().stream().map(ApiInfo::simple).collect(Collectors.toList()));
 	}
 
 	/**
