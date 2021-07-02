@@ -144,7 +144,7 @@ public class RequestHandler extends MagicController {
 		if (!parameter.isRequired() && parameters.isEmpty()) {
 			return true;
 		}
-		if (parameter.isRequired() && !BooleanLiteral.isTrue(parameters.get(parameter.getName()))) {
+		if (parameter.isRequired() && !BooleanLiteral.isTrue(parameters.getOrDefault(parameter.getName(), ""))) {
 			throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
 		}
 		Object value = parameters.get(parameter.getName());

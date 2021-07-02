@@ -2,7 +2,7 @@
   <div :class="{ inputable, border}" class="ma-select not-select" @click.stop="showList" ref="container">
     <span v-if="!inputable">{{ showText }}</span>
     <input v-if="inputable" ref="input" :value="showText" autocomplete="off" type="text" @input="(e) => triggerSelect(e.target.value)"/>
-    <ul v-show="visible" :style="{ width, marginTop}" ref="selectList">
+    <ul v-show="visible" :style="{ width, marginTop, marginLeft}" ref="selectList">
       <li v-for="item in options" :key="'ma_select_' + item.value" @click.stop="triggerSelect(item.value)">
         {{ item.text }}
       </li>
@@ -32,6 +32,7 @@ export default {
       marginTop: '-2px',
       width: 'auto',
       visible: false,
+      marginLeft: '0px'
     }
   },
   mounted() {
@@ -39,8 +40,10 @@ export default {
   },
   methods: {
     showList(){
+      this.marginTop = - this.getMarginTop(this.$refs.container, 0)+ 'px';
       this.visible = true;
       this.$nextTick(()=>{
+        this.marginLeft = -(window.pageXOffset) + 'px';
         this.width = this.$refs.container.clientWidth + 'px';
         let height = this.$refs.selectList.offsetHeight;
         let top = this.$refs.selectList.offsetTop;
@@ -48,6 +51,10 @@ export default {
           this.marginTop = -(height + this.$refs.container.offsetHeight) + 'px'
         }
       })
+    },
+    getMarginTop(el, top) {
+      top += el.scrollTop > 0 ? el.scrollTop : el.parentElement ? this.getMarginTop(el.parentElement, top + el.scrollTop) : el.scrollTop
+      return top
     },
     triggerSelect(value) {
       this.$emit('update:value', value);
@@ -142,6 +149,10 @@ ul li {
   padding: 0 5px;
   text-align: left;
   width: 100% !important;
+  height: 22px;
+  text-overflow: ellipsis;
+  word-break: keep-all;
+  overflow: hidden;
 }
 
 ul li:hover {

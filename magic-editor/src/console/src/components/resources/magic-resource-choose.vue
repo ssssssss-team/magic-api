@@ -76,7 +76,6 @@ export default {
     }
   },
   created() {
-    this.initData();
   },
   methods: {
     // 初始化数据
@@ -335,6 +334,9 @@ export default {
   },
   mounted() {
     console.log('mounted')
+    bus.$on('login',() => {
+      this.initData();
+    })
   }
 }
 </script>

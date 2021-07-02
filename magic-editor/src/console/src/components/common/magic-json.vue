@@ -210,6 +210,7 @@
     margin: 0px 10px;
     border: 1px solid var(--border-color);
     border-top: none;
+    overflow: auto;
   }
 
   .json-panel .panel-box {
