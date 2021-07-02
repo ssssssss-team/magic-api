@@ -55,6 +55,10 @@ public class MagicConfiguration {
 	 */
 	private ResultProvider resultProvider;
 
+	private MagicNotifyService magicNotifyService;
+
+	private String instanceId;
+
 	private Resource workspace;
 
 	private List<HttpMessageConverter<?>> httpMessageConverters = new ArrayList<>();
@@ -188,6 +192,21 @@ public class MagicConfiguration {
 		this.magicAPIService = magicAPIService;
 	}
 
+	public MagicNotifyService getMagicNotifyService() {
+		return magicNotifyService;
+	}
+
+	public void setMagicNotifyService(MagicNotifyService magicNotifyService) {
+		this.magicNotifyService = magicNotifyService;
+	}
+
+	public String getInstanceId() {
+		return instanceId;
+	}
+
+	public void setInstanceId(String instanceId) {
+		this.instanceId = instanceId;
+	}
 
 	/**
 	 * 打印banner

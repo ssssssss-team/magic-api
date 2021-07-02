@@ -58,7 +58,6 @@ export default {
   },
   data() {
     return {
-      vieible: true,
       bus: bus,
       // 分组list数据
       listGroupData: [],
@@ -68,26 +67,15 @@ export default {
       tree: [],
       // 数据排序规则,true:升序,false:降序
       treeSort: true,
-      // 换成一个临时对象，修改使用
-      tempGroupObj: {},
-      // 当前打开的文件
-      currentFileItem: {},
       // 绑定给magic-tree组件，用来触发子组件强制更新
       forceUpdate: true,
-    }
-  },
-  created() {
-  },
-  watch: {
-    refreshData: {
-      immediate: true,
-      handler: "initData"
     }
   },
   methods: {
     // 初始化数据
     initData() {
       this.tree = []
+      this.listChildrenData = []
       this.listGroupData = [
           { id: 'api',_type: 'root', name: '1.接口列表', parentId: 'root', path:'', selected: false, checkedHalf: false},
           { id: 'function',_type: 'root', name: '2.函数列表', parentId: 'root', path:'', selected: false, checkedHalf: false},
@@ -253,9 +241,6 @@ export default {
         })
       }
       buildHandle(this.tree, {tmpName: '', tmpPath: ''}, 0)
-      if (this.currentFileItem.tmp_id) {
-        this.open(this.currentFileItem)
-      }
       this.sortTree()
     },
     treeSortHandle(flag) {

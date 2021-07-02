@@ -1,7 +1,25 @@
 <template>
   <div class="ma-status-container">
     <div>{{ message }}</div>
-    <div class="ma-user-info" v-if="user && user.id && user.username" @click="logout"><i class="ma-icon ma-icon-logout"/>{{ user.username }}</div>
+    <div class="ma-icons">
+      <span v-if="config.header.repo !== false" title="Gitee"
+            @click="open('https://gitee.com/ssssssss-team/magic-api')">
+        <i class="ma-icon ma-icon-gitee"></i>
+      </span>
+      <span v-if="config.header.repo !== false" title="Github"
+            @click="open('https://github.com/ssssssss-team/magic-api')">
+        <i class="ma-icon ma-icon-git"></i>
+      </span>
+      <span v-if="config.header.qqGroup !== false" title="加入QQ群"
+            @click="open('https://qm.qq.com/cgi-bin/qm/qr?k=Q6dLmVS8cHwoaaP18A3tteK_o0244e6B&jump_from=webapi')">
+        <i class="ma-icon ma-icon-qq"></i>
+      </span>
+      <span v-if="config.header.document !== false" title="帮助文档"
+            @click="open('https://ssssssss.org')">
+        <i class="ma-icon ma-icon-help"></i>
+      </span>
+      <span v-if="user && user.id && user.username" @click="logout" :title="user.username"><i class="ma-icon ma-icon-logout"/></span>
+    </div>
   </div>
 </template>
 
@@ -13,6 +31,11 @@ import store from '@/scripts/store.js'
 
 export default {
   name: 'MagicStatusBar',
+  props: {
+    config: {
+      type: Object
+    }
+  },
   data() {
     return {
       user: null,
@@ -26,10 +49,13 @@ export default {
     })
   },
   methods: {
+    open(url) {
+      window.open(url)
+    },
     logout(){
       this.$magicConfirm({
         title: '注销登录',
-        content: `是否要注销登录`,
+        content: `是否要注销登录「${this.user.username}」`,
         onOk: () => {
           request.send('/logout').success(() => {
             this.user = null;
@@ -62,17 +88,21 @@ export default {
 .ma-status-container > div {
   flex: 1;
 }
-.ma-status-container .ma-user-info{
+.ma-status-container .ma-icons{
   flex: none;
-  padding: 0 10px;
+  color: var(--header-default-color);
+}
+.ma-status-container .ma-icons span{
   cursor: pointer;
+  padding: 0 4px;
+  height: 20px;
+  line-height: 20px;
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 2px;
+  text-align: center;
 }
-.ma-status-container .ma-user-info i{
-  color: var(--icon-color);
-  padding: 0 2px;
-  vertical-align: bottom;
-}
-.ma-status-container .ma-user-info:hover{
-  background: var(--hover-background);
+.ma-status-container .ma-icons span:hover{
+  background: var(--button-hover-background);
 }
 </style>

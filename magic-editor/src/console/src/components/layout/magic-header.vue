@@ -23,27 +23,14 @@
     <span title="导出接口" @click="download">
       <i class="ma-icon ma-icon-download"></i>
     </span>
-    <span title="远程推送" @click="showPushDialog = true">
+    <span title="远程推送" @click="remotePush">
       <i class="ma-icon ma-icon-push"></i>
     </span>
     <span v-if="config.header.skin !== false" title="换肤" @click.stop="skinVisible = true">
       <i class="ma-icon ma-icon-skin"></i>
     </span>
-    <span v-if="config.header.repo !== false" title="Gitee"
-          @click="open('https://gitee.com/ssssssss-team/magic-api')">
-      <i class="ma-icon ma-icon-gitee"></i>
-    </span>
-    <span v-if="config.header.repo !== false" title="Github"
-          @click="open('https://github.com/ssssssss-team/magic-api')">
-      <i class="ma-icon ma-icon-git"></i>
-    </span>
-    <span v-if="config.header.qqGroup !== false" title="加入QQ群"
-          @click="open('https://qm.qq.com/cgi-bin/qm/qr?k=Q6dLmVS8cHwoaaP18A3tteK_o0244e6B&jump_from=webapi')">
-      <i class="ma-icon ma-icon-qq"></i>
-    </span>
-    <span v-if="config.header.document !== false" title="帮助文档"
-          @click="open('https://ssssssss.org')">
-      <i class="ma-icon ma-icon-help"></i>
+    <span title="重新加载所有数据" @click="refresh">
+      <i class="ma-icon ma-icon-refresh"></i>
     </span>
     <div v-show="skinVisible" :style="{ right: skinRight }" class="ma-skin-selector">
       <ul>
@@ -61,9 +48,9 @@
         <button class="ma-button" @click="() => doUpload('full')">全量上传</button>
       </template>
     </magic-dialog>
-    <magic-dialog v-if="exportVisible" v-model="exportVisible" title="导出"  align="right" :moveable="false" width="340px" height="490px" className="ma-tree-wrapper">
+    <magic-dialog v-model="exportVisible" title="导出"  align="right" :moveable="false" width="340px" height="490px" className="ma-tree-wrapper">
       <template #content>
-        <magic-resource-choose ref="resourceExport" :refreshData="exportVisible" height="400px" max-height="400px"/>
+        <magic-resource-choose ref="resourceExport" height="400px" max-height="400px"/>
       </template>
       <template #buttons>
         <button class="ma-button" @click="$refs.resourceExport.doSelectAll(true)">全选</button>
@@ -71,7 +58,7 @@
         <button class="ma-button active" @click="doExport">导出</button>
       </template>
     </magic-dialog>
-    <magic-dialog title="远程推送" :value="showPushDialog" align="right" @onClose="showPushDialog = false" class="ma-remote-push-container ma-tree-wrapper" width="400px" height="540px">
+    <magic-dialog title="远程推送" v-model="showPushDialog" align="right" class="ma-remote-push-container ma-tree-wrapper" width="400px" height="540px">
         <template #content>
             <magic-resource-choose ref="resourcePush" height="400px" max-height="400px"/>
             <div>
@@ -130,7 +117,7 @@ export default {
       filename: null,
       target: 'http://host:port/_magic-api-sync',
       secretKey: '123456789',
-      skinRight: 15 + ((this.config.header.repo ? 2 : 0) + (this.config.header.qqGroup ? 1 : 0) + (this.config.header.document ? 1 : 0)) * 25 + 'px',
+      skinRight: 40+ 'px',
     }
   },
   mounted() {
@@ -143,16 +130,13 @@ export default {
     this.switchTheme(store.get('skin') || this.config.defaultTheme || 'default')
   },
   methods: {
-    open(url) {
-      window.open(url)
-    },
     download() {
       this.exportVisible = true
-      // request.send('/download', null, {
-      //   responseType: 'blob'
-      // }).success(blob => {
-      //   downloadFile(blob, 'magic-api-all.zip')
-      // });
+      this.$refs.resourceExport.initData()
+    },
+    remotePush() {
+      this.showPushDialog = true
+      this.$refs.resourcePush.initData()
     },
     doExport() {
       let selected = this.$refs.resourceExport.getSelected()
@@ -248,6 +232,12 @@ export default {
       monaco.editor.setTheme($theme)
       this.$emit('update:themeStyle', this.themeStyle)
     },
+    refresh() {
+      request.send('refresh').success(() => {
+        bus.$emit('refresh-resource')
+        bus.$emit('status', `刷新资源成功`)
+      })
+    }
   },
   computed: {
     isDisableTest() {

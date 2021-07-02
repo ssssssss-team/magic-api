@@ -132,6 +132,21 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		return new JsonBean<>();
 	}
 
+	@RequestMapping("/refresh")
+	@ResponseBody
+	@Valid
+	public JsonBean<Void> refresh() {
+		// 重新注册接口
+		configuration.getMappingHandlerMapping().registerAllMapping();
+		// 重新注册函数
+		configuration.getMagicFunctionManager().registerAllFunction();;
+		// 重新注册数据源
+		magicApiService.registerAllDataSource();
+		// 发送更新通知
+		configuration.getMagicNotifyService().sendNotify(new MagicNotify(configuration.getInstanceId()));
+		return new JsonBean<>();
+	}
+
 
 	/**
 	 * 创建控制台输出

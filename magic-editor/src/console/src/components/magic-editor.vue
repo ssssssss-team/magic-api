@@ -20,7 +20,7 @@
       <magic-options />
     </div>
     <!-- 状态条 -->
-    <magic-status-bar />
+    <magic-status-bar :config="config" />
   </div>
 </template>
 
@@ -79,7 +79,7 @@ export default {
   data() {
     return {
       loading: true,
-      toolbars: ['接口列表', '函数列表', '数据源管理'],
+      toolbars: ['接口', '函数', '数据源'],
       toolbarIndex: 0,
       toolboxWidth: 'auto', //工具条宽度
       themeStyle: {},
@@ -337,11 +337,14 @@ export default {
   letter-spacing: 2px;
   text-align: center;
   color: var(--color);
+  border-bottom: 1px solid var(--toolbox-border-color)
 }
 
 .ma-toolbar-container > li > i {
   color: var(--icon-color);
   font-size: 14px;
+  padding-top: 3px;
+  display: inline-block;
 }
 
 .ma-toolbar-container > li:hover {

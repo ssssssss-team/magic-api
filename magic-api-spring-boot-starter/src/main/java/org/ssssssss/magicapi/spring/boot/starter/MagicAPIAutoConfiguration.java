@@ -475,6 +475,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 												 GroupServiceProvider groupServiceProvider,
 												 MappingHandlerMapping mappingHandlerMapping,
 												 FunctionServiceProvider functionServiceProvider,
+												 MagicNotifyService magicNotifyService,
 												 MagicFunctionManager magicFunctionManager) throws NoSuchMethodException {
 		logger.info("magic-api工作目录:{}", magicResource);
 		setupSpringSecurity();
@@ -488,6 +489,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		setupMagicModules(resultProvider, magicModules, extensionMethodsProvider.getIfAvailable(Collections::emptyList), languageProviders);
 		MagicConfiguration configuration = new MagicConfiguration();
 		configuration.setMagicAPIService(magicAPIService);
+		configuration.setMagicNotifyService(magicNotifyService);
+		configuration.setInstanceId(properties.getClusterConfig().getInstanceId());
 		configuration.setApiServiceProvider(apiServiceProvider);
 		configuration.setGroupServiceProvider(groupServiceProvider);
 		configuration.setMappingHandlerMapping(mappingHandlerMapping);
