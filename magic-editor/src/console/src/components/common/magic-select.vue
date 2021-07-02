@@ -40,10 +40,10 @@ export default {
   },
   methods: {
     showList(){
-      this.marginTop = - this.getMarginTop(this.$refs.container, 0)+ 'px';
+      this.marginTop = - this.getMarginTop(this.$refs.container, 0) - 1 + 'px';
       this.visible = true;
       this.$nextTick(()=>{
-        this.marginLeft = -(window.pageXOffset) + 'px';
+        this.marginLeft = -(window.pageXOffset + 1) + 'px';
         this.width = this.$refs.container.clientWidth + 'px';
         let height = this.$refs.selectList.offsetHeight;
         let top = this.$refs.selectList.offsetTop;
