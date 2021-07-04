@@ -16,10 +16,12 @@ public class FileResource implements Resource {
 
 	private final boolean readonly;
 	private File file;
+	private String rootPath;
 
-	public FileResource(File file, boolean readonly) {
+	public FileResource(File file, boolean readonly, String rootPath) {
 		this.file = file;
 		this.readonly = readonly;
+		this.rootPath = rootPath;
 	}
 
 	@Override
@@ -66,7 +68,7 @@ public class FileResource implements Resource {
 
 	@Override
 	public Resource getResource(String name) {
-		return new FileResource(new File(this.file, name), this.readonly);
+		return new FileResource(new File(this.file, name), this.readonly, this.rootPath);
 	}
 
 	@Override
@@ -77,17 +79,17 @@ public class FileResource implements Resource {
 	@Override
 	public List<Resource> resources() {
 		File[] files = this.file.listFiles();
-		return files == null ? Collections.emptyList() : Arrays.stream(files).map(it -> new FileResource(it, this.readonly)).collect(Collectors.toList());
+		return files == null ? Collections.emptyList() : Arrays.stream(files).map(it -> new FileResource(it, this.readonly, this.rootPath)).collect(Collectors.toList());
 	}
 
 	@Override
 	public Resource parent() {
-		return new FileResource(this.file.getParentFile(), this.readonly);
+		return this.rootPath.equals(this.file.getAbsolutePath()) ? null : new FileResource(this.file.getParentFile(), this.readonly, this.rootPath);
 	}
 
 	@Override
 	public List<Resource> dirs() {
-		return IoUtils.dirs(this.file).stream().map(it -> new FileResource(it, this.readonly)).collect(Collectors.toList());
+		return IoUtils.dirs(this.file).stream().map(it -> new FileResource(it, this.readonly, this.rootPath)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -102,7 +104,7 @@ public class FileResource implements Resource {
 
 	@Override
 	public List<Resource> files(String suffix) {
-		return IoUtils.files(this.file, suffix).stream().map(it -> new FileResource(it, this.readonly)).collect(Collectors.toList());
+		return IoUtils.files(this.file, suffix).stream().map(it -> new FileResource(it, this.readonly, this.rootPath)).collect(Collectors.toList());
 	}
 
 	@Override
@@ -131,5 +133,20 @@ public class FileResource implements Resource {
 				}
 			}
 		}
+	}
+
+	@Override
+	public String getFilePath() {
+		Resource parent = parent();
+		while (parent.parent() != null){
+			parent = parent.parent();
+		}
+		String path = this.getAbsolutePath()
+				.replace(parent.getAbsolutePath(), "")
+				.replace("\\","/");
+		if(isDirectory() && !path.endsWith("/")){
+			path += "/";
+		}
+		return path.startsWith("/") ? path.substring(1) : path;
 	}
 }

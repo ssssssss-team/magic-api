@@ -22,12 +22,17 @@ public class JarResource implements Resource {
 	private final List<JarEntry> entries;
 
 	private final String entryName;
+
 	private final boolean inSpringBoot;
-	private JarResource parent = this;
+
+	private JarResource parent = null;
+
+	private String rootName;
 
 	public JarResource(JarFile jarFile, String entryName, List<JarEntry> entries, boolean inSpringBoot) {
 		this.jarFile = jarFile;
 		this.entryName = entryName;
+		this.rootName = entryName;
 		this.inSpringBoot = inSpringBoot;
 		this.entry = getEntry(this.entryName);
 		this.entries = entries;
@@ -106,7 +111,7 @@ public class JarResource implements Resource {
 	@Override
 	public List<Resource> files(String suffix) {
 		return this.entries.stream().filter(it -> it.getName().endsWith(suffix))
-				.map(entry -> new JarResource(jarFile, entry.getName(), Collections.emptyList(), this.inSpringBoot))
+				.map(entry -> new JarResource(jarFile, entry.getName(), Collections.emptyList(), this, this.inSpringBoot))
 				.collect(Collectors.toList());
 	}
 
@@ -117,7 +122,7 @@ public class JarResource implements Resource {
 				.filter(it -> it.getName().startsWith(prefix))
 				.map(entry -> new JarResource(jarFile, entry.getName(), entries.stream()
 						.filter(item -> item.getName().startsWith(PathUtils.replaceSlash(entry.getName() + "/")))
-						.collect(Collectors.toList()), this.inSpringBoot)
+						.collect(Collectors.toList()), this,this.inSpringBoot)
 				)
 				.collect(Collectors.toList());
 	}
@@ -132,4 +137,13 @@ public class JarResource implements Resource {
 		return String.format("jar://%s", this.entryName);
 	}
 
+	@Override
+	public String getFilePath() {
+		JarResource root = this;
+		while(root.parent != null){
+			root = root.parent;
+		}
+		String path = this.entryName.substring(root.rootName.length());
+		return path.startsWith("/") ? path.substring(1) : path;
+	}
 }

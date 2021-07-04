@@ -54,7 +54,7 @@ public abstract class ResourceAdapter {
 			}
 			return new JarResource(jarFile, entryName, entries, springBootClassPath);
 		} else {
-			return new FileResource(resource.getFile(), readonly);
+			return new FileResource(resource.getFile(), readonly, resource.getFile().getAbsolutePath());
 		}
 	}
 

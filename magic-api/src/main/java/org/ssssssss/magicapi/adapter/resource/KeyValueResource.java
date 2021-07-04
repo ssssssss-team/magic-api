@@ -152,4 +152,16 @@ public abstract class KeyValueResource implements Resource {
 		return this.path;
 	}
 
+	@Override
+	public String getFilePath() {
+		Resource parent = parent();
+		while (parent.parent() != null){
+			parent = parent.parent();
+		}
+		String path = this.getAbsolutePath()
+				.replace(parent.getAbsolutePath(), "")
+				.replace("\\","/")
+				.replace(this.separator, "/");
+		return path.startsWith("/") ? path.substring(1) : path;
+	}
 }

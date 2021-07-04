@@ -119,4 +119,9 @@ public class ZipResource implements Resource {
 	public String getAbsolutePath() {
 		return this.path;
 	}
+
+	@Override
+	public String getFilePath() {
+		throw new UnsupportedOperationException();
+	}
 }
