@@ -263,6 +263,7 @@ public class ApiInfo extends MagicEntity {
 		target.setName(this.getName());
 		target.setGroupId(this.getGroupId());
 		target.setPath(this.getPath());
+		target.setMethod(this.getMethod());
 		return target;
 	}
 
