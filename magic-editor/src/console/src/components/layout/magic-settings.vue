@@ -9,9 +9,9 @@
     <div class="ma-layout">
       <div v-if="showIndex == 0" class="ma-layout-container">
         <div class="ma-header ma-table-row">
-          <div>Key</div>
-          <div>Value</div>
-          <div>Description</div>
+          <div>键</div>
+          <div>值</div>
+          <div>描述</div>
         </div>
         <div class="ma-content">
           <div v-for="(item, key) in parameters" :key="'request_parameter_' + key" class="ma-table-row">
@@ -29,9 +29,9 @@
       </div>
       <div v-if="showIndex == 1" class="ma-layout-container">
         <div class="ma-header ma-table-row">
-          <div>Key</div>
-          <div>Value</div>
-          <div>Description</div>
+          <div>键</div>
+          <div>值</div>
+          <div>描述</div>
         </div>
         <div class="ma-content">
           <div v-for="(item, key) in headers" :key="'request_header_' + key" class="ma-table-row">

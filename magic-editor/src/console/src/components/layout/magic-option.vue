@@ -3,9 +3,9 @@
     <div class="ma-layout">
       <div class="ma-layout-container">
         <div class="ma-header ma-table-row">
-          <div>Key</div>
-          <div>Value</div>
-          <div>Description</div>
+          <div>键</div>
+          <div>值</div>
+          <div>描述</div>
         </div>
         <div class="ma-content">
           <div v-for="(item, key) in info.option" :key="'request_parameter_' + key" class="ma-table-row">

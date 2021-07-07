@@ -25,7 +25,7 @@
             <div style="width:100px">验证方式</div>
             <div style="flex:1">表达式或正则表达式</div>
             <div style="flex:1">验证说明</div>
-            <div style="flex:2">Description</div>
+            <div style="flex:2">描述</div>
           </div>
           <div class="ma-content">
             <div v-for="(item, key) in info.parameters" :key="'request_parameter_' + key"
@@ -72,7 +72,7 @@
             <div style="width: 100px">验证方式</div>
             <div style="flex:1">表达式或正则表达式</div>
             <div style="flex:1">验证说明</div>
-            <div style="flex:2">Description</div>
+            <div style="flex:2">描述</div>
           </div>
           <div class="ma-content">
             <div v-for="(item, key) in info.headers" :key="'request_header_' + key"
@@ -118,7 +118,7 @@
             <div style="width: 100px">验证方式</div>
             <div style="flex: 1">表达式或正则表达式</div>
             <div style="flex: 1">验证说明</div>
-            <div style="flex: 2">Description</div>
+            <div style="flex: 2">描述</div>
           </div>
           <div class="ma-content">
             <div v-for="(item, key) in info.paths" :key="'request_header_' + key"
