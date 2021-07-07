@@ -31,7 +31,6 @@ public class RedisResource extends KeyValueResource {
 
 	@Override
 	public void readAll() {
-		this.cachedContent.clear();
 		List<String> keys = new ArrayList<>(keys());
 		List<String> values = redisTemplate.opsForValue().multiGet(keys);
 		if (values != null) {
@@ -66,7 +65,7 @@ public class RedisResource extends KeyValueResource {
 
 	@Override
 	public boolean exists() {
-		if (this.cachedContent.containsKey(this.path)) {
+		if (this.cachedContent.get(this.path) != null) {
 			return true;
 		}
 		return Boolean.TRUE.equals(this.redisTemplate.hasKey(this.path));

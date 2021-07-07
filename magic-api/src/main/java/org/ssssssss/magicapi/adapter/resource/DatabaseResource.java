@@ -61,7 +61,6 @@ public class DatabaseResource extends KeyValueResource {
 
 	@Override
 	public void readAll() {
-		this.cachedContent.clear();
 		String sql = String.format("select file_path, file_content from %s where file_path like '%s%%'", tableName, this.path);
 		SqlRowSet sqlRowSet = template.queryForRowSet(sql);
 		while (sqlRowSet.next()) {
@@ -93,7 +92,7 @@ public class DatabaseResource extends KeyValueResource {
 
 	@Override
 	public boolean exists() {
-		if (this.cachedContent.containsKey(this.path)) {
+		if (this.cachedContent.get(this.path) != null) {
 			return true;
 		}
 		String sql = String.format("select count(*) from %s where file_path = ?", tableName);
@@ -137,9 +136,10 @@ public class DatabaseResource extends KeyValueResource {
 
 	@Override
 	public boolean delete() {
-		String sql = String.format("delete from %s where file_path = ? or file_path like '%s%%'", tableName, isDirectory() ? this.path : this.path + separator);
+		String path = isDirectory() ? this.path : this.path + separator;
+		String sql = String.format("delete from %s where file_path = ? or file_path like '%s%%'", tableName, path);
 		if (template.update(sql, this.path) > 0) {
-			this.cachedContent.remove(this.path);
+			this.cachedContent.entrySet().removeIf(entry -> entry.getKey().startsWith(path));
 			return true;
 		}
 		return false;
