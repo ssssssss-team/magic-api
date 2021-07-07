@@ -79,7 +79,7 @@ public class Where {
 		if (isEmpty()) {
 			return "";
 		}
-		return (needWhere ? " where " : "") + StringUtils.join(tokens, " ");
+		return (needWhere ? " where " : "") + String.join(" ",tokens);
 	}
 
 	@Comment("过滤`null`的参数")
@@ -213,7 +213,7 @@ public class Where {
 			if (objects.size() > 0) {
 				append(column);
 				append(" in (");
-				append(StringUtils.join(",", Collections.nCopies(objects.size(), "?")));
+				append(String.join(",", Collections.nCopies(objects.size(), "?")));
 				append(")");
 				appendAnd();
 				params.addAll(objects);
@@ -234,7 +234,7 @@ public class Where {
 			if (objects.size() > 0) {
 				append(column);
 				append("not in (");
-				append(StringUtils.join(",", Collections.nCopies(objects.size(), "?")));
+				append(String.join(",", Collections.nCopies(objects.size(), "?")));
 				append(")");
 				appendAnd();
 				params.addAll(objects);
