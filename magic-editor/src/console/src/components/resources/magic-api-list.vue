@@ -401,8 +401,8 @@ export default {
                 return
               }
               let newItem = {
-                copy: true,
-                ...item
+                ...item,
+                copy: true
               }
               newItem.name = newItem.name + '(复制)'
               newItem.tmp_id = new Date().getTime() + '' + Math.floor(Math.random() * 1000)

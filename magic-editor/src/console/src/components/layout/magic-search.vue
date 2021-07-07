@@ -65,7 +65,7 @@ export default {
       this.showDialog = false
     },
     initEditor() {
-      if (!this.searchEditor) {
+      if (this.searchList.length > 0 && !this.searchEditor) {
         this.searchEditor = monaco.editor.create(document.getElementById('searchEditor'), {
           minimap: {
             enabled: false
