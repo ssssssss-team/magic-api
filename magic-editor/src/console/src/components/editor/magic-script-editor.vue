@@ -7,6 +7,7 @@
             :key="'api_' + item.tmp_id || item.id"
             :class="{ selected: selected === item }"
             :title="item.name"
+            :id="'ma-tab-item-' + item.tmp_id"
             @click="open(item)" @contextmenu.prevent="e => tabsContextmenuHandle(e, item, index)"
         >
           <i class="ma-svg-icon" v-if="item._type === 'api'" :class="['request-method-' + item.method]" />
@@ -95,15 +96,7 @@ export default {
     }
   },
   mounted() {
-    let scrollbar = this.$refs.scrollbar
-    let handler = e => {
-      if (scrollbar.contains(e.target)) {
-        let delta = e.wheelDelta || e.detail
-        scrollbar.scrollLeft += delta > 0 ? -100 : 100
-      }
-    }
-    document.addEventListener('DOMMouseScroll', handler, false)
-    document.addEventListener('mousewheel', handler, false)
+    this.addScrollEventListener()
     initializeMagicScript()
     this.editor = monaco.editor.create(this.$refs.editor, {
       minimap: {
@@ -836,6 +829,42 @@ export default {
         event,
         zIndex: 9999
       })
+    },
+    // 添加滚动条的监听事件
+    addScrollEventListener() {
+      // 修改滚轮事件，将y轴变为x轴
+      let scrollbar = this.$refs.scrollbar
+      let handler = e => {
+        if (scrollbar.contains(e.target)) {
+          let delta = e.wheelDelta || e.detail
+          scrollbar.scrollLeft += delta > 0 ? -100 : 100
+        }
+      }
+      document.addEventListener('DOMMouseScroll', handler, false)
+      document.addEventListener('mousewheel', handler, false)
+      // 监听视图大小变化
+      // 观察器的配置（需要观察什么变动）
+      const config = { attributes: true, childList: true, characterData: true, subtree: true }
+      // 创建一个观察器实例并传入回调函数
+      this.mutationObserver = new MutationObserver(() => {
+        // 控制滚动聚焦选中的tab
+        if (this.selected) {
+          this.$nextTick(() => {
+            const $scrollRect = scrollbar.getBoundingClientRect()
+            const $itemDom = document.getElementById('ma-tab-item-' + this.selected.tmp_id)
+            if ($itemDom) {
+              const $itemRect = $itemDom.getBoundingClientRect()
+              if ($itemRect.left < $scrollRect.left) {
+                scrollbar.scrollLeft += $itemRect.left - $scrollRect.left
+              } else if ($scrollRect.left + $scrollRect.width < $itemRect.left + $itemRect.width) {
+                scrollbar.scrollLeft += $itemRect.left + $itemRect.width - $scrollRect.left - $scrollRect.width
+              }
+            }
+          })
+        }
+      })
+      // 以上述配置开始观察目标节点
+      this.mutationObserver.observe(this.$refs.scrollbar, config)
     }
   }
 }
