@@ -336,6 +336,7 @@ export default {
             item.paths = data.paths;
             item.responseHeader = JSON.parse(data.responseHeader || '[]')
             item.responseBody = data.responseBody
+            item.requestBody = data.requestBody
             item.method = data.method
           }
           item.script = data.script
