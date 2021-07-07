@@ -242,12 +242,14 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	@RequestMapping("/push")
 	@ResponseBody
+	@Valid(authorization = Authorization.PUSH)
 	public JsonBean<?> push(@RequestHeader("magic-push-target") String target, @RequestHeader("magic-push-secret-key")String secretKey,
 							@RequestHeader("magic-push-mode")String mode, @RequestBody List<SelectedResource> resources) {
 		return magicApiService.push(target, secretKey, mode, resources);
 	}
 
 	@ResponseBody
+	@Valid(requireLogin = false)
 	public JsonBean<Void> receivePush(MultipartFile file, String mode, Long timestamp, String sign) throws IOException {
 		notNull(timestamp, SIGN_IS_INVALID);
 		notBlank(mode, SIGN_IS_INVALID);
