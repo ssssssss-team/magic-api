@@ -141,7 +141,7 @@ export default {
       let loopSearch = (row, parentName, parentPath) => {
         if (row.folder) {
           row.children.forEach(it => loopSearch(it, parentName + '/' + (row.name || ''), parentPath + '/' + (row.path || '')))
-          row._searchShow = row.children.some(it => it._searchShow)
+          row._searchShow = (row.name || '').toLowerCase().indexOf(keyword) > -1 || row.children.some(it => it._searchShow)
         } else {
           row._searchShow = replaceURL(parentName + '/' + (row.name || '')).toLowerCase().indexOf(keyword) > -1 || replaceURL(parentPath + '/' + (row.path || '')).toLowerCase().indexOf(keyword) > -1
         }

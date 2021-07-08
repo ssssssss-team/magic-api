@@ -106,7 +106,9 @@ export default {
       folding: true,
       lineDecorationsWidth: 35,
       wordWrap: 'on',
-      theme: store.get('skin') || 'default'
+      theme: store.get('skin') || 'default',
+      // 自动调整大小
+      automaticLayout: true
     })
     this.editor.addAction({
       id: 'editor.action.triggerSuggest.extension',
@@ -347,7 +349,7 @@ export default {
           item.ext.loading = false;
         })
       }
-      this.layout()
+      // this.layout()
     },
     deleteWrapperProperties(obj){
       delete obj.ext
