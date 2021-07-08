@@ -420,6 +420,14 @@ export default {
             }
           },
           {
+            label: '复制相对路径',
+            icon: 'ma-icon-copy',
+            divided: true,
+            onClick: () => {
+              this.copyPathToClipboard(item, true)
+            }
+          },
+          {
             label: '刷新接口',
             icon: 'ma-icon-refresh',
             onClick: () => {
@@ -563,8 +571,8 @@ export default {
       })
     },
     // 复制接口路径到剪贴板
-    copyPathToClipboard(fileItem) {
-      let path = replaceURL(contants.SERVER_URL + '/' + fileItem.groupPath + '/' + fileItem.path)
+    copyPathToClipboard(fileItem, relative) {
+      let path = replaceURL((relative ? '' : contants.SERVER_URL) + '/' + fileItem.groupPath + '/' + fileItem.path)
       try {
         var copyText = document.createElement('textarea')
         copyText.style = 'position:absolute;left:-99999999px'
