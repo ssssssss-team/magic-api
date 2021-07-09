@@ -29,9 +29,4 @@ public abstract class ApiServiceProvider extends StoreServiceProvider<ApiInfo> {
 		return infos.values().stream()
 				.anyMatch(it -> !info.getId().equals(it.getId()) && info.getGroupId().equals(it.getGroupId()) && (info.getName().equals(it.getName()) || (info.getMethod().equals(it.getMethod()) && info.getPath().equals(it.getPath()))));
 	}
-
-	@Override
-	public byte[] serialize(ApiInfo info) {
-		return super.serialize(info);
-	}
 }

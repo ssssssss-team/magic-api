@@ -3,7 +3,7 @@ package org.ssssssss.magicapi.model;
 import java.util.Collections;
 import java.util.List;
 
-public class Group {
+public class Group extends Attributes<Object> {
 
 	private String id;
 
