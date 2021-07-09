@@ -18,8 +18,9 @@ export default {
             {token: 'string.invalid', foreground: '008000', background: 'FFCCCC'},
             {token: 'string.escape.invalid', foreground: '008000', background: 'FFCCCC'},
             {token: 'string.escape', foreground: '000080', fontStyle: 'bold'},
-            {token: 'comment', foreground: '808080'},
-            {token: 'comment.doc', foreground: '629755'},
+            {token: 'comment', foreground: '808080', fontStyle: 'italic'},
+            {token: 'comment.doc', foreground: '629755', fontStyle: 'italic'},
+            {token: 'comment.todo', foreground: 'A8C023', fontStyle: 'italic'},
             {token: 'string.escape', foreground: 'CC7832'}
         ],
         colors: {

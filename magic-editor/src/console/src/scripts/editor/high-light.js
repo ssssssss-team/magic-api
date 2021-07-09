@@ -27,9 +27,8 @@ export const HighLightOptions = {
             [/::[a-zA-Z]+/, 'keywords'],
             [/[{}()[\]]/, '@brackets'],
             [/(@digits)[lLbBsSdDfFmM]?/, 'number'],
-            [/\/\*\*(?!\/)/, 'comment.doc', '@mulcomment'],
             [/\/\*/, 'comment', '@comment'],
-            [/\/\/.*$/, 'comment'],
+            [/\/\//, 'comment', '@commentTodo'],
             [
                 /\/(?=([^\\\/]|\\.)+\/([gimsuy]*)(\s*)(\.|;|,|\)|\]|\}|$))/,
                 {token: 'regexp', bracket: '@open', next: '@regexp'}
@@ -42,11 +41,16 @@ export const HighLightOptions = {
             [/'/, 'string', '@string_single'],
         ],
         comment: [
-            [/[^/*]+/, 'comment'],
-            // [/\/\*/, 'comment', '@push' ],    // nested comment not allowed :-(
-            // [/\/\*/,    'comment.invalid' ],    // this breaks block comments in the shape of /* //*/
-            [/\*\//, 'comment', '@pop'],
-            [/[/*]/, 'comment']
+            [/((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n(?!\*\/)]+/, 'comment.todo','@comment'],
+            [/[ \t]+/, 'comment','@comment'],
+            [/\*\//, 'comment', '@popall'],
+            [/[^ \t]+(?!((TODO)|(todo)|(fixme)|(FIXME)))/, 'comment','@comment']
+        ],
+        commentTodo: [
+            [/((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n]+/, 'comment.todo','@popall'],
+            [/^/,'', '@popall'],
+            [/[^ \t]+(?!((TODO)|(todo)|(fixme)|(FIXME)))/, 'comment', '@commentTodo']
+
         ],
         regexp: [
             [
@@ -89,13 +93,6 @@ export const HighLightOptions = {
                     bracket: '@close'
                 }
             ]
-        ],
-        mulcomment: [
-            [/[^/*]+/, 'comment.doc'],
-            // [/\/\*/, 'comment.doc', '@push' ],    // nested comment not allowed :-(
-            [/\/\*/, 'comment.doc.invalid'],
-            [/\*\//, 'comment.doc', '@pop'],
-            [/[/*]/, 'comment.doc']
         ],
         string_multi_embedded: [
             [/[^"]+/, ''],
