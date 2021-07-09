@@ -185,6 +185,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 			String script = it.getScript();
 			int index = script.indexOf(keyword);
 			int endIndex = script.indexOf("\n", index + keyword.length());
+			index = script.lastIndexOf("\n", index) + 1;
 			Span span = new Span(script, index, endIndex == -1 ? script.length() : endIndex);
 			return new HashMap<String, Object>() {
 				{
