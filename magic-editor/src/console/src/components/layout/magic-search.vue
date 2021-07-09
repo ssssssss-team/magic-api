@@ -183,6 +183,9 @@ export default {
 </script>
 
 <style>
+.ma-search-container{
+  overflow: hidden;
+}
 .ma-search-container .ma-search-result-container {
   overflow: auto;
   height: 200px;
