@@ -131,6 +131,12 @@ public interface MagicAPIService extends MagicModule {
 	List<Group> groupList(String type);
 
 	/**
+	 * 查询分组详情
+	 * @param id	分组ID
+	 */
+	Group getGroup(String id);
+
+	/**
 	 * 注册数据源
 	 */
 	void registerAllDataSource();
@@ -140,12 +146,12 @@ public interface MagicAPIService extends MagicModule {
 	 *
 	 * @param id 数据源id
 	 */
-	Map<String, String> getDataSource(String id);
+	DataSourceInfo getDataSource(String id);
 
 	/**
 	 * 数据源列表
 	 */
-	List<Map<String, Object>> datasourceList();
+	List<DataSourceInfo> datasourceList();
 
 	/**
 	 * 测试数据源
@@ -153,7 +159,7 @@ public interface MagicAPIService extends MagicModule {
 	 * @param properties 数据源属性
 	 * @return 返回错误说明，连接正常返回 null
 	 */
-	String testDataSource(Map<String, String> properties);
+	String testDataSource(DataSourceInfo properties);
 
 	/**
 	 * 保存数据源
@@ -161,7 +167,7 @@ public interface MagicAPIService extends MagicModule {
 	 * @param properties 数据源属性
 	 * @return 返回数据源ID
 	 */
-	String saveDataSource(Map<String, String> properties);
+	String saveDataSource(DataSourceInfo properties);
 
 	/**
 	 * 删除数据源

@@ -73,6 +73,8 @@ public interface JsonCodeConstants {
 
 	JsonCode API_NOT_FOUND = new JsonCode(1001, "api not found");
 
+	JsonCode FUNCTION_NOT_FOUND = new JsonCode(1002, "function not found");
+
 	JsonCode DATASOURCE_KEY_REQUIRED = new JsonCode(0, "数据源Key不能为空");
 
 	JsonCode DATASOURCE_KEY_EXISTS = new JsonCode(0, "数据源%s已存在或名称重复");

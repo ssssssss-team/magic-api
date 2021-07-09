@@ -391,6 +391,15 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
+	public Group getGroup(String id) {
+		Resource groupResource = groupServiceProvider.getGroupResource(id);
+		if(groupResource != null && (groupResource = groupResource.getResource(GROUP_METABASE)).exists()){
+			return groupServiceProvider.readGroup(groupResource);
+		}
+		return null;
+	}
+
+	@Override
 	public void registerAllDataSource() {
 		datasourceResource.readAll();
 		List<Resource> resources = datasourceResource.files(".json");
@@ -406,7 +415,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		}
 	}
 
-	private String registerDataSource(Map<String, String> properties) {
+	private String registerDataSource(DataSourceInfo properties) {
 		if (properties != null) {
 			String key = properties.get("key");
 			String name = properties.getOrDefault("name", key);
@@ -419,27 +428,27 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
-	public Map<String, String> getDataSource(String id) {
+	public DataSourceInfo getDataSource(String id) {
 		Resource resource = this.datasourceResource.getResource(id + ".json");
 		byte[] bytes = resource.read();
 		isTrue(bytes != null && bytes.length > 0, DATASOURCE_NOT_FOUND);
 		TypeFactory factory = TypeFactory.defaultInstance();
-		return JsonUtils.readValue(bytes, factory.constructMapType(LinkedHashMap.class, String.class, String.class));
+		return JsonUtils.readValue(bytes, DataSourceInfo.class);
 	}
 
 	@Override
-	public List<Map<String, Object>> datasourceList() {
+	public List<DataSourceInfo> datasourceList() {
 		return magicDynamicDataSource.datasourceNodes().stream().map(it -> {
-			Map<String, Object> row = new HashMap<>();
-			row.put("id", it.getId());    // id为空的则认为是不可修改的
-			row.put("key", it.getKey());    // 如果为null 说明是主数据源
-			row.put("name", it.getName());
-			return row;
+			DataSourceInfo info = new DataSourceInfo();
+			info.put("id", it.getId());    // id为空的则认为是不可修改的
+			info.put("key", it.getKey());    // 如果为null 说明是主数据源
+			info.put("name", it.getName());
+			return info;
 		}).collect(Collectors.toList());
 	}
 
 	@Override
-	public String testDataSource(Map<String, String> properties) {
+	public String testDataSource(DataSourceInfo properties) {
 		DataSource dataSource = null;
 		try {
 			dataSource = createDataSource(properties);
@@ -454,7 +463,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
-	public String saveDataSource(Map<String, String> properties) {
+	public String saveDataSource(DataSourceInfo properties) {
 		String key = properties.get("key");
 		// 校验key是否符合规则
 		notBlank(key, DATASOURCE_KEY_REQUIRED);
@@ -746,7 +755,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	// copy from DataSourceBuilder
-	private DataSource createDataSource(Map<String, String> properties) {
+	private DataSource createDataSource(DataSourceInfo properties) {
 		Class<? extends DataSource> dataSourceType = getDataSourceType(properties.get("type"));
 		if (!properties.containsKey("driverClassName")
 				&& properties.containsKey("url")) {

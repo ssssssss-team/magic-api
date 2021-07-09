@@ -10,7 +10,9 @@ import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MagicGroupController extends MagicController implements MagicExceptionHandler {
 
@@ -26,8 +28,11 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	 */
 	@RequestMapping("/group/delete")
 	@ResponseBody
-	@Valid(readonly = false, authorization = Authorization.DELETE)
-	public JsonBean<Boolean> deleteGroup(String groupId) {
+	@Valid(readonly = false)
+	public JsonBean<Boolean> deleteGroup(HttpServletRequest request, String groupId) {
+		Group group = magicAPIService.getGroup(groupId);
+		notNull(group, GROUP_NOT_FOUND);
+		isTrue(allowVisit(request, Authorization.DELETE, group), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.deleteGroup(groupId));
 	}
 
@@ -36,8 +41,9 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	 */
 	@RequestMapping("/group/update")
 	@ResponseBody
-	@Valid(readonly = false, authorization = Authorization.SAVE)
-	public synchronized JsonBean<Boolean> groupUpdate(@RequestBody Group group) {
+	@Valid(readonly = false)
+	public synchronized JsonBean<Boolean> groupUpdate(HttpServletRequest request, @RequestBody Group group) {
+		isTrue(allowVisit(request, Authorization.SAVE, group), PERMISSION_INVALID);
 		if (magicAPIService.updateGroup(group)) {
 			return new JsonBean<>(true);
 		}
@@ -49,9 +55,12 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	 */
 	@RequestMapping("/group/list")
 	@ResponseBody
-	@Valid(authorization = Authorization.VIEW)
-	public JsonBean<List<Group>> groupList(String type) {
-		return new JsonBean<>(magicAPIService.groupList(type));
+	public JsonBean<List<Group>> groupList(HttpServletRequest request, String type) {
+		return new JsonBean<>(magicAPIService.groupList(type)
+				.stream()
+				.filter(it -> allowVisit(request, Authorization.VIEW, it))
+				.collect(Collectors.toList())
+		);
 	}
 
 	/**
@@ -59,8 +68,9 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	 */
 	@RequestMapping("/group/create")
 	@ResponseBody
-	@Valid(readonly = false, authorization = Authorization.SAVE)
-	public JsonBean<String> createGroup(@RequestBody Group group) {
+	@Valid(readonly = false)
+	public JsonBean<String> createGroup(HttpServletRequest request, @RequestBody Group group) {
+		isTrue(allowVisit(request, Authorization.SAVE, group), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.createGroup(group));
 	}
 }

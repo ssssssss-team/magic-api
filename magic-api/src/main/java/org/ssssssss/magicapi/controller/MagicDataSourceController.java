@@ -6,11 +6,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.interceptor.Authorization;
+import org.ssssssss.magicapi.model.DataSourceInfo;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 public class MagicDataSourceController extends MagicController implements MagicExceptionHandler {
 
@@ -26,14 +28,17 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	 */
 	@RequestMapping("/datasource/list")
 	@ResponseBody
-	@Valid(authorization = Authorization.VIEW)
-	public JsonBean<List<Map<String, Object>>> list() {
-		return new JsonBean<>(magicAPIService.datasourceList());
+	public JsonBean<List<DataSourceInfo>> list(HttpServletRequest request) {
+		return new JsonBean<>(magicAPIService.datasourceList()
+				.stream()
+				.filter(it -> allowVisit(request, Authorization.VIEW, it))
+				.collect(Collectors.toList())
+		);
 	}
 
 	@RequestMapping("/datasource/test")
 	@ResponseBody
-	public JsonBean<String> test(@RequestBody Map<String, String> properties) {
+	public JsonBean<String> test(@RequestBody DataSourceInfo properties) {
 		return new JsonBean<>(magicAPIService.testDataSource(properties));
 	}
 
@@ -43,9 +48,10 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	 * @param properties 数据源配置信息
 	 */
 	@RequestMapping("/datasource/save")
-	@Valid(readonly = false, authorization = Authorization.DATASOURCE_SAVE)
+	@Valid(readonly = false)
 	@ResponseBody
-	public JsonBean<String> save(@RequestBody Map<String, String> properties) {
+	public JsonBean<String> save(HttpServletRequest request, @RequestBody DataSourceInfo properties) {
+		isTrue(allowVisit(request, Authorization.SAVE, properties), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.saveDataSource(properties));
 	}
 
@@ -55,16 +61,25 @@ public class MagicDataSourceController extends MagicController implements MagicE
 	 * @param id 数据源ID
 	 */
 	@RequestMapping("/datasource/delete")
-	@Valid(readonly = false, authorization = Authorization.DATASOURCE_DELETE)
+	@Valid(readonly = false)
 	@ResponseBody
-	public JsonBean<Boolean> delete(String id) {
+	public JsonBean<Boolean> delete(HttpServletRequest request, String id) {
+		DataSourceInfo dataSource = getDataSourceInfo(id);
+		isTrue(allowVisit(request, Authorization.DELETE, dataSource), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.deleteDataSource(id));
 	}
 
 	@RequestMapping("/datasource/detail")
-	@Valid(authorization = Authorization.DATASOURCE_VIEW)
 	@ResponseBody
-	public JsonBean<Object> detail(String id) {
-		return new JsonBean<>(magicAPIService.getDataSource(id));
+	public JsonBean<DataSourceInfo> detail(HttpServletRequest request, String id) {
+		DataSourceInfo dataSource = getDataSourceInfo(id);
+		isTrue(allowVisit(request, Authorization.VIEW, dataSource), PERMISSION_INVALID);
+		return new JsonBean<>(dataSource);
+	}
+
+	private DataSourceInfo getDataSourceInfo(String id){
+		DataSourceInfo dataSource = magicAPIService.getDataSource(id);
+		notNull(dataSource, DATASOURCE_NOT_FOUND);
+		return dataSource;
 	}
 }

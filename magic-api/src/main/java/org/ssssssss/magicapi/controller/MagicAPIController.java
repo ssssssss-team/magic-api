@@ -11,6 +11,7 @@ import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,8 +37,9 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/delete")
 	@ResponseBody
-	@Valid(readonly = false, authorization = Authorization.DELETE)
-	public JsonBean<Boolean> delete(String id) {
+	@Valid(readonly = false)
+	public JsonBean<Boolean> delete(HttpServletRequest request, String id) {
+		isTrue(allowVisit(request, Authorization.VIEW, getApiInfo(id)), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.deleteApi(id));
 	}
 
@@ -46,9 +48,13 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/list")
 	@ResponseBody
-	@Valid(authorization = Authorization.VIEW)
-	public JsonBean<List<ApiInfo>> list() {
-		return new JsonBean<>(magicAPIService.apiList().stream().map(ApiInfo::simple).collect(Collectors.toList()));
+	public JsonBean<List<ApiInfo>> list(HttpServletRequest request) {
+		return new JsonBean<>(magicAPIService.apiList()
+				.stream()
+				.filter(it -> allowVisit(request, Authorization.VIEW, it))
+				.map(ApiInfo::simple)
+				.collect(Collectors.toList())
+		);
 	}
 
 	/**
@@ -58,8 +64,8 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/get")
 	@ResponseBody
-	@Valid(authorization = Authorization.VIEW)
-	public JsonBean<ApiInfo> get(String id) {
+	public JsonBean<ApiInfo> get(HttpServletRequest request, String id) {
+		isTrue(allowVisit(request, Authorization.VIEW, getApiInfo(id)), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.getApiInfo(id));
 	}
 
@@ -70,8 +76,8 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/backups")
 	@ResponseBody
-	@Valid(authorization = Authorization.VIEW)
-	public JsonBean<List<Long>> backups(String id) {
+	public JsonBean<List<Long>> backups(HttpServletRequest request, String id) {
+		isTrue(allowVisit(request, Authorization.VIEW, getApiInfo(id)), PERMISSION_INVALID);
 		return new JsonBean<>(apiServiceProvider.backupList(id));
 	}
 
@@ -83,8 +89,8 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/backup/get")
 	@ResponseBody
-	@Valid(authorization = Authorization.VIEW)
-	public JsonBean<ApiInfo> backups(String id, Long timestamp) {
+	public JsonBean<ApiInfo> backups(HttpServletRequest request, String id, Long timestamp) {
+		isTrue(allowVisit(request, Authorization.VIEW, getApiInfo(id)), PERMISSION_INVALID);
 		return new JsonBean<>(apiServiceProvider.backupInfo(id, timestamp));
 	}
 
@@ -93,21 +99,26 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/api/move")
 	@ResponseBody
-	@Valid(readonly = false, authorization = Authorization.SAVE)
-	public JsonBean<Boolean> apiMove(String id, String groupId) {
+	@Valid(readonly = false)
+	public JsonBean<Boolean> apiMove(HttpServletRequest request, String id, String groupId) {
+		isTrue(allowVisit(request, Authorization.SAVE, getApiInfo(id)), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.moveApi(id, groupId));
 	}
 
 	/**
 	 * 保存接口
-	 *
-	 * @param info 接口信息
 	 */
 	@RequestMapping("/save")
 	@ResponseBody
-	@Valid(readonly = false, authorization = Authorization.SAVE)
-	public JsonBean<String> save(@RequestBody ApiInfo info) {
+	@Valid(readonly = false)
+	public JsonBean<String> save(HttpServletRequest request, @RequestBody ApiInfo info) {
+		isTrue(allowVisit(request, Authorization.SAVE, info), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.saveApi(info));
 	}
 
+	private ApiInfo getApiInfo(String id){
+		ApiInfo apiInfo = magicAPIService.getApiInfo(id);
+		notNull(apiInfo, API_NOT_FOUND);
+		return apiInfo;
+	}
 }
