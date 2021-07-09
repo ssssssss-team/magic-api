@@ -11,7 +11,7 @@
         </template>
         <slot v-else name="content"></slot>
       </div>
-      <div :class="{ 'button-align-right': align == 'right' }" class="ma-dialog-buttons not-select">
+      <div v-if="$scopedSlots && $scopedSlots.buttons" :class="{ 'button-align-right': align == 'right' }" class="ma-dialog-buttons not-select">
         <slot name="buttons"></slot>
       </div>
     </div>
