@@ -162,7 +162,7 @@ public class SwaggerProvider {
 	private Map<String, Object> parseResponse(ApiInfo info) {
 		Map<String, Object> result = new HashMap<>();
 
-		BaseDefinition baseDefinition = info.getRequestBodyDefinition();
+		BaseDefinition baseDefinition = info.getResponseBodyDefinition();
 		if (baseDefinition.getChildren().size() > 0) {
 			String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
 			String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«response«";
