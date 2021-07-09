@@ -153,11 +153,21 @@ async function completionScript(suggestions, input) {
                         continue;
                     }
                     mmap[method.signature] = true;
+                    let document = [];
+                    for (let j = (method.extension ? 1 : 0); j < method.parameters.length; j++) {
+                        let param = method.parameters[j];
+                        document.push('- ' + param.name + '：' + (param.comment || param.type));
+                        document.push('---')
+                    }
+                    document.push(`- 返回值：\`${method.returnType}\``)
                     suggestions.push({
                         sortText: method.sortText || method.fullName,
                         label: method.fullName,
                         kind: monaco.languages.CompletionItemKind.Method,
                         detail: method.comment,
+                        documentation: {
+                            value: document.join('\r\n')
+                        },
                         insertText: method.insertText,
                         insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
                     })
