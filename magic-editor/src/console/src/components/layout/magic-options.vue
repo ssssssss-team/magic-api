@@ -5,7 +5,7 @@
       <magic-bottom-panel v-for="item in tabs" :key="'bottom_tab_content_' + item.id"
                           :buttons="item.buttons" :class="{ visible: selectedTab === item.id }" :selectedTab.sync="selectedTab"
                           :title="item.name">
-        <component v-bind:is="item.commponent" :info.sync="info"/>
+        <component v-bind:is="item.component" :info.sync="info"/>
       </magic-bottom-panel>
     </div>
     <ul class="ma-bottom-tab not-select">
@@ -40,18 +40,18 @@ export default {
       selectedTab: '',
       tabs: [],
       apiTabs: [
-        {id: 'request', name: '接口信息', icon: 'parameter', commponent: MagicRequest},
-        {id: 'options', name: '接口选项', icon: 'options', commponent: MagicOption},
-        {id: 'result', name: '执行结果', icon: 'run', commponent: MagicRun},
-        {id: 'debug', name: '调试信息', icon: 'debug-info', commponent: MagicDebug},
-        {id: 'log', name: '运行日志', icon: 'log', commponent: MagicLog},
-        {id: 'setting', name: '全局参数', icon: 'settings', commponent: MagicSettings}
+        {id: 'request', name: '接口信息', icon: 'parameter', component: MagicRequest},
+        {id: 'options', name: '接口选项', icon: 'options', component: MagicOption},
+        {id: 'result', name: '执行结果', icon: 'run', component: MagicRun},
+        {id: 'debug', name: '调试信息', icon: 'debug-info', component: MagicDebug},
+        {id: 'log', name: '运行日志', icon: 'log', component: MagicLog},
+        {id: 'setting', name: '全局参数', icon: 'settings', component: MagicSettings}
       ],
       functionTabs: [
-        {id: 'function', name: '函数信息', icon: 'parameter', commponent: MagicFunction},
+        {id: 'function', name: '函数信息', icon: 'parameter', component: MagicFunction},
       ],
       apiGroupTabs : [
-        {id: 'group', name: '分组信息', icon: 'parameter', commponent: MagicGroup}
+        {id: 'group', name: '分组信息', icon: 'parameter', component: MagicGroup}
       ]
     }
   },
