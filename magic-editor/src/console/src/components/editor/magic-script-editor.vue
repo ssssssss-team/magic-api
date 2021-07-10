@@ -331,6 +331,8 @@ export default {
             item.paths = data.paths;
             item.responseHeader = JSON.parse(data.responseHeader || '[]')
             item.responseBody = data.responseBody
+            item.responseBodyDefinition = data.responseBodyDefinition
+            item.requestBodyDefinition = data.requestBodyDefinition
             item.requestBody = data.requestBody
             item.method = data.method
           }
