@@ -165,8 +165,8 @@ export default {
       this.showUploadDialog = true;
     },
     doPush(mode){
-        let selected = this.$refs.resourcePush.getSelected()
-        if(selected.length > 0) {
+        let selected = 'full' === mode ? [] : this.$refs.resourcePush.getSelected()
+        if('full' === mode || selected.length > 0) {
           request.send('/push', JSON.stringify(selected),{
             method: 'post',
             headers: {

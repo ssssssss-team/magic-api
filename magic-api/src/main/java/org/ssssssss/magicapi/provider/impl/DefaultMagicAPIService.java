@@ -1,7 +1,5 @@
 package org.ssssssss.magicapi.provider.impl;
 
-import com.fasterxml.jackson.databind.type.MapType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +54,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.ssssssss.magicapi.model.Constants.GROUP_METABASE;
+import static org.ssssssss.magicapi.model.Constants.*;
 
 public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstants {
 
@@ -393,7 +391,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	@Override
 	public Group getGroup(String id) {
 		Resource groupResource = groupServiceProvider.getGroupResource(id);
-		if(groupResource != null && (groupResource = groupResource.getResource(GROUP_METABASE)).exists()){
+		if (groupResource != null && (groupResource = groupResource.getResource(GROUP_METABASE)).exists()) {
 			return groupServiceProvider.readGroup(groupResource);
 		}
 		return null;
@@ -409,9 +407,8 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				.map(MagicDynamicDataSource.DataSourceNode::getKey)
 				.collect(Collectors.toList())
 				.forEach(magicDynamicDataSource::delete);
-		TypeFactory factory = TypeFactory.defaultInstance();
 		for (Resource item : resources) {
-			registerDataSource(JsonUtils.readValue(item.read(), factory.constructMapType(HashMap.class, String.class, String.class)));
+			registerDataSource(JsonUtils.readValue(item.read(), DataSourceInfo.class));
 		}
 	}
 
@@ -432,7 +429,6 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		Resource resource = this.datasourceResource.getResource(id + ".json");
 		byte[] bytes = resource.read();
 		isTrue(bytes != null && bytes.length > 0, DATASOURCE_NOT_FOUND);
-		TypeFactory factory = TypeFactory.defaultInstance();
 		return JsonUtils.readValue(bytes, DataSourceInfo.class);
 	}
 
@@ -518,13 +514,39 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		Set<Group> groups = new LinkedHashSet<>();
 		Set<ApiInfo> apiInfos = new LinkedHashSet<>();
 		Set<FunctionInfo> functionInfos = new LinkedHashSet<>();
+		boolean checked = !UPLOAD_MODE_FULL.equals(mode);
 		// 检查上传资源中是否有冲突
-		readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, "/", root);
+		readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, "/", root, checked);
 		Resource item = root.getResource(GROUP_METABASE);
 		if (item.exists()) {
 			Group group = groupServiceProvider.readGroup(item);
-			// 检查分组是否存在
+			// 检查上级分组是否存在
 			isTrue("0".equals(group.getParentId()) || groupServiceProvider.getGroupResource(group.getParentId()).exists(), GROUP_NOT_FOUND);
+		}
+		if(checked) {
+			// 检测分组是否有冲突
+			groups.forEach(group -> {
+				Resource resource;
+				if ("0".equals(group.getParentId())) {
+					resource = workspace.getDirectory(GROUP_TYPE_API.equals(group.getType()) ? PATH_API : PATH_FUNCTION).getDirectory(group.getName());
+				} else {
+					resource = groupServiceProvider.getGroupResource(group.getParentId());
+				}
+				if (resource != null && resource.exists()) {
+					Group src = groupServiceProvider.readGroup(resource.getResource(GROUP_METABASE));
+					isTrue(src == null || src.getId().equals(group.getId()), GROUP_CONFLICT);
+				}
+			});
+		}else{
+			Resource resource = workspace.getDirectory(PATH_API);
+			resource.delete();
+			resource.mkdir();
+			resource = workspace.getDirectory(PATH_FUNCTION);
+			resource.delete();
+			resource.mkdir();
+			resource = workspace.getDirectory(PATH_DATASOURCE);
+			resource.delete();
+			resource.mkdir();
 		}
 		for (Group group : groups) {
 			Resource groupResource = groupServiceProvider.getGroupResource(group.getId());
@@ -542,36 +564,15 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		mappingHandlerMapping.registerAllMapping();
 		magicFunctionManager.registerAllFunction();
 		Resource uploadDatasourceResource = root.getResource(Constants.PATH_DATASOURCE + "/");
-		List<String> datasourceKeys = new ArrayList<>();
 		if (uploadDatasourceResource.exists()) {
-			MapType mapType = TypeFactory.defaultInstance().constructMapType(HashMap.class, String.class, String.class);
 			uploadDatasourceResource.files(".json").forEach(it -> {
 				byte[] content = it.read();
-				// 注册数据源
-				datasourceKeys.add(registerDataSource(JsonUtils.readValue(content, mapType)));
 				// 保存数据源
 				this.datasourceResource.getResource(it.name()).write(content);
 			});
 		}
-		// 全量模式
-		if (Constants.UPLOAD_MODE_FULL.equals(mode)) {
-			// 删掉多余的分组
-			groupServiceProvider.getGroupsWithoutGroups(groups.stream().map(Group::getId).collect(Collectors.toList())).forEach(this::deleteGroupWithoutNotify);
-			// 删除多余的接口
-			apiServiceProvider.getIdsWithoutIds(apiInfos.stream().map(ApiInfo::getId).collect(Collectors.toList())).forEach(this::deleteApiWithoutNotify);
-			// 删除多余的函数
-			functionServiceProvider.getIdsWithoutIds(functionInfos.stream().map(FunctionInfo::getId).collect(Collectors.toList())).forEach(this::deleteFunctionWithoutNotify);
-			// 删除多余的数据源
-			magicDynamicDataSource.datasourceNodes().stream()
-					.filter(it -> StringUtils.isNotBlank(it.getId()) && !datasourceKeys.contains(it.getKey()))
-					.collect(Collectors.toList())
-					.forEach(it -> {
-						// 删除数据源
-						this.datasourceResource.getResource(it.getId() + ".json").delete();
-						this.magicDynamicDataSource.delete(it.getKey());
-					});
-
-		}
+		// TODO 会造成闪断，需要上锁处理。
+		registerAllDataSource();
 		magicNotifyService.sendNotify(new MagicNotify(instanceId));
 	}
 
@@ -581,11 +582,13 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			Resource resource = groupServiceProvider.getGroupResource(groupId);
 			notNull(resource, GROUP_NOT_FOUND);
 			resource.parent().export(os);
+		} else if (resources == null || resources.isEmpty()) {
+			workspace.export(os, PATH_BACKUPS);
 		} else {
 			ZipOutputStream zos = new ZipOutputStream(os);
 			for (SelectedResource item : resources) {
 				StoreServiceProvider storeServiceProvider = null;
-				if("root".equals(item.getType())){
+				if ("root".equals(item.getType())) {
 					zos.putNextEntry(new ZipEntry(item.getId() + "/"));
 					zos.closeEntry();
 				} else if ("group".equals(item.getType())) {
@@ -596,18 +599,18 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 					zos.putNextEntry(new ZipEntry(resource.getFilePath()));
 					zos.write(resource.read());
 					zos.closeEntry();
-				} else if("api".equals(item.getType())){
+				} else if ("api".equals(item.getType())) {
 					storeServiceProvider = apiServiceProvider;
-				} else if("function".equals(item.getType())){
+				} else if ("function".equals(item.getType())) {
 					storeServiceProvider = functionServiceProvider;
-				} else if("datasource".equals(item.getType())){
+				} else if ("datasource".equals(item.getType())) {
 					String filename = item.getId() + ".json";
 					Resource resource = datasourceResource.getResource(filename);
 					zos.putNextEntry(new ZipEntry(resource.getFilePath()));
 					zos.write(resource.read());
 					zos.closeEntry();
 				}
-				if(storeServiceProvider != null){
+				if (storeServiceProvider != null) {
 					MagicEntity entity = storeServiceProvider.get(item.getId());
 					Resource resource = groupServiceProvider.getGroupResource(entity.getGroupId());
 					zos.putNextEntry(new ZipEntry(resource.getFilePath() + entity.getName() + ".ms"));
@@ -795,18 +798,25 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		for (T info : infos) {
 			Resource resource = groupServiceProvider.getGroupResource(info.getGroupId());
 			resource = resource.getResource(info.getName() + ".ms");
-			byte[] content = provider.serialize(info);
-			resource.write(content);
-			Resource directory = backups.getDirectory(info.getId());
-			if (!directory.exists()) {
-				directory.mkdir();
+			byte[] content = null;
+			T oldInfo = provider.get(info.getId());
+			if (oldInfo != null) {
+				content = provider.serialize(oldInfo);
+				provider.update(info);
+			} else {
+				provider.insert(info);
 			}
-			directory.getResource(System.currentTimeMillis() + ".ms").write(content);
-			resource.write(content);
+			if (content != null) {
+				Resource directory = backups.getDirectory(info.getId());
+				if (!directory.exists()) {
+					directory.mkdir();
+				}
+				directory.getResource(System.currentTimeMillis() + ".ms").write(content);
+			}
 		}
 	}
 
-	private void readPaths(Set<Group> groups, Set<String> apiPaths, Set<String> functionPaths, Set<ApiInfo> apiInfos, Set<FunctionInfo> functionInfos, String parentPath, Resource root) {
+	private void readPaths(Set<Group> groups, Set<String> apiPaths, Set<String> functionPaths, Set<ApiInfo> apiInfos, Set<FunctionInfo> functionInfos, String parentPath, Resource root, boolean checked) {
 		Resource resource = root.getResource(GROUP_METABASE);
 		String path = "";
 		if (resource.exists()) {
@@ -817,11 +827,17 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			for (Resource file : root.files(".ms")) {
 				if (isApi) {
 					ApiInfo info = apiServiceProvider.deserialize(file.read());
+					if (checked){
+						checkApiConflict(info);
+					}
 					apiInfos.add(info);
 					String apiPath = Objects.toString(info.getMethod(), "GET") + ":" + PathUtils.replaceSlash(parentPath + "/" + path + "/" + info.getPath());
 					isTrue(apiPaths.add(apiPath), UPLOAD_PATH_CONFLICT.format(apiPath));
 				} else {
 					FunctionInfo info = functionServiceProvider.deserialize(file.read());
+					if (checked){
+						checkFunctionConflict(info);
+					}
 					functionInfos.add(info);
 					String functionPath = PathUtils.replaceSlash(parentPath + "/" + path + "/" + info.getPath());
 					isTrue(functionPaths.add(functionPath), UPLOAD_PATH_CONFLICT.format(functionPath));
@@ -829,7 +845,31 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			}
 		}
 		for (Resource directory : root.dirs()) {
-			readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, PathUtils.replaceSlash(parentPath + "/" + path), directory);
+			readPaths(groups, apiPaths, functionPaths, apiInfos, functionInfos, PathUtils.replaceSlash(parentPath + "/" + path), directory, checked);
 		}
+	}
+
+	private ApiInfo checkApiConflict(ApiInfo info) {
+		Resource groupResource = groupServiceProvider.getGroupResource(info.getGroupId());
+		if (groupResource != null) {
+			Resource resource = groupResource.getResource(info.getName() + ".ms");
+			if (resource.exists()) {
+				ApiInfo oldInfo = apiServiceProvider.deserialize(resource.read());
+				isTrue(oldInfo.getId().equals(info.getId()), API_ALREADY_EXISTS.format(info.getMethod(), info.getPath()));
+			}
+		}
+		return info;
+	}
+
+	private FunctionInfo checkFunctionConflict(FunctionInfo info) {
+		Resource groupResource = groupServiceProvider.getGroupResource(info.getGroupId());
+		if (groupResource != null && groupResource.exists()) {
+			Resource resource = groupResource.getResource(info.getName() + ".ms");
+			if (resource.exists()) {
+				FunctionInfo oldInfo = functionServiceProvider.deserialize(resource.read());
+				isTrue(oldInfo.getId().equals(info.getId()), FUNCTION_ALREADY_EXISTS.format(info.getName()));
+			}
+		}
+		return info;
 	}
 }
