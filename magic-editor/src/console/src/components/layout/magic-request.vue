@@ -348,6 +348,12 @@
           this.bodyEditor.onDidChangeModelContent(() => {
             this.updateRequestBody(this.bodyEditor.getValue())
             this.info.requestBody = this.bodyEditor.getValue()
+            console.log('变化？')
+          })
+          this.bodyEditor.onDidPaste((e) => {
+            try {
+              this.bodyEditor.setValue(JSON.stringify(eval(`(${this.bodyEditor.getValue()})`), null, 4))
+            } catch (ignored) { }
           })
           this.bodyEditor && this.bodyEditor.setValue(formatJson(this.info.requestBody) || '{\r\n\t\r\n}')
           bus.$on('update-window-size', () => this.layout())
