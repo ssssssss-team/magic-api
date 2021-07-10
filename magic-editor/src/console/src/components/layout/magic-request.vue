@@ -348,7 +348,6 @@
           this.bodyEditor.onDidChangeModelContent(() => {
             this.updateRequestBody(this.bodyEditor.getValue())
             this.info.requestBody = this.bodyEditor.getValue()
-            console.log('变化？')
           })
           this.bodyEditor.onDidPaste((e) => {
             try {
