@@ -152,7 +152,6 @@ ul li {
   height: 22px;
   text-overflow: ellipsis;
   word-break: keep-all;
-  overflow: hidden;
 }
 
 ul li:hover {
