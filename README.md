@@ -77,19 +77,18 @@ magic-api.resource.location=/data/magic-api
 <table>
     <tr>
         <td><img src="https://images.gitee.com/uploads/images/2021/0711/105714_c1cacf2c_297689.png"></td>
-        <td><img src="https://images.gitee.com/uploads/images/2021/0711/105803_b53e0d7e_297689.png"></td>
-    </tr>
-    <tr>
         <td><img src="https://images.gitee.com/uploads/images/2021/0711/110448_11b6626b_297689.gif"></td>
-        <td><img src="https://images.gitee.com/uploads/images/2021/0711/110515_755f178a_297689.gif"></td>
     </tr>
     <tr>
+        <td><img src="https://images.gitee.com/uploads/images/2021/0711/110515_755f178a_297689.gif"></td>
         <td><img src="https://images.gitee.com/uploads/images/2021/0711/110322_9dd6d149_297689.gif"></td>
+    </tr>
+    <tr>
+        <td><img src="https://images.gitee.com/uploads/images/2021/0711/105803_b53e0d7e_297689.png"></td>
         <td><img src="https://images.gitee.com/uploads/images/2021/0711/105910_f2440ea4_297689.png"></td>
     </tr>
     <tr>
         <td><img src="https://images.gitee.com/uploads/images/2021/0711/105846_7ec51a50_297689.png"></td>
         <td><img src="https://images.gitee.com/uploads/images/2021/0711/105823_ac18ada7_297689.png"></td>
-        
     </tr>
 </table>
