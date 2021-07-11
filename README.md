@@ -14,7 +14,7 @@
     <a target="_blank" href=https://qm.qq.com/cgi-bin/qm/qr?k=Q6dLmVS8cHwoaaP18A3tteK_o0244e6B&jump_from=webapi"><img src="https://img.shields.io/badge/QQ群-739235910-blue"></a>
 </p>
 
-[特性](#特性) | [快速开始](#快速开始) | [文档/演示](#文档演示) | [示例项目](#示例项目) | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图) | [其它开源](#其它开源项目)
+[特性](#特性) | [快速开始](#快速开始) | [文档/演示](#文档演示) | [示例项目](#示例项目) | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图)
 
 # 简介
 
@@ -37,7 +37,7 @@ magic-api 是一个基于Java的接口快速开发框架，编写接口将通过
 - 支持脚本历史版本对比与恢复
 - 支持脚本代码自动提示、错误提示
 - 支持导入Spring中的Bean、Java中的类
-- 支持在线调试脚本引擎
+- 支持在线调试
 - 支持自定义工具类、自定义模块包、自定义类型扩展、自定义函数等
 
 # 快速开始
@@ -75,19 +75,17 @@ magic-api.resource.location=/data/magic-api
 
 # 项目截图
 
-## 整体截图
-![整体截图](https://images.gitee.com/uploads/images/2020/1220/143206_a056da00_297689.png "full.png")
-## 切换主题
-![切换皮肤](https://images.gitee.com/uploads/images/2020/1220/143305_955ad124_297689.png "skin.png")
-## 代码提示
-![代码提示](https://images.gitee.com/uploads/images/2020/1220/143322_966caf97_297689.gif "completion.gif")
-## DEBUG
-![DEBUG](https://images.gitee.com/uploads/images/2020/1220/143340_b2d83a49_297689.gif "debug.gif")
-## 历史记录
-![历史记录](https://images.gitee.com/uploads/images/2020/1220/143412_d8414820_297689.png "version.png")
-
-# 其它开源项目
-- [magic-api](https://gitee.com/ssssssss-team/magic-api)
-- [magic-script，基于Java实现的脚本引擎](https://gitee.com/ssssssss-team/magic-script)
-- [magic-editor，本项目的前端UI](https://gitee.com/ssssssss-team/magic-editor)
-- [spider-flow，新一代爬虫平台，以图形化方式定义爬虫流程，不写代码即可完成爬虫](https://gitee.com/ssssssss-team/spider-flow)
+<table>
+    <tr>
+        <td><img src="https://images.gitee.com/uploads/images/2021/0711/105714_c1cacf2c_297689.png"></td>
+        <td><img src="https://images.gitee.com/uploads/images/2021/0711/105803_b53e0d7e_297689.png"></td>
+    </tr>
+    <tr>
+        <td><img src="https://images.gitee.com/uploads/images/2021/0711/105910_f2440ea4_297689.png"></td>
+        <td><img src="https://images.gitee.com/uploads/images/2021/0711/105846_7ec51a50_297689.png"></td>
+    </tr>
+    <tr>
+        <td><img src="https://images.gitee.com/uploads/images/2021/0711/105823_ac18ada7_297689.png"></td>
+        <td><img src="https://images.gitee.com/uploads/images/2021/0711/105803_b53e0d7e_297689.png"></td>
+    </tr>
+</table>
