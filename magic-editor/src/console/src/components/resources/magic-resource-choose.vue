@@ -1,5 +1,5 @@
 <template>
-    <magic-tree :data="tree" :forceUpdate="forceUpdate" :style="{ height, maxHeight}" style="overflow: auto">
+    <magic-tree :data="tree" :forceUpdate="forceUpdate" :style="{ height, maxHeight}" style="overflow: auto" :loading="showLoading > 0">
       <template #folder="{ item }">
         <div
             :style="{ 'padding-left': 17 * item.level + 'px' }"
@@ -69,11 +69,14 @@ export default {
       treeSort: true,
       // 绑定给magic-tree组件，用来触发子组件强制更新
       forceUpdate: true,
+      // 是否展示tree-loading,0表示不展示,大于0表示展示
+      showLoading: 0
     }
   },
   methods: {
     // 初始化数据
     initData() {
+      this.showLoading = 3
       this.tree = []
       this.listChildrenData = []
       this.listGroupData = [
@@ -96,6 +99,7 @@ export default {
             return it;
           }))
           this.initTreeData()
+          this.showLoading--
         })
       })
       request.send('group/list?type=2').success(data => {
@@ -113,6 +117,7 @@ export default {
             return it;
           }))
           this.initTreeData()
+          this.showLoading--
         })
       })
       request.send('datasource/list').success(data => {
@@ -124,6 +129,7 @@ export default {
           return it;
         }))
         this.initTreeData()
+        this.showLoading--
       })
     },
     // 初始化tree结构数据

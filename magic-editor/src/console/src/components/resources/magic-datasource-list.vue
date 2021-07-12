@@ -15,7 +15,7 @@
           </div>
         </div>
       </div>
-      <ul>
+      <ul v-show="!showLoading">
         <template v-for="(item,index) in datasources" >
         <li v-if="item._searchShow === true || item._searchShow === undefined" :key="index" @click="showDetail(item.id)" @contextmenu.prevent="e => datasourceContextMenu(e, item)">
           <i class="ma-icon ma-icon-datasource"/>
@@ -24,6 +24,13 @@
         </li>
         </template>
       </ul>
+      <div class="loading" v-show="showLoading">
+        <div class="icon">
+          <i class="ma-icon ma-icon-refresh "></i>
+        </div>
+        加载中...
+      </div>
+      <div class="no-data" v-show="!showLoading && (!datasources || datasources.length === 0)">无数据</div>
     </div>
     <magic-dialog width="1000px" height="400px" v-model="showDialog" :title="dsId ? '修改数据源:' + dsName : '创建数据源'" align="right" @onClose="toogleDialog(false)">
       <template #content>
@@ -74,7 +81,9 @@ export default {
         password: "",
         maxRows: "-1"
       },
-      editor: null
+      editor: null,
+      // 是否展示loading
+      showLoading: true
     }
   },
   methods: {
@@ -107,6 +116,8 @@ export default {
     },
     // 初始化数据
     initData() {
+      this.showLoading = true
+      this.datasources = []
       request.send('datasource/list').success(data => {
         this.datasources = data;
         JavaClass.setExtensionAttribute('org.ssssssss.magicapi.modules.SQLModule',this.datasources.filter(it => it.key).map(it => {
@@ -116,6 +127,9 @@ export default {
             comment: it.name
           }
         }))
+        setTimeout(() => {
+          this.showLoading = false
+        }, 500)
       })
     },
     showDetail(id){
@@ -312,5 +326,29 @@ ul li:hover{
 .ma-tree-wrapper{
   width: 100%;
   height: 100%;
+}
+.ma-tree-wrapper .loading i {
+  color: var(--color);
+  font-size: 20px;
+}
+.ma-tree-wrapper .loading .icon {
+  width: 20px;
+  margin: 0 auto;
+  animation: rotate 1s linear infinite;
+}
+.ma-tree-wrapper .loading {
+  color: var(--color);
+  position: absolute;
+  text-align: center;
+  width: 100%;
+  top: 50%;
+  margin-top: -20px;
+}
+.ma-tree-wrapper .no-data {
+  color: var(--color);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -20px;
 }
 </style>

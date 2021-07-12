@@ -22,7 +22,7 @@
         </div>
       </div>
     </div>
-    <magic-tree :data="tree" :forceUpdate="forceUpdate">
+    <magic-tree :data="tree" :forceUpdate="forceUpdate" :loading="showLoading">
       <template #folder="{ item }">
         <div
             v-if="item._searchShow !== false"
@@ -133,7 +133,9 @@ export default {
       forceUpdate: true,
       // 拖拽的item
       draggableItem: {},
-      draggableTargetItem: {}
+      draggableTargetItem: {},
+      // 是否展示tree-loading
+      showLoading: true
     }
   },
   methods: {
@@ -156,12 +158,14 @@ export default {
     },
     // 初始化数据
     initData() {
+      this.showLoading = true
       this.tree = []
       request.send('group/list?type=1').success(data => {
         this.listGroupData = data
         request.send('list').success(data => {
           this.listChildrenData = data
           this.initTreeData()
+          this.showLoading = false
         })
       })
     },
