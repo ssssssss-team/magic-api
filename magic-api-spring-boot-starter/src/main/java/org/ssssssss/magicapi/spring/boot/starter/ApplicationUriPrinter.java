@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.web.context.WebServerApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
@@ -29,6 +30,8 @@ public class ApplicationUriPrinter implements CommandLineRunner {
 	private ConfigurableEnvironment springEnv;
 	@Autowired
 	private MagicAPIProperties properties;
+	@Autowired
+	private WebServerApplicationContext serverApplicationContext;
 
 	@Override
 	public void run(String... args) throws Exception {
@@ -39,7 +42,7 @@ public class ApplicationUriPrinter implements CommandLineRunner {
 		} catch (UnknownHostException e) {
 			System.out.println("当前服务地址获取失败");
 		}
-		String port = springEnv.getProperty("server.port", "port");
+		int port = serverApplicationContext.getWebServer().getPort();
 		String path = springEnv.getProperty("server.servlet.context-path", "");
 		String magicWebPath = properties.getWeb();
 		String schema = "http://";
