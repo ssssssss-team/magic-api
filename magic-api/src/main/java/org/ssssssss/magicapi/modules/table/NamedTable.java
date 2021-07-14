@@ -283,65 +283,41 @@ public class NamedTable {
         return update(null);
     }
 
-    @Comment("执行update语句")
-    public int update(@Comment("各项列和值") Map<String, Object> data, @Comment("是否更新空值字段") boolean isUpdateBlank) {
-        if (null != data) {
-            data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
-        }
-        Object primaryValue = null;
-        if (StringUtils.isNotBlank(this.primary)) {
-            primaryValue = this.columns.remove(this.primary);
-        }
-        List<Map.Entry<String, Object>> entries = null;
-        if (!isUpdateBlank) {
-            entries = filterNotBlanks();
-        } else {
-            entries = new ArrayList<>(this.columns.entrySet());
-        }
-
-        if (entries.isEmpty()) {
-            throw new MagicAPIException("要修改的列不能为空");
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append("update ");
-        builder.append(tableName);
-        builder.append(" set ");
-        List<Object> params = new ArrayList<>();
-        for (int i = 0, size = entries.size(); i < size; i++) {
-            Map.Entry<String, Object> entry = entries.get(i);
-            builder.append(entry.getKey()).append(" = ?");
-            params.add(entry.getValue());
-            if (i + 1 < size) {
-                builder.append(",");
-            }
-        }
-        if (!where.isEmpty()) {
-            builder.append(where.getSql());
-            params.addAll(where.getParams());
-        } else if (primaryValue != null) {
-            builder.append(" where ").append(this.primary).append(" = ?");
-            params.add(primaryValue);
-        } else {
-            throw new MagicAPIException("主键值不能为空");
-        }
-        return sqlModule.update(new BoundSql(builder.toString(), params, sqlModule));
-    }
-
-    @Comment("执行update语句")
-    public int update(@Comment("各项列和值") Map<String, Object> data) {
-        return update(data, false);
-    }
-
-    @Comment("执行updateAll语句")
-    public Object[] updateAll(@Comment("各项列和值") List<Map<String, Object>> list) {
-        return updateAll(list, false);
-    }
-
-    @Comment("执行updateAll语句")
-    public Object[] updateAll(@Comment("各项列和值") List<Map<String, Object>> list, @Comment("是否更新空值字段") boolean isUpdateBlank) {
-        if (CollectionUtils.isEmpty(list)) {
-            throw new MagicAPIException("操作对象不能为空");
-        }
-        return list.stream().map(item -> update(item, isUpdateBlank)).collect(Collectors.toList()).toArray();
-    }
+	@Comment("执行update语句")
+	public int update(@Comment("各项列和值") Map<String, Object> data) {
+		if (null != data) {
+			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
+		}
+		Object primaryValue = null;
+		if (StringUtils.isNotBlank(this.primary)) {
+			primaryValue = this.columns.remove(this.primary);
+		}
+		List<Map.Entry<String, Object>> entries = filterNotBlanks();
+		if (entries.isEmpty()) {
+			throw new MagicAPIException("要修改的列不能为空");
+		}
+		StringBuilder builder = new StringBuilder();
+		builder.append("update ");
+		builder.append(tableName);
+		builder.append(" set ");
+		List<Object> params = new ArrayList<>();
+		for (int i = 0, size = entries.size(); i < size; i++) {
+			Map.Entry<String, Object> entry = entries.get(i);
+			builder.append(entry.getKey()).append(" = ?");
+			params.add(entry.getValue());
+			if (i + 1 < size) {
+				builder.append(",");
+			}
+		}
+		if (!where.isEmpty()) {
+			builder.append(where.getSql());
+			params.addAll(where.getParams());
+		} else if (primaryValue != null) {
+			builder.append(" where ").append(this.primary).append(" = ?");
+			params.add(primaryValue);
+		} else {
+			throw new MagicAPIException("主键值不能为空");
+		}
+		return sqlModule.update(new BoundSql(builder.toString(), params, sqlModule));
+	}
 }
