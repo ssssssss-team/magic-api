@@ -97,6 +97,10 @@ public class MagicAPIProperties {
 	 */
 	private String pushPath = "/_magic-api-sync";
 
+	/**
+	 * 启动完成之后打印地址
+	 */
+	private boolean showUrl = true;
 
 	@NestedConfigurationProperty
 	private SecurityConfig securityConfig = new SecurityConfig();
@@ -324,5 +328,14 @@ public class MagicAPIProperties {
 
 	public void setPushPath(String pushPath) {
 		this.pushPath = pushPath;
+	}
+
+	public boolean isShowUrl() {
+		return showUrl;
+	}
+
+	public MagicAPIProperties setShowUrl(boolean showUrl) {
+		this.showUrl = showUrl;
+		return this;
 	}
 }

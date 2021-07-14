@@ -69,7 +69,7 @@
         </div>
         <div>
           <label>秘钥：</label>
-          <magic-input placeholder="请输入秘钥" v-model="secretKey" width="300px"/>
+          <magic-input placeholder="请输入秘钥" v-model="secretKey" width="300px" type="password" />
         </div>
       </template>
       <template #buttons>
