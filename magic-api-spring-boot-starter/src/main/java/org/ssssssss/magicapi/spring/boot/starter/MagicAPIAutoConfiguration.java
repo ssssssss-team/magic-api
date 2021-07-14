@@ -30,6 +30,10 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.ssssssss.magicapi.adapter.ColumnMapperAdapter;
 import org.ssssssss.magicapi.adapter.DialectAdapter;
 import org.ssssssss.magicapi.adapter.Resource;
@@ -73,7 +77,8 @@ import java.util.function.BiFunction;
 @ConditionalOnClass({RequestMappingHandlerMapping.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
 @Import({MagicRedisAutoConfiguration.class, MagicMongoAutoConfiguration.class, MagicSwaggerConfiguration.class, MagicJsonAutoConfiguration.class, ApplicationUriPrinter.class})
-public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
+@EnableWebSocket
+public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketConfigurer {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
 
@@ -575,4 +580,16 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return restTemplate;
 	}
 
+	@Override
+	public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
+		String web = properties.getWeb();
+		if (web != null) {
+			WebSocketHandlerRegistration registration = webSocketHandlerRegistry.addHandler(new MagicWebSocketDispatcher(Arrays.asList(
+					new MagicDebugHandler()
+			)), web + "/console");
+			if (properties.isSupportCrossDomain()) {
+				registration.setAllowedOrigins("*");
+			}
+		}
+	}
 }

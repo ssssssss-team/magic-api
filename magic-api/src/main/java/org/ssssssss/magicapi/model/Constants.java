@@ -79,6 +79,16 @@ public class Constants {
 	public static final String VAR_NAME_PATH_VARIABLE = "path";
 
 	/**
+	 * WebSocket存储的sessionId
+	 */
+	public static final String WS_DEBUG_SESSION_KEY = "sessionId";
+
+	/**
+	 * WebSocket存储的MagicScriptDebugContext
+	 */
+	public static final String WS_DEBUG_MAGIC_SCRIPT_CONTEXT = "magicScriptContext";
+
+	/**
 	 * 脚本中header的变量名
 	 */
 	public static final String VAR_NAME_HEADER = "header";

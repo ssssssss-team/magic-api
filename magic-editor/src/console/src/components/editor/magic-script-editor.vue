@@ -193,6 +193,8 @@ export default {
         bus.$emit('delete-api', this.info)
       }
     })
+    bus.$on('ws_log', rows => this.onLogReceived(rows[0]))
+    bus.$on('ws_breakpoint', rows => this.onBreakpoint(rows[0]))
     let javaTypes = {
       'String': 'java.lang.String',
       'Integer': 'java.lang.Integer',
@@ -218,6 +220,44 @@ export default {
     })
   },
   methods: {
+    onLogReceived(row){
+      if(this.info){
+        row.timestamp = utils.formatDate(new Date())
+        let throwable = row.throwable
+        delete row.throwable
+        this.info.ext.logs.push(row)
+        if (throwable) {
+          let messages = throwable.replace(/ /g, '&nbsp;').split('\n');
+          for (let i = 0; i < messages.length; i++) {
+            this.info.ext.logs.push({
+              level: row.level,
+              message: messages[i],
+              throwable: true
+            })
+          }
+        }
+      }
+    },
+    onBreakpoint(data){
+      bus.$emit('report', 'debug_in')
+      bus.$emit('status', '进入断点...')
+      // 进入断点
+      this.info.ext.debuging = true
+
+      this.info.ext.variables = data.variables
+      let range = data.range
+      let decoration = {
+        range: new monaco.Range(range[0], 1, range[0], 1),
+        options: {
+          isWholeLine: true,
+          inlineClassName: 'debug-line',
+          className: 'debug-line'
+        }
+      }
+      this.info.ext.debugDecoration = decoration
+      this.info.ext.debugDecorations = [this.editor.deltaDecorations([], [decoration])]
+      bus.$emit('switch-tab', 'debug')
+    },
     doValidate() {
       try {
         let parser = new Parser(new TokenStream(tokenizer(this.editor.getValue())))
@@ -500,32 +540,10 @@ export default {
         }
       }
       const info = this.info
-      info.ext.eventSource = request.createConsole()
-      info.ext.eventSource.addEventListener('create', e => {
-        bus.$emit('report', 'run')
-        this.$nextTick(() => this.sendTestRequest(info, requestConfig, e.data))
-      })
-      info.ext.eventSource.addEventListener('log', e => {
-        let row = JSON.parse(e.data)
-        row.timestamp = utils.formatDate(new Date())
-        let throwable = row.throwable;
-        delete row.throwable;
-        info.ext.logs.push(row)
-        if (throwable) {
-          let messages = throwable.replace(/ /g, '&nbsp;').split('\n');
-          for (let i = 0; i < messages.length; i++) {
-            info.ext.logs.push({
-              level: row.level,
-              message: messages[i],
-              throwable: true
-            })
-          }
-        }
-
-      })
-      info.ext.eventSource.addEventListener('close', e => {
-        info.ext.eventSource.close()
-      })
+      info.ext.sessionId = new Date().getTime()
+      bus.$emit('message', 'set_session_id', info.ext.sessionId)
+      this.sendTestRequest(info, requestConfig, info.ext.sessionId)
+      bus.$emit('report', 'run')
     },
     viewHistory() {
       if (!this.selected) {
@@ -560,16 +578,10 @@ export default {
       }
       let target = this.info
       if (target.ext.debuging) {
+        target.ext.debugDecorations && this.editor.deltaDecorations(target.ext.debugDecorations, [])
         target.ext.debuging = false
         target.ext.variables = []
-        let requestConfig = {
-          ...target.ext.requestConfig
-        }
-        delete requestConfig.data
-        delete requestConfig.params
-        requestConfig.headers[contants.HEADER_REQUEST_CONTINUE] = true
-        requestConfig.headers[contants.HEADER_REQUEST_STEP_INTO] = step === true
-        this.sendTestRequest(target, requestConfig, target.ext.sessionId)
+        bus.$emit('message', 'resume_breakpoint', step === true ? '1' : '0')
       }
     },
     doStepInto() {
@@ -606,19 +618,30 @@ export default {
           .filter(it => it.options.linesDecorationsClassName === 'breakpoints')
           .map(it => it.range.startLineNumber)
           .join(',')
+      requestConfig.responseType = 'blob'
+      requestConfig.transformResponse = [function(data){
+        return new Promise(function(resolve, reject){
+          let reader = new FileReader()
+          reader.readAsText(data)
+          reader.onload = function() {
+            try{
+              resolve(JSON.parse(this.result))
+            }catch(e){
+              resolve(data)
+            }
+          }
+        })
+      }]
       request
           .execute(requestConfig)
           .then(res => {
-            target.ext.debugDecorations && this.editor.deltaDecorations(target.ext.debugDecorations, [])
-            target.ext.debugDecorations = target.ext.debugDecoration = null
-            if (res.headers[contants.HEADER_RESPONSE_WITH_MAGIC_API] === 'true') {
-              let data = res.data
-              if (data.code === contants.RESPONSE_CODE_SCRIPT_ERROR) {
-                bus.$emit('report', 'script_error')
-                bus.$emit('status', '脚本执行出错..')
-                // 脚本执行出错
+            res.data.then(data =>{
+              const contentType = res.headers['content-type']
+              target.ext.debugDecorations && this.editor.deltaDecorations(target.ext.debugDecorations, [])
+              target.ext.debugDecorations = target.ext.debugDecoration = null
+              if (contentType.indexOf('application/json') > -1) {
                 target.ext.debuging = target.running = false
-                if (data.body) {
+                if (data.body && res.headers[contants.HEADER_RESPONSE_WITH_MAGIC_API] === 'true') {
                   let line = data.body
                   if (this.info.id === target.id) {
                     let range = new monaco.Range(line[0], line[2], line[1], line[3] + 1)
@@ -642,42 +665,21 @@ export default {
                       setTimeout(() => this.editor.deltaDecorations(decorations, []), contants.DECORATION_TIMEOUT)
                     }
                   }
+                  data = data.data;
                 }
-                target.responseBody = utils.formatJson(data.data)
+                target.responseBody = utils.formatJson(data)
                 bus.$emit('switch-tab', 'result')
                 bus.$emit('update-response-body-definition', target.responseBodyDefinition);
                 bus.$emit('update-response-body', target.responseBody)
-                target.ext.eventSource.close();
-              } else if (data.code === contants.RESPONSE_CODE_DEBUG) {
-                bus.$emit('report', 'debug_in')
-                bus.$emit('status', '进入断点...')
-                // 进入断点
-                target.ext.debuging = true
-
-                target.ext.variables = data.body.variables
-                let range = data.body.range
-                let decoration = {
-                  range: new monaco.Range(range[0], 1, range[0], 1),
-                  options: {
-                    isWholeLine: true,
-                    inlineClassName: 'debug-line',
-                    className: 'debug-line'
-                  }
-                }
-                target.ext.debugDecoration = decoration
-                target.ext.debugDecorations = [this.editor.deltaDecorations([], [decoration])]
-                bus.$emit('switch-tab', 'debug')
               } else {
                 bus.$emit('status', '脚本执行完毕')
                 // 执行完毕
                 target.running = false
                 bus.$emit('switch-tab', 'result')
-
-                let contentType = res.headers[contants.HEADER_RESPONSE_MAGIC_CONTENT_TYPE]
                 if (contentType === contants.HEADER_APPLICATION_STREAM) {
                   // 下载
-                  var disposition = res.headers[contants.HEADER_CONTENT_DISPOSITION]
-                  var filename = 'output'
+                  let disposition = res.headers[contants.HEADER_CONTENT_DISPOSITION]
+                  let filename = 'output'
                   if (disposition) {
                     filename = decodeURIComponent(disposition.substring(disposition.indexOf('filename=') + 9))
                   }
@@ -697,45 +699,18 @@ export default {
                   bus.$emit('report', 'output_blob')
                 } else if (contentType && contentType.indexOf('image') === 0) {
                   // 图片
-                  this.imageUrl = `data:${contentType};base64,${data.data}`
+                  this.imageUrl = window.URL.createObjectURL(data)
                   this.showImageDialog = true
                   bus.$emit('update-response-body-definition', target.responseBodyDefinition);
                   target.responseBody = utils.formatJson(data.data)
                   bus.$emit('update-response-body', target.responseBody)
                   bus.$emit('report', 'output_image')
-                } else if (data.code === contants.RESPONSE_NO_PERMISSION) {
-                  this.$magicAlert({
-                    title: '无权限',
-                    content: '您没有权限执行测试'
-                  })
-                } else {
-                  bus.$emit('update-response-body-definition', target.responseBodyDefinition);
-                  target.responseBody = utils.formatJson(data.data)
-                  bus.$emit('update-response-body', target.responseBody)
                 }
-                target.ext.eventSource.close();
               }
-            } else {
-              target.ext.debuging = target.running = false
-              bus.$emit('switch-tab', 'result')
-              bus.$emit('status', '脚本执行完毕');
-              // TODO 对于拦截器返回的会有警告，暂时先屏蔽掉。
-              // this.$magicAlert({
-              //   title: '警告',
-              //   content: '检测到结果异常，请检查！'
-              // })
-              try {
-                target.ext.eventSource.close();
-                bus.$emit('update-response-body-definition', target.responseBodyDefinition);
-                target.responseBody = utils.formatJson(res.data)
-                bus.$emit('update-response-body', target.responseBody)
-              } catch (ignored) {
-              }
-            }
+            })
           })
           .catch(error => {
             target.ext.debuging = target.running = false
-            target.ext.eventSource.close();
             request.processError(error)
           })
     },

@@ -39,6 +39,7 @@ import MagicDatasourceList from './resources/magic-datasource-list.vue'
 import MagicScriptEditor from './editor/magic-script-editor.vue'
 import request from '@/api/request.js'
 import contants from '@/scripts/contants.js'
+import MagicWebSocket from '@/scripts/websocket.js'
 import store from '@/scripts/store.js'
 import Key from '@/scripts/hotkey.js'
 import { replaceURL } from '@/scripts/utils.js'
@@ -84,6 +85,7 @@ export default {
       toolboxWidth: 'auto', //工具条宽度
       themeStyle: {},
       showLogin: false,
+      websocket: null,
       onLogin: () => {
         this.showLogin = false
         this.$refs.apiList.initData()
@@ -96,6 +98,7 @@ export default {
   beforeMount() {
     contants.BASE_URL = this.config.baseURL || ''
     contants.SERVER_URL = this.config.serverURL || ''
+    this.websocket = new MagicWebSocket(contants.BASE_URL.replace(/^http/, 'ws') + '/console')
     contants.DEFAULT_EXPAND = this.config.defaultExpand !== false
     this.config.version = contants.MAGIC_API_VERSION_TEXT
     this.config.title = this.config.title || 'magic-api'
@@ -186,6 +189,7 @@ export default {
   destroyed() {
     bus.$off();
     Key.unbind();
+    this.websocket.close();
   },
   methods: {
     // 隐藏loading

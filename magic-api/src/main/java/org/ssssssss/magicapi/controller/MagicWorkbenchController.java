@@ -14,14 +14,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.exception.MagicLoginException;
 import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.interceptor.MagicUser;
-import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.modules.SQLModule;
@@ -147,18 +144,6 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		return new JsonBean<>();
 	}
 
-
-	/**
-	 * 创建控制台输出
-	 */
-	@RequestMapping("/console")
-	@Valid(requireLogin = false)
-	public SseEmitter console() throws IOException {
-		String sessionId = UUID.randomUUID().toString().replace("-", "");
-		SseEmitter emitter = MagicLoggerContext.createEmitter(sessionId);
-		emitter.send(SseEmitter.event().data(sessionId).name("create"));
-		return emitter;
-	}
 
 	@RequestMapping("/options")
 	@ResponseBody
