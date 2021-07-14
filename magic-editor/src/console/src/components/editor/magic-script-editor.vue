@@ -836,12 +836,13 @@ export default {
             const $scrollRect = scrollbar.getBoundingClientRect()
             const $itemDom = document.getElementById('ma-tab-item-' + this.selected.tmp_id)
             if ($itemDom) {
-              const $itemRect = $itemDom.getBoundingClientRect()
-              if ($itemRect.left < $scrollRect.left) {
-                scrollbar.scrollLeft += $itemRect.left - $scrollRect.left
-              } else if ($scrollRect.left + $scrollRect.width < $itemRect.left + $itemRect.width) {
-                scrollbar.scrollLeft += $itemRect.left + $itemRect.width - $scrollRect.left - $scrollRect.width
-              }
+              // const $itemRect = $itemDom.getBoundingClientRect()
+              // if ($itemRect.left < $scrollRect.left) {
+              //   scrollbar.scrollLeft += $itemRect.left - $scrollRect.left
+              // } else if ($scrollRect.left + $scrollRect.width < $itemRect.left + $itemRect.width) {
+              //   scrollbar.scrollLeft += $itemRect.left + $itemRect.width - $scrollRect.left - $scrollRect.width
+              // }
+              $itemDom.scrollIntoView(true)
             }
           })
         }

@@ -84,4 +84,14 @@ const deepClone = (obj) => {
   }
   return o;
 }
-export {replaceURL, isVisible, formatJson, formatDate, paddingZero, download, requestGroup, deepClone}
+
+// 展示锚点对象
+const goToAnchor = (dom) => {
+  if (typeof dom === 'string') {
+    dom = document.querySelector(dom)
+  }
+  if (dom) {
+    dom.scrollIntoView(true)
+  }
+}
+export {replaceURL, isVisible, formatJson, formatDate, paddingZero, download, requestGroup, deepClone, goToAnchor}
