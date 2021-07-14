@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.modules;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
@@ -58,6 +59,8 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	private SqlCache sqlCache;
 
 	private String cacheName;
+
+	private Environment environment;
 
 	private List<SQLInterceptor> sqlInterceptors;
 
@@ -129,6 +132,14 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	private void setTtl(long ttl) {
 		this.ttl = ttl;
+	}
+
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
+
+	public Environment getEnvironment() {
+		return environment;
 	}
 
 	protected SqlCache getSqlCache() {
