@@ -8,6 +8,10 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.ssssssss.magicapi.config.Message;
 import org.ssssssss.magicapi.config.WebSocketSessionManager;
+import org.ssssssss.magicapi.model.Constants;
+import org.ssssssss.magicapi.model.MagicConsoleSession;
+import org.ssssssss.magicapi.model.MagicNotify;
+import org.ssssssss.magicapi.provider.MagicNotifyService;
 import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.script.reflection.MethodInvoker;
 
@@ -20,9 +24,17 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicWebSocketDispatcher.class);
 
-	private final Map<String, MethodInvoker> handlers = new HashMap<>();
+	private static final Map<String, MethodInvoker> handlers = new HashMap<>();
 
-	public MagicWebSocketDispatcher(List<Object> websocketMessageHandlers) {
+	private final String instanceId;
+
+	private final MagicNotifyService magicNotifyService;
+
+	public MagicWebSocketDispatcher(String instanceId, MagicNotifyService magicNotifyService, List<Object> websocketMessageHandlers) {
+		this.instanceId = instanceId;
+		this.magicNotifyService = magicNotifyService;
+		WebSocketSessionManager.setMagicNotifyService(magicNotifyService);
+		WebSocketSessionManager.setInstanceId(instanceId);
 		websocketMessageHandlers.forEach(websocketMessageHandler ->
 				Stream.of(websocketMessageHandler.getClass().getDeclaredMethods())
 						.forEach(method -> handlers.put(method.getAnnotation(Message.class).value().name().toLowerCase(), new MethodInvoker(method, websocketMessageHandler)))
@@ -30,51 +42,64 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 	}
 
 	@Override
-	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-		WebSocketSessionManager.add(session);
-	}
-
-	@Override
-	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-		WebSocketSessionManager.remove(session);
+	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+		MagicConsoleSession.remove(session);
 	}
 
 	@Override
 	protected void handleTextMessage(WebSocketSession session, TextMessage message) {
+		MagicConsoleSession consoleSession = MagicConsoleSession.from(session);
+		Object returnValue = findHandleAndInvoke(consoleSession, message.getPayload());
+		// 如果未成功处理消息，则通知其他机器去处理消息
+		if (Boolean.FALSE.equals(returnValue)) {
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, Constants.NOTIFY_WS_C_S, consoleSession.getId(), message.getPayload()));
+		}
+	}
+
+
+	private static Object findHandleAndInvoke(MagicConsoleSession session, String payload) {
 		// messageType[, data][,data]
-		String payload = message.getPayload();
 		int index = payload.indexOf(",");
 		String msgType = index == -1 ? payload : payload.substring(0, index);
 		MethodInvoker invoker = handlers.get(msgType);
 		if (invoker != null) {
+			Object returnValue;
 			try {
 				Class<?>[] pTypes = invoker.getParameterTypes();
 				int pCount = pTypes.length;
 				if (pCount == 0) {
-					invoker.invoke0(null, null);
+					returnValue = invoker.invoke0(null, null);
 				} else {
 					Object[] pValues = new Object[pCount];
 					for (int i = 0; i < pCount; i++) {
 						Class<?> pType = pTypes[i];
-						if (pType == WebSocketSession.class) {
+						if (pType == MagicConsoleSession.class) {
 							pValues[i] = session;
 						} else if (pType == String.class) {
 							int subIndex = payload.indexOf(",", index + 1);
 							if (subIndex > -1) {
 								pValues[i] = payload.substring(index + 1, index = subIndex);
-							} else if(index > -1){
+							} else if (index > -1) {
 								pValues[i] = payload.substring(index + 1);
 							}
 						} else {
 							pValues[i] = JsonUtils.readValue(payload, pType);
 						}
 					}
-					invoker.invoke0(null, null, pValues);
+					returnValue =  invoker.invoke0(null, null, pValues);
 				}
+				return returnValue;
 			} catch (Throwable e) {
 				logger.error("WebSocket消息处理出错", e);
 			}
 		}
+		return null;
 	}
 
+	public static void processMessageReceived(String sessionId, String payload) {
+		MagicConsoleSession session = WebSocketSessionManager.findSession(sessionId);
+		if (session != null) {
+			findHandleAndInvoke(session, payload);
+		}
+	}
 }

@@ -1,47 +1,57 @@
 package org.ssssssss.magicapi.controller;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.socket.WebSocketSession;
 import org.ssssssss.magicapi.config.Message;
 import org.ssssssss.magicapi.config.MessageType;
-import org.ssssssss.magicapi.model.Constants;
+import org.ssssssss.magicapi.config.WebSocketSessionManager;
+import org.ssssssss.magicapi.model.MagicConsoleSession;
 import org.ssssssss.script.MagicScriptDebugContext;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
 public class MagicDebugHandler {
 
 	/**
 	 * 设置会话ID
+	 * 只在本机处理。
 	 */
 	@Message(MessageType.SET_SESSION_ID)
-	public void setSessionId(WebSocketSession session, String sessionId) {
-		if(StringUtils.isNotBlank(sessionId)){
-			session.getAttributes().put(Constants.WS_DEBUG_SESSION_KEY, sessionId);
-		}
+	public void setSessionId(MagicConsoleSession session, String sessionId) {
+		WebSocketSessionManager.remove(session);
+		session.setId(sessionId);
+		WebSocketSessionManager.add(session);
 	}
+
 	/**
 	 * 设置断点
+	 * 当本机没有该Session时，通知其他机器处理
 	 */
 	@Message(MessageType.SET_BREAKPOINT)
-	public void setBreakPoint(WebSocketSession session, String breakpoints) {
-		if(StringUtils.isNotBlank(breakpoints)){
-			MagicScriptDebugContext context = (MagicScriptDebugContext) session.getAttributes().get(Constants.WS_DEBUG_MAGIC_SCRIPT_CONTEXT);
+	public boolean setBreakPoint(MagicConsoleSession session, String breakpoints) {
+		MagicScriptDebugContext context = session.getMagicScriptDebugContext();
+		if (context != null) {
 			context.setBreakpoints(Stream.of(breakpoints.split(",")).map(Integer::valueOf).collect(Collectors.toList()));
+			return true;
 		}
+		return false;
 	}
 
 	/**
 	 * 恢复断点
+	 * 当本机没有该Session时，通知其他机器处理
 	 */
 	@Message(MessageType.RESUME_BREAKPOINT)
-	public void resumeBreakpoint(WebSocketSession session, String stepInto) {
-		MagicScriptDebugContext context = (MagicScriptDebugContext) session.getAttributes().get(Constants.WS_DEBUG_MAGIC_SCRIPT_CONTEXT);
-		context.setStepInto("1".equals(stepInto));
-		try {
-			context.singal();
-		} catch (InterruptedException ignored) {
+	public boolean resumeBreakpoint(MagicConsoleSession session, String stepInto) {
+		MagicScriptDebugContext context = session.getMagicScriptDebugContext();
+		if (context != null) {
+			context.setStepInto("1".equals(stepInto));
+			try {
+				context.singal();
+			} catch (InterruptedException ignored) {
+			}
+			return true;
 		}
+		return false;
 	}
 }

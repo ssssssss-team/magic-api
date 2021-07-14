@@ -3,7 +3,7 @@ package org.ssssssss.magicapi.model;
 public class MagicNotify {
 
 	/**
-	 * 消息来源
+	 * 消息来源(instanceId)
 	 */
 	private String from;
 
@@ -22,11 +22,28 @@ public class MagicNotify {
 	 */
 	private int type = -1;
 
+	/**
+	 * WebSocket sessionId
+	 */
+	private String sessionId;
+
+	/**
+	 * WebSocket消息内容
+	 */
+	private String content;
+
 	public MagicNotify() {
 	}
 
 	public MagicNotify(String from) {
 		this(from, null, Constants.NOTIFY_ACTION_ALL, Constants.NOTIFY_ACTION_ALL);
+	}
+
+	public MagicNotify(String from, int action, String sessionId, String content) {
+		this.from = from;
+		this.sessionId = sessionId;
+		this.action = action;
+		this.content = content;
 	}
 
 	public MagicNotify(String from, String id, int action, int type) {
@@ -68,6 +85,22 @@ public class MagicNotify {
 		this.type = type;
 	}
 
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -87,10 +120,20 @@ public class MagicNotify {
 			case Constants.NOTIFY_ACTION_ALL:
 				builder.append("刷新全部");
 				break;
+			case Constants.NOTIFY_WS_C_S:
+				builder.append("通知客户端发来的消息");
+				builder.append(", sessionId=").append(sessionId);
+				builder.append(", content=").append(content);
+				break;
+			case Constants.NOTIFY_WS_S_C:
+				builder.append("通知服务端发送给客户端的消息");
+				builder.append(", sessionId=").append(sessionId);
+				builder.append(", content=").append(content);
+				break;
 			default:
 				builder.append("未知");
 		}
-		if(action != Constants.NOTIFY_ACTION_ALL){
+		if(action != Constants.NOTIFY_ACTION_ALL && action < Constants.NOTIFY_WS_C_S){
 			builder.append(", type=");
 			switch (type) {
 				case Constants.NOTIFY_ACTION_API:

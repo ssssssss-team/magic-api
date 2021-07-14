@@ -194,4 +194,15 @@ public class Constants {
 	 */
 	public static final int NOTIFY_ACTION_DATASOURCE = 4;
 
+
+	/**
+	 * 通知 C -> S 的WebSocket消息
+	 */
+	public static final int NOTIFY_WS_C_S = 100;
+
+	/**
+	 * 通知 S -> C 的WebSocket消息
+	 */
+	public static final int NOTIFY_WS_S_C = 200;
+
 }

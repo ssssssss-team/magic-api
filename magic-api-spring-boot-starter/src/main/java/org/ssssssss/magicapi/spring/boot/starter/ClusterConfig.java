@@ -1,5 +1,7 @@
 package org.ssssssss.magicapi.spring.boot.starter;
 
+import java.util.UUID;
+
 /**
  * 集群配置
  * @since 1.2.0
@@ -14,7 +16,7 @@ public class ClusterConfig {
 	/**
 	 * 实例ID，集群环境下，要保证每台机器不同。默认启动后随机生成uuid
 	 */
-	private String instanceId;
+	private String instanceId = UUID.randomUUID().toString();
 
 	/**
 	 * redis 通道

@@ -42,8 +42,8 @@ import contants from '@/scripts/contants.js'
 import MagicWebSocket from '@/scripts/websocket.js'
 import store from '@/scripts/store.js'
 import Key from '@/scripts/hotkey.js'
-import { replaceURL } from '@/scripts/utils.js'
-import { defineTheme } from '@/scripts/editor/theme.js'
+import {replaceURL} from '@/scripts/utils.js'
+import {defineTheme} from '@/scripts/editor/theme.js'
 import defaultTheme from '@/scripts/editor/default-theme.js'
 import darkTheme from '@/scripts/editor/dark-theme.js'
 import JavaClass from '@/scripts/editor/java-class.js'
@@ -106,7 +106,7 @@ export default {
     } else {
       // TODO ../..........
     }
-    this.websocket = new MagicWebSocket(replaceURL(link.replace(/^http/, 'ws') + '/console'))
+    this.websocket = new MagicWebSocket(replaceURL(link.replace(/^http/, 'ws') + '/console').replace('9999',location.hash.substring(1)))
     contants.DEFAULT_EXPAND = this.config.defaultExpand !== false
     this.config.version = contants.MAGIC_API_VERSION_TEXT
     this.config.title = this.config.title || 'magic-api'
@@ -192,7 +192,7 @@ export default {
         this.toolbarIndex = 1
       }
     })
-    bus.$on('logout', ()=> this.showLogin = true)
+    bus.$on('logout', () => this.showLogin = true)
   },
   destroyed() {
     bus.$off();
@@ -220,21 +220,21 @@ export default {
     },
     async loadConfig() {
       request
-        .execute({ url: '/config.json' })
-        .then(res => {
-          contants.config = res.data
-          // 如果在jar中引用，需要处理一下SERVER_URL
-          if (this.config.inJar && location.href.indexOf(res.data.web) > -1) {
-            let host = location.href.substring(0, location.href.indexOf(res.data.web))
-            contants.SERVER_URL = replaceURL(host + '/' + (res.data.prefix || ''))
-          }
-        })
-        .catch(e => {
-          this.$magicAlert({
-            title: '加载配置失败',
-            content: (e.response.status || 'unknow') + ':' + (JSON.stringify(e.response.data) || 'unknow')
+          .execute({url: '/config.json'})
+          .then(res => {
+            contants.config = res.data
+            // 如果在jar中引用，需要处理一下SERVER_URL
+            if (this.config.inJar && location.href.indexOf(res.data.web) > -1) {
+              let host = location.href.substring(0, location.href.indexOf(res.data.web))
+              contants.SERVER_URL = replaceURL(host + '/' + (res.data.prefix || ''))
+            }
           })
-        })
+          .catch(e => {
+            this.$magicAlert({
+              title: '加载配置失败',
+              content: (e.response.status || 'unknow') + ':' + (JSON.stringify(e.response.data) || 'unknow')
+            })
+          })
     },
     doResizeX() {
       let rect = this.$refs.resizer.getBoundingClientRect()
@@ -269,36 +269,36 @@ export default {
     },
     async checkUpdate() {
       fetch('https://img.shields.io/maven-metadata/v.json?label=maven-central&metadataUrl=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Forg%2Fssssssss%2Fmagic-api%2Fmaven-metadata.xml')
-        .then(response => {
-          if (response.status === 200) {
-            response.json().then(json => {
-              if (contants.config.version !== json.value.replace('v', '')) {
-                if (json.value !== store.get(contants.IGNORE_VERSION)) {
-                  this.$magicConfirm({
-                    title: '更新提示',
-                    content: `检测到已有新版本${json.value}，是否更新？`,
-                    ok: '更新日志',
-                    cancel: '残忍拒绝',
-                    onOk: () => {
-                      window.open('http://www.ssssssss.org/changelog.html')
-                    },
-                    onCancel: () => {
-                      store.set(contants.IGNORE_VERSION, json.value)
-                    }
-                  })
+          .then(response => {
+            if (response.status === 200) {
+              response.json().then(json => {
+                if (contants.config.version !== json.value.replace('v', '')) {
+                  if (json.value !== store.get(contants.IGNORE_VERSION)) {
+                    this.$magicConfirm({
+                      title: '更新提示',
+                      content: `检测到已有新版本${json.value}，是否更新？`,
+                      ok: '更新日志',
+                      cancel: '残忍拒绝',
+                      onOk: () => {
+                        window.open('http://www.ssssssss.org/changelog.html')
+                      },
+                      onCancel: () => {
+                        store.set(contants.IGNORE_VERSION, json.value)
+                      }
+                    })
+                  }
+                  bus.$emit('status', `版本检测完毕，最新版本为：${json.value},建议更新！！`)
+                } else {
+                  bus.$emit('status', `版本检测完毕，当前已是最新版`)
                 }
-                bus.$emit('status', `版本检测完毕，最新版本为：${json.value},建议更新！！`)
-              } else {
-                bus.$emit('status', `版本检测完毕，当前已是最新版`)
-              }
-            })
-          } else {
+              })
+            } else {
+              bus.$emit('status', '版本检测失败')
+            }
+          })
+          .catch(ignore => {
             bus.$emit('status', '版本检测失败')
-          }
-        })
-        .catch(ignore => {
-          bus.$emit('status', '版本检测失败')
-        })
+          })
     }
   },
   watch: {

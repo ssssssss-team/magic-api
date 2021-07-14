@@ -553,7 +553,7 @@ export default {
         }
       }
       const info = this.info
-      info.ext.sessionId = new Date().getTime()
+      info.ext.sessionId = new Date().getTime() + '' + Math.floor(Math.random() * 100000)
       bus.$emit('message', 'set_session_id', info.ext.sessionId)
       this.sendTestRequest(info, requestConfig, info.ext.sessionId)
       bus.$emit('report', 'run')

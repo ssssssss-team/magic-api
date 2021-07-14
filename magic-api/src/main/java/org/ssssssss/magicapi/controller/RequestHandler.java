@@ -11,7 +11,10 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.ssssssss.magicapi.config.*;
+import org.ssssssss.magicapi.config.MagicConfiguration;
+import org.ssssssss.magicapi.config.MappingHandlerMapping;
+import org.ssssssss.magicapi.config.Valid;
+import org.ssssssss.magicapi.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.context.CookieContext;
 import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.context.SessionContext;
@@ -113,14 +116,15 @@ public class RequestHandler extends MagicController {
 		if ((value = doPreHandle(requestEntity)) != null) {
 			return value;
 		}
-		if(requestedFromTest){
+		if (requestedFromTest) {
 			try {
 				MagicLoggerContext.SESSION.set(sessionId);
 				return invokeRequest(requestEntity);
 			} finally {
 				MagicLoggerContext.SESSION.remove();
+				WebSocketSessionManager.remove(sessionId);
 			}
-		}else{
+		} else {
 			return invokeRequest(requestEntity);
 		}
 	}
@@ -272,7 +276,7 @@ public class RequestHandler extends MagicController {
 			throw root;
 		}
 		logger.error("接口{}请求出错", requestEntity.getRequest().getRequestURI(), root);
-		if(se != null && requestEntity.isRequestedFromTest()){
+		if (se != null && requestEntity.isRequestedFromTest()) {
 			Span.Line line = se.getLine();
 			requestEntity.getResponse().setHeader(ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
 			requestEntity.getResponse().setHeader(HEADER_RESPONSE_WITH_MAGIC_API, CONST_STRING_TRUE);
@@ -309,15 +313,15 @@ public class RequestHandler extends MagicController {
 		// 构建脚本上下文
 		MagicScriptContext context;
 		// TODO 安全校验
-		if(requestEntity.isRequestedFromDebug()){
+		if (requestEntity.isRequestedFromDebug()) {
 			MagicScriptDebugContext debugContext = new MagicScriptDebugContext(breakpoints);
 			String sessionId = requestEntity.getRequestedSessionId();
 			debugContext.setTimeout(configuration.getDebugTimeout());
 			debugContext.setId(sessionId);
-			WebSocketSessionManager.setSessionAttribute(sessionId, WS_DEBUG_MAGIC_SCRIPT_CONTEXT, debugContext);
 			debugContext.setCallback(variables -> WebSocketSessionManager.sendBySessionId(sessionId, BREAKPOINT, variables));
+			WebSocketSessionManager.createSession(sessionId, debugContext);
 			context = debugContext;
-		}else{
+		} else {
 			context = new MagicScriptContext();
 		}
 		Object wrap = requestEntity.getApiInfo().getOptionValue(Options.WRAP_REQUEST_PARAMETERS.getValue());
