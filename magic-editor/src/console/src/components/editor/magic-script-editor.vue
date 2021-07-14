@@ -5,10 +5,15 @@
         <li
             v-for="(item, index) in scripts"
             :key="'api_' + item.tmp_id || item.id"
-            :class="{ selected: selected === item }"
+            :class="{ selected: selected === item, draggableTargetItem: item.ext.tabDraggable }"
             :title="item.name"
             :id="'ma-tab-item-' + item.tmp_id"
             @click="open(item)" @contextmenu.prevent="e => tabsContextmenuHandle(e, item, index)"
+            :draggable="true"
+            @dragenter="e => tabDraggable(item, e, 'dragenter')"
+            @dragstart.stop="e => tabDraggable(item, e, 'dragstart')"
+            @dragend.stop="e => tabDraggable(item, e, 'dragend')"
+            @dragover.prevent
         >
           <i class="ma-svg-icon" v-if="item._type === 'api'" :class="['request-method-' + item.method]" />
           <i class="ma-svg-icon" v-if="item._type !== 'api'" :class="['icon-function']" />
@@ -92,7 +97,10 @@ export default {
       editor: null,
       showImageDialog: false,
       imageUrl: '',
-      showHsitoryDialog: false
+      showHsitoryDialog: false,
+      // tab拖拽的item
+      draggableItem: {},
+      draggableTargetItem: {},
     }
   },
   mounted() {
@@ -311,7 +319,8 @@ export default {
           save: true,
           loading: false,
           scrollTop: 0,
-          tmpScript: null // 缓存一个未修改前的脚本
+          tmpScript: null, // 缓存一个未修改前的脚本
+          tabDraggable: false // tab拖拽
         })
       }
       if (item.ext.loading) {
@@ -849,7 +858,33 @@ export default {
       })
       // 以上述配置开始观察目标节点
       this.mutationObserver.observe(this.$refs.scrollbar, config)
-    }
+    },
+    tabDraggable(item, event, type) {
+      switch (type) {
+        // 开始拖拽
+        case 'dragstart':
+          this.draggableItem = item
+          break
+        // 拖拽到某个元素上
+        case 'dragenter':
+          if (this.draggableTargetItem.ext) {
+            this.draggableTargetItem.ext.tabDraggable = false
+          }
+          this.draggableTargetItem = item
+          this.draggableTargetItem.ext.tabDraggable = true
+          break
+        // 结束拖拽
+        case 'dragend':
+          if (this.draggableItem.tmp_id !== this.draggableTargetItem.tmp_id) {
+            const itemIndex = this.scripts.indexOf(this.draggableItem)
+            const targetIndex = this.scripts.indexOf(this.draggableTargetItem)
+            this.scripts.splice(itemIndex, 1)
+            this.scripts.splice(targetIndex, 0, this.draggableItem)
+          }
+          this.draggableTargetItem.ext.tabDraggable = false
+          break
+      }
+    },
   }
 }
 </script>
@@ -942,7 +977,8 @@ ul li.selected {
   color: var(--selected-color);
 }
 
-ul li:hover {
+ul li:hover,
+ul li.draggableTargetItem {
   background: var(--hover-background);
 }
 
