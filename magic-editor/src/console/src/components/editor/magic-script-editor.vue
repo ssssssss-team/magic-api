@@ -12,7 +12,7 @@
         >
           <i class="ma-svg-icon" v-if="item._type === 'api'" :class="['request-method-' + item.method]" />
           <i class="ma-svg-icon" v-if="item._type !== 'api'" :class="['icon-function']" />
-          {{item.name}}
+          {{item.name}}<span v-show="item.script !== item.ext.tmpScript">*</span>
           <i class="ma-icon ma-icon-close" @click.stop="close(item.id || item.tmp_id)"/>
         </li>
       </ul>
@@ -310,7 +310,8 @@ export default {
           debugDecoration: null,
           save: true,
           loading: false,
-          scrollTop: 0
+          scrollTop: 0,
+          tmpScript: null // 缓存一个未修改前的脚本
         })
       }
       if (item.ext.loading) {
@@ -377,6 +378,7 @@ export default {
             item.method = data.method
           }
           item.script = data.script
+          item.ext.tmpScript = data.script
           item.description = data.description
           if (item.copy === true) {
             item.id = ''
@@ -428,6 +430,7 @@ export default {
           bus.$emit('script_add')
         }
         thisInfo.id = id
+        this.info.ext.tmpScript = saveObj.script
       })
     },
     doSaveFunction() {
@@ -448,6 +451,7 @@ export default {
           bus.$emit('function_add')
         }
         thisInfo.id = id
+        this.info.ext.tmpScript = saveObj.script
       })
     },
     doSave() {
