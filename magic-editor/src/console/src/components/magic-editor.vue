@@ -98,7 +98,15 @@ export default {
   beforeMount() {
     contants.BASE_URL = this.config.baseURL || ''
     contants.SERVER_URL = this.config.serverURL || ''
-    this.websocket = new MagicWebSocket(contants.BASE_URL.replace(/^http/, 'ws') + '/console')
+    let link = `${location.protocol}//${location.host}${location.pathname}`;
+    if (contants.BASE_URL.startsWith('http')) { // http开头
+      link = contants.BASE_URL
+    } else if (contants.BASE_URL.startsWith('/')) { // / 开头的
+      link = link + contants.BASE_URL
+    } else {
+      // TODO ../..........
+    }
+    this.websocket = new MagicWebSocket(replaceURL(link.replace(/^http/, 'ws') + '/console'))
     contants.DEFAULT_EXPAND = this.config.defaultExpand !== false
     this.config.version = contants.MAGIC_API_VERSION_TEXT
     this.config.title = this.config.title || 'magic-api'
