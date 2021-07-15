@@ -6,7 +6,7 @@ import org.ssssssss.magicapi.modules.BoundSql;
 public class PostgreSQLDialect implements Dialect {
 	@Override
 	public boolean match(String jdbcUrl) {
-		return jdbcUrl.contains(":postgresql:");
+		return jdbcUrl.contains(":postgresql:") || jdbcUrl.contains(":greenplum:");
 	}
 
 	@Override
