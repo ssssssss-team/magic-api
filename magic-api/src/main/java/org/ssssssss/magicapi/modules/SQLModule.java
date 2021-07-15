@@ -65,6 +65,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	private long ttl;
 	private String logicDeleteColumn;
 	private String logicDeleteValue;
+	private boolean isLimitParallel;
 	public SQLModule() {
 
 	}
@@ -147,6 +148,14 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	public void setLogicDeleteValue(String logicDeleteValue) {
 		this.logicDeleteValue = logicDeleteValue;
+	}
+
+	public boolean isLimitParallel() {
+		return isLimitParallel;
+	}
+
+	public void setLimitParallel(boolean limitParallel) {
+		isLimitParallel = limitParallel;
 	}
 
 	protected SqlCache getSqlCache() {

@@ -15,6 +15,10 @@ public class CrudConfig {
 	 * 逻辑删除值
 	 */
 	private String logicDeleteValue="0";
+	/**
+	 * 是否控制并发插入
+	 */
+	private boolean isLimitParallel=false;
 
 	public String getLogicDeleteColumn() {
 		return logicDeleteColumn;
@@ -30,5 +34,13 @@ public class CrudConfig {
 
 	public void setLogicDeleteValue(String logicDeleteValue) {
 		this.logicDeleteValue = logicDeleteValue;
+	}
+
+	public boolean isLimitParallel() {
+		return isLimitParallel;
+	}
+
+	public void setLimitParallel(boolean limitParallel) {
+		isLimitParallel = limitParallel;
 	}
 }

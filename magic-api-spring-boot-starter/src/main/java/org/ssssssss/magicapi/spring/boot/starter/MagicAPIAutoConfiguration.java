@@ -403,6 +403,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		sqlModule.setDialectAdapter(dialectAdapter);
 		sqlModule.setLogicDeleteColumn(properties.getCrudConfig().getLogicDeleteColumn());
         sqlModule.setLogicDeleteValue(properties.getCrudConfig().getLogicDeleteColumn());
+        sqlModule.setLimitParallel(properties.getCrudConfig().isLimitParallel());
 		return sqlModule;
 	}
 

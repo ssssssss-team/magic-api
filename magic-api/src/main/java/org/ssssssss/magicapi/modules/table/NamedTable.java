@@ -8,6 +8,9 @@ import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.script.annotation.Comment;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -15,7 +18,7 @@ import java.util.stream.Collectors;
  * @author
  */
 public class NamedTable {
-
+    private static Lock lock = new ReentrantLock();
     String tableName;
 
     SQLModule sqlModule;
@@ -23,6 +26,7 @@ public class NamedTable {
     String primary;
     String logicDeleteColumn;
     String logicDeleteValue;
+    boolean isLimitParallel;
     Map<String, Object> columns = new HashMap<>();
 
     List<String> fields = new ArrayList<>();
@@ -41,8 +45,9 @@ public class NamedTable {
         this.tableName = tableName;
         this.sqlModule = sqlModule;
         this.rowMapColumnMapper = rowMapColumnMapper;
-        this.logicDeleteColumn =sqlModule.getLogicDeleteColumn();
-        this.logicDeleteValue =sqlModule.getLogicDeleteValue();
+        this.logicDeleteColumn = sqlModule.getLogicDeleteColumn();
+        this.logicDeleteValue = sqlModule.getLogicDeleteValue();
+        this.isLimitParallel = sqlModule.isLimitParallel();
     }
 
     @Comment("设置主键名，update时使用")
@@ -163,7 +168,7 @@ public class NamedTable {
     }
 
     @Comment("执行delete语句")
-    public int delete(@Comment("是否逻辑删除")boolean isLogicDelete) {
+    public int delete(@Comment("是否逻辑删除") boolean isLogicDelete) {
         if (where.isEmpty()) {
             throw new MagicAPIException("delete语句不能没有条件");
         }
@@ -194,20 +199,34 @@ public class NamedTable {
             if (StringUtils.isNotBlank(primaryValue)) {
                 List<Object> params = new ArrayList<>();
                 params.add(primaryValue);
-                Integer count = sqlModule.selectInt(new BoundSql("select count(1) count from " + this.tableName + " where " + this.primary + " = ?", params, sqlModule));
-                if (count == 0) {
-                    return insert(data);
+
+                if (isLimitParallel) {
+                    lock.lock();
                 }
-                return update(data);
+                try {
+                    Integer count = sqlModule.selectInt(new BoundSql("select count(*) count from " + this.tableName + " where " + this.primary + " = ?", params, sqlModule));
+                    if (count == 0) {
+                        return insert(data);
+                    }
+                    return update(data);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (isLimitParallel) {
+                        lock.unlock();
+                    }
+                }
             } else {
                 return insert(data);
             }
         }
+
         if (StringUtils.isNotBlank(primaryValue)) {
             return update(data);
         }
         return insert(data);
     }
+
     @Comment("保存到表中，当主键有值时则修改，否则插入")
     public Object save(boolean beforeQuery) {
         return this.save(null, beforeQuery);
@@ -219,10 +238,14 @@ public class NamedTable {
     }
 
 
-
     @Comment("执行`select`查询")
     public List<Map<String, Object>> select() {
         return sqlModule.select(buildSelect());
+    }
+
+    @Comment("执行`select`查询")
+    public List<Map<String, Object>> select(@Comment("排除无效数据") boolean excludeInvalid) {
+        return sqlModule.select(buildSelect(excludeInvalid));
     }
 
     @Comment("执行`selectOne`查询")
@@ -230,7 +253,16 @@ public class NamedTable {
         return sqlModule.selectOne(buildSelect());
     }
 
+    @Comment("执行`selectOne`查询")
+    public Map<String, Object> selectOne(@Comment("排除无效数据") boolean excludeInvalid) {
+        return sqlModule.selectOne(buildSelect(excludeInvalid));
+    }
+
     private BoundSql buildSelect() {
+        return buildSelect(false);
+    }
+
+    private BoundSql buildSelect(boolean excludeInvalid) {
         StringBuilder builder = new StringBuilder();
         builder.append("select ");
         if (this.fields.isEmpty()) {
@@ -240,7 +272,9 @@ public class NamedTable {
         }
         builder.append(" from ").append(tableName);
         List<Object> params = new ArrayList<>();
+        where.and(excludeInvalid, it -> where.ne(logicDeleteColumn, logicDeleteValue));
         if (!where.isEmpty()) {
+            where.and();
             builder.append(where.getSql());
             params.addAll(where.getParams());
         }
@@ -258,6 +292,11 @@ public class NamedTable {
     @Comment("执行分页查询")
     public Object page() {
         return sqlModule.page(buildSelect());
+    }
+
+    @Comment("执行分页查询")
+    public Object page(@Comment("排除无效数据") boolean excludeInvalid) {
+        return sqlModule.page(buildSelect(excludeInvalid));
     }
 
     @Comment("执行update语句")
