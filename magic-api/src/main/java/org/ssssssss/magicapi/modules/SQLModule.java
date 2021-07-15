@@ -1,7 +1,6 @@
 package org.ssssssss.magicapi.modules;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
@@ -63,9 +62,11 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	private List<SQLInterceptor> sqlInterceptors;
 
 	private long ttl;
+
 	private String logicDeleteColumn;
+
 	private String logicDeleteValue;
-	private boolean isLimitParallel;
+
 	public SQLModule() {
 
 	}
@@ -148,14 +149,6 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	public void setLogicDeleteValue(String logicDeleteValue) {
 		this.logicDeleteValue = logicDeleteValue;
-	}
-
-	public boolean isLimitParallel() {
-		return isLimitParallel;
-	}
-
-	public void setLimitParallel(boolean limitParallel) {
-		isLimitParallel = limitParallel;
 	}
 
 	protected SqlCache getSqlCache() {
@@ -347,13 +340,14 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 			this.sqlCache.delete(this.cacheName);
 		}
 	}
-    /**
-     * 插入并返回主键
-     */
-    @Comment("批量执行insert操作，返回插入主键数组")
-    public int[] batchInsert(@Comment("`SQL`语句") String sql,@Comment("参数")List<Object[]> list) {
-        return dataSourceNode.getJdbcTemplate().batchUpdate(sql,list);
-    }
+
+	/**
+	 * 插入并返回主键
+	 */
+	@Comment("批量执行insert操作，返回插入主键数组")
+	public int[] batchInsert(@Comment("`SQL`语句") String sql, @Comment("参数") List<Object[]> list) {
+		return dataSourceNode.getJdbcTemplate().batchUpdate(sql, list);
+	}
 
 	/**
 	 * 插入并返回主键
@@ -415,8 +409,8 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	}
 
 	@UnableCall
-	public Integer selectInt(BoundSql boundSql){
-		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(),new SingleRowResultSetExtractor<>(Integer.class), boundSql.getParameters()));
+	public Integer selectInt(BoundSql boundSql) {
+		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), new SingleRowResultSetExtractor<>(Integer.class), boundSql.getParameters()));
 	}
 
 	/**
