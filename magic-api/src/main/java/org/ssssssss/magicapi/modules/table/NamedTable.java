@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
  * @author
  */
 public class NamedTable {
-    private static Lock lock = new ReentrantLock();
     String tableName;
 
     SQLModule sqlModule;
@@ -199,23 +198,11 @@ public class NamedTable {
             if (StringUtils.isNotBlank(primaryValue)) {
                 List<Object> params = new ArrayList<>();
                 params.add(primaryValue);
-
-                if (isLimitParallel) {
-                    lock.lock();
-                }
-                try {
                     Integer count = sqlModule.selectInt(new BoundSql("select count(*) count from " + this.tableName + " where " + this.primary + " = ?", params, sqlModule));
                     if (count == 0) {
                         return insert(data);
                     }
                     return update(data);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (isLimitParallel) {
-                        lock.unlock();
-                    }
-                }
             } else {
                 return insert(data);
             }
