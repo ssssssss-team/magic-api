@@ -165,10 +165,6 @@ class HttpRequest {
             })
         return httpResponse
     }
-
-    createConsole() {
-        return new EventSource(replaceURL(config.baseURL + '/console'));
-    }
 }
 
 export default new HttpRequest()

@@ -14,14 +14,11 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.exception.MagicLoginException;
 import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.interceptor.MagicUser;
-import org.ssssssss.magicapi.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.modules.SQLModule;
@@ -32,6 +29,7 @@ import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.ScriptClass;
 import org.ssssssss.script.parsing.Span;
+import org.ssssssss.script.parsing.Tokenizer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,6 +40,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,6 +52,10 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	private final MagicAPIService magicApiService;
 
 	private final String secretKey;
+
+	private static final Pattern SINGLE_LINE_COMMENT_TODO = Pattern.compile("((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n]+");
+
+	private static final Pattern MULTI_LINE_COMMENT_TODO = Pattern.compile("((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n(?!*/)]+");
 
 	public MagicWorkbenchController(MagicConfiguration configuration, String secretKey) {
 		super(configuration);
@@ -148,18 +152,6 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	}
 
 
-	/**
-	 * 创建控制台输出
-	 */
-	@RequestMapping("/console")
-	@Valid(requireLogin = false)
-	public SseEmitter console() throws IOException {
-		String sessionId = UUID.randomUUID().toString().replace("-", "");
-		SseEmitter emitter = MagicLoggerContext.createEmitter(sessionId);
-		emitter.send(SseEmitter.event().data(sessionId).name("create"));
-		return emitter;
-	}
-
 	@RequestMapping("/options")
 	@ResponseBody
 	@Valid(requireLogin = false)
@@ -196,6 +188,39 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 				}
 			};
 		}).collect(Collectors.toList()));
+	}
+
+	@RequestMapping("/todo")
+	@ResponseBody
+	@Valid
+	public JsonBean<List<Map<String, Object>>> todo() {
+		List<MagicEntity> entities = new ArrayList<>(configuration.getMappingHandlerMapping().getApiInfos());
+		entities.addAll(configuration.getMagicFunctionManager().getFunctionInfos());
+		List<Map<String, Object>> result = new ArrayList<>();
+		for (MagicEntity entity : entities) {
+			try {
+				List<Span> comments = Tokenizer.tokenize(entity.getScript(), true).comments();
+				for (Span comment : comments) {
+					String text = comment.getText();
+					Pattern pattern = text.startsWith("//") ? SINGLE_LINE_COMMENT_TODO : MULTI_LINE_COMMENT_TODO;
+					Matcher matcher = pattern.matcher(text);
+					while(matcher.find()){
+						result.add(new HashMap<String, Object>(){
+							{
+								put("id", entity.getId());
+								put("text", matcher.group(0).trim());
+								put("line", comment.getLine().getLineNumber());
+								put("type", entity instanceof ApiInfo ? 1 : 2);
+							}
+						});
+					}
+				}
+			} catch (Exception ignored) {
+				ignored.printStackTrace();
+			}
+
+		}
+		return new JsonBean<>(result);
 	}
 
 	@RequestMapping(value = "/config-js")

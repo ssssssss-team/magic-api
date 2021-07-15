@@ -42,16 +42,16 @@ const binaryOperatorPrecedence = [
     [TokenType.PlusEqual, TokenType.MinusEqual, TokenType.AsteriskEqual, TokenType.ForwardSlashEqual, TokenType.PercentEqual],
     [TokenType.Or, TokenType.And, TokenType.SqlOr, TokenType.SqlAnd, TokenType.Xor],
     [TokenType.EqualEqualEqual, TokenType.Equal, TokenType.NotEqualEqual, TokenType.NotEqual, TokenType.SqlNotEqual],
-    [TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual],
     [TokenType.Plus, TokenType.Minus],
+    [TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual],
     [TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage]
 ];
 const linqBinaryOperatorPrecedence = [
     [TokenType.PlusEqual, TokenType.MinusEqual, TokenType.AsteriskEqual, TokenType.ForwardSlashEqual, TokenType.PercentEqual],
     [TokenType.Or, TokenType.And, TokenType.SqlOr, TokenType.SqlAnd, TokenType.Xor],
     [TokenType.Assignment, TokenType.EqualEqualEqual, TokenType.Equal, TokenType.NotEqualEqual, TokenType.Equal, TokenType.NotEqual, TokenType.SqlNotEqual],
-    [TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual],
     [TokenType.Plus, TokenType.Minus],
+    [TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual],
     [TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage]
 ]
 const unaryOperators = [TokenType.Not, TokenType.PlusPlus, TokenType.MinusMinus, TokenType.Plus, TokenType.Minus];

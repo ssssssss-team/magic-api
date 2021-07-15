@@ -26,6 +26,7 @@
       <template #folder="{ item }">
         <div
             v-if="item._searchShow !== false"
+            :id="'magic-api-list-' + item.id"
             :class="{ 'ma-tree-select': item.selectRightItem }"
             :draggable="true"
             :style="{ 'padding-left': 17 * item.level + 'px' }"
@@ -90,7 +91,7 @@ import MagicTree from '../common/magic-tree.vue'
 import request from '@/api/request.js'
 import MagicDialog from '@/components/common/modal/magic-dialog.vue'
 import MagicInput from '@/components/common/magic-input.vue'
-import { replaceURL, download as downloadFile, requestGroup } from '@/scripts/utils.js'
+import { replaceURL, download as downloadFile, requestGroup, goToAnchor } from '@/scripts/utils.js'
 import contants from '@/scripts/contants.js'
 import Key from '@/scripts/hotkey.js'
 
@@ -522,6 +523,10 @@ export default {
             bus.$emit('status', `分组「${this.createGroupObj.name}」创建成功`)
             this.deleteOrAddGroupToTree(this.tree, this.createGroupObj)
             this.rebuildTree()
+            const id = this.createGroupObj.id
+            this.$nextTick(() => {
+              goToAnchor('#magic-api-list-' + id)
+            })
             this.initCreateGroupObj()
           })
         }

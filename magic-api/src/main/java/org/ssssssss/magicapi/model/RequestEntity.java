@@ -6,10 +6,7 @@ import org.ssssssss.script.functions.ObjectConvertExtension;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.ssssssss.magicapi.model.Constants.*;
@@ -103,6 +100,10 @@ public class RequestEntity {
 		return requestedFromTest;
 	}
 
+	public boolean isRequestedFromDebug(){
+		return requestedFromTest && !getRequestedBreakpoints().isEmpty();
+	}
+
 	public void setRequestedFromTest(boolean requestedFromTest) {
 		this.requestedFromTest = requestedFromTest;
 	}
@@ -148,13 +149,6 @@ public class RequestEntity {
 	}
 
 	/**
-	 * 判断是否是恢复断点
-	 */
-	public boolean isRequestedFromContinue() {
-		return request.getHeader(HEADER_REQUEST_CONTINUE) != null;
-	}
-
-	/**
 	 * 获取测试sessionId
 	 */
 	public String getRequestedSessionId() {
@@ -171,6 +165,6 @@ public class RequestEntity {
 					.map(val -> ObjectConvertExtension.asInt(val, -1))
 					.collect(Collectors.toList());
 		}
-		return null;
+		return Collections.emptyList();
 	}
 }

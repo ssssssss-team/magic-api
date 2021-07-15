@@ -30,6 +30,10 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.ssssssss.magicapi.adapter.ColumnMapperAdapter;
 import org.ssssssss.magicapi.adapter.DialectAdapter;
 import org.ssssssss.magicapi.adapter.Resource;
@@ -73,7 +77,8 @@ import java.util.function.BiFunction;
 @ConditionalOnClass({RequestMappingHandlerMapping.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
 @Import({MagicRedisAutoConfiguration.class, MagicMongoAutoConfiguration.class, MagicSwaggerConfiguration.class, MagicJsonAutoConfiguration.class, ApplicationUriPrinter.class})
-public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
+@EnableWebSocket
+public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketConfigurer {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
 
@@ -115,6 +120,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 	 */
 	private final ObjectProvider<List<MagicFunction>> magicFunctionsProvider;
 
+	private final ObjectProvider<MagicNotifyService> magicNotifyServiceProvider;
+
 	private final Environment environment;
 
 	private final MagicCorsFilter magicCorsFilter = new MagicCorsFilter();
@@ -140,6 +147,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 									 ObjectProvider<List<ColumnMapperProvider>> columnMapperProvidersProvider,
 									 ObjectProvider<List<MagicFunction>> magicFunctionsProvider,
 									 ObjectProvider<RestTemplate> restTemplateProvider,
+									 ObjectProvider<MagicNotifyService> magicNotifyServiceProvider,
 									 ObjectProvider<AuthorizationInterceptor> authorizationInterceptorProvider,
 									 Environment environment,
 									 ApplicationContext applicationContext
@@ -153,6 +161,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		this.columnMapperProvidersProvider = columnMapperProvidersProvider;
 		this.magicFunctionsProvider = magicFunctionsProvider;
 		this.restTemplateProvider = restTemplateProvider;
+		this.magicNotifyServiceProvider = magicNotifyServiceProvider;
 		this.authorizationInterceptorProvider = authorizationInterceptorProvider;
 		this.environment = environment;
 		this.applicationContext = applicationContext;
@@ -347,9 +356,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 										   ResultProvider resultProvider,
 										   MagicDynamicDataSource magicDynamicDataSource,
 										   MagicFunctionManager magicFunctionManager,
-										   MagicNotifyService magicNotifyService,
 										   Resource workspace) {
-		return new DefaultMagicAPIService(mappingHandlerMapping, apiServiceProvider, functionServiceProvider, groupServiceProvider, resultProvider, magicDynamicDataSource, magicFunctionManager, magicNotifyService, properties.getClusterConfig().getInstanceId(), workspace, properties.isThrowException());
+		return new DefaultMagicAPIService(mappingHandlerMapping, apiServiceProvider, functionServiceProvider, groupServiceProvider, resultProvider, magicDynamicDataSource, magicFunctionManager, magicNotifyServiceProvider.getObject(), properties.getClusterConfig().getInstanceId(), workspace, properties.isThrowException());
 	}
 
 	private void setupSpringSecurity() {
@@ -576,4 +584,17 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		return restTemplate;
 	}
 
+	@Override
+	public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
+		String web = properties.getWeb();
+		if (web != null) {
+			MagicWebSocketDispatcher dispatcher = new MagicWebSocketDispatcher(properties.getClusterConfig().getInstanceId(),magicNotifyServiceProvider.getObject(), Arrays.asList(
+					new MagicDebugHandler()
+			));
+			WebSocketHandlerRegistration registration = webSocketHandlerRegistry.addHandler(dispatcher, web + "/console");
+			if (properties.isSupportCrossDomain()) {
+				registration.setAllowedOrigins("*");
+			}
+		}
+	}
 }

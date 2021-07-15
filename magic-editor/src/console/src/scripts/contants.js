@@ -3,6 +3,7 @@ let MAGIC_API_VERSION = 'V' + MAGIC_API_VERSION_TEXT.replace(/\./g, '_')
 
 const contants = {
   BASE_URL: '', //UI 对应的接口路径
+  WEBSOCKET_SERVER: '', //WebSocket服务地址
   SERVER_URL: '', //接口对应的路径
   AUTO_SAVE: true, // 是否自动保存
   DECORATION_TIMEOUT: 10000,

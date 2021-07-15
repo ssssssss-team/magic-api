@@ -89,10 +89,11 @@ import MagicTree from '@/components/common/magic-tree.vue'
 import request from '@/api/request.js'
 import MagicDialog from '@/components/common/modal/magic-dialog.vue'
 import MagicInput from '@/components/common/magic-input.vue'
-import { replaceURL, requestGroup } from '@/scripts/utils.js'
+import { replaceURL, requestGroup, goToAnchor } from '@/scripts/utils.js'
 import JavaClass from '@/scripts/editor/java-class.js'
 import Key from '@/scripts/hotkey.js'
 import contants from '@/scripts/contants.js'
+
 export default {
   name: 'MagicFunctionList',
   props: {
@@ -490,6 +491,10 @@ export default {
             bus.$emit('status', `分组「${this.createGroupObj.name}」创建成功`)
             this.deleteOrAddGroupToTree(this.tree, this.createGroupObj)
             this.rebuildTree()
+            const id = this.createGroupObj.id
+            this.$nextTick(() => {
+              goToAnchor('#magic-api-list-' + id)
+            })
             this.initCreateGroupObj()
           })
         }
