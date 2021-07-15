@@ -220,7 +220,6 @@ export default {
       this.getParents(item.folder ? item.parentId : item.groupId).forEach(node => {
         node.selected = node.children.some(it => it.selected)
         node.checkedHalf = node.children.some(it => !it.selected || it.checkedHalf)
-        console.log(node.name,node)
       })
     },
     // 重新构建tree的path和name,第一个参数表示是否全部折叠

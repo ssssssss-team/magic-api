@@ -1,12 +1,13 @@
 <template>
   <div class="ma-run" style="display: flex; flex-direction: row;">
-    <div style="width: 40%">
+    <div style="width: 40%" v-show="!contentType">
       <div ref="resultEditor" class="ma-body-editor"></div>
     </div>
-    <div style="flex: 1;">
+    <div style="flex: 1;" v-show="!contentType">
       <magic-json :jsonData="responseBody || []" :forceUpdate="forceUpdate" :height="layoutHeight" type="response"></magic-json>
     </div>
-
+    <iframe v-if="contentType" class="ma-response-body-container" style="padding:5px;" :src="this.objectUrl">
+    </iframe>
   </div>
 </template>
 
@@ -31,7 +32,9 @@ export default {
       resultEditor: null,
       responseBody: [],
       forceUpdate: false,
-      layoutHeight: '255px'
+      layoutHeight: '255px',
+      contentType: '',
+      objectUrl: null
     }
   },
   watch: {
@@ -48,11 +51,20 @@ export default {
   mounted() {
     this.createEditor()
     bus.$on('update-response-body', (responseBody) => {
+      this.contentType = null
+      if(this.objectUrl){
+        URL.revokeObjectURL(this.objectUrl)
+        this.objectUrl = null
+      }
       this.resultEditor && this.resultEditor.setValue(responseBody || '')
       this.updateResponseBody(responseBody)
     })
     bus.$on('update-response-body-definition', (responseBodyDefinition) => {
       this.responseBody = responseBodyDefinition ? [responseBodyDefinition] : []
+    })
+    bus.$on('update-response-blob',(contentType, blob) => {
+      this.contentType = contentType
+      this.objectUrl = URL.createObjectURL(blob)
     })
   },
   methods: {
@@ -203,7 +215,7 @@ export default {
 </script>
 
 <style scoped>
-div.ma-run {
+div.ma-run{
   background: var(--background);
   height: 100%;
   width: 100%;
@@ -217,5 +229,10 @@ div.ma-run > div {
 .ma-body-editor {
   width: 100%;
   height: 100%;
+}
+.ma-response-body-container{
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 </style>

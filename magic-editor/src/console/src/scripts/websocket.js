@@ -2,7 +2,6 @@ import bus from "@/scripts/bus";
 import ReconnectingWebSocket from './reconnecting-websocket'
 function MagicWebSocket(url) {
     this.listeners = {};
-    console.log(url)
     this.socket = new ReconnectingWebSocket(url);
     this.socket.onmessage = this.messageReceived;
     bus.$on('message', (msgType, content) => {
@@ -34,7 +33,6 @@ MagicWebSocket.prototype.messageReceived = function (e) {
         args.push(newIndex === -1 ? payload : payload.substring(index + 1, newIndex))
         index = newIndex
     }
-    console.log(msgType, args)
     bus.$emit('ws_' + msgType, args)
 }
 MagicWebSocket.prototype.close = function () {

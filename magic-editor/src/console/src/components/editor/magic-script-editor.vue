@@ -57,14 +57,6 @@
         <button class="ma-button" @click="showHsitoryDialog = false">关闭</button>
       </template>
     </magic-dialog>
-    <magic-dialog :value="showImageDialog" title="图片结果" @onClose="showImageDialog = false">
-      <template #content>
-        <p align="center"><img :src="imageUrl"/></p>
-      </template>
-      <template #buttons>
-        <button class="ma-button" @click="showImageDialog = false">OK</button>
-      </template>
-    </magic-dialog>
   </div>
 </template>
 
@@ -95,8 +87,6 @@ export default {
       selected: null,
       info: null,
       editor: null,
-      showImageDialog: false,
-      imageUrl: '',
       showHsitoryDialog: false,
       // tab拖拽的item
       draggableItem: {},
@@ -652,7 +642,7 @@ export default {
               const contentType = res.headers['content-type']
               target.ext.debugDecorations && this.editor.deltaDecorations(target.ext.debugDecorations, [])
               target.ext.debugDecorations = target.ext.debugDecoration = null
-              if (contentType.indexOf('application/json') > -1) {
+              if (!(data instanceof Blob)) {
                 target.ext.debuging = target.running = false
                 if (data.body && res.headers[contants.HEADER_RESPONSE_WITH_MAGIC_API] === 'true') {
                   let line = data.body
@@ -689,36 +679,7 @@ export default {
                 // 执行完毕
                 target.running = false
                 bus.$emit('switch-tab', 'result')
-                if (contentType === contants.HEADER_APPLICATION_STREAM) {
-                  // 下载
-                  let disposition = res.headers[contants.HEADER_CONTENT_DISPOSITION]
-                  let filename = 'output'
-                  if (disposition) {
-                    filename = decodeURIComponent(disposition.substring(disposition.indexOf('filename=') + 9))
-                  }
-                  target.responseBody = utils.formatJson({filename})
-                  bus.$emit('update-response-body-definition', target.responseBodyDefinition);
-                  bus.$emit('update-response-body', target.responseBody)
-                  let a = document.createElement('a')
-                  a.download = filename
-                  let bstr = atob(data.data)
-                  let n = bstr.length
-                  let u8arr = new Uint8Array(n)
-                  while (n--) {
-                    u8arr[n] = bstr.charCodeAt(n)
-                  }
-                  a.href = window.URL.createObjectURL(new Blob([u8arr]))
-                  a.click()
-                  bus.$emit('report', 'output_blob')
-                } else if (contentType && contentType.indexOf('image') === 0) {
-                  // 图片
-                  this.imageUrl = window.URL.createObjectURL(data)
-                  this.showImageDialog = true
-                  bus.$emit('update-response-body-definition', target.responseBodyDefinition);
-                  target.responseBody = utils.formatJson(data.data)
-                  bus.$emit('update-response-body', target.responseBody)
-                  bus.$emit('report', 'output_image')
-                }
+                bus.$emit('update-response-blob', contentType, data);
               }
             })
           })

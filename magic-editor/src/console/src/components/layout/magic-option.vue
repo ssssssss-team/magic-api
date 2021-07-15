@@ -67,7 +67,6 @@ export default {
       if (this.info.option[index]) {
         this.info.option[index].name = value;
         let item = this.optionsMap[value];
-        console.log(this.optionsMap,value);
         if (item) {
           if (item.description) {
             this.info.option[index].description = item.description
