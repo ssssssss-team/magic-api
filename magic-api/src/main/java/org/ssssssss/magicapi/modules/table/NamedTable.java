@@ -41,8 +41,8 @@ public class NamedTable {
         this.tableName = tableName;
         this.sqlModule = sqlModule;
         this.rowMapColumnMapper = rowMapColumnMapper;
-        this.logicDeleteColumn =sqlModule.getEnvironment().getProperty("magic-api.crud.logic-delete-column","is_valid");
-        this.logicDeleteValue =sqlModule.getEnvironment().getProperty("magic-api.crud.logic-delete-value","0");
+        this.logicDeleteColumn =sqlModule.getLogicDeleteColumn();
+        this.logicDeleteValue =sqlModule.getLogicDeleteValue();
     }
 
     @Comment("设置主键名，update时使用")
@@ -208,17 +208,6 @@ public class NamedTable {
         }
         return insert(data);
     }
-
-    @Comment("保存到表中，当主键有值时则修改，否则插入")
-    public Object saveAll(@Comment("各项列和值") List<Map<String, Object>> data) {
-        if (StringUtils.isBlank(this.primary)) {
-            throw new MagicAPIException("请设置主键");
-        }
-        if (CollectionUtils.isEmpty(data)) {
-            throw new MagicAPIException("操作对象不能为空");
-        }
-        return batchSaveOrUpdate(data);
-    }
     @Comment("保存到表中，当主键有值时则修改，否则插入")
     public Object save(boolean beforeQuery) {
         return this.save(null, beforeQuery);
@@ -229,14 +218,7 @@ public class NamedTable {
         return this.save(data, false);
     }
 
-    @Comment("执行插入,返回主键")
-    public Object[] batchSaveOrUpdate(@Comment("各项列和值") List<Map<String, Object>> list) {
-        if (CollectionUtils.isEmpty(list)) {
-            return null;
-        }
-        return list.stream().map(item -> save(item)).collect(Collectors.toList()).toArray();
 
-    }
 
     @Comment("执行`select`查询")
     public List<Map<String, Object>> select() {
@@ -332,16 +314,5 @@ public class NamedTable {
         return update(data, false);
     }
 
-    @Comment("执行updateAll语句")
-    public Object[] updateAll(@Comment("各项列和值") List<Map<String, Object>> list) {
-        return updateAll(list, false);
-    }
 
-    @Comment("执行updateAll语句")
-    public Object[] updateAll(@Comment("各项列和值") List<Map<String, Object>> list, @Comment("是否更新空值字段") boolean isUpdateBlank) {
-        if (CollectionUtils.isEmpty(list)) {
-            throw new MagicAPIException("操作对象不能为空");
-        }
-        return list.stream().map(item -> update(item, isUpdateBlank)).collect(Collectors.toList()).toArray();
-    }
 }

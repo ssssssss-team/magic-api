@@ -60,12 +60,11 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	private String cacheName;
 
-	private Environment environment;
-
 	private List<SQLInterceptor> sqlInterceptors;
 
 	private long ttl;
-
+	private String logicDeleteColumn;
+	private String logicDeleteValue;
 	public SQLModule() {
 
 	}
@@ -134,12 +133,20 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		this.ttl = ttl;
 	}
 
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
+	public String getLogicDeleteColumn() {
+		return logicDeleteColumn;
 	}
 
-	public Environment getEnvironment() {
-		return environment;
+	public void setLogicDeleteColumn(String logicDeleteColumn) {
+		this.logicDeleteColumn = logicDeleteColumn;
+	}
+
+	public String getLogicDeleteValue() {
+		return logicDeleteValue;
+	}
+
+	public void setLogicDeleteValue(String logicDeleteValue) {
+		this.logicDeleteValue = logicDeleteValue;
 	}
 
 	protected SqlCache getSqlCache() {
@@ -165,6 +172,8 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		sqlModule.setResultProvider(this.resultProvider);
 		sqlModule.setDialectAdapter(this.dialectAdapter);
 		sqlModule.setSqlInterceptors(this.sqlInterceptors);
+		sqlModule.setLogicDeleteValue(this.logicDeleteValue);
+		sqlModule.setLogicDeleteColumn(this.logicDeleteColumn);
 		return sqlModule;
 	}
 
@@ -328,6 +337,21 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		if (this.cacheName != null) {
 			this.sqlCache.delete(this.cacheName);
 		}
+	}
+    /**
+     * 插入并返回主键
+     */
+    @Comment("批量执行insert操作，返回插入主键数组")
+    public int[] batchInsert(@Comment("`SQL`语句") String sql,@Comment("参数")List<Object[]> list) {
+        return dataSourceNode.getJdbcTemplate().batchUpdate(sql,list);
+    }
+
+	/**
+	 * 插入并返回主键
+	 */
+	@Comment("批量执行insert操作，返回插入主键数组")
+	public int[] batchInsert(@Comment("`SQL`语句") String[] sqls) {
+		return dataSourceNode.getJdbcTemplate().batchUpdate(sqls);
 	}
 
 	@UnableCall
