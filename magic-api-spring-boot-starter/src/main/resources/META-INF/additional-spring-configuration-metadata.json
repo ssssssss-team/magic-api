@@ -22,6 +22,12 @@
       "name": "debug-config",
       "sourceMethod": "getDebugConfig()",
       "type": "org.ssssssss.magicapi.spring.boot.starter.DebugConfig"
+    },
+    {
+      "sourceType": "org.ssssssss.magicapi.spring.boot.starter.MagicAPIProperties",
+      "name": "crud-config",
+      "sourceMethod": "getCrudConfig()",
+      "type": "org.ssssssss.magicapi.spring.boot.starter.CrudConfig"
     }
   ]
 }

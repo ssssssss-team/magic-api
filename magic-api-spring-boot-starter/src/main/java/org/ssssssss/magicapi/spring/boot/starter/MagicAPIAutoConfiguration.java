@@ -393,7 +393,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer {
 		DialectAdapter dialectAdapter = new DialectAdapter();
 		dialectsProvider.getIfAvailable(Collections::emptyList).forEach(dialectAdapter::add);
 		sqlModule.setDialectAdapter(dialectAdapter);
-		sqlModule.setEnvironment(environment);
+		sqlModule.setLogicDeleteColumn(properties.getCrudConfig().getLogicDeleteColumn());
+        sqlModule.setLogicDeleteValue(properties.getCrudConfig().getLogicDeleteColumn());
 		return sqlModule;
 	}
 

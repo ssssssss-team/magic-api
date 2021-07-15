@@ -126,6 +126,17 @@ public class MagicAPIProperties {
 	@NestedConfigurationProperty
 	private ClusterConfig clusterConfig = new ClusterConfig();
 
+	@NestedConfigurationProperty
+	private CrudConfig crudConfig = new CrudConfig();
+
+	public CrudConfig getCrudConfig() {
+		return crudConfig;
+	}
+
+	public void setCrudConfig(CrudConfig crudConfig) {
+		this.crudConfig = crudConfig;
+	}
+
 	public String getEditorConfig() {
 		return editorConfig;
 	}
