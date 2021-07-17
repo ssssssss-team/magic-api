@@ -193,9 +193,15 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@RequestMapping("/todo")
 	@ResponseBody
 	@Valid
-	public JsonBean<List<Map<String, Object>>> todo() {
-		List<MagicEntity> entities = new ArrayList<>(configuration.getMappingHandlerMapping().getApiInfos());
-		entities.addAll(configuration.getMagicFunctionManager().getFunctionInfos());
+	public JsonBean<List<Map<String, Object>>> todo(HttpServletRequest request) {
+		List<MagicEntity> entities = configuration.getMappingHandlerMapping()
+				.getApiInfos()
+				.stream()
+				.filter(it -> allowVisit(request, Authorization.VIEW, it))
+				.collect(Collectors.toList());
+		entities.addAll(configuration.getMagicFunctionManager().getFunctionInfos().stream()
+				.filter(it -> allowVisit(request, Authorization.VIEW, it))
+				.collect(Collectors.toList()));
 		List<Map<String, Object>> result = new ArrayList<>();
 		for (MagicEntity entity : entities) {
 			try {
