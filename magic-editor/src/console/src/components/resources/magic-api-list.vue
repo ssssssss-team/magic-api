@@ -136,7 +136,9 @@ export default {
       draggableItem: {},
       draggableTargetItem: {},
       // 是否展示tree-loading
-      showLoading: true
+      showLoading: true,
+      // 缓存一个openId
+      tmpOpenId: []
     }
   },
   methods: {
@@ -166,6 +168,7 @@ export default {
         request.send('list').success(data => {
           this.listChildrenData = data
           this.initTreeData()
+          this.openItemById()
           this.showLoading = false
         })
       })
@@ -780,6 +783,26 @@ export default {
         item = this.getItemById(item.parentId)
       }
       return items
+    },
+    // 根据id打开对应item
+    openItemById(openId) {
+      // 证明当前请求还没有请求到数据
+      if (this.listChildrenData.length === 0) {
+        this.tmpOpenId.push(openId)
+      } else {
+        if (!this.tmpOpenId.includes(openId)) {
+          this.tmpOpenId.push(openId)
+        }
+        this.tmpOpenId.forEach(id => {
+          const cache = this.getItemById(id)
+          if (cache) {
+            this.$nextTick(() => {
+              this.open(cache)
+            })
+          }
+        })
+        this.tmpOpenId = []
+      }
     }
   },
   mounted() {

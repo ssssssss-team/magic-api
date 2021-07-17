@@ -94,4 +94,22 @@ const goToAnchor = (dom) => {
     dom.scrollIntoView(true)
   }
 }
-export {replaceURL, isVisible, formatJson, formatDate, paddingZero, download, requestGroup, deepClone, goToAnchor}
+
+/**
+ * 获取url中的参数
+ * @param {String} variable 
+ * @returns 
+ */
+const getQueryVariable = (variable) => {
+  var query = window.location.search.substring(1)
+  var vars = query.split('&')
+  for (var i = 0; i < vars.length; i++) {
+    var pair = vars[i].split('=')
+    if (pair[0] == variable) {
+      return pair[1]
+    }
+  }
+  return false
+}
+
+export {replaceURL, isVisible, formatJson, formatDate, paddingZero, download, requestGroup, deepClone, goToAnchor, getQueryVariable}

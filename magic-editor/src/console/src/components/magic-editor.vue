@@ -42,7 +42,7 @@ import contants from '@/scripts/contants.js'
 import MagicWebSocket from '@/scripts/websocket.js'
 import store from '@/scripts/store.js'
 import Key from '@/scripts/hotkey.js'
-import {replaceURL} from '@/scripts/utils.js'
+import {replaceURL,getQueryVariable} from '@/scripts/utils.js'
 import {defineTheme} from '@/scripts/editor/theme.js'
 import defaultTheme from '@/scripts/editor/default-theme.js'
 import darkTheme from '@/scripts/editor/dark-theme.js'
@@ -193,6 +193,7 @@ export default {
       }
     })
     bus.$on('logout', () => this.showLogin = true)
+    this.open()
   },
   destroyed() {
     bus.$off();
@@ -299,6 +300,21 @@ export default {
           .catch(ignore => {
             bus.$emit('status', '版本检测失败')
           })
+    },
+    /**
+     * 传入id来打开对应api或者function
+     */
+    open(openIds) {
+      openIds = openIds || getQueryVariable('openIds')
+      if (openIds) {
+        if (typeof openIds === 'string') {
+          openIds = openIds.split(',')
+        }
+        openIds.forEach(id => {
+          this.$refs.apiList.openItemById(id)
+          this.$refs.functionList.openItemById(id)
+        })
+      }
     }
   },
   watch: {
