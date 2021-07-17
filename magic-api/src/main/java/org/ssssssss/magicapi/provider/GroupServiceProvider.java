@@ -52,6 +52,8 @@ public interface GroupServiceProvider {
 	 */
 	List<Group> groupList(String type);
 
+	List<Group> cachedGroupList(String type);
+
 	/**
 	 * 根据分组Id获取分组路径
 	 */

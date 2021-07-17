@@ -111,6 +111,10 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 	public List<Group> groupList(String type) {
 		Resource resource = this.workspace.getDirectory(Constants.GROUP_TYPE_API.equals(type) ? Constants.PATH_API : Constants.PATH_FUNCTION);
 		resource.readAll();
+		return getGroupList(resource);
+	}
+
+	private List<Group> getGroupList(Resource resource){
 		return resource.dirs().stream().map(it -> it.getResource(Constants.GROUP_METABASE)).filter(Resource::exists)
 				.map(it -> {
 					Group group = JsonUtils.readValue(it.read(), Group.class);
@@ -118,6 +122,12 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 					return group;
 				})
 				.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<Group> cachedGroupList(String type) {
+		Resource resource = this.workspace.getDirectory(Constants.GROUP_TYPE_API.equals(type) ? Constants.PATH_API : Constants.PATH_FUNCTION);
+		return getGroupList(resource);
 	}
 
 	@Override

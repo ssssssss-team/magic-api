@@ -119,6 +119,9 @@ public class DatabaseResource extends KeyValueResource {
 
 	@Override
 	public Set<String> keys() {
+		if(!cachedContent.isEmpty()){
+			return cachedContent.keySet().stream().filter(it -> it.startsWith(this.path) && !it.equals(this.path)).collect(Collectors.toSet());
+		}
 		String sql = String.format("select file_path from %s where file_path like '%s%%'", tableName, isDirectory() ? this.path : (this.path + separator));
 		return new HashSet<>(template.queryForList(sql, String.class));
 	}

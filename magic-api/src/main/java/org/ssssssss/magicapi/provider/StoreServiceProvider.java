@@ -169,14 +169,18 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		Map<String, Resource> mappings = new HashMap<>();
 		Map<String, T> infos = new HashMap<>();
 		List<T> result = resources.stream().map(r -> {
-			T info = deserialize(r.read());
+			T info = (T) deserialize(r.read()).clone();
 			infos.put(info.getId(), info);
 			mappings.put(info.getId(), r);
-			return (T) info.clone();
+			return info ;
 		}).collect(Collectors.toList());
 		this.mappings = mappings;
 		this.infos = infos;
 		return result;
+	}
+
+	public List<T> cachedList(){
+		return new ArrayList<>(this.infos.values());
 	}
 
 	/**

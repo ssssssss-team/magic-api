@@ -210,7 +210,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	@Override
 	public List<ApiInfo> apiList() {
-		return apiServiceProvider.list();
+		return apiServiceProvider.cachedList();
 	}
 
 	@Override
@@ -276,7 +276,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	@Override
 	public List<FunctionInfo> functionList() {
-		return functionServiceProvider.list();
+		return functionServiceProvider.cachedList();
 	}
 
 	@Override
@@ -387,7 +387,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	@Override
 	public List<Group> groupList(String type) {
-		return groupServiceProvider.groupList(type);
+		return groupServiceProvider.cachedGroupList(type);
 	}
 
 	@Override
@@ -703,7 +703,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	private boolean processApiNotify(String id, int action) {
 		// 刷新缓存
-		this.apiList();
+		apiServiceProvider.listWithScript();
 		if (action == NOTIFY_ACTION_DELETE) {
 			mappingHandlerMapping.unregisterMapping(id, true);
 		} else {
@@ -714,7 +714,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	private boolean processFunctionNotify(String id, int action) {
 		// 刷新缓存
-		this.functionList();
+		functionServiceProvider.listWithScript();
 		if (action == NOTIFY_ACTION_DELETE) {
 			magicFunctionManager.unregister(id);
 		} else {
@@ -757,12 +757,12 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				treeNode = magicFunctionManager.findGroupTree(id);
 				magicFunctionManager.deleteGroup(treeNode.flat().stream().map(Group::getId).collect(Collectors.toList()));
 				// 刷新函数缓存
-				this.functionList();
+				functionServiceProvider.listWithScript();
 			} else {
 				// 删除接口分组
 				mappingHandlerMapping.deleteGroup(treeNode.flat().stream().map(Group::getId).collect(Collectors.toList()));
 				// 刷新接口缓存
-				this.apiList();
+				apiServiceProvider.listWithScript();
 			}
 		}
 		return true;
