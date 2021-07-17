@@ -237,6 +237,18 @@ class Exit extends Node {
     }
 }
 
+class Assert extends Node {
+    constructor(span, condition, values) {
+        super(span)
+        this.condition = condition
+        this.values = values
+    }
+
+    expressions() {
+        return [this.condition, ...this.values]
+    }
+}
+
 class NewStatement extends Node {
     constructor(span, identifier, parameters) {
         super(span)
@@ -582,6 +594,7 @@ export {
     Node,
     Expression,
     Literal,
+    Assert,
     MethodCall,
     FunctionCall,
     MemberAccess,

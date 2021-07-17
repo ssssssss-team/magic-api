@@ -1,6 +1,7 @@
 import {ParseException, Span, TokenType} from './index.js'
 import JavaClass from '../editor/java-class.js'
 import {
+    Assert,
     AsyncCall,
     BinaryOperation,
     Break,
@@ -35,7 +36,7 @@ import {
     LanguageExpression
 } from './ast.js'
 
-export const keywords = ["import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or"];
+export const keywords = ["import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", /*"assert"*/];
 export const linqKeywords = ["from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on"];
 const binaryOperatorPrecedence = [
     [TokenType.Assignment],
@@ -111,6 +112,8 @@ export class Parser {
             result = new Break(this.stream.consume().getSpan());
         } else if (this.stream.match("exit", false)) {
             result = this.parseExit();
+        } else if (this.stream.match("assert", false)) {
+            result = this.parseAssert();
         } else {
             result = this.parseExpression(expectRightCurly);
         }
@@ -152,6 +155,23 @@ export class Parser {
             expressionList.push(this.parseExpression());
         } while (this.stream.match(TokenType.Comma, true));
         return new Exit(new Span(opening, this.stream.getPrev().getSpan()), expressionList);
+    }
+
+    parseAssert() {
+        let index = this.stream.makeIndex()
+        try {
+            let opening = this.stream.expect("assert").getSpan();
+            let condition = this.parseExpression();
+            this.stream.expect(TokenType.Colon);
+            let expressionList = [];
+            do {
+                expressionList.push(this.parseExpression());
+            } while (this.stream.match(TokenType.Comma, true));
+            return new Assert(new Span(opening, this.stream.getPrev().getSpan()), condition, expressionList);
+        } catch (e) {
+            this.stream.resetIndex(index)
+            return this.parseExpression();
+        }
     }
 
     parseImport() {

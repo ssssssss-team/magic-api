@@ -19,7 +19,7 @@ export const HighLightOptions = {
             [/[a-zA-Z_$][\w$]*[\s]?/, {
                 cases: {
                     '@builtinFunctions': 'predefined',
-                    "~(new|var|if|else|for|in|return|import|break|continue|as|null|true|false|try|catch|finally|async|while|exit|asc|desc|ASC|DESC)[\\s]?": {token: "keywords"},
+                    "~(new|var|if|else|for|in|return|import|break|continue|as|null|true|false|try|catch|finally|async|while|exit|asc|desc|ASC|DESC|assert)[\\s]?": {token: "keywords"},
                     "~(select|from|left|join|on|and|or|order|by|where|group|having|SELECT|FROM|LEFT|JOIN|ON|AND|OR|ORDER|BY|WHERE|GROUP|HAVING)[\\s]{1}": {token: "keywords"},
                     "@default": "identifier"
                 }
