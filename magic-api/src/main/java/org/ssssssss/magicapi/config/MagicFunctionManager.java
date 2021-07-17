@@ -123,8 +123,8 @@ public class MagicFunctionManager {
 		logger.info("注册函数:[{}:{}]", functionInfo.getName(), path);
 	}
 
-	public Collection<FunctionInfo> getFunctionInfos() {
-		return mappings.values();
+	public List<FunctionInfo> getFunctionInfos() {
+		return mappings.values().stream().distinct().collect(Collectors.toList());
 	}
 
 	private boolean hasConflict(TreeNode<Group> group, String newPath) {
