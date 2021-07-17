@@ -28,6 +28,7 @@ import MagicDebug from './magic-debug.vue'
 import MagicLog from './magic-log.vue'
 import MagicSettings from './magic-settings.vue'
 import MagicFunction from './magic-function.vue'
+import MagicTodo from './magic-todo.vue'
 import bus from '@/scripts/bus.js'
 
 export default {
@@ -43,26 +44,27 @@ export default {
         {id: 'request', name: '接口信息', icon: 'parameter', component: MagicRequest},
         {id: 'options', name: '接口选项', icon: 'options', component: MagicOption},
         {id: 'result', name: '执行结果', icon: 'run', component: MagicRun},
-        {id: 'debug', name: '调试信息', icon: 'debug-info', component: MagicDebug},
-        {id: 'log', name: '运行日志', icon: 'log', component: MagicLog},
-        {id: 'setting', name: '全局参数', icon: 'settings', component: MagicSettings}
+        {id: 'debug', name: '调试信息', icon: 'debug-info', component: MagicDebug}
       ],
       functionTabs: [
         {id: 'function', name: '函数信息', icon: 'parameter', component: MagicFunction},
       ],
       apiGroupTabs : [
         {id: 'group', name: '分组信息', icon: 'parameter', component: MagicGroup}
+      ],
+      commonTabs: [
+        {id: 'log', name: '运行日志', icon: 'log', component: MagicLog},
+        {id: 'setting', name: '全局参数', icon: 'settings', component: MagicSettings},
+        {id: 'todo', name: 'TODO', icon: 'todo', component: MagicTodo}
       ]
     }
   },
   mounted() {
-    this.tabs = this.apiTabs
+    this.tabs = this.apiTabs.concat(this.commonTabs)
     bus.$on('api-group-selected', group => {
       this.info = group;
-      if (this.tabs !== this.apiGroupTabs) {
-        this.tabs = this.apiGroupTabs;
-        this.selectedTab = this.tabs[0].id
-      }
+      this.tabs = this.apiGroupTabs.concat(this.commonTabs);
+      this.selectedTab = this.tabs[0].id
     })
     bus.$on('opened', info => {
       if(info.empty){
@@ -87,14 +89,18 @@ export default {
           this.selectedTab = this.tabs[0].id
         }
       }
+      this.tabs = this.tabs.concat(this.commonTabs)
     })
     bus.$on('switch-tab', target => {
-      if(this.apiTabs.some(it => it.id === target)){
-        this.tabs = this.apiTabs;
-      }else if(this.functionTabs.some(it => it.id === target)){
-        this.tabs = this.functionTabs;
-      }else if(this.apiGroupTabs.some(it => it.id === target)){
-        this.tabs = this.apiGroupTabs;
+      if (!this.tabs.some(it => it.id === target)) {
+        if(this.apiTabs.some(it => it.id === target)){
+          this.tabs = this.apiTabs;
+        }else if(this.functionTabs.some(it => it.id === target)){
+          this.tabs = this.functionTabs;
+        }else if(this.apiGroupTabs.some(it => it.id === target)){
+          this.tabs = this.apiGroupTabs;
+        }
+        this.tabs = this.tabs.concat(this.commonTabs)
       }
       this.$set(this, 'selectedTab', target)
       bus.$emit('update-window-size')

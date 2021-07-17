@@ -1,14 +1,18 @@
 @font-face {
-    font-family: 'magic-iconfont';
-    src: url('iconfont.ttf?t=1607593923233') format('truetype'); /* chrome, firefox, opera, Safari, Android, iOS 4.2+ */
+  font-family: "magic-iconfont"; /* Project id 1928593 */
+  src: url('iconfont.ttf?t=1626489914543') format('truetype');
 }
 
 .ma-icon {
-    font-family: 'magic-iconfont' !important;
-    font-size: 16px;
-    font-style: normal;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-family: "magic-iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.ma-icon-todo:before {
+  content: "\e602";
 }
 
 .ma-icon-push:before {
@@ -46,6 +50,7 @@
 .ma-icon-download:before {
   content: "\e659";
 }
+
 .ma-icon-http-api:before {
   content: "\e6e3";
 }
