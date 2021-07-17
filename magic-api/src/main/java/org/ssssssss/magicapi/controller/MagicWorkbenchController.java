@@ -222,7 +222,6 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 					}
 				}
 			} catch (Exception ignored) {
-				ignored.printStackTrace();
 			}
 
 		}

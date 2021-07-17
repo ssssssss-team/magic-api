@@ -179,11 +179,18 @@ const findMethods = (clazz, sort) => {
 const getExtension = (clazz) => {
     return extensions[clazz]
 }
-
-async function loadClass(className) {
+const findClass = (className) => {
     if (!className) {
         throw new Error('className is required');
     }
+    let value = scriptClass[className]
+    if(!value){
+        let index = importClass.findIndex(it => it === className)
+        value = importClass[index]
+    }
+    return value
+}
+async function loadClass(className) {
     let val = scriptClass[className];
     if (!val) {
         try {
@@ -248,6 +255,7 @@ const exportValue = {
     findMethods,
     findFunction,
     loadClass,
+    findClass,
     initClasses,
     initImportClass,
     getWrapperClass,

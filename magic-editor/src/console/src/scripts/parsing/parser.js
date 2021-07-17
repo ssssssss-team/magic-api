@@ -35,7 +35,7 @@ import {
     LanguageExpression
 } from './ast.js'
 
-export const keywords = ["import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while"];
+export const keywords = ["import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or"];
 export const linqKeywords = ["from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on"];
 const binaryOperatorPrecedence = [
     [TokenType.Assignment],
@@ -688,12 +688,13 @@ export class Parser {
         let env = {
             ...defineEnvironment,
             ...JavaClass.getAutoImportClass(),
-            ...JavaClass.getAutoImportModule()
+            ...JavaClass.getAutoImportModule(),
+            '@import' : []
         }
         let expression;
         while (this.stream.hasMore()) {
             let token = this.stream.consume();
-            var index = this.stream.makeIndex();
+            let index = this.stream.makeIndex();
             try {
                 if (token.type === TokenType.Identifier && token.getText() === 'var') {
                     let varName = this.stream.consume().getText();
@@ -724,7 +725,9 @@ export class Parser {
                             varName = value.substring(index + 1)
                         }
                     }
-                    if (varName) {
+                    if(value.endsWith(".*")){
+                        env['@import'].push(value.substring(0,value.length - 1))
+                    }else if (varName) {
                         env[varName] = value;
                     }
                 } else if (token.getTokenType() === TokenType.Assignment) {
@@ -751,7 +754,7 @@ export class Parser {
     }
 
     async completion(env) {
-        var type = await this.preprocessComplection(true, env || {});
+        let type = await this.preprocessComplection(true, env || {});
         return await JavaClass.loadClass(type);
 
     }
