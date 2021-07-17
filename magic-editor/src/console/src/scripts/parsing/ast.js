@@ -134,7 +134,15 @@ class VariableAccess extends Node {
     }
 
     async getJavaType(env) {
-        return (env && env[this.variable]) || 'java.lang.Object';
+        // @import
+        let value = (env && env[this.variable]);
+        if(!value){
+            let imports = env['@import']
+            for(let i = imports.length - 1; i >= 0 && !value; i--){
+                value = JavaClass.findClass(imports[i] + this.variable);
+            }
+        }
+        return  value|| 'java.lang.Object';
     }
 }
 
@@ -241,7 +249,15 @@ class NewStatement extends Node {
     }
 
     async getJavaType(env) {
-        return env[this.identifier] || 'java.lang.Object';
+        let value = env[this.identifier];
+        if(!value){
+            let imports = env['@import']
+            for(let i = imports.length - 1; i >= 0 && !value; i--){
+                value = JavaClass.findClass(imports[i] + this.identifier);
+            }
+            console.log(imports,this.identifier, value)
+        }
+        return  value|| 'java.lang.Object';
     }
 }
 
@@ -422,8 +438,8 @@ class BinaryOperation extends Node {
     }
 
     async getJavaType(env) {
-        var lType = await this.left.getJavaType(env);
-        var rType = await this.right.getJavaType(env);
+        let lType = await this.left.getJavaType(env);
+        let rType = await this.right.getJavaType(env);
         if (this.operator.type == TokenType.Plus || this.operator.type == TokenType.PlusEqual) {
             if (lType == 'string' || rType == 'string' || lType == 'java.lang.String' || rType == 'java.lang.String') {
                 return 'java.lang.String';
