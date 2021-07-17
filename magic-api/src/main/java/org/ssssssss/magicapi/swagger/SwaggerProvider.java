@@ -8,7 +8,6 @@ import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.BaseDefinition;
 import org.ssssssss.magicapi.model.Path;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
-import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
 import java.util.*;
@@ -74,8 +73,8 @@ public class SwaggerProvider {
 			path.addTag(groupName);
 			boolean hasBody = false;
 			try {
-				List<SwaggerEntity.Parameter> parameters = parseParameters(mapper, info);
-				hasBody = parameters.stream().anyMatch(it -> VAR_NAME_REQUEST_BODY.equals(it.getIn()));
+				List<Map<String, Object>> parameters = parseParameters(mapper, info);
+				hasBody = parameters.stream().anyMatch(it -> VAR_NAME_REQUEST_BODY.equals(it.get("in")));
 				BaseDefinition baseDefinition = info.getRequestBodyDefinition();
                 if (hasBody && baseDefinition != null) {
                     doProcessDefinition(baseDefinition, info, "root_" + baseDefinition.getName() , "request", 0);
@@ -116,10 +115,10 @@ public class SwaggerProvider {
 		return swaggerEntity;
 	}
 
-	private List<SwaggerEntity.Parameter> parseParameters(ObjectMapper mapper, ApiInfo info) {
-		List<SwaggerEntity.Parameter> parameters = new ArrayList<>();
-		info.getParameters().forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), VAR_NAME_QUERY, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
-		info.getHeaders().forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), VAR_NAME_HEADER, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
+	private List<Map<String, Object>> parseParameters(ObjectMapper mapper, ApiInfo info) {
+		List<Map<String, Object>> parameters = new ArrayList<>();
+		info.getParameters().forEach(it -> parameters.add(SwaggerEntity.createParameter(it.isRequired(), it.getName(), VAR_NAME_QUERY, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
+		info.getHeaders().forEach(it -> parameters.add(SwaggerEntity.createParameter(it.isRequired(), it.getName(), VAR_NAME_HEADER, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
 		List<Path> paths = new ArrayList<>(info.getPaths());
 		MappingHandlerMapping.findGroups(info.getGroupId())
 				.stream()
@@ -129,11 +128,11 @@ public class SwaggerProvider {
 						paths.add(it);
 					}
 				});
-		paths.forEach(it -> parameters.add(new SwaggerEntity.Parameter(it.isRequired(), it.getName(), VAR_NAME_PATH_VARIABLE, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
+		paths.forEach(it -> parameters.add(SwaggerEntity.createParameter(it.isRequired(), it.getName(), VAR_NAME_PATH_VARIABLE, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
 		try {
 			BaseDefinition baseDefinition = info.getRequestBodyDefinition();
 			if (baseDefinition!= null && baseDefinition.getChildren().size() > 0) {
-				SwaggerEntity.Parameter parameter = new SwaggerEntity.Parameter(baseDefinition.isRequired(), StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() : VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, baseDefinition.getDataType().getJavascriptType(), baseDefinition.getDescription(), baseDefinition);
+                Map<String, Object> parameter = SwaggerEntity.createParameter(baseDefinition.isRequired(), StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() : VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, baseDefinition.getDataType().getJavascriptType(), baseDefinition.getDescription(), baseDefinition);
 				Map<String, Object> schema = new HashMap<>(2);
 				String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
 				String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«request«";
@@ -145,12 +144,13 @@ public class SwaggerProvider {
 
 				schema.put("originalRef", voName);
 				schema.put("$ref", DEFINITION + voName);
-				parameter.setSchema(schema);
+                parameter.put("schema", schema);
+				// parameter.setSchema(schema);
 				parameters.add(parameter);
 			}else{
 				Object object = mapper.readValue(info.getRequestBody(), Object.class);
 				if ((object instanceof List || object instanceof Map) && BooleanLiteral.isTrue(object)) {
-					parameters.add(new SwaggerEntity.Parameter(false, VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, object instanceof List ? VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY : VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT, null, object));
+					parameters.add(SwaggerEntity.createParameter(false, VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, object instanceof List ? VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY : VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT, null, object));
 				}
 			}
 

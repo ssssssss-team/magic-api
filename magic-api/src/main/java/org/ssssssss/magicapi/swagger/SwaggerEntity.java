@@ -227,7 +227,7 @@ public class SwaggerEntity {
 
 		private List<String> consumes = new ArrayList<>();
 
-		private List<Parameter> parameters = new ArrayList<>();
+		private List<Map<String, Object>> parameters = new ArrayList<>();
 
 		private Map<String, Object> responses = new HashMap<>();
 
@@ -239,7 +239,7 @@ public class SwaggerEntity {
 			this.consumes.add(consume);
 		}
 
-		public void addParameter(Parameter parameter) {
+		public void addParameter(Map<String, Object> parameter) {
 			this.parameters.add(parameter);
 		}
 
@@ -295,11 +295,11 @@ public class SwaggerEntity {
 			this.consumes = consumes;
 		}
 
-		public List<Parameter> getParameters() {
+		public List<Map<String, Object>> getParameters() {
 			return parameters;
 		}
 
-		public void setParameters(List<Parameter> parameters) {
+		public void setParameters(List<Map<String, Object>> parameters) {
 			this.parameters = parameters;
 		}
 
@@ -320,6 +320,26 @@ public class SwaggerEntity {
 		}
 	}
 
+	public  static Map<String, Object> createParameter(boolean required, String name, String in, String type, String description, Object example) {
+		Map<String, Object> parameter =  new HashMap<>();
+		parameter.put("required", required);
+		parameter.put("name", name);
+		parameter.put("in", in);
+		parameter.put("description", description);
+
+		if ("body".equalsIgnoreCase(in)) {
+			Map<String, Object> schema = new HashMap<>();
+			schema.put("type", type);
+			schema.put("example", example);
+			parameter.put("schema", schema);
+		} else {
+			parameter.put("x-example", example);
+			parameter.put("type", type);
+		}
+		return parameter;
+	}
+
+	@Deprecated
 	public static class Parameter {
 
 		private String name;
