@@ -36,6 +36,8 @@ public class NamedTable {
 
 	Object defaultPrimaryValue;
 
+	boolean useLogic = false;
+
 	Where where = new Where(this);
 
 	public NamedTable(String tableName, SQLModule sqlModule, Function<String, String> rowMapColumnMapper) {
@@ -44,6 +46,12 @@ public class NamedTable {
 		this.rowMapColumnMapper = rowMapColumnMapper;
 		this.logicDeleteColumn = sqlModule.getLogicDeleteColumn();
 		this.logicDeleteValue = sqlModule.getLogicDeleteValue();
+	}
+
+	@Comment("使用逻辑删除")
+	public NamedTable logic(){
+		this.useLogic = true;
+		return this;
 	}
 
 	@Comment("设置主键名，update时使用")
@@ -151,8 +159,13 @@ public class NamedTable {
 		return sqlModule.insert(new BoundSql(builder.toString(), entries.stream().map(Map.Entry::getValue).collect(Collectors.toList()), sqlModule), this.primary);
 	}
 
-	@Comment("执行delete语句(物理删除)")
+	@Comment("执行delete语句")
 	public int delete() {
+		if(useLogic){
+			Map<String, Object> dataMap = new HashMap<>();
+			dataMap.put(logicDeleteColumn, logicDeleteValue);
+			return update(dataMap);
+		}
 		if (where.isEmpty()) {
 			throw new MagicAPIException("delete语句不能没有条件");
 		}
@@ -161,20 +174,6 @@ public class NamedTable {
 		builder.append(tableName);
 		builder.append(where.getSql());
 		return sqlModule.update(new BoundSql(builder.toString(), where.getParams(), sqlModule));
-	}
-
-	@Comment("执行delete语句")
-	public int delete(@Comment("是否逻辑删除") boolean isLogicDelete) {
-		if (where.isEmpty()) {
-			throw new MagicAPIException("delete语句不能没有条件");
-		}
-		if (!isLogicDelete) {
-			return delete();
-		} else {
-			Map<String, Object> dataMap = new HashMap<>();
-			dataMap.put(logicDeleteColumn, logicDeleteValue);
-			return update(dataMap);
-		}
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
@@ -227,26 +226,12 @@ public class NamedTable {
 		return sqlModule.select(buildSelect());
 	}
 
-	@Comment("执行`select`查询")
-	public List<Map<String, Object>> select(@Comment("排除无效数据") boolean excludeInvalid) {
-		return sqlModule.select(buildSelect(excludeInvalid));
-	}
-
 	@Comment("执行`selectOne`查询")
 	public Map<String, Object> selectOne() {
 		return sqlModule.selectOne(buildSelect());
 	}
 
-	@Comment("执行`selectOne`查询")
-	public Map<String, Object> selectOne(@Comment("排除无效数据") boolean excludeInvalid) {
-		return sqlModule.selectOne(buildSelect(excludeInvalid));
-	}
-
 	private BoundSql buildSelect() {
-		return buildSelect(false);
-	}
-
-	private BoundSql buildSelect(boolean excludeInvalid) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("select ");
 		if (this.fields.isEmpty()) {
@@ -256,7 +241,7 @@ public class NamedTable {
 		}
 		builder.append(" from ").append(tableName);
 		List<Object> params = new ArrayList<>();
-		where.and(excludeInvalid, it -> where.ne(logicDeleteColumn, logicDeleteValue));
+		where.and(useLogic, it -> where.ne(logicDeleteColumn, logicDeleteValue));
 		if (!where.isEmpty()) {
 			where.and();
 			builder.append(where.getSql());
@@ -276,11 +261,6 @@ public class NamedTable {
 	@Comment("执行分页查询")
 	public Object page() {
 		return sqlModule.page(buildSelect());
-	}
-
-	@Comment("执行分页查询")
-	public Object page(@Comment("排除无效数据") boolean excludeInvalid) {
-		return sqlModule.page(buildSelect(excludeInvalid));
 	}
 
 	@Comment("执行update语句")

@@ -385,14 +385,11 @@ public class Where {
 		return namedTable.delete();
 	}
 
-	@Comment("执行delete语句")
-	public int delete(@Comment("是否逻辑删除")boolean isLogicDelete) {
-		return namedTable.delete(isLogicDelete);
-	}
 	@Comment("执行update语句")
 	public int update(@Comment("各项列和值") Map<String, Object> data) {
 		return namedTable.update(data);
 	}
+
 	@Comment("执行update语句")
 	public int update(@Comment("各项列和值") Map<String, Object> data,@Comment("是否更新空值字段") boolean isUpdateBlank) {
 		return namedTable.update(data,isUpdateBlank);
@@ -401,24 +398,14 @@ public class Where {
 	public Object page() {
 		return namedTable.page();
 	}
-	@Comment("执行分页查询")
-	public Object page(@Comment("排除无效数据") boolean excludeInvalid) {
-		return namedTable.page();
-	}
+
 	@Comment("执行select查询")
 	public List<Map<String, Object>> select() {
 		return namedTable.select();
 	}
-	@Comment("执行select查询")
-	public List<Map<String, Object>> select(@Comment("排除无效数据") boolean excludeInvalid) {
-		return namedTable.select(excludeInvalid);
-	}
+
 	@Comment("执行selectOne查询")
 	public Map<String, Object> selectOne() {
 		return namedTable.selectOne();
-	}
-	@Comment("执行selectOne查询")
-	public Map<String, Object> selectOne(@Comment("排除无效数据") boolean excludeInvalid) {
-		return namedTable.selectOne(excludeInvalid);
 	}
 }
