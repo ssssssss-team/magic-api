@@ -163,13 +163,16 @@ export default {
     initData() {
       this.showLoading = true
       this.tree = []
-      request.send('group/list?type=1').success(data => {
-        this.listGroupData = data
-        request.send('list').success(data => {
-          this.listChildrenData = data
-          this.initTreeData()
-          this.openItemById()
-          this.showLoading = false
+      return new Promise((resolve) => {
+        request.send('group/list?type=1').success(data => {
+          this.listGroupData = data
+          request.send('list').success(data => {
+            this.listChildrenData = data
+            this.initTreeData()
+            this.openItemById()
+            this.showLoading = false
+            resolve()
+          })
         })
       })
     },

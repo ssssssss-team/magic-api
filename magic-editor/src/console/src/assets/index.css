@@ -106,7 +106,7 @@
     --debug-line-background: #2154A6;
     --breakpoint-line-background: #FAEAE6;
 
-
+    --todo-color: #008DDE;
     --history-select-background: #1A7DC4;
     --history-select-color: #fff;
     scrollbar-color: var(--scollbar-color) var(--scollbar-color);

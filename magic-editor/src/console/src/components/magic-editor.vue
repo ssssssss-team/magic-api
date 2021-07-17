@@ -88,10 +88,13 @@ export default {
       websocket: null,
       onLogin: () => {
         this.showLogin = false
-        this.$refs.apiList.initData()
-        this.$refs.functionList.initData()
-        this.$refs.datasourceList.initData()
-        bus.$emit('login');
+        Promise.all([
+          this.$refs.apiList.initData(),
+          this.$refs.functionList.initData(),
+          this.$refs.datasourceList.initData()
+        ]).then(()=>{
+          bus.$emit('login')
+        })
       }
     }
   },

@@ -88,5 +88,6 @@ export default {
         'checkbox-text-color': '#bbb',
         'checkbox-selected-background': '#43494A',
         'checkbox-selected-border': '#6B6B6B',
+        'todo-color': '#A8C023'
     }
 };

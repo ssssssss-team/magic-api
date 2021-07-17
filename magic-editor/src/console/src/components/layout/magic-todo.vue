@@ -18,8 +18,8 @@
               <span>({{ item.cache.path }})</span>
             </div>
             <div>
-              <label>&nbsp;{{ item.line }}：</label>
-              <label>{{ item.text }}</label>
+              <label style="padding-left: 5px">{{ item.line }}：</label>
+              <label class="todo-item" >{{ item.text }}</label>
             </div>
           </div>
         </div>
@@ -37,7 +37,7 @@
 
 <script>
 import request from '@/api/request.js'
-
+import bus from '@/scripts/bus.js'
 export default {
   name: 'MagicTodo',
   data() {
@@ -46,6 +46,9 @@ export default {
       // 是否展示loading
       showLoading: false
     }
+  },
+  mounted() {
+    bus.$on('login', ()=> this.getTodoList())
   },
   methods: {
     getTodoList() {
@@ -103,11 +106,13 @@ export default {
 .ma-todo .ma-layout .ma-content .content-bg:nth-child(even) {
   background: var(--table-even-background);
 }
-
-.ma-todo .ma-layout .ma-content .content-bg:hover {
-  background: var(--table-hover-background);
+.ma-todo .ma-layout .ma-content .content-bg .todo-item{
+  font-style: italic;
+  color:var(--todo-color)
 }
-
+.ma-todo .ma-layout .ma-content .content-bg:hover {
+  background: var(--toolbox-list-hover-background);
+}
 .ma-layout .ma-sider {
   border: none;
   border-right: 1px solid var(--tab-bar-border-color);

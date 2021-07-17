@@ -118,18 +118,21 @@ export default {
     initData() {
       this.showLoading = true
       this.datasources = []
-      request.send('datasource/list').success(data => {
-        this.datasources = data;
-        JavaClass.setExtensionAttribute('org.ssssssss.magicapi.modules.SQLModule',this.datasources.filter(it => it.key).map(it => {
-          return {
-            name : it.key,
-            type: 'org.ssssssss.magicapi.modules.SQLModule',
-            comment: it.name
-          }
-        }))
-        setTimeout(() => {
-          this.showLoading = false
-        }, 500)
+      return new Promise((resolve) => {
+        request.send('datasource/list').success(data => {
+          this.datasources = data;
+          JavaClass.setExtensionAttribute('org.ssssssss.magicapi.modules.SQLModule', this.datasources.filter(it => it.key).map(it => {
+            return {
+              name: it.key,
+              type: 'org.ssssssss.magicapi.modules.SQLModule',
+              comment: it.name
+            }
+          }))
+          setTimeout(() => {
+            this.showLoading = false
+          }, 500)
+          resolve()
+        })
       })
     },
     showDetail(id){
