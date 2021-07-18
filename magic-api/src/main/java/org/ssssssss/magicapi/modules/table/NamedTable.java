@@ -241,9 +241,13 @@ public class NamedTable {
 		}
 		builder.append(" from ").append(tableName);
 		List<Object> params = new ArrayList<>();
-		where.and(useLogic, it -> where.ne(logicDeleteColumn, logicDeleteValue));
 		if (!where.isEmpty()) {
 			where.and();
+			where.ne(useLogic, logicDeleteColumn, logicDeleteValue);
+			builder.append(where.getSql());
+			params.addAll(where.getParams());
+		}else if(useLogic){
+			where.ne(logicDeleteColumn, logicDeleteValue);
 			builder.append(where.getSql());
 			params.addAll(where.getParams());
 		}
