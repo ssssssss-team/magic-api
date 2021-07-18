@@ -267,7 +267,6 @@ class NewStatement extends Node {
             for(let i = imports.length - 1; i >= 0 && !value; i--){
                 value = JavaClass.findClass(imports[i] + this.identifier);
             }
-            console.log(imports,this.identifier, value)
         }
         return  value|| 'java.lang.Object';
     }
