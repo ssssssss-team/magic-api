@@ -101,7 +101,7 @@ export default {
   beforeMount() {
     contants.BASE_URL = this.config.baseURL || ''
     contants.SERVER_URL = this.config.serverURL || ''
-    let link = `${location.protocol}//${location.host}${location.pathname}`;
+    let link = `${location.protocol}//${location.host}${location.pathname}`.replace('/index.html', '');
     if (contants.BASE_URL.startsWith('http')) { // http开头
       link = contants.BASE_URL
     } else if (contants.BASE_URL.startsWith('/')) { // / 开头的
