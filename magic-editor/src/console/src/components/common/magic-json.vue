@@ -192,7 +192,7 @@
   }
 
   .json-view {
-    width: 35vw;
+    width: 30vw;
     overflow: scroll;
     margin: 0px 10px;
     border: 1px solid var(--border-color);

@@ -131,7 +131,7 @@ export default {
       let arr = [], that = this
       Object.keys(body).forEach((key) => {
         let param = {
-          name: 'Array' !== this.getType(body) ? key : '',
+          name: 'Array' !== this.getType(body) ? key : 'Array' === this.getType(body) && 'Object' !== that.getType(body[key]) ? key : '',
           value: 'Object' !== that.getType(body[key]) && 'Array' !== that.getType(body[key]) ? body[key] : '',
           dataType: this.getType(body[key]),
           validateType: '',
@@ -143,7 +143,7 @@ export default {
           selected: false
         }
         if ('Object' === that.getType(body[key]) || 'Array' === that.getType(body[key])) {
-          param.children = that.processBody(body[key], level + 1);
+          param.children = that.processBody('Array' === that.getType(body[key]) ? deepClone([body[key][0]]) : body[key], level + 1);
         }
         arr.push(param)
 

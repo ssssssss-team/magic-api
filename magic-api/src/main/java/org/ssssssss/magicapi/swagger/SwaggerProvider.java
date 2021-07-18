@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.BaseDefinition;
+import org.ssssssss.magicapi.model.DataType;
 import org.ssssssss.magicapi.model.Path;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
@@ -137,15 +138,19 @@ public class SwaggerProvider {
 				String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
 				String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«request«";
 				if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(baseDefinition.getDataType().getJavascriptType())) {
-					voName += "root_" + (StringUtils.isNotBlank(baseDefinition.getChildren().get(0).getName()) ? "_" + baseDefinition.getChildren().get(0).getName() : "") +  "»»»";
+					voName += "root_" + (StringUtils.isNotBlank(baseDefinition.getChildren().get(0).getName()) ? "_" + baseDefinition.getChildren().get(0).getName() : "_") +  "»»»";
+
+					Map<String, Object> items = new HashMap<>(2);
+					items.put("originalRef", voName);
+					items.put("$ref", DEFINITION + voName);
+					schema.put("items", items);
+					schema.put("type", VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY);
 				} else {
 					voName += "root_" + baseDefinition.getName() + "»»»";
+					schema.put("originalRef", voName);
+					schema.put("$ref", DEFINITION + voName);
 				}
-
-				schema.put("originalRef", voName);
-				schema.put("$ref", DEFINITION + voName);
-                parameter.put("schema", schema);
-				// parameter.setSchema(schema);
+				parameter.put("schema", schema);
 				parameters.add(parameter);
 			}else{
 				Object object = mapper.readValue(info.getRequestBody(), Object.class);

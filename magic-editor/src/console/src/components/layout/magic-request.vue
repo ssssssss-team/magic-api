@@ -153,7 +153,7 @@
         <div v-show="showIndex === 3" class="ma-layout-container">
 
           <div style="display: flex; flex-direction: row; height: calc(100% - 24px);">
-            <div style="width: 40%">
+            <div style="width: 50%">
               <div class="header">编辑器</div>
               <div ref="bodyEditor" class="ma-body-editor"></div>
             </div>
@@ -374,12 +374,11 @@
             expression: '',
             error: '',
             description: '',
-            children: this.processBody(body, 0),
+            children: this.processBody('Array' === this.getType(body) ? deepClone([body[0]]) : body, 0),
             level: 0,
             selected: this.requestBody.length <= 0
           })
-
-          this.requestBody = this.valueCopy(reqBody, this.requestBody)
+          this.requestBody = deepClone(this.valueCopy(reqBody, this.requestBody))
           this.forceUpdate = !this.forceUpdate;
         } catch (e) {
           // console.error(e)
@@ -389,7 +388,7 @@
         let arr = [], that = this
         Object.keys(body).forEach((key) => {
           let param = {
-            name: 'Array' !== this.getType(body) ? key : '',
+            name: 'Array' !== this.getType(body) ? key : 'Array' === this.getType(body) && 'Object' !== that.getType(body[key]) ? key : '',
             value: 'Object' !== that.getType(body[key]) && 'Array' !== that.getType(body[key]) ? body[key] : '',
             dataType: this.getType(body[key]),
             validateType: '',
@@ -401,7 +400,7 @@
             selected: false
           }
           if ('Object' === that.getType(body[key]) || 'Array' === that.getType(body[key])) {
-            param.children = that.processBody(body[key], level + 1);
+            param.children = that.processBody('Array' === that.getType(body[key]) ? deepClone([body[key][0]]) : body[key], level + 1);
           }
           arr.push(param)
 
@@ -458,7 +457,6 @@
               item.expression = oldItemArr[0].expression
               item.error = oldItemArr[0].error
             }
-            item.name = oldItemArr[0].name
             item.description = oldItemArr[0].description
             item.selected = oldItemArr[0].selected
             item.required = oldItemArr[0].required
