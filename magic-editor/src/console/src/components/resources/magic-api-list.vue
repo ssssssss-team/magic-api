@@ -91,7 +91,7 @@ import MagicTree from '../common/magic-tree.vue'
 import request from '@/api/request.js'
 import MagicDialog from '@/components/common/modal/magic-dialog.vue'
 import MagicInput from '@/components/common/magic-input.vue'
-import { replaceURL, download as downloadFile, requestGroup, goToAnchor } from '@/scripts/utils.js'
+import { replaceURL, download as downloadFile, requestGroup, goToAnchor, deepClone } from '@/scripts/utils.js'
 import contants from '@/scripts/contants.js'
 import Key from '@/scripts/hotkey.js'
 
@@ -412,7 +412,7 @@ export default {
                 return
               }
               let newItem = {
-                ...item,
+                ...deepClone(item),
                 copy: true
               }
               newItem.name = newItem.name + '(复制)'
