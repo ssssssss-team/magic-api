@@ -532,7 +532,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				if ("0".equals(group.getParentId())) {
 					resource = workspace.getDirectory(GROUP_TYPE_API.equals(group.getType()) ? PATH_API : PATH_FUNCTION).getDirectory(group.getName());
 				} else {
-					resource = groupServiceProvider.getGroupResource(group.getParentId());
+					resource = groupServiceProvider.getGroupResource(group.getId());
 				}
 				if (resource != null && resource.exists()) {
 					Group src = groupServiceProvider.readGroup(resource.getResource(GROUP_METABASE));
