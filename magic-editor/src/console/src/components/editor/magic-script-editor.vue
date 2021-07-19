@@ -17,7 +17,7 @@
         >
           <i class="ma-svg-icon" v-if="item._type === 'api'" :class="['request-method-' + item.method]" />
           <i class="ma-svg-icon" v-if="item._type !== 'api'" :class="['icon-function']" />
-          {{item.name}}<span v-show="item.script !== item.ext.tmpScript">*</span>
+          {{item.name}}<span v-show="!item.id || item.script !== item.ext.tmpScript">*</span>
           <i class="ma-icon ma-icon-close" @click.stop="close(item.id || item.tmp_id)"/>
         </li>
       </ul>

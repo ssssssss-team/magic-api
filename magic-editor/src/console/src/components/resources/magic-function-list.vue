@@ -89,7 +89,7 @@ import MagicTree from '@/components/common/magic-tree.vue'
 import request from '@/api/request.js'
 import MagicDialog from '@/components/common/modal/magic-dialog.vue'
 import MagicInput from '@/components/common/magic-input.vue'
-import { replaceURL, requestGroup, goToAnchor } from '@/scripts/utils.js'
+import { replaceURL, requestGroup, goToAnchor, deepClone } from '@/scripts/utils.js'
 import JavaClass from '@/scripts/editor/java-class.js'
 import Key from '@/scripts/hotkey.js'
 import contants from '@/scripts/contants.js'
@@ -396,8 +396,8 @@ export default {
                 return
               }
               let newItem = {
-                copy: true,
-                ...item
+                ...deepClone(item),
+                copy: true
               }
               newItem.name = newItem.name + '(复制)'
               newItem.tmp_id = new Date().getTime() + '' + Math.floor(Math.random() * 1000)
