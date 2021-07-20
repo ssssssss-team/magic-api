@@ -11,7 +11,7 @@ import static org.ssssssss.script.reflection.JavaReflection.findInvoker;
 public enum DataType {
 	Object("object"),
 	Array("array"),
-	Boolean("boolean"),
+	Boolean(false, findInvoker(Boolean.class, "valueOf", new Class<?>[]{String.class}), false, true, "boolean"),
 	String("string"),
 	Integer(true, findInvoker(BigDecimal.class, "intValue"), "number"),
 	Double(true, findInvoker(BigDecimal.class, "doubleValue"), "number"),
