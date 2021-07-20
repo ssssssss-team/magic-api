@@ -78,7 +78,7 @@ public class RequestHandler extends MagicController {
 		Map<String, Object> headers = new HashMap<String, Object>() {
 			@Override
 			public Object get(Object key) {
-				return request.getHeader(key.toString());
+				return getOrDefault(key, request.getHeader(key.toString()));
 			}
 		};
 		requestEntity.setHeaders(headers);
