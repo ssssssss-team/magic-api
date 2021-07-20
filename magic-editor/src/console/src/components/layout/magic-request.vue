@@ -211,6 +211,7 @@
         ],
         headerTypes: [
           {value: 'String', text: 'String'},
+          {value: 'Boolean', text: 'Boolean'},
           {value: 'Integer', text: 'Integer'},
           {value: 'Double', text: 'Double'},
           {value: 'Long', text: 'Long'},
@@ -220,6 +221,7 @@
         ],
         types: [
           {value: 'String', text: 'String'},
+          {value: 'Boolean', text: 'Boolean'},
           {value: 'Integer', text: 'Integer'},
           {value: 'Double', text: 'Double'},
           {value: 'Long', text: 'Long'},
