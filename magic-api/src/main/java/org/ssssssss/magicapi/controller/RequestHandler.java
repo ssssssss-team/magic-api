@@ -148,7 +148,7 @@ public class RequestHandler extends MagicController {
 		return false;
 	}
 
-	private <T extends BaseDefinition> void doValidate(String comment, List<T> validateParameters, Map<String, Object> parameters, JsonCode jsonCode) {
+	private <T extends BaseDefinition> Map<String, Object> doValidate(String comment, List<T> validateParameters, Map<String, Object> parameters, JsonCode jsonCode) {
 		parameters = parameters != null ? parameters : EMPTY_MAP;
 		for (BaseDefinition parameter : validateParameters) {
 			// 针对requestBody多层级的情况
@@ -161,17 +161,18 @@ public class RequestHandler extends MagicController {
 				if (doValidateBody(comment, parameter, parameters, jsonCode, List.class)) {
 					continue;
 				}
-				List list = (List) parameters.get(parameter.getName());
+				List<Object> list = (List) parameters.get(parameter.getName());
 				if (list != null) {
-					for (Object value : list) {
-						List<BaseDefinition> definitions = parameter.getChildren();
-						doValidate(VAR_NAME_REQUEST_BODY, definitions, new HashMap<String, Object>() {{
-							put("", value);
-						}}, jsonCode);
-					}
+					List<BaseDefinition> definitions = parameter.getChildren();
+					parameters.put(parameter.getName(), list.stream()
+							.map(it -> doValidate(VAR_NAME_REQUEST_BODY, definitions,  new HashMap<String, Object>(2) {{    // 使用 hashmap
+								put(EMPTY, it);
+								}}, jsonCode))
+							.collect(Collectors.toList())
+					);
 				}
 
-			} else if (StringUtils.isNotBlank(parameter.getName())) {
+			} else if (StringUtils.isNotBlank(parameter.getName()) || parameters.containsKey(parameter.getName())) {
 				String requestValue = StringUtils.defaultIfBlank(Objects.toString(parameters.get(parameter.getName()), EMPTY), Objects.toString(parameter.getDefaultValue(), EMPTY));
 				if (StringUtils.isBlank(requestValue)) {
 					if (!parameter.isRequired()) {
@@ -208,6 +209,7 @@ public class RequestHandler extends MagicController {
 				}
 			}
 		}
+		return parameters;
 	}
 
 	/**
