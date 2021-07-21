@@ -11,7 +11,7 @@
             <img :src="imgArray" v-else/>
           </template>
 
-          {{item.level > 0 ? item.name : ''}}{{item.dataType !== 'Object' && item.dataType !== 'Array' ? ':' : ''}}
+          {{item.level > 0 ? item.name : ''}}{{item.dataType !== 'Object' && item.dataType !== 'Array' && item.name !== '' ? ':' : ''}}
           <span :style="item.dataType | color">
               {{item.dataType === 'String' ? (item.value === 'null' || item.value == null ? 'null' : '"' + item.value + '"') : item.value}}
             </span>

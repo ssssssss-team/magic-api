@@ -13,11 +13,12 @@
 
 <script>
 
-  import MagicJson from '@/components/common/magic-json.vue'
+import MagicJson from '@/components/common/magic-json.vue'
 import bus from '@/scripts/bus.js'
 import * as monaco from 'monaco-editor'
 import store from '@/scripts/store.js'
-import {isVisible, deepClone} from '@/scripts/utils.js'
+import {isVisible} from '@/scripts/utils.js'
+import {parseJson} from '@/scripts/parsing/parser.js'
 
 export default {
   name: 'MagicRun',
@@ -101,31 +102,15 @@ export default {
       this.layout()
     },
     updateResponseBody(bodyStr) {
-      try {
         if (['{}','[]'].indexOf(bodyStr.replace(/\s/g,"")) > -1) {
           this.responseBody = []
           return false
         }
-        let body = JSON.parse(bodyStr)
-        let reqBody = []
-        reqBody.push({
-          name: '',
-          value: '',
-          dataType: this.getType(body),
-          validateType: '',
-          expression: '',
-          error: '',
-          description: '',
-          children: this.processBody(body, 0),
-          level: 0,
-          selected: this.responseBody.length <= 0
-        })
-
-        this.responseBody = this.valueCopy(reqBody, this.responseBody)
-        this.forceUpdate = !this.forceUpdate;
-      } catch (e) {
-        // console.error(e)
-      }
+        let ret = parseJson(bodyStr)
+        if(ret){
+          this.responseBody = ret;
+          this.forceUpdate = !this.forceUpdate
+        }
     },
     processBody(body, level) {
       let arr = [], that = this
@@ -152,8 +137,8 @@ export default {
     },
     getType(object) {
       if (Object.prototype.toString.call(object) === '[object Number]') {
-        if(parseInt(object) !== parseFloat(object)) {
-          return "Float";
+        if(object.toString().indexOf('.') !==-1 && parseInt(object) !== parseFloat(object)) {
+          return "Double";
         }
         // if (object >= -128 && object <= 127) {
         //   return "Byte";

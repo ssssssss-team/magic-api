@@ -1,4 +1,5 @@
-import {ParseException, Span, TokenType} from './index.js'
+import {ParseException, Span, TokenType, TokenStream} from './index.js'
+import tokenizer from './tokenizer.js'
 import JavaClass from '../editor/java-class.js'
 import {
     Assert,
@@ -777,6 +778,94 @@ export class Parser {
         let type = await this.preprocessComplection(true, env || {});
         return await JavaClass.loadClass(type);
 
+    }
+}
+
+function processBody(body, level) {
+    let arr = []
+    let defaultParam = {
+        name: '',
+        value: '',
+        dataType: '',
+        validateType: '',
+        expression: '',
+        error: '',
+        description: '',
+        children: [],
+        level: level + 1,
+        selected: false
+    }
+    if(body instanceof MapLiteral){
+        body.keys.forEach((key,index) => {
+            let value = body.values[index];
+            let param = {
+                ...defaultParam,
+                name: key.span.getText().replace(/['"]/g,''),
+                value: isSimpleObject(value) ? value.span.getText() : '',
+                dataType: getType(value),
+            }
+            if(value instanceof MapLiteral || value instanceof ListLiteral){
+                param.children = processBody(value, level + 1);
+            }
+            arr.push(param)
+        });
+    }else if(body instanceof ListLiteral){
+        if(body.values[0]){
+            let value = body.values[0]
+            let param = {
+                ...defaultParam,
+                value: isSimpleObject(value) ? value.span.getText() : '',
+                dataType: getType(value),
+            }
+            if(value instanceof MapLiteral || value instanceof ListLiteral){
+                param.children = processBody(value, level + 1);
+            }
+            arr.push(param)
+        }
+    }
+    return arr;
+}
+function isSimpleObject(object){
+    return !(object instanceof MapLiteral || object instanceof ListLiteral)
+}
+function getType(object) {
+    if(object instanceof MapLiteral){
+        return "Object";
+    }
+    if(object instanceof ListLiteral){
+        return "Array";
+    }
+    if(object instanceof UnaryOperation){
+        object = object.operand;
+    }
+    let type = object.javaType.substring(object.javaType.lastIndexOf(".") + 1);
+    if(type === 'Integer' && Number(object.span.getText()) > 0x7fffffff || Number(object.span.getText()) < -0x80000000){
+        return 'Long'
+    }
+    return type === 'null' ? 'Object' : '';
+}
+
+export function parseJson(bodyStr){
+    try {
+        JSON.parse(bodyStr)
+        let parser = new Parser(new TokenStream(tokenizer(bodyStr)))
+        let expr = parser.parseExpression();
+        let reqBody = []
+        reqBody.push({
+            name: '',
+            value: '',
+            dataType: getType(expr),
+            validateType: '',
+            expression: '',
+            error: '',
+            description: '',
+            children: processBody(expr, 0),
+            level: 0,
+            selected: false
+        })
+        return reqBody
+    } catch (e) {
+        console.error(e)
     }
 }
 

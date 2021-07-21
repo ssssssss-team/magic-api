@@ -289,7 +289,7 @@ class AsyncCall extends Node {
 
 class UnaryOperation extends Node {
     constructor(operator, operand, atAfter) {
-        super(operator.getSpan())
+        super(new Span(operator.getSpan(), operand.getSpan()))
         this.operand = operand
         this.atAfter = atAfter
     }

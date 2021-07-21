@@ -183,10 +183,10 @@
   import MagicJson from '@/components/common/magic-json.vue'
 
   import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
-  import {formatJson, isVisible, deepClone} from '@/scripts/utils.js'
+  import {formatJson, isVisible} from '@/scripts/utils.js'
   import bus from '@/scripts/bus.js'
   import store from '@/scripts/store.js'
-
+  import {parseJson} from '@/scripts/parsing/parser.js'
   let timeout = null;
   export default {
     name: 'MagicRequest',
@@ -365,109 +365,12 @@
           this.requestBody = []
           return false
         }
-        try {
-          let body = JSON.parse(bodyStr)
-          let reqBody = []
-          reqBody.push({
-            name: '',
-            value: '',
-            dataType: this.getType(body),
-            validateType: '',
-            expression: '',
-            error: '',
-            description: '',
-            children: this.processBody('Array' === this.getType(body) ? deepClone([body[0]]) : body, 0),
-            level: 0,
-            selected: this.requestBody.length <= 0
-          })
-          this.requestBody = deepClone(this.valueCopy(reqBody, this.requestBody))
+        let ret = parseJson(bodyStr)
+        if(ret){
+          this.requestBody = ret;
           this.forceUpdate = !this.forceUpdate;
-        } catch (e) {
-          // console.error(e)
         }
-      },
-      processBody(body, level) {
-        let arr = [], that = this
-        Object.keys(body).forEach((key) => {
-          let param = {
-            name: 'Array' !== this.getType(body) ? key : 'Array' === this.getType(body) && 'Object' !== that.getType(body[key]) ? key : '',
-            value: 'Object' !== that.getType(body[key]) && 'Array' !== that.getType(body[key]) ? body[key] : '',
-            dataType: this.getType(body[key]),
-            validateType: '',
-            expression: '',
-            error: '',
-            description: '',
-            children: [],
-            level: level + 1,
-            selected: false
-          }
-          if ('Object' === that.getType(body[key]) || 'Array' === that.getType(body[key])) {
-            param.children = that.processBody('Array' === that.getType(body[key]) ? deepClone([body[key][0]]) : body[key], level + 1);
-          }
-          arr.push(param)
-
-        })
-        return arr;
-      },
-      getType(object) {
-        if (Object.prototype.toString.call(object) === '[object Number]') {
-          if(parseInt(object) !== parseFloat(object)) {
-            return "Float";
-          }
-          // if (object >= -128 && object <= 127) {
-          //   return "Byte";
-          // }
-          // if (object >= -32768 && object <= 32767) {
-          //   return "Short";
-          // }
-          if (object >= -2147483648 && object <= 2147483647) {
-            return "Integer";
-          }
-          return "Long";
-        }
-        if (Object.prototype.toString.call(object) === '[object String]') {
-          return "String";
-        }
-        if (Object.prototype.toString.call(object) === '[object Boolean]') {
-          return "Boolean";
-        }
-        if (Object.prototype.toString.call(object) === '[object Array]') {
-          return "Array";
-        }
-        if (Object.prototype.toString.call(object) === '[object Object]') {
-          return "Object";
-        }
-        return "String";
-      },
-      valueCopy(newBody, oldBody, arrayFlag = false) {
-        if (oldBody.length == 0) {
-          return newBody
-        }
-        let that = this;
-        newBody.map(item => {
-          let oldItemArr = oldBody.filter(old => {
-            if (old.level === 0 || arrayFlag) {
-              return old
-            }
-            return old.name === item.name
-          })
-          if (oldItemArr.length > 0) {
-            if (item.dataType === 'Object' || item.dataType === 'Array') {
-              item.children = that.valueCopy(item.children, oldItemArr[0].children, item.dataType === 'Array')
-            } else {
-              item.validateType = oldItemArr[0].validateType
-              item.expression = oldItemArr[0].expression
-              item.error = oldItemArr[0].error
-            }
-            item.description = oldItemArr[0].description
-            item.selected = oldItemArr[0].selected
-            item.required = oldItemArr[0].required
-          }
-
-        })
-        return deepClone(newBody);
       }
-
     },
     destroyed() {
       if (this.bodyEditor) {
