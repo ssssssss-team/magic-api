@@ -842,7 +842,7 @@ function getType(object) {
     if(type === 'Integer' && Number(object.span.getText()) > 0x7fffffff || Number(object.span.getText()) < -0x80000000){
         return 'Long'
     }
-    return type === 'null' ? 'Object' : '';
+    return type === 'null' ? 'Object' : type;
 }
 
 export function parseJson(bodyStr){
