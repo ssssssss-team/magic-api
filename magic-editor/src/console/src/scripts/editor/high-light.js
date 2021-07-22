@@ -41,10 +41,11 @@ export const HighLightOptions = {
             [/'/, 'string', '@string_single'],
         ],
         comment: [
-            [/((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n(?!\*\/)]+/, 'comment.todo','@comment'],
-            [/[ \t]+/, 'comment','@comment'],
-            [/\*\//, 'comment', '@popall'],
-            [/[^ \t]+(?!((TODO)|(todo)|(fixme)|(FIXME)))/, 'comment','@comment']
+            [/((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n(?!\*\/)]+/, 'comment.todo'],
+            [/[ \t]+/, 'comment'],
+            [/\*\//, 'comment', '@pop'],
+            [/[^ \t*\/]+(?!((TODO)|(todo)|(fixme)|(FIXME)))/, 'comment'],
+            [/./, 'comment'],
         ],
         commentTodo: [
             [/((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n]+/, 'comment.todo','@popall'],
