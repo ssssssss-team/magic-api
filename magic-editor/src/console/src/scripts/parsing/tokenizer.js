@@ -144,7 +144,7 @@ let stringToken = (stream, tokens) => {
             throw new ParseException("字符串没有结束符\"", stream.endSpan());
         }
         let stringSpan = stream.endSpan();
-        stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd());
+        stringSpan = stream.getSpan(stringSpan.getStart(), stringSpan.getEnd() - 1);
         tokens.push(new LiteralToken(TokenType.StringLiteral, stringSpan));
         return true;
     }
