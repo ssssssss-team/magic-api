@@ -129,6 +129,9 @@ public class MagicAPIProperties {
 	@NestedConfigurationProperty
 	private CrudConfig crudConfig = new CrudConfig();
 
+	@NestedConfigurationProperty
+	private BackupConfig backupConfig = new BackupConfig();
+
 	public CrudConfig getCrudConfig() {
 		return crudConfig;
 	}
@@ -345,8 +348,15 @@ public class MagicAPIProperties {
 		return showUrl;
 	}
 
-	public MagicAPIProperties setShowUrl(boolean showUrl) {
+	public void setShowUrl(boolean showUrl) {
 		this.showUrl = showUrl;
-		return this;
+	}
+
+	public BackupConfig getBackupConfig() {
+		return backupConfig;
+	}
+
+	public void setBackupConfig(BackupConfig backupConfig) {
+		this.backupConfig = backupConfig;
 	}
 }

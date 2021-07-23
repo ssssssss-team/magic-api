@@ -15,7 +15,6 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 
 	private static final Logger logger = LoggerFactory.getLogger(StoreServiceProvider.class);
 	protected Resource workspace;
-	protected Resource backupResource;
 	protected Map<String, Resource> mappings = new HashMap<>();
 	protected Map<String, T> infos = new HashMap<>();
 	protected GroupServiceProvider groupServiceProvider;
@@ -29,10 +28,6 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		this.groupServiceProvider = groupServiceProvider;
 		if (!this.workspace.exists()) {
 			this.workspace.mkdir();
-		}
-		this.backupResource = this.workspace.parent().getDirectory(Constants.PATH_BACKUPS);
-		if (!this.backupResource.exists()) {
-			this.backupResource.mkdir();
 		}
 	}
 
@@ -51,54 +46,6 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 			return true;
 		}
 		return false;
-	}
-
-	/**
-	 * 备份历史记录
-	 */
-	public boolean backup(T info) {
-		Resource directory = this.backupResource.getDirectory(info.getId());
-		if (!directory.readonly() && (directory.exists() || directory.mkdir())) {
-			Resource resource = directory.getResource(String.format("%s.ms", System.currentTimeMillis()));
-			try {
-				return resource.write(serialize(info));
-			} catch (Exception e) {
-				logger.warn("保存历史记录失败,{}", e.getMessage());
-			}
-		}
-		return false;
-	}
-
-
-	/**
-	 * 查询历史记录
-	 *
-	 * @return 时间戳列表
-	 */
-	public List<Long> backupList(String id) {
-		Resource directory = this.backupResource.getDirectory(id);
-		List<Resource> resources = directory.files(".ms");
-		return resources.stream()
-				.map(it -> Long.valueOf(it.name().replace(".ms", "")))
-				.sorted(Comparator.reverseOrder())
-				.collect(Collectors.toList());
-	}
-
-	/**
-	 * 查询历史记录详情
-	 *
-	 * @param id        ID
-	 * @param timestamp 时间戳
-	 */
-	public T backupInfo(String id, Long timestamp) {
-		Resource directory = this.backupResource.getDirectory(id);
-		if (directory.exists()) {
-			Resource resource = directory.getResource(String.format("%s.ms", timestamp));
-			if (resource.exists()) {
-				return deserialize(resource.read());
-			}
-		}
-		return null;
 	}
 
 	/**

@@ -49,8 +49,6 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicWorkbenchController.class);
 
-	private final MagicAPIService magicApiService;
-
 	private final String secretKey;
 
 	private static final Pattern SINGLE_LINE_COMMENT_TODO = Pattern.compile("((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n]+");
@@ -59,7 +57,6 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	public MagicWorkbenchController(MagicConfiguration configuration, String secretKey) {
 		super(configuration);
-		magicApiService = configuration.getMagicAPIService();
 		this.secretKey = secretKey;
 		// 给前端添加代码提示
 		MagicScriptEngine.addScriptClass(SQLModule.class);
@@ -145,7 +142,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		// 重新注册函数
 		configuration.getMagicFunctionManager().registerAllFunction();;
 		// 重新注册数据源
-		magicApiService.registerAllDataSource();
+		magicAPIService.registerAllDataSource();
 		// 发送更新通知
 		configuration.getMagicNotifyService().sendNotify(new MagicNotify(configuration.getInstanceId()));
 		return new JsonBean<>();
@@ -254,7 +251,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@ResponseBody
 	public ResponseEntity<?> download(String groupId, @RequestBody(required = false) List<SelectedResource> resources) throws IOException {
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		magicApiService.download(groupId, resources, os);
+		magicAPIService.download(groupId, resources, os);
 		if (StringUtils.isBlank(groupId)) {
 			return ResponseModule.download(os.toByteArray(), "magic-api-group.zip");
 		} else {
@@ -267,7 +264,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@ResponseBody
 	public JsonBean<Boolean> upload(MultipartFile file, String mode) throws IOException {
 		notNull(file, FILE_IS_REQUIRED);
-		magicApiService.upload(file.getInputStream(), mode);
+		magicAPIService.upload(file.getInputStream(), mode);
 		return new JsonBean<>(SUCCESS, true);
 	}
 
@@ -276,7 +273,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@Valid(authorization = Authorization.PUSH)
 	public JsonBean<?> push(@RequestHeader("magic-push-target") String target, @RequestHeader("magic-push-secret-key")String secretKey,
 							@RequestHeader("magic-push-mode")String mode, @RequestBody List<SelectedResource> resources) {
-		return magicApiService.push(target, secretKey, mode, resources);
+		return magicAPIService.push(target, secretKey, mode, resources);
 	}
 
 	@ResponseBody
@@ -288,7 +285,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		notNull(file, SIGN_IS_INVALID);
 		byte[] bytes = IoUtils.bytes(file.getInputStream());
 		isTrue(sign.equals(SignUtils.sign(timestamp, secretKey, mode, bytes)), SIGN_IS_INVALID);
-		magicApiService.upload(new ByteArrayInputStream(bytes), mode);
+		magicAPIService.upload(new ByteArrayInputStream(bytes), mode);
 		return new JsonBean<>();
 	}
 }

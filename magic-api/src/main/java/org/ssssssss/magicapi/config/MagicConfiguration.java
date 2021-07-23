@@ -65,6 +65,8 @@ public class MagicConfiguration {
 
 	private AuthorizationInterceptor authorizationInterceptor;
 
+	private MagicBackupService magicBackupService;
+
 	/**
 	 * debug 超时时间
 	 */
@@ -206,6 +208,14 @@ public class MagicConfiguration {
 
 	public void setInstanceId(String instanceId) {
 		this.instanceId = instanceId;
+	}
+
+	public MagicBackupService getMagicBackupService() {
+		return magicBackupService;
+	}
+
+	public void setMagicBackupService(MagicBackupService magicBackupService) {
+		this.magicBackupService = magicBackupService;
 	}
 
 	/**

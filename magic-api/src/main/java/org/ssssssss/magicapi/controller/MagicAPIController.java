@@ -7,9 +7,11 @@ import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.model.ApiInfo;
+import org.ssssssss.magicapi.model.Backup;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
 import org.ssssssss.magicapi.provider.MagicAPIService;
+import org.ssssssss.magicapi.provider.MagicBackupService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -20,14 +22,8 @@ import java.util.stream.Collectors;
  */
 public class MagicAPIController extends MagicController implements MagicExceptionHandler {
 
-	private final ApiServiceProvider apiServiceProvider;
-
-	private final MagicAPIService magicAPIService;
-
 	public MagicAPIController(MagicConfiguration configuration) {
 		super(configuration);
-		this.apiServiceProvider = configuration.getApiServiceProvider();
-		this.magicAPIService = configuration.getMagicAPIService();
 	}
 
 	/**
@@ -76,9 +72,9 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/backups")
 	@ResponseBody
-	public JsonBean<List<Long>> backups(HttpServletRequest request, String id) {
+	public JsonBean<List<Backup>> backupList(HttpServletRequest request, String id) {
 		isTrue(allowVisit(request, Authorization.VIEW, getApiInfo(id)), PERMISSION_INVALID);
-		return new JsonBean<>(apiServiceProvider.backupList(id));
+		return new JsonBean<>(magicBackupService.backupById(id));
 	}
 
 	/**
@@ -89,9 +85,9 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	 */
 	@RequestMapping("/backup/get")
 	@ResponseBody
-	public JsonBean<ApiInfo> backups(HttpServletRequest request, String id, Long timestamp) {
+	public JsonBean<Backup> backups(HttpServletRequest request, String id, Long timestamp) {
 		isTrue(allowVisit(request, Authorization.VIEW, getApiInfo(id)), PERMISSION_INVALID);
-		return new JsonBean<>(apiServiceProvider.backupInfo(id, timestamp));
+		return new JsonBean<>(magicBackupService.backupInfo(id, timestamp));
 	}
 
 	/**

@@ -6,10 +6,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.interceptor.Authorization;
+import org.ssssssss.magicapi.model.Backup;
 import org.ssssssss.magicapi.model.FunctionInfo;
 import org.ssssssss.magicapi.model.JsonBean;
 import org.ssssssss.magicapi.provider.FunctionServiceProvider;
 import org.ssssssss.magicapi.provider.MagicAPIService;
+import org.ssssssss.magicapi.provider.MagicBackupService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -17,14 +19,9 @@ import java.util.stream.Collectors;
 
 public class MagicFunctionController extends MagicController implements MagicExceptionHandler {
 
-	private final FunctionServiceProvider functionService;
-
-	private final MagicAPIService magicAPIService;
 
 	public MagicFunctionController(MagicConfiguration configuration) {
 		super(configuration);
-		this.functionService = configuration.getFunctionServiceProvider();
-		this.magicAPIService = configuration.getMagicAPIService();
 	}
 
 	@RequestMapping("/function/list")
@@ -46,16 +43,16 @@ public class MagicFunctionController extends MagicController implements MagicExc
 
 	@RequestMapping("/function/backup/get")
 	@ResponseBody
-	public JsonBean<FunctionInfo> backups(HttpServletRequest request, String id, Long timestamp) {
+	public JsonBean<Backup> backups(HttpServletRequest request, String id, Long timestamp) {
 		isTrue(allowVisit(request, Authorization.VIEW, getFunctionInfo(id)), PERMISSION_INVALID);
-		return new JsonBean<>(functionService.backupInfo(id, timestamp));
+		return new JsonBean<>(magicBackupService.backupInfo(id, timestamp));
 	}
 
 	@RequestMapping("/function/backups")
 	@ResponseBody
-	public JsonBean<List<Long>> backups(HttpServletRequest request, String id) {
+	public JsonBean<List<Backup>> backupList(HttpServletRequest request, String id) {
 		isTrue(allowVisit(request, Authorization.VIEW, getFunctionInfo(id)), PERMISSION_INVALID);
-		return new JsonBean<>(functionService.backupList(id));
+		return new JsonBean<>(magicBackupService.backupById(id));
 	}
 
 	@RequestMapping("/function/move")
@@ -82,8 +79,8 @@ public class MagicFunctionController extends MagicController implements MagicExc
 		isTrue(allowVisit(request, Authorization.DELETE, getFunctionInfo(id)), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.deleteFunction(id));
 	}
-	
-	public FunctionInfo getFunctionInfo(String id){
+
+	public FunctionInfo getFunctionInfo(String id) {
 		FunctionInfo functionInfo = magicAPIService.getFunctionInfo(id);
 		notNull(functionInfo, FUNCTION_NOT_FOUND);
 		return functionInfo;

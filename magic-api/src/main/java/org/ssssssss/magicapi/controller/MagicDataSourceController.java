@@ -16,11 +16,8 @@ import java.util.stream.Collectors;
 
 public class MagicDataSourceController extends MagicController implements MagicExceptionHandler {
 
-	private final MagicAPIService magicAPIService;
-
 	public MagicDataSourceController(MagicConfiguration configuration) {
 		super(configuration);
-		this.magicAPIService = configuration.getMagicAPIService();
 	}
 
 	/**

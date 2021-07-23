@@ -12,6 +12,8 @@ import org.ssssssss.magicapi.script.ScriptManager;
 import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.exception.MagicExitException;
+import org.ssssssss.script.parsing.ast.statement.Exit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,7 +48,11 @@ public class MagicFunctionManager {
 								functionContext.set(parameters.get(i).getName(), objects[i]);
 							}
 						}
-						return ScriptManager.executeScript(info.getScript(), functionContext);
+						Object value =  ScriptManager.executeScript(info.getScript(), functionContext);
+						if(value instanceof Exit.Value){
+							throw new MagicExitException((Exit.Value) value);
+						}
+						return value;
 					} finally {
 						MagicScriptContext.set(context);
 					}

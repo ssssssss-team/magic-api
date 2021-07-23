@@ -36,7 +36,7 @@
       </div>
     </div>
 
-    <magic-dialog :moveable="false" :title="'历史记录：' + (info && info.name)" :value="showHsitoryDialog"
+    <magic-dialog :title="'历史记录：' + (info && info.name)" :value="showHsitoryDialog"
                   align="right" height="750px" maxWidth="inherit" padding="none" width="80%"
                   @onClose="showHsitoryDialog = false">
       <template #content>

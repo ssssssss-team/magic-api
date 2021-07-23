@@ -55,6 +55,7 @@ export default {
             timestamp: item.timestamp,
           })
           .success((info) => {
+            info = JSON.parse(info.content)
             this.originalModel = monaco.editor.createModel(info.script, 'magicscript');
             this.diffEditor.setModel({
               original: this.originalModel,
@@ -70,7 +71,7 @@ export default {
       this.scriptModel = monaco.editor.createModel(this.scriptEditor.getValue(), 'magicscript')
       this.originalModel = this.scriptModel;
       this.timestampes = timestampes.map((t) => {
-        return {id: item.id, timestamp: t, dateTime: formatDate(Number(t))}
+        return {id: item.id, timestamp: t.createDate, dateTime: formatDate(t.createDate)}
       })
       if (this.timestampes.length > 0) {
         this.open(this.timestampes[0])

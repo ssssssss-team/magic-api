@@ -21,6 +21,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.ssssssss.magicapi.adapter.Resource;
+import org.ssssssss.magicapi.adapter.resource.KeyValueResource;
 import org.ssssssss.magicapi.adapter.resource.ZipResource;
 import org.ssssssss.magicapi.config.MagicDynamicDataSource;
 import org.ssssssss.magicapi.config.MagicFunctionManager;
@@ -40,10 +41,12 @@ import org.ssssssss.magicapi.utils.SignUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.exception.MagicExitException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Scope;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.Expression;
+import org.ssssssss.script.parsing.ast.statement.Exit;
 
 import javax.script.ScriptContext;
 import javax.script.SimpleScriptContext;
@@ -79,6 +82,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	private final String instanceId;
 	private final Resource workspace;
 	private final Resource datasourceResource;
+	private final MagicBackupService backupService;
 
 	public DefaultMagicAPIService(MappingHandlerMapping mappingHandlerMapping,
 								  ApiServiceProvider apiServiceProvider,
@@ -90,6 +94,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 								  MagicNotifyService magicNotifyService,
 								  String instanceId,
 								  Resource workspace,
+								  MagicBackupService backupService,
 								  boolean throwException) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
 		this.apiServiceProvider = apiServiceProvider;
@@ -102,6 +107,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		this.workspace = workspace;
 		this.throwException = throwException;
 		this.instanceId = instanceId;
+		this.backupService = backupService;
 		this.datasourceResource = workspace.getDirectory(PATH_DATASOURCE);
 		if (!this.datasourceResource.exists()) {
 			this.datasourceResource.mkdir();
@@ -116,7 +122,11 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 					return new Expression(new Span("unknown source")) {
 						@Override
 						public Object evaluate(MagicScriptContext context, Scope scope) {
-							return execute(info, scope.getVariables());
+							Object value = execute(info, scope.getVariables());
+							if(value instanceof Exit.Value){
+								throw new MagicExitException((Exit.Value) value);
+							}
+							return value;
 						}
 					};
 				}
@@ -193,7 +203,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 					.findFirst();
 			if (optional.isPresent() && !optional.get().equals(info)) {
 				isTrue(apiServiceProvider.update(info), API_SAVE_FAILURE);
-				apiServiceProvider.backup(info);
+				backupService.backup(info);
 			}
 		}
 		// 注册接口
@@ -262,7 +272,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		} else {
 			isTrue(!functionServiceProvider.existsWithoutId(functionInfo), FUNCTION_ALREADY_EXISTS.format(functionInfo.getPath()));
 			isTrue(functionServiceProvider.update(functionInfo), FUNCTION_SAVE_FAILURE);
-			functionServiceProvider.backup(functionInfo);
+			backupService.backup(functionInfo);
 		}
 		magicFunctionManager.register(functionInfo);
 		magicNotifyService.sendNotify(new MagicNotify(instanceId, functionInfo.getId(), action, NOTIFY_ACTION_FUNCTION));
@@ -488,6 +498,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		magicDynamicDataSource.put(dsId, key, name, createDataSource(properties), maxRows);
 		properties.put("id", dsId);
 		datasourceResource.getResource(dsId + ".json").write(JsonUtils.toJsonString(properties));
+		backupService.backup(properties);
 		magicNotifyService.sendNotify(new MagicNotify(instanceId, dsId, action, NOTIFY_ACTION_DATASOURCE));
 		return dsId;
 	}
@@ -558,10 +569,12 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				groupServiceProvider.insert(group);
 			}
 		}
-		Resource backups = workspace.getDirectory(PATH_BACKUPS);
 		// 保存
-		write(apiServiceProvider, backups, apiInfos);
-		write(functionServiceProvider, backups, functionInfos);
+		write(apiServiceProvider, apiInfos);
+		write(functionServiceProvider, functionInfos);
+		// 备份
+		apiInfos.forEach(backupService::backup);
+		functionInfos.forEach(backupService::backup);
 		// 重新注册
 		mappingHandlerMapping.registerAllMapping();
 		magicFunctionManager.registerAllFunction();
@@ -571,6 +584,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				byte[] content = it.read();
 				// 保存数据源
 				this.datasourceResource.getResource(it.name()).write(content);
+				// TODO 备份数据源
 			});
 		}
 		// TODO 会造成闪断，需要上锁处理。
@@ -812,24 +826,13 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		throw new InvalidArgumentException(DATASOURCE_TYPE_NOT_SET);
 	}
 
-	private <T extends MagicEntity> void write(StoreServiceProvider<T> provider, Resource backups, Set<T> infos) {
+	private <T extends MagicEntity> void write(StoreServiceProvider<T> provider, Set<T> infos) {
 		for (T info : infos) {
-			Resource resource = groupServiceProvider.getGroupResource(info.getGroupId());
-			resource = resource.getResource(info.getName() + ".ms");
-			byte[] content = null;
 			T oldInfo = provider.get(info.getId());
 			if (oldInfo != null) {
-				content = provider.serialize(oldInfo);
 				provider.update(info);
 			} else {
 				provider.insert(info);
-			}
-			if (content != null) {
-				Resource directory = backups.getDirectory(info.getId());
-				if (!directory.exists()) {
-					directory.mkdir();
-				}
-				directory.getResource(System.currentTimeMillis() + ".ms").write(content);
 			}
 		}
 	}

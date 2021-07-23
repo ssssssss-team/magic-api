@@ -9,6 +9,8 @@ import org.ssssssss.magicapi.exception.MagicLoginException;
 import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.interceptor.MagicUser;
 import org.ssssssss.magicapi.model.*;
+import org.ssssssss.magicapi.provider.MagicAPIService;
+import org.ssssssss.magicapi.provider.MagicBackupService;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -16,8 +18,14 @@ public class MagicController implements JsonCodeConstants {
 
 	MagicConfiguration configuration;
 
+	final MagicAPIService magicAPIService;
+
+	final MagicBackupService magicBackupService;
+
 	MagicController(MagicConfiguration configuration) {
 		this.configuration = configuration;
+		this.magicAPIService = configuration.getMagicAPIService();
+		this.magicBackupService = configuration.getMagicBackupService();
 	}
 
 	public void doValid(HttpServletRequest request, Valid valid) {
