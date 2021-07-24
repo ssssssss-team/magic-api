@@ -1,7 +1,7 @@
 <template>
   <div :class="{ inputable, border}" class="ma-select not-select" @click.stop="showList" ref="container">
     <span v-if="!inputable">{{ showText }}</span>
-    <input v-if="inputable" ref="input" :value="showText" autocomplete="off" type="text" @input="(e) => triggerSelect(e.target.value)"/>
+    <input v-if="inputable" ref="input" :value="showText" autocomplete="off" type="text" @input="(e) => triggerSelect(e.target.value)" :placeholder="placeholder"/>
     <ul v-show="visible" :style="{ width, marginTop, marginLeft}" ref="selectList">
       <li v-for="item in options" :key="'ma_select_' + item.value" @click.stop="triggerSelect(item.value)">
         {{ item.text }}
@@ -15,6 +15,7 @@ export default {
   name: 'MagicSelect',
   props: {
     value: String,
+    placeholder: String,
     defaultValue: String,
     options: Array,
     border: {
@@ -92,13 +93,12 @@ export default {
   font-size: 12px;
 }
 
-.ma-select.border {
-  border: 1px solid var(--input-border-color);
-}
-
 .ma-select.inputable {
   background: var(--select-inputable-background);
   border-color: var(--select-inputable-border);
+}
+.ma-select.border {
+  border: 1px solid var(--input-border-color);
 }
 
 .ma-select input {

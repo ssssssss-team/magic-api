@@ -32,18 +32,47 @@
       </div>
       <div class="no-data" v-show="!showLoading && (!datasources || datasources.length === 0)">无数据</div>
     </div>
-    <magic-dialog width="1000px" height="400px" v-model="showDialog" :title="dsId ? '修改数据源:' + dsName : '创建数据源'" align="right" @onClose="toogleDialog(false)">
+    <magic-dialog width="400px" height="450px" v-model="showDialog" :title="datasourceObj.id ? '修改数据源:' + datasourceObj.name : '创建数据源'" align="right" @onClose="toogleDialog(false)">
       <template #content>
         <div class="ds-form">
-          <label>数据源名称</label>
-          <magic-input :value.sync="dsName"/>
-          <label>key</label>
-          <magic-input :value.sync="dsKey"/>
+          <label>名称</label>
+          <magic-input :value.sync="datasourceObj.name" placeholder="数据源名称，仅做展示使用"/>
         </div>
-        <div ref="editor" class="ma-editor" style="width: 100%;height:300px"></div>
+        <div class="ds-form">
+          <label>Key</label>
+          <magic-input :value.sync="datasourceObj.key" placeholder="数据库key，后续代码中使用"/>
+        </div>
+        <div class="ds-form">
+          <label>URL</label>
+          <magic-input :value.sync="datasourceObj.url" placeholder="请输入jdbcurl，如：jdbc:mysql://localhost"/>
+        </div>
+        <div class="ds-form">
+          <label>用户名</label>
+          <magic-input :value.sync="datasourceObj.username" placeholder="请输入数据库用户名"/>
+        </div>
+        <div class="ds-form">
+          <label>密码</label>
+          <magic-input :value.sync="datasourceObj.password" type="password" placeholder="请输入数据库密码"/>
+        </div>
+        <div class="ds-form">
+          <label>驱动类</label>
+          <magic-select :inputable="true" :border="true" :value.sync="datasourceObj.driverClassName" :options="drivers" :placeholder="'驱动类，可选，内部自动识别，也可以手动输入指定'"/>
+        </div>
+        <div class="ds-form">
+          <label>类型</label>
+          <magic-select :inputable="true" :border="true" :value.sync="datasourceObj.type" :options="datasourceTypes" :placeholder="'数据源类型，可选，也可以手动输入指定'"/>
+        </div>
+        <div class="ds-form">
+          <label>maxRows</label>
+          <magic-input :value.sync="datasourceObj.maxRows" placeholder="最多返回条数，-1未不限制"/>
+        </div>
+        <div class="ds-form">
+          <label>其它配置</label>
+          <div ref="editor" class="ma-editor" style="width: 100%;height:150px"></div>
+        </div>
       </template>
       <template #buttons>
-        <button class="ma-button active" @click="doSave">{{ dsId ? '修改' : '创建' }}</button>
+        <button class="ma-button active" @click="doSave">{{ datasourceObj.id ? '修改' : '创建' }}</button>
         <button class="ma-button" @click="doTest">测试连接</button>
         <button class="ma-button" @click="toogleDialog(false)">取消</button>
       </template>
@@ -60,10 +89,12 @@ import {formatJson, isVisible, replaceURL} from '@/scripts/utils.js'
 import JavaClass from '@/scripts/editor/java-class.js'
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
 import store from "@/scripts/store";
+import MagicSelect from "@/components/common/magic-select";
 
 export default {
   name: 'MagicDatasourceList',
   components: {
+    MagicSelect,
     MagicDialog,
     MagicInput
   },
@@ -72,15 +103,31 @@ export default {
       bus: bus,
       datasources: [],
       showDialog:false,
-      dsName: "",
-      dsKey : "",
-      dsId : "",
       datasourceObj: {
+        id: "",
+        name: "",
+        key: "",
         url: "",
         username: "",
         password: "",
-        maxRows: "-1"
+        driverClassName: "",
+        maxRows: "-1",
+        type: ""
       },
+      drivers: [
+          'com.mysql.jdbc.Driver',
+          'com.mysql.cj.jdbc.Driver',
+          'oracle.jdbc.driver.OracleDriver',
+          'org.postgresql.Driver',
+          'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+          'com.ibm.db2.jcc.DB2Driver',
+      ].map(it => { return {text: it, value: it} }),
+      datasourceTypes: [
+          'com.zaxxer.hikari.HikariDataSource',
+          'com.alibaba.druid.pool.DruidDataSource',
+          'org.apache.tomcat.jdbc.pool.DataSource',
+          'org.apache.commons.dbcp2.BasicDataSource',
+      ].map(it => { return {text: it, value: it} }),
       editor: null,
       // 是否展示loading
       showLoading: true
@@ -142,30 +189,39 @@ export default {
         })
       }else{
         request.send('datasource/detail',{id : id}).success(res => {
-          this.dsId = id;
-          this.dsName = res.name;
-          this.dsKey = res.key;
-          delete res.id;
-          delete res.name;
-          delete res.key;
           this.datasourceObj = res;
           this.toogleDialog(true)
         });
       }
     },
-    doTest(){
+    getDataSourceObj(){
+      let temp = {
+        id: this.datasourceObj.id,
+        name: this.datasourceObj.name,
+        key: this.datasourceObj.key,
+        maxRows: this.datasourceObj.maxRows,
+        type: this.datasourceObj.type,
+        driverClassName: this.datasourceObj.driverClassName,
+        username: this.datasourceObj.username,
+        password: this.datasourceObj.password,
+        url: this.datasourceObj.url,
+      }
       let value = this.editor.getValue();
       let json = {};
       try{
         json = JSON.parse(value)
       }catch(e){
-        this.$magicAlert({
-          content : 'JSON格式有误，请检查'
-        })
-        return;
       }
+      for(let key in json){
+        if(!temp[key]){
+          temp[key] = json[key]
+        }
+      }
+      return temp;
+    },
+    doTest(){
       bus.$emit('status', `测试数据源连接...`)
-      request.send('datasource/test',value,{
+      request.send('datasource/test',JSON.stringify(this.getDataSourceObj()),{
         method: 'post',
         headers: {
           'Content-Type': 'application/json'
@@ -187,70 +243,60 @@ export default {
       })
     },
     doSave(){
-      if(!this.dsName){
+      if(!this.datasourceObj.username){
         this.$magicAlert({
           content : '数据源名称不能为空'
         })
-      }else if(!this.dsKey){
+      }else if(!this.datasourceObj.key){
         this.$magicAlert({
           content : '数据源key不能为空'
         })
       }else{
-        let value = this.editor.getValue();
-        let json = {};
-        try{
-          json = JSON.parse(value)
-        }catch(e){
-          this.$magicAlert({
-            content : 'JSON格式有误，请检查'
-          })
-          return;
-        }
-        let saveObj = {
-          ...json,
-          id: this.dsId,
-          key: this.dsKey,
-          name: this.dsName
-        }
-        bus.$emit('status', `保存数据源「${this.dsName}」...`)
-        request.send('datasource/save',JSON.stringify(saveObj),{
+        bus.$emit('status', `保存数据源「${this.datasourceObj.name}」...`)
+        request.send('datasource/save',JSON.stringify(this.getDataSourceObj()),{
           method: 'post',
           headers: {
             'Content-Type': 'application/json'
           },
           transformRequest: []
         }).success(dsId => {
-          bus.$emit('status', `数据源「${this.dsName}」保存成功`)
+          bus.$emit('status', `数据源「${this.datasourceObj.name}」保存成功`)
           this.showDialog = false;
-          this.datasourceObj = {
-            url: "",
-            username: "",
-            password: "",
-            maxRows: "-1"
-          };
-          this.dsId = '';
-          this.dsName = '';
-          this.dsKey = '';
+          this.initDataSourceObj()
           this.initData();
 
         })
+      }
+    },
+    initDataSourceObj(){
+      this.datasourceObj = {
+        id: "",
+        name: "",
+        key: "",
+        url: "",
+        username: "",
+        password: "",
+        maxRows: "-1",
+        type: ""
       }
     },
     toogleDialog(show,clear){
       this.showDialog = show;
       if(show){
         if(clear){
-          this.datasourceObj = {
-            url: "",
-            username: "",
-            password: "",
-            maxRows: "-1"
-          };
-          this.dsId = '';
-          this.dsName = '';
-          this.dsKey = '';
+          this.initDataSourceObj()
         }
         bus.$emit('status', `准备编辑数据源`)
+        let temp = {...this.datasourceObj}
+        delete temp.id
+        delete temp.name
+        delete temp.key
+        delete temp.maxRows
+        delete temp.type
+        delete temp.driverClassName
+        delete temp.username
+        delete temp.password
+        delete temp.url
         if(!this.editor){
           this.editor = monaco.editor.create(this.$refs.editor, {
             minimap: {
@@ -260,13 +306,12 @@ export default {
             fixedOverflowWidgets: true,
             folding: true,
             wordWrap: 'on',
-            lineDecorationsWidth: 20,
             theme: store.get('skin') || 'default',
-            value: formatJson(this.datasourceObj) || '{\r\n\t\r\n}'
+            value: formatJson(temp) || '{\r\n\t\r\n}'
           })
         }else{
-          bus.$emit('status', `编辑数据源「${this.dsName}」`)
-          this.editor.setValue(formatJson(this.datasourceObj))
+          bus.$emit('status', `编辑数据源「${this.datasourceObj.name}」`)
+          this.editor.setValue(formatJson(temp))
         }
         this.layout();
       }
@@ -313,12 +358,18 @@ ul li:hover{
 }
 .ds-form{
   margin-bottom: 5px;
+  display: flex;
 }
 .ds-form label{
   margin-right: 5px;
+  display: inline-block;
+  width: 60px;
+  text-align: right;
+  height: 22px;
+  line-height: 22px;
 }
 .ds-form > div{
-  width: 335px;
+  flex: 1;
 }
 .ds-form label:nth-of-type(2){
   margin: 0 5px;
