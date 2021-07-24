@@ -56,6 +56,8 @@ public class ScriptManager {
 			return compile("MagicScript", script).eval(simpleScriptContext);
 		} catch (ScriptException e) {
 			throw new MagicAPIException(e.getMessage(), e);
+		} finally {
+			MagicScriptContext.remove();
 		}
 	}
 

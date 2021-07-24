@@ -7,11 +7,6 @@ public class Constants {
 	 */
 	public static final String CONST_STRING_TRUE = "true";
 
-	/**
-	 * false 常量
-	 */
-	public static final String CONST_STRING_FALSE = "false";
-
 
 	/**
 	 * 分组类型: 接口
@@ -79,16 +74,6 @@ public class Constants {
 	public static final String VAR_NAME_PATH_VARIABLE = "path";
 
 	/**
-	 * WebSocket存储的sessionId
-	 */
-	public static final String WS_DEBUG_SESSION_KEY = "sessionId";
-
-	/**
-	 * WebSocket存储的MagicScriptDebugContext
-	 */
-	public static final String WS_DEBUG_MAGIC_SCRIPT_CONTEXT = "magicScriptContext";
-
-	/**
 	 * 脚本中header的变量名
 	 */
 	public static final String VAR_NAME_HEADER = "header";
@@ -109,18 +94,10 @@ public class Constants {
 	 * 脚本中RequestBody的变量名字段类型
 	 */
 	public static final String VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY = "array";
-	/**
-	 * 脚本中RequestBody的变量名
-	 */
-	public static final String HEADER_PREFIX_FOR_TEST = "MA-";
 
 	public static final String HEADER_REQUEST_SESSION = "Magic-Request-Session";
 
 	public static final String HEADER_REQUEST_BREAKPOINTS = "Magic-Request-Breakpoints";
-
-	public static final String HEADER_REQUEST_CONTINUE = "Magic-Request-Continue";
-
-	public static final String HEADER_REQUEST_STEP_INTO = "Magic-Request-Step-Into";
 
 	public static final String HEADER_RESPONSE_WITH_MAGIC_API = "Response-With-Magic-API";
 
@@ -129,8 +106,6 @@ public class Constants {
 	public static final String MAGIC_TOKEN_HEADER = "Magic-Token";
 
 	public static final String GROUP_METABASE = "group.json";
-
-	public static final String UPLOAD_MODE_INCREMENT = "increment";
 
 	public static final String UPLOAD_MODE_FULL = "full";
 
@@ -204,5 +179,10 @@ public class Constants {
 	 * 通知 S -> C 的WebSocket消息
 	 */
 	public static final int NOTIFY_WS_S_C = 200;
+
+	/**
+	 * 空数组
+	 */
+	public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
 }

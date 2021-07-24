@@ -21,7 +21,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.ssssssss.magicapi.adapter.Resource;
-import org.ssssssss.magicapi.adapter.resource.KeyValueResource;
 import org.ssssssss.magicapi.adapter.resource.ZipResource;
 import org.ssssssss.magicapi.config.MagicDynamicDataSource;
 import org.ssssssss.magicapi.config.MagicFunctionManager;
@@ -43,10 +42,7 @@ import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.exception.MagicExitException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
-import org.ssssssss.script.parsing.Scope;
-import org.ssssssss.script.parsing.Span;
-import org.ssssssss.script.parsing.ast.Expression;
-import org.ssssssss.script.parsing.ast.statement.Exit;
+import org.ssssssss.script.runtime.ExitValue;
 
 import javax.script.ScriptContext;
 import javax.script.SimpleScriptContext;
@@ -54,6 +50,7 @@ import javax.sql.DataSource;
 import java.io.*;
 import java.sql.Connection;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -119,14 +116,19 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				String path = name.substring(index + 1);
 				ApiInfo info = this.mappingHandlerMapping.getApiInfo(method, path);
 				if (info != null) {
-					return new Expression(new Span("unknown source")) {
-						@Override
-						public Object evaluate(MagicScriptContext context, Scope scope) {
-							Object value = execute(info, scope.getVariables());
-							if(value instanceof Exit.Value){
-								throw new MagicExitException((Exit.Value) value);
+					return (Function<Object[], Object>) objects -> {
+						MagicScriptContext context = MagicScriptContext.get();
+						MagicScriptContext newContext = new MagicScriptContext();
+						newContext.putMapIntoContext(context.getVariables());
+						MagicScriptContext.set(newContext);
+						try {
+							Object value = ScriptManager.executeScript(info.getScript(), newContext);
+							if(value instanceof ExitValue){
+								throw new MagicExitException((ExitValue) value);
 							}
 							return value;
+						} finally {
+							MagicScriptContext.set(context);
 						}
 					};
 				}
@@ -599,7 +601,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			notNull(resource, GROUP_NOT_FOUND);
 			resource.parent().export(os);
 		} else if (resources == null || resources.isEmpty()) {
-			workspace.export(os, PATH_BACKUPS);
+			workspace.export(os, PATH_BACKUPS, "backup");
 		} else {
 			ZipOutputStream zos = new ZipOutputStream(os);
 			for (SelectedResource item : resources) {

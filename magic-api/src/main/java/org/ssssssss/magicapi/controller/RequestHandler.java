@@ -164,12 +164,12 @@ public class RequestHandler extends MagicController {
 				List<Object> list = (List) parameters.get(parameter.getName());
 				if (list != null) {
 					List<BaseDefinition> definitions = parameter.getChildren();
-					parameters.put(parameter.getName(), list.stream()
-							.map(it -> doValidate(VAR_NAME_REQUEST_BODY, definitions,  new HashMap<String, Object>(2) {{    // 使用 hashmap
-								put(EMPTY, it);
-								}}, jsonCode))
-							.collect(Collectors.toList())
-					);
+					List<Map<String, Object>> newList = list.stream().map(it -> doValidate(VAR_NAME_REQUEST_BODY, definitions, new HashMap<String, Object>() {{    // 使用 hashmap
+						put(EMPTY, it);
+					}}, jsonCode)).collect(Collectors.toList());
+					for (int i = 0, size = newList.size(); i < size; i++) {
+						list.set(i, newList.get(i).get(EMPTY));
+					}
 				}
 
 			} else if (StringUtils.isNotBlank(parameter.getName()) || parameters.containsKey(parameter.getName())) {
@@ -225,7 +225,7 @@ public class RequestHandler extends MagicController {
 				if (decimal == null) {
 					throw new IllegalArgumentException();
 				}
-				return dataType.getInvoker().invoke0(decimal, null);
+				return dataType.getInvoker().invoke0(decimal, null, EMPTY_OBJECT_ARRAY);
 			} else {
 				JavaInvoker<Method> invoker = dataType.getInvoker();
 				if (invoker != null) {
@@ -247,6 +247,7 @@ public class RequestHandler extends MagicController {
 
 	private Object invokeRequest(RequestEntity requestEntity) throws Throwable {
 		try {
+			MagicScriptContext.set(requestEntity.getMagicScriptContext());
 			Object result = ScriptManager.executeScript(requestEntity.getApiInfo().getScript(), requestEntity.getMagicScriptContext());
 			Object value = result;
 			// 执行后置拦截器
@@ -259,6 +260,7 @@ public class RequestHandler extends MagicController {
 			return processException(requestEntity, root);
 		} finally {
 			RequestContext.remove();
+			MagicScriptContext.remove();
 		}
 	}
 

@@ -8,8 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.ssssssss.magicapi.config.MagicModule;
-import org.ssssssss.script.reflection.AbstractReflection;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.script.reflection.JavaInvoker;
+import org.ssssssss.script.reflection.JavaReflection;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -27,14 +28,13 @@ public class MongoModule extends HashMap<String, Object> implements MagicModule 
 
 	public MongoModule(MongoTemplate mongoTemplate) {
 		this.mongoTemplate = mongoTemplate;
-		AbstractReflection reflection = AbstractReflection.getInstance();
-		mongoDbFactoryInvoker = reflection.getMethod(this.mongoTemplate, "getMongoDbFactory");
+		mongoDbFactoryInvoker = JavaReflection.getMethod(this.mongoTemplate, "getMongoDbFactory");
 		if (mongoDbFactoryInvoker != null) {
 			try {
-				Object factory = mongoDbFactoryInvoker.invoke0(this.mongoTemplate, null);
-				invoker = reflection.getMethod(factory, "getDb", StringUtils.EMPTY);
+				Object factory = mongoDbFactoryInvoker.invoke0(this.mongoTemplate, null, Constants.EMPTY_OBJECT_ARRAY);
+				invoker = JavaReflection.getMethod(factory, "getDb", StringUtils.EMPTY);
 				if (invoker == null) {
-					invoker = reflection.getMethod(factory, "getMongoDatabase", StringUtils.EMPTY);
+					invoker = JavaReflection.getMethod(factory, "getMongoDatabase", StringUtils.EMPTY);
 				}
 			} catch (Throwable e) {
 				logger.error("mongo模块初始化失败", e);
@@ -53,8 +53,8 @@ public class MongoModule extends HashMap<String, Object> implements MagicModule 
 					return null;
 				}
 				try {
-					Object factory = mongoDbFactoryInvoker.invoke0(mongoTemplate, null);
-					MongoDatabase database = (MongoDatabase) invoker.invoke0(factory, null, databaseName.toString());
+					Object factory = mongoDbFactoryInvoker.invoke0(mongoTemplate, null, Constants.EMPTY_OBJECT_ARRAY);
+					MongoDatabase database = (MongoDatabase) invoker.invoke0(factory, null, new Object[]{databaseName.toString()});
 					return database.getCollection(collection.toString());
 				} catch (Throwable throwable) {
 					throw new RuntimeException(throwable);

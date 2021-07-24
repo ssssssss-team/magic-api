@@ -8,7 +8,7 @@ import org.ssssssss.magicapi.model.RequestEntity;
 import org.ssssssss.script.exception.MagicScriptAssertException;
 import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
-import org.ssssssss.script.parsing.ast.statement.Exit;
+import org.ssssssss.script.runtime.ExitValue;
 
 import java.util.List;
 import java.util.Map;
@@ -55,8 +55,8 @@ public interface ResultProvider {
 	 * @param data          返回内容
 	 */
 	default Object buildResult(RequestEntity requestEntity, Object data) {
-		if (data instanceof Exit.Value) {
-			Exit.Value exitValue = (Exit.Value) data;
+		if (data instanceof ExitValue) {
+			ExitValue exitValue = (ExitValue) data;
 			Object[] values = exitValue.getValues();
 			int code = values.length > 0 ? ObjectConvertExtension.asInt(values[0], RESPONSE_CODE_SUCCESS) : RESPONSE_CODE_SUCCESS;
 			String message = values.length > 1 ? Objects.toString(values[1], RESPONSE_MESSAGE_SUCCESS) : RESPONSE_MESSAGE_SUCCESS;

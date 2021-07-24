@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static org.ssssssss.magicapi.model.Constants.EMPTY_OBJECT_ARRAY;
+
 public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicWebSocketDispatcher.class);
@@ -68,7 +70,7 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 				Class<?>[] pTypes = invoker.getParameterTypes();
 				int pCount = pTypes.length;
 				if (pCount == 0) {
-					returnValue = invoker.invoke0(null, null);
+					returnValue = invoker.invoke0(null, null, EMPTY_OBJECT_ARRAY);
 				} else {
 					Object[] pValues = new Object[pCount];
 					for (int i = 0; i < pCount; i++) {

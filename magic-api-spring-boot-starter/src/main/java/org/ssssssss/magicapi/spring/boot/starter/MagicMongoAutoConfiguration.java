@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.ssssssss.magicapi.modules.MongoCollectionExtension;
 import org.ssssssss.magicapi.modules.MongoFindIterableExtension;
 import org.ssssssss.magicapi.modules.MongoModule;
-import org.ssssssss.script.reflection.AbstractReflection;
+import org.ssssssss.script.reflection.JavaReflection;
 
 /**
  * mongo配置
@@ -25,8 +25,8 @@ public class MagicMongoAutoConfiguration {
 	 */
 	@Bean
 	public MongoModule mongoFunctions(MongoTemplate mongoTemplate) {
-		AbstractReflection.getInstance().registerMethodExtension(MongoCollection.class, new MongoCollectionExtension());
-		AbstractReflection.getInstance().registerMethodExtension(FindIterable.class, new MongoFindIterableExtension());
+		JavaReflection.registerMethodExtension(MongoCollection.class, new MongoCollectionExtension());
+		JavaReflection.registerMethodExtension(FindIterable.class, new MongoFindIterableExtension());
 		return new MongoModule(mongoTemplate);
 	}
 }

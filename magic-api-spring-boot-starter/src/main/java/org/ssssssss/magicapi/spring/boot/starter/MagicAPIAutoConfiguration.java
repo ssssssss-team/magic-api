@@ -62,7 +62,6 @@ import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.functions.ExtensionMethod;
 import org.ssssssss.script.parsing.ast.statement.AsyncCall;
-import org.ssssssss.script.reflection.AbstractReflection;
 import org.ssssssss.script.reflection.JavaReflection;
 
 import javax.servlet.http.HttpServletRequest;
@@ -489,7 +488,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		});
 		extensionMethods.forEach(extension -> extension.supports().forEach(support -> {
 			logger.info("注册扩展:{} -> {}", support, extension.getClass());
-			AbstractReflection.getInstance().registerMethodExtension(support, extension);
+			JavaReflection.registerMethodExtension(support, extension);
 		}));
 	}
 
