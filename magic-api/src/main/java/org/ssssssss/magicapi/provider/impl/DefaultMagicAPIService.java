@@ -203,7 +203,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			Optional<ApiInfo> optional = mappingHandlerMapping.getApiInfos().stream()
 					.filter(it -> it.getId().equals(info.getId()))
 					.findFirst();
-			if (optional.isPresent() && !optional.get().equals(info)) {
+			if (optional.isPresent() && !optional.get().getScript().equals(info.getScript())) {
 				isTrue(apiServiceProvider.update(info), API_SAVE_FAILURE);
 				backupService.backup(info);
 			}
@@ -273,8 +273,11 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			action = NOTIFY_ACTION_ADD;
 		} else {
 			isTrue(!functionServiceProvider.existsWithoutId(functionInfo), FUNCTION_ALREADY_EXISTS.format(functionInfo.getPath()));
+			FunctionInfo oldInfo = functionServiceProvider.get(functionInfo.getId());
 			isTrue(functionServiceProvider.update(functionInfo), FUNCTION_SAVE_FAILURE);
-			backupService.backup(functionInfo);
+			if(!oldInfo.getScript().equals(functionInfo.getScript())){
+				backupService.backup(functionInfo);
+			}
 		}
 		magicFunctionManager.register(functionInfo);
 		magicNotifyService.sendNotify(new MagicNotify(instanceId, functionInfo.getId(), action, NOTIFY_ACTION_FUNCTION));
