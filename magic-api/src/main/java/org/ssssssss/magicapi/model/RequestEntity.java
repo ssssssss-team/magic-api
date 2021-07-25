@@ -9,7 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.ssssssss.magicapi.model.Constants.*;
+import static org.ssssssss.magicapi.model.Constants.HEADER_REQUEST_BREAKPOINTS;
+import static org.ssssssss.magicapi.model.Constants.HEADER_REQUEST_SESSION;
 
 public class RequestEntity {
 
@@ -163,6 +164,7 @@ public class RequestEntity {
 		if (breakpoints != null) {
 			return Arrays.stream(breakpoints.split(","))
 					.map(val -> ObjectConvertExtension.asInt(val, -1))
+					.filter(it -> it > 0)
 					.collect(Collectors.toList());
 		}
 		return Collections.emptyList();

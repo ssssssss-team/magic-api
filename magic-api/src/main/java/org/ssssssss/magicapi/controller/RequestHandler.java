@@ -317,7 +317,7 @@ public class RequestHandler extends MagicController {
 		// 构建脚本上下文
 		MagicScriptContext context;
 		// TODO 安全校验
-		if (requestEntity.isRequestedFromDebug()) {
+		if (requestEntity.isRequestedFromDebug() && breakpoints.size() > 0) {
 			MagicScriptDebugContext debugContext = new MagicScriptDebugContext(breakpoints);
 			String sessionId = requestEntity.getRequestedSessionId();
 			debugContext.setTimeout(configuration.getDebugTimeout());
