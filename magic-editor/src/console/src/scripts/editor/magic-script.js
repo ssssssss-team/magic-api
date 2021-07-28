@@ -17,6 +17,41 @@ export const initializeMagicScript = () => {
             ['[', ']'],
             ['(', ')'],
         ],
+        onEnterRules: [
+            {
+                // e.g. /** | */
+                beforeText: /^\s*\/\*\*(?!\/)([^\*]|\*(?!\/))*$/,
+                afterText: /^\s*\*\/$/,
+                action: {
+                    indentAction: monaco.languages.IndentAction.IndentOutdent,
+                    appendText: ' * '
+                }
+            },
+            {
+                // e.g. /** ...|
+                beforeText: /^\s*\/\*\*(?!\/)([^\*]|\*(?!\/))*$/,
+                action: {
+                    indentAction: monaco.languages.IndentAction.None,
+                    appendText: ' * '
+                }
+            },
+            {
+                // e.g.  * ...|
+                beforeText: /^(\t|(\ \ ))*\ \*(\ ([^\*]|\*(?!\/))*)?$/,
+                action: {
+                    indentAction: monaco.languages.IndentAction.None,
+                    appendText: '* '
+                }
+            },
+            {
+                // e.g.  */|
+                beforeText: /^(\t|(\ \ ))*\ \*\/\s*$/,
+                action: {
+                    indentAction: monaco.languages.IndentAction.None,
+                    removeText: 1
+                }
+            }
+        ],
         comments: {
             lineComment: '//',
             blockComment: ['/*', '*/'],
@@ -29,6 +64,7 @@ export const initializeMagicScript = () => {
             {open: '"""', close: '"""', notIn: ['string.multi']},
             {open: '"', close: '"', notIn: ['string']},
             {open: '\'', close: '\'', notIn: ['string']},
+            {open: '/**', close: ' */', notIn: ['string'] }
         ],
     })
 
