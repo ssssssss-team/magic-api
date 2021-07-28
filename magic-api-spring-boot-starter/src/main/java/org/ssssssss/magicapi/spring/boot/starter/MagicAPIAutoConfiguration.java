@@ -132,6 +132,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 
 	private final ApplicationContext applicationContext;
 
+	private boolean registerMapping = false;
+
+	private boolean registerInterceptor = false;
+
+	private boolean registerWebsocket = false;
+
 	@Autowired
 	@Lazy
 	private RequestMappingHandlerMapping requestMappingHandlerMapping;
@@ -248,7 +254,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		String web = properties.getWeb();
-		if (web != null) {
+		if (web != null && !registerMapping) {
+			registerMapping = true;
 			// 当开启了UI界面时，收集日志
 			LoggerManager.createMagicAppender();
 			// 配置静态资源路径
@@ -268,8 +275,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		registry.addInterceptor(new MagicWebRequestInterceptor(properties.isSupportCrossDomain() ? magicCorsFilter : null, authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor)))
-				.addPathPatterns("/**");
+		if(!registerInterceptor){
+			registerInterceptor = true;
+			registry.addInterceptor(new MagicWebRequestInterceptor(properties.isSupportCrossDomain() ? magicCorsFilter : null, authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor)))
+					.addPathPatterns("/**");
+		}
 	}
 
 
@@ -627,7 +637,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
 		String web = properties.getWeb();
-		if (web != null) {
+		if (web != null && !registerWebsocket) {
+			registerWebsocket = true;
 			MagicWebSocketDispatcher dispatcher = new MagicWebSocketDispatcher(properties.getClusterConfig().getInstanceId(), magicNotifyServiceProvider.getObject(), Arrays.asList(
 					new MagicDebugHandler()
 			));
