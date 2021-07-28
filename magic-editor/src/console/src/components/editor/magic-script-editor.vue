@@ -237,7 +237,6 @@ export default {
       }
     },
     onBreakpoint(data){
-      bus.$emit('report', 'debug_in')
       bus.$emit('status', '进入断点...')
       // 进入断点
       this.info.ext.debuging = true
@@ -424,9 +423,9 @@ export default {
         transformRequest: []
       }).success(id => {
         if (saveObj.id) {
-          bus.$emit('script_save')
+          bus.$emit('report','script_save')
         } else {
-          bus.$emit('script_add')
+          bus.$emit('report','script_add')
         }
         thisInfo.id = id
         this.info.ext.tmpScript = saveObj.script
@@ -445,9 +444,9 @@ export default {
         transformRequest: []
       }).success(id => {
         if (saveObj.id) {
-          bus.$emit('function_save')
+          bus.$emit('report','function_save')
         } else {
-          bus.$emit('function_add')
+          bus.$emit('report','function_add')
         }
         thisInfo.id = id
         this.info.ext.tmpScript = saveObj.script
@@ -545,7 +544,6 @@ export default {
       info.ext.sessionId = new Date().getTime() + '' + Math.floor(Math.random() * 100000)
       bus.$emit('message', 'set_session_id', info.ext.sessionId)
       this.sendTestRequest(info, requestConfig, info.ext.sessionId)
-      bus.$emit('report', 'run')
     },
     viewHistory() {
       if (!this.selected) {
