@@ -483,7 +483,6 @@ export default {
     },
     internalTest() {
       this.editor.deltaDecorations(this.editor.getModel().getAllDecorations().filter(it => it.options.inlineClassName === 'squiggly-error').map(it => it.id), [])
-      bus.$emit('status', '开始测试...')
       this.$set(this.info, 'running', true)
       let requestConfig = {
         baseURL: contants.SERVER_URL,
@@ -635,10 +634,13 @@ export default {
           }
         })
       }]
+      bus.$emit('status', '开始测试...')
+      let start = new Date().getTime()
       request
           .execute(requestConfig)
           .then(res => {
             res.data.then(data =>{
+              bus.$emit('status', `测试完毕，本次请求耗时:${new Date().getTime() - start}ms`)
               const contentType = res.headers['content-type']
               target.ext.debugDecorations && this.editor.deltaDecorations(target.ext.debugDecorations, [])
               target.ext.debugDecorations = target.ext.debugDecoration = null
@@ -684,6 +686,7 @@ export default {
             })
           })
           .catch(error => {
+            bus.$emit('status', '请求出错...')
             target.ext.debuging = target.running = false
             request.processError(error)
           })
