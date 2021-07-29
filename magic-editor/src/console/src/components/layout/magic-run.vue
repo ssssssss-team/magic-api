@@ -102,7 +102,7 @@ export default {
       this.layout()
     },
     updateResponseBody(bodyStr) {
-        if (['{}','[]'].indexOf(bodyStr.replace(/\s/g,"")) > -1) {
+        if (!bodyStr || ['{}','[]'].indexOf(bodyStr.replace(/\s/g,"")) > -1) {
           this.responseBody = []
           return false
         }
