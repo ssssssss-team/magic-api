@@ -392,24 +392,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		return new DefaultMagicAPIService(mappingHandlerMapping, apiServiceProvider, functionServiceProvider, groupServiceProvider, resultProvider, magicDynamicDataSource, magicFunctionManager, magicNotifyServiceProvider.getObject(), properties.getClusterConfig().getInstanceId(), workspace, magicBackupService, properties.isThrowException());
 	}
 
-	private void setupSpringSecurity() {
-		Class<?> clazz = null;
-		try {
-			clazz = Class.forName("org.springframework.security.core.context.SecurityContextHolder");
-		} catch (ClassNotFoundException ignored) {
-		}
-		if (clazz != null) {
-			try {
-				Method method = clazz.getDeclaredMethod("setStrategyName", String.class);
-				method.setAccessible(true);
-				method.invoke(clazz, "MODE_INHERITABLETHREADLOCAL");
-				logger.info("自动适配 Spring Security 成功");
-			} catch (Exception ignored) {
-				logger.info("自动适配 Spring Security 失败");
-			}
-		}
-	}
-
 	/**
 	 * 注入数据库查询模块
 	 */
@@ -521,7 +503,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 												 MagicFunctionManager magicFunctionManager,
 												 MagicBackupService magicBackupService) throws NoSuchMethodException {
 		logger.info("magic-api工作目录:{}", magicResource);
-		setupSpringSecurity();
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 		// 设置响应结果的code值
 		ResponseCodeConfig responseCodeConfig = properties.getResponseCodeConfig();
