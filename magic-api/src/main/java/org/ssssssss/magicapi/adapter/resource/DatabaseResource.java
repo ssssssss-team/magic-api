@@ -120,7 +120,7 @@ public class DatabaseResource extends KeyValueResource {
 	@Override
 	public Set<String> keys() {
 		String prefix = isDirectory() ? this.path : (this.path + separator);
-		if(!cachedContent.isEmpty()){
+		if (!cachedContent.isEmpty()) {
 			return cachedContent.keySet().stream().filter(it -> it.startsWith(prefix)).collect(Collectors.toSet());
 		}
 		String sql = String.format("select file_path from %s where file_path like '%s%%'", tableName, prefix);
@@ -140,7 +140,6 @@ public class DatabaseResource extends KeyValueResource {
 
 	@Override
 	public boolean delete() {
-		String path = isDirectory() ? this.path : this.path + separator;
 		String sql = String.format("delete from %s where file_path = ? or file_path like '%s%%'", tableName, path);
 		if (template.update(sql, this.path) > 0) {
 			this.cachedContent.entrySet().removeIf(entry -> entry.getKey().startsWith(path));
