@@ -146,8 +146,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	@Autowired(required = false)
 	private MultipartResolver multipartResolver;
 
-	private final ObjectProvider<RestTemplate> restTemplateProvider;
-
 	private String ALL_CLASS_TXT;
 
 	public MagicAPIAutoConfiguration(MagicAPIProperties properties,
@@ -158,7 +156,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 									 ObjectProvider<List<HttpMessageConverter<?>>> httpMessageConvertersProvider,
 									 ObjectProvider<List<ColumnMapperProvider>> columnMapperProvidersProvider,
 									 ObjectProvider<List<MagicFunction>> magicFunctionsProvider,
-									 ObjectProvider<RestTemplate> restTemplateProvider,
 									 ObjectProvider<MagicNotifyService> magicNotifyServiceProvider,
 									 ObjectProvider<AuthorizationInterceptor> authorizationInterceptorProvider,
 									 Environment environment,
@@ -172,7 +169,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		this.httpMessageConvertersProvider = httpMessageConvertersProvider;
 		this.columnMapperProvidersProvider = columnMapperProvidersProvider;
 		this.magicFunctionsProvider = magicFunctionsProvider;
-		this.restTemplateProvider = restTemplateProvider;
 		this.magicNotifyServiceProvider = magicNotifyServiceProvider;
 		this.authorizationInterceptorProvider = authorizationInterceptorProvider;
 		this.environment = environment;
@@ -202,6 +198,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			}
 		}
 		return ALL_CLASS_TXT;
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(HttpModule.class)
+	public HttpModule magicHttpModule(){
+		return new HttpModule(createRestTemplate());
 	}
 
 	/**
@@ -470,10 +472,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
 			MagicResourceLoader.addModule(module.getModuleName(), module);
 		});
-		if (MagicResourceLoader.loadModule("http") == null) {
-			logger.info("注册模块:{} -> {}", "http", HttpModule.class);
-			MagicResourceLoader.addModule("http", new HttpModule(this.restTemplateProvider.getIfAvailable(this::createRestTemplate)));
-		}
 		MagicResourceLoader.getModuleNames().stream().filter(importModules::contains).forEach(moduleName -> {
 			logger.info("自动导入模块：{}", moduleName);
 			MagicScriptEngine.addDefaultImport(moduleName, MagicResourceLoader.loadModule(moduleName));
