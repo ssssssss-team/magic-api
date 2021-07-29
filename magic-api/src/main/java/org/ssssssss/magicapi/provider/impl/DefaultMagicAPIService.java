@@ -200,11 +200,11 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		} else {
 			// 先判断接口是否存在
 			isTrue(!apiServiceProvider.existsWithoutId(info), API_ALREADY_EXISTS.format(info.getMethod(), info.getPath()));
+			isTrue(apiServiceProvider.update(info), API_SAVE_FAILURE);
 			Optional<ApiInfo> optional = mappingHandlerMapping.getApiInfos().stream()
 					.filter(it -> it.getId().equals(info.getId()))
 					.findFirst();
 			if (optional.isPresent() && !optional.get().getScript().equals(info.getScript())) {
-				isTrue(apiServiceProvider.update(info), API_SAVE_FAILURE);
 				backupService.backup(info);
 			}
 		}
