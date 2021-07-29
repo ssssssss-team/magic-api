@@ -173,8 +173,9 @@ public class RequestHandler extends MagicController {
 				}
 
 			} else if (StringUtils.isNotBlank(parameter.getName()) || parameters.containsKey(parameter.getName())) {
+				boolean isFile = parameter.getDataType() == DataType.MultipartFile || parameter.getDataType() == DataType.MultipartFiles;
 				String requestValue = StringUtils.defaultIfBlank(Objects.toString(parameters.get(parameter.getName()), EMPTY), Objects.toString(parameter.getDefaultValue(), EMPTY));
-				if (StringUtils.isBlank(requestValue)) {
+				if (StringUtils.isBlank(requestValue) && !isFile) {
 					if (!parameter.isRequired()) {
 						continue;
 					}
@@ -182,6 +183,11 @@ public class RequestHandler extends MagicController {
 				}
 				try {
 					Object value = convertValue(parameter.getDataType(), parameter.getName(), requestValue);
+					if (isFile && parameter.isRequired()) {
+						if (value == null || (parameter.getDataType() == DataType.MultipartFiles && ((List<?>) value).isEmpty())) {
+							throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
+						}
+					}
 					if (VALIDATE_TYPE_PATTERN.equals(parameter.getValidateType())) {    // 正则验证
 						String expression = parameter.getExpression();
 						if (StringUtils.isNotBlank(expression) && !PatternUtils.match(Objects.toString(value, EMPTY), expression)) {
@@ -189,6 +195,8 @@ public class RequestHandler extends MagicController {
 						}
 					}
 					parameters.put(parameter.getName(), value);
+				} catch (ValidateException ve) {
+					throw ve;
 				} catch (Exception e) {
 					throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不合法", comment, parameter.getName())));
 				}

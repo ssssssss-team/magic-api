@@ -25,6 +25,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -141,6 +142,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	@Autowired
 	@Lazy
 	private RequestMappingHandlerMapping requestMappingHandlerMapping;
+
+	@Autowired(required = false)
+	private MultipartResolver multipartResolver;
 
 	private final ObjectProvider<RestTemplate> restTemplateProvider;
 
@@ -457,7 +461,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		logger.info("注册模块:{} -> {}", "env", EnvModule.class);
 		MagicResourceLoader.addModule("env", new EnvModule(environment));
 		logger.info("注册模块:{} -> {}", "request", RequestModule.class);
-		MagicResourceLoader.addModule("request", new RequestModule());
+		MagicResourceLoader.addModule("request", new RequestModule(multipartResolver));
 		logger.info("注册模块:{} -> {}", "response", ResponseModule.class);
 		MagicResourceLoader.addModule("response", new ResponseModule(resultProvider));
 		logger.info("注册模块:{} -> {}", "assert", AssertModule.class);

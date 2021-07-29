@@ -2,8 +2,7 @@ package org.ssssssss.magicapi.modules;
 
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartRequest;
-import org.springframework.web.util.WebUtils;
-import org.ssssssss.magicapi.context.RequestContext;
+import org.springframework.web.multipart.MultipartResolver;
 import org.ssssssss.script.annotation.Comment;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,11 +10,18 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * request 模块
  */
 public class RequestModule {
+
+	private static MultipartResolver resolver;
+
+	public RequestModule(MultipartResolver resolver) {
+		RequestModule.resolver = resolver;
+	}
 
 	/**
 	 * 获取文件信息
@@ -25,7 +31,11 @@ public class RequestModule {
 	@Comment("获取文件")
 	public static MultipartFile getFile(@Comment("参数名") String name) {
 		MultipartRequest request = getMultipartHttpServletRequest();
-		return request == null ? null : request.getFile(name);
+		if (request == null) {
+			return null;
+		}
+		MultipartFile file = request.getFile(name);
+		return file == null || file.isEmpty() ? null : file;
 	}
 
 	/**
@@ -36,20 +46,23 @@ public class RequestModule {
 	@Comment("获取多个文件")
 	public static List<MultipartFile> getFiles(@Comment("参数名") String name) {
 		MultipartRequest request = getMultipartHttpServletRequest();
-		return request == null ? null : request.getFiles(name);
+		if (request == null) {
+			return null;
+		}
+		return request.getFiles(name).stream().filter(it -> !it.isEmpty()).collect(Collectors.toList());
 	}
 
 	/**
 	 * 获取原生HttpServletRequest对象
 	 */
 	public static HttpServletRequest get() {
-		return RequestContext.getHttpServletRequest();
+		return org.ssssssss.magicapi.utils.WebUtils.getRequest().orElse(null);
 	}
 
 	private static MultipartRequest getMultipartHttpServletRequest() {
 		HttpServletRequest request = get();
-		if (request != null && request.getContentType() != null && request.getContentType().toLowerCase().startsWith("multipart/")) {
-			return WebUtils.getNativeRequest(request, MultipartRequest.class);
+		if (request != null && resolver.isMultipart(request)) {
+			return resolver.resolveMultipart(request);
 		}
 		return null;
 	}
