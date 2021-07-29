@@ -35,7 +35,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(readonly = false)
 	public JsonBean<Boolean> delete(HttpServletRequest request, String id) {
-		isTrue(allowVisit(request, Authorization.VIEW, getApiInfo(id)), PERMISSION_INVALID);
+		isTrue(allowVisit(request, Authorization.DELETE, getApiInfo(id)), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.deleteApi(id));
 	}
 
