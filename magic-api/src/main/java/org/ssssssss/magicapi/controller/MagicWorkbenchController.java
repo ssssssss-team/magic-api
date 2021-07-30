@@ -128,6 +128,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	@RequestMapping("/logout")
 	@ResponseBody
+	@Valid(requireLogin = false)
 	public JsonBean<Void> logout(HttpServletRequest request) {
 		configuration.getAuthorizationInterceptor().logout(request.getHeader(Constants.MAGIC_TOKEN_HEADER));
 		return new JsonBean<>();
