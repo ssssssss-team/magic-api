@@ -367,9 +367,38 @@
         }
         let ret = parseJson(bodyStr)
         if(ret){
-          this.requestBody = ret;
+          this.requestBody = this.valueCopy(ret, this.requestBody);
           this.forceUpdate = !this.forceUpdate;
         }
+      },
+      valueCopy(newBody, oldBody, arrayFlag = false) {
+        if (oldBody.length === 0) {
+          return newBody
+        }
+        let that = this;
+        newBody.map(item => {
+          let oldItemArr = oldBody.filter(old => {
+            if (old.level === 0 || arrayFlag) {
+              return old
+            }
+            return old.name === item.name
+          })
+          if (oldItemArr.length > 0) {
+            if (item.dataType === 'Object' || item.dataType === 'Array') {
+              item.children = that.valueCopy(item.children, oldItemArr[0].children, item.dataType === 'Array')
+            } else {
+              item.validateType = oldItemArr[0].validateType
+              item.expression = oldItemArr[0].expression
+              item.error = oldItemArr[0].error
+              item.defaultValue = oldItemArr[0].defaultValue
+            }
+            item.name = oldItemArr[0].name
+            item.description = oldItemArr[0].description
+            item.selected = oldItemArr[0].selected
+            item.required = oldItemArr[0].required
+          }
+        })
+        return newBody
       }
     },
     destroyed() {
