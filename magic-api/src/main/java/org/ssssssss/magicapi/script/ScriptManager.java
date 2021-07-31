@@ -5,6 +5,7 @@ import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.utils.MD5Utils;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.MagicScriptDebugContext;
 
 import javax.script.*;
 
@@ -53,7 +54,7 @@ public class ScriptManager {
 		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, context, ScriptContext.ENGINE_SCOPE);
 		// 执行脚本
 		try {
-			return compile("MagicScript", script).eval(simpleScriptContext);
+			return compile("MagicScript", (context instanceof MagicScriptDebugContext ? MagicScript.DEBUG_MARK: "") +script).eval(simpleScriptContext);
 		} catch (ScriptException e) {
 			throw new MagicAPIException(e.getMessage(), e);
 		} finally {

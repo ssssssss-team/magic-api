@@ -255,8 +255,9 @@ public class RequestHandler extends MagicController {
 
 	private Object invokeRequest(RequestEntity requestEntity) throws Throwable {
 		try {
-			MagicScriptContext.set(requestEntity.getMagicScriptContext());
-			Object result = ScriptManager.executeScript(requestEntity.getApiInfo().getScript(), requestEntity.getMagicScriptContext());
+			MagicScriptContext context = requestEntity.getMagicScriptContext();
+			MagicScriptContext.set(context);
+			Object result = ScriptManager.executeScript(requestEntity.getApiInfo().getScript(), context);
 			Object value = result;
 			// 执行后置拦截器
 			if ((value = doPostHandle(requestEntity, value)) != null) {
