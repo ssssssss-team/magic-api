@@ -653,14 +653,16 @@ export class Parser {
         let isString = false;
         if (expectRightCurly && this.stream.match("}", false)) {
             return null;
-        } else if (this.stream.match("async", false)) {
-            expression = this.parseAsync();
-        } else if (this.stream.match("select", false, true)) {
-            expression = this.parseSelect();
         } else if (this.stream.match(TokenType.Spread, false)) {
             expression = this.parseSpreadAccess();
         } else if (this.stream.match(TokenType.Identifier, false)) {
-            expression = this.parseAccessOrCall(TokenType.Identifier);
+            if (this.stream.match("async", false)) {
+                expression = this.parseAsync();
+            } else if (this.stream.match("select", false, true)) {
+                expression = this.parseSelect();
+            } else {
+                expression = this.parseAccessOrCall(TokenType.Identifier);
+            }
         } else if (this.stream.match(TokenType.LeftCurly, false)) {
             expression = this.parseMapLiteral();
         } else if (this.stream.match(TokenType.LeftBracket, false)) {
