@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +26,7 @@ import java.util.Objects;
 /**
  * redis配置
  */
-@ConditionalOnBean(RedisConnectionFactory.class)
+@ConditionalOnClass(RedisConnectionFactory.class)
 @Configuration
 @AutoConfigureBefore(MagicAPIAutoConfiguration.class)
 public class MagicRedisAutoConfiguration {
