@@ -97,6 +97,6 @@ public class MagicController implements JsonCodeConstants {
 	@ExceptionHandler(MagicLoginException.class)
 	@ResponseBody
 	public JsonBean<Void> invalidLogin(MagicLoginException exception) {
-		return new JsonBean<>(-1, exception.getMessage());
+		return new JsonBean<>(401, exception.getMessage());
 	}
 }

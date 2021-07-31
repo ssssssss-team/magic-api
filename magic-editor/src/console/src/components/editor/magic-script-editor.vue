@@ -474,7 +474,11 @@ export default {
         if (contants.AUTO_SAVE) {
           // 自动保存
           let resp = this.doSave()
-          resp && resp.end(() => this.internalTest())
+          resp && resp.end((successed) => {
+            if (successed) {
+              this.internalTest()
+            }
+          })
         } else {
           this.internalTest()
         }

@@ -1,8 +1,8 @@
 import axios from 'axios'
 import Qs from 'qs'
 import {modal} from '@/components/common/modal'
-import {replaceURL} from '@/scripts/utils.js'
 import contants from '@/scripts/contants.js'
+import bus from '@/scripts/bus.js'
 
 const config = {
     // 请求路径
@@ -139,14 +139,20 @@ class HttpRequest {
         }
         requestConfig.baseURL = config.baseURL
         let httpResponse = new HttpResponse()
+        let successed = false;
         this.execute(requestConfig)
             .then(response => {
                 let data = response.data
                 if(data instanceof Blob){
+                    successed = true
                     httpResponse.successHandle && httpResponse.successHandle(data, response)
-                }else if (data.code === 1) {
+                } else if (data.code === 1) {
+                    successed = true
                     httpResponse.successHandle && httpResponse.successHandle(data.data, response)
                 } else {
+                    if (data.code === 401) {
+                        bus.$emit('showLogin')
+                    }
                     httpResponse.exceptionHandle && httpResponse.exceptionHandle(data.code, data.message, response)
                 }
             })
@@ -160,7 +166,7 @@ class HttpRequest {
             })
             .finally(() => {
                 if (typeof httpResponse.endHandle === 'function') {
-                    httpResponse.endHandle()
+                    httpResponse.endHandle(successed)
                 }
             })
         return httpResponse

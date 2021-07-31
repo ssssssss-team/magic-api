@@ -196,6 +196,7 @@ export default {
       }
     })
     bus.$on('logout', () => this.showLogin = true)
+    bus.$on('showLogin', () => this.showLogin = true)
     this.open()
   },
   destroyed() {
