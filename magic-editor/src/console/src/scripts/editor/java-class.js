@@ -1,5 +1,7 @@
 import request from '@/api/request.js'
 import contants from '@/scripts/contants.js'
+import { HighLightOptions } from '@/scripts/editor/high-light.js'
+import * as monaco from "monaco-editor";
 
 let scriptClass = {}
 let extensions = {}
@@ -55,6 +57,8 @@ const initClasses = function () {
             scriptClass = data.classes || {}
             extensions = data.extensions || {}
             functions = data.functions || []
+            HighLightOptions.builtinFunctions = functions.map(it => it.name);
+            monaco.languages.setMonarchTokensProvider('magicscript', HighLightOptions);
             resolve()
         }).exception(res => {
             reject()

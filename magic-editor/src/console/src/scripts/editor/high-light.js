@@ -1,10 +1,6 @@
 export const HighLightOptions = {
     escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
-    builtinFunctions: [
-        "count", "max", "min", "avg", "sum",
-        "round", "ceil", "floor", "precent",
-        "date_format", "ifnull", "now", "uuid"
-    ],
+    builtinFunctions: [],
     digits: /\d+(_+\d+)*/,
     regexpctl: /[(){}\[\]\$\^|\-*+?\.]/,
     regexpesc: /\\(?:[bBdDfnrstvwWn0\\\/]|@regexpctl|c[A-Z]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})/,
