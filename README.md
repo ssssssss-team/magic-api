@@ -68,7 +68,7 @@ magic-api.resource.location=/data/magic-api
 # 文档/演示
 
 - 文档地址：[https://ssssssss.org](https://ssssssss.org)
-- 在线演示：[http://140.143.210.90:9999/magic/web](http://140.143.210.90:9999/magic/web)
+- 在线演示：[https://magic-api.ssssssss.org](https://magic-api.ssssssss.org)
 
 # 示例项目
 
