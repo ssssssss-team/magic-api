@@ -1,10 +1,11 @@
 package org.ssssssss.magicapi.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class BaseDefinition {
-
+public class BaseDefinition implements Serializable {
+    private static final long serialVersionUID = 1L;
 	/**
 	 * 名
 	 */

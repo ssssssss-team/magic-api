@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.controller;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +97,7 @@ public class RequestHandler extends MagicController {
 			doValidate("header", requestEntity.getApiInfo().getHeaders(), headers, HEADER_INVALID);
 			// 验证 path
 			doValidate("path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID);
-			BaseDefinition requestBody = requestEntity.getApiInfo().getRequestBodyDefinition();
+			BaseDefinition requestBody = SerializationUtils.clone(requestEntity.getApiInfo().getRequestBodyDefinition());
 			if (requestBody != null && requestBody.getChildren().size() > 0) {
 				requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
 				doValidate(VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{

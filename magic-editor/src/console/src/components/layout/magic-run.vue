@@ -17,7 +17,7 @@ import MagicJson from '@/components/common/magic-json.vue'
 import bus from '@/scripts/bus.js'
 import * as monaco from 'monaco-editor'
 import store from '@/scripts/store.js'
-import {isVisible} from '@/scripts/utils.js'
+import {isVisible, deepClone} from '@/scripts/utils.js'
 import {parseJson} from '@/scripts/parsing/parser.js'
 
 export default {
@@ -108,63 +108,11 @@ export default {
         }
         let ret = parseJson(bodyStr)
         if(ret){
-          this.responseBody = ret;
+          this.responseBody = this.valueCopy(ret, [this.info.responseBodyDefinition]);
           this.forceUpdate = !this.forceUpdate
         }
     },
-    processBody(body, level) {
-      let arr = [], that = this
-      Object.keys(body).forEach((key) => {
-        let param = {
-          name: 'Array' !== this.getType(body) ? key : 'Array' === this.getType(body) && 'Object' !== that.getType(body[key]) ? key : '',
-          value: 'Object' !== that.getType(body[key]) && 'Array' !== that.getType(body[key]) ? body[key] : '',
-          dataType: this.getType(body[key]),
-          validateType: '',
-          expression: '',
-          error: '',
-          description: '',
-          children: [],
-          level: level + 1,
-          selected: false
-        }
-        if ('Object' === that.getType(body[key]) || 'Array' === that.getType(body[key])) {
-          param.children = that.processBody('Array' === that.getType(body[key]) ? deepClone([body[key][0]]) : body[key], level + 1);
-        }
-        arr.push(param)
 
-      })
-      return arr;
-    },
-    getType(object) {
-      if (Object.prototype.toString.call(object) === '[object Number]') {
-        if(object.toString().indexOf('.') !==-1 && parseInt(object) !== parseFloat(object)) {
-          return "Double";
-        }
-        // if (object >= -128 && object <= 127) {
-        //   return "Byte";
-        // }
-        // if (object >= -32768 && object <= 32767) {
-        //   return "Short";
-        // }
-        if (object >= -2147483648 && object <= 2147483647) {
-          return "Integer";
-        }
-        return "Long";
-      }
-      if (Object.prototype.toString.call(object) === '[object String]') {
-        return "String";
-      }
-      if (Object.prototype.toString.call(object) === '[object Boolean]') {
-        return "Boolean";
-      }
-      if (Object.prototype.toString.call(object) === '[object Array]') {
-        return "Array";
-      }
-      if (Object.prototype.toString.call(object) === '[object Object]') {
-        return "Object";
-      }
-      return "String";
-    },
     valueCopy(newBody, oldBody, arrayFlag = false) {
       if (oldBody.length == 0) {
         return newBody

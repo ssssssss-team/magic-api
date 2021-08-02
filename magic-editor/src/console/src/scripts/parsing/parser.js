@@ -803,7 +803,7 @@ function processBody(body, level) {
             let param = {
                 ...defaultParam,
                 name: key.span.getText().replace(/['"]/g,''),
-                value: isSimpleObject(value) ? value.span.getText() : '',
+                value: isSimpleObject(value) ? value.span.getText().trim() : '',
                 dataType: getType(value),
             }
             if(value instanceof MapLiteral || value instanceof ListLiteral){
@@ -816,7 +816,7 @@ function processBody(body, level) {
             let value = body.values[0]
             let param = {
                 ...defaultParam,
-                value: isSimpleObject(value) ? value.span.getText() : '',
+                value: isSimpleObject(value) ? value.span.getText().trim() : '',
                 dataType: getType(value),
             }
             if(value instanceof MapLiteral || value instanceof ListLiteral){

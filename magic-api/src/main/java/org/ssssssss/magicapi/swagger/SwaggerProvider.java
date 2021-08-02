@@ -78,7 +78,7 @@ public class SwaggerProvider {
 				hasBody = parameters.stream().anyMatch(it -> VAR_NAME_REQUEST_BODY.equals(it.get("in")));
 				BaseDefinition baseDefinition = info.getRequestBodyDefinition();
                 if (hasBody && baseDefinition != null) {
-                    doProcessDefinition(baseDefinition, info, "root_" + baseDefinition.getName() , "request", 0);
+                    doProcessDefinition(baseDefinition, info, "root_", "request", 0);
                 }
 				baseDefinition = info.getResponseBodyDefinition();
 				parameters.forEach(path::addParameter);
@@ -138,7 +138,7 @@ public class SwaggerProvider {
 				String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
 				String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«request«";
 				if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(baseDefinition.getDataType().getJavascriptType())) {
-					voName += "root_" + (StringUtils.isNotBlank(baseDefinition.getChildren().get(0).getName()) ? "_" + baseDefinition.getChildren().get(0).getName() : "_") +  "»»»";
+					voName += "root_" + (StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() + "_" : "_") +  "»»»";
 
 					Map<String, Object> items = new HashMap<>(2);
 					items.put("originalRef", voName);
@@ -206,7 +206,7 @@ public class SwaggerProvider {
 			}
 			definition.put("properties", properties);
 			definition.put("description", target.getDescription());
-			definition.put("type", target.getDataType().getJavascriptType());
+			definition.put("type", target.getDataType());
 
             if (this.DEFINITION_MAP.containsKey(voName)) {
 				// TODO 应该不会出现名字都一样的
@@ -219,7 +219,7 @@ public class SwaggerProvider {
 
         } else {
             result.put("example", target.getValue());
-			result.put("type", target.getDataType().getJavascriptType());
+			result.put("type", target.getDataType());
         }
         return result;
     }
