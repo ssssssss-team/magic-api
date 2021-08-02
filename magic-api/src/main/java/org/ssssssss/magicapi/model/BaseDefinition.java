@@ -4,8 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class BaseDefinition implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class BaseDefinition {
 	/**
 	 * 名
 	 */

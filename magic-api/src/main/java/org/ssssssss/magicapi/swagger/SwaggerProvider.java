@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.swagger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.model.ApiInfo;
@@ -35,13 +36,13 @@ public class SwaggerProvider {
 	/**
 	 * swagger Model定义路径前缀
 	 */
-    private static final String DEFINITION = "#/definitions/";
-    /**
+	private static final String DEFINITION = "#/definitions/";
+	/**
 	 * body空对象
-     */
-    private static final String BODY_EMPTY = "{}";
+	 */
+	private static final String BODY_EMPTY = "{}";
 
-    private final Map<String, Object> DEFINITION_MAP = new ConcurrentHashMap<>();
+	private final Map<String, Object> DEFINITION_MAP = new ConcurrentHashMap<>();
 
 	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
@@ -77,19 +78,19 @@ public class SwaggerProvider {
 				List<Map<String, Object>> parameters = parseParameters(mapper, info);
 				hasBody = parameters.stream().anyMatch(it -> VAR_NAME_REQUEST_BODY.equals(it.get("in")));
 				BaseDefinition baseDefinition = info.getRequestBodyDefinition();
-                if (hasBody && baseDefinition != null) {
-                    doProcessDefinition(baseDefinition, info, "root_", "request", 0);
-                }
+				if (hasBody && baseDefinition != null) {
+					doProcessDefinition(baseDefinition, info, "root_", "request", 0);
+				}
 				baseDefinition = info.getResponseBodyDefinition();
 				parameters.forEach(path::addParameter);
-                if(baseDefinition != null){
+				if (baseDefinition != null) {
 					Map responseMap = parseResponse(info);
 					if (!responseMap.isEmpty()) {
 						path.setResponses(responseMap);
 						doProcessDefinition(baseDefinition, info, "root_" + baseDefinition.getName(), "response", 0);
 					}
-				}else{
-					 path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), BODY_EMPTY), Object.class));
+				} else {
+					path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), BODY_EMPTY), Object.class));
 				}
 
 			} catch (Exception ignored) {
@@ -132,13 +133,13 @@ public class SwaggerProvider {
 		paths.forEach(it -> parameters.add(SwaggerEntity.createParameter(it.isRequired(), it.getName(), VAR_NAME_PATH_VARIABLE, it.getDataType().getJavascriptType(), it.getDescription(), it.getValue())));
 		try {
 			BaseDefinition baseDefinition = info.getRequestBodyDefinition();
-			if (baseDefinition!= null && baseDefinition.getChildren().size() > 0) {
-                Map<String, Object> parameter = SwaggerEntity.createParameter(baseDefinition.isRequired(), StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() : VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, baseDefinition.getDataType().getJavascriptType(), baseDefinition.getDescription(), baseDefinition);
+			if (baseDefinition != null && !CollectionUtils.isEmpty(baseDefinition.getChildren())) {
+				Map<String, Object> parameter = SwaggerEntity.createParameter(baseDefinition.isRequired(), StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() : VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, baseDefinition.getDataType().getJavascriptType(), baseDefinition.getDescription(), baseDefinition);
 				Map<String, Object> schema = new HashMap<>(2);
 				String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
-				String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«request«";
-				if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(baseDefinition.getDataType().getJavascriptType())) {
-					voName += "root_" + (StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() + "_" : "_") +  "»»»";
+				String voName = groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«request«";
+				if (DataType.Array == baseDefinition.getDataType()) {
+					voName += "root_" + (StringUtils.isNotBlank(baseDefinition.getName()) ? baseDefinition.getName() + "_" : "_") + "»»»";
 
 					Map<String, Object> items = new HashMap<>(2);
 					items.put("originalRef", voName);
@@ -152,7 +153,7 @@ public class SwaggerProvider {
 				}
 				parameter.put("schema", schema);
 				parameters.add(parameter);
-			}else{
+			} else {
 				Object object = mapper.readValue(info.getRequestBody(), Object.class);
 				if ((object instanceof List || object instanceof Map) && BooleanLiteral.isTrue(object)) {
 					parameters.add(SwaggerEntity.createParameter(false, VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, object instanceof List ? VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY : VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT, null, object));
@@ -168,9 +169,9 @@ public class SwaggerProvider {
 		Map<String, Object> result = new HashMap<>();
 
 		BaseDefinition baseDefinition = info.getResponseBodyDefinition();
-		if (baseDefinition.getChildren().size() > 0) {
+		if (!CollectionUtils.isEmpty(baseDefinition.getChildren())) {
 			String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
-			String voName =  groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«response«";
+			String voName = groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + "«response«";
 			voName += "root_" + baseDefinition.getName() + "»»»";
 
 			Map<String, Object> schema = new HashMap<>(2);
@@ -185,19 +186,20 @@ public class SwaggerProvider {
 
 		return result;
 	}
-    private Map<String, Object> doProcessDefinition(BaseDefinition target, ApiInfo info, String parentName, String definitionType, int level) {
-        Map<String, Object> result = new HashMap<>(3);
-        result.put("description", target.getDescription());
-        if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(target.getDataType().getJavascriptType())) {
-            if (target.getChildren().size() > 0) {
-                result.put("items", doProcessDefinition(target.getChildren().get(0), info, parentName + target.getName() + "_", definitionType, level + 1));
-            } else {
-                result.put("items", Collections.emptyList());
-            }
+
+	private Map<String, Object> doProcessDefinition(BaseDefinition target, ApiInfo info, String parentName, String definitionType, int level) {
+		Map<String, Object> result = new HashMap<>(3);
+		result.put("description", target.getDescription());
+		if (DataType.Array == target.getDataType()) {
+			if (!CollectionUtils.isEmpty(target.getChildren())) {
+				result.put("items", doProcessDefinition(target.getChildren().get(0), info, parentName + target.getName() + "_", definitionType, level + 1));
+			} else {
+				result.put("items", Collections.emptyList());
+			}
 			result.put("type", target.getDataType().getJavascriptType());
-        } else if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT.equalsIgnoreCase(target.getDataType().getJavascriptType())) {
-            String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
-            String voName = groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + (StringUtils.equals("response", definitionType) ? "«response«" : "«request«") + parentName + target.getName()  + "»»»";
+		} else if (DataType.Object == target.getDataType()) {
+			String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
+			String voName = groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + (StringUtils.equals("response", definitionType) ? "«response«" : "«request«") + parentName + target.getName() + "»»»";
 
 			Map<String, Object> definition = new HashMap<>(3);
 			Map<String, Map<String, Object>> properties = new HashMap<>(target.getChildren().size());
@@ -206,21 +208,21 @@ public class SwaggerProvider {
 			}
 			definition.put("properties", properties);
 			definition.put("description", target.getDescription());
-			definition.put("type", target.getDataType());
+			definition.put("type", target.getDataType().getJavascriptType());
 
-            if (this.DEFINITION_MAP.containsKey(voName)) {
+			if (this.DEFINITION_MAP.containsKey(voName)) {
 				// TODO 应该不会出现名字都一样的
 				voName = voName.replace("»»»", "_" + level + "»»»");
 			}
 
 			this.DEFINITION_MAP.put(voName, definition);
-            result.put("originalRef", voName);
-            result.put("$ref", DEFINITION + voName);
+			result.put("originalRef", voName);
+			result.put("$ref", DEFINITION + voName);
 
-        } else {
-            result.put("example", target.getValue());
-			result.put("type", target.getDataType());
-        }
-        return result;
-    }
+		} else {
+			result.put("example", target.getValue());
+			result.put("type", target.getDataType().getJavascriptType());
+		}
+		return result;
+	}
 }

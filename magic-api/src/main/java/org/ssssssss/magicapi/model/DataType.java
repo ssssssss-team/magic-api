@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.model;
 
 import org.ssssssss.magicapi.modules.RequestModule;
+import org.ssssssss.magicapi.utils.Invoker;
 import org.ssssssss.script.reflection.JavaInvoker;
 
 import java.lang.reflect.Method;
@@ -25,7 +26,7 @@ public enum DataType {
 
 	private boolean isNumber;
 
-	private JavaInvoker<Method> invoker;
+	private Invoker invoker;
 
 	private boolean needName;
 
@@ -35,7 +36,7 @@ public enum DataType {
 
 	DataType(boolean isNumber, JavaInvoker<Method> invoker, boolean needName, boolean needValue, String javascriptType) {
 		this.isNumber = isNumber;
-		this.invoker = invoker;
+		this.invoker = Invoker.from(invoker);
 		this.needName = needName;
 		this.needValue = needValue;
 		this.javascriptType = javascriptType;
@@ -58,7 +59,7 @@ public enum DataType {
 		return isNumber;
 	}
 
-	public JavaInvoker<Method> getInvoker() {
+	public Invoker getInvoker() {
 		return invoker;
 	}
 

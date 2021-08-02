@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -26,6 +27,7 @@ import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
+import org.ssssssss.magicapi.utils.Invoker;
 import org.ssssssss.magicapi.utils.PatternUtils;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
@@ -97,8 +99,8 @@ public class RequestHandler extends MagicController {
 			doValidate("header", requestEntity.getApiInfo().getHeaders(), headers, HEADER_INVALID);
 			// 验证 path
 			doValidate("path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID);
-			BaseDefinition requestBody = SerializationUtils.clone(requestEntity.getApiInfo().getRequestBodyDefinition());
-			if (requestBody != null && requestBody.getChildren().size() > 0) {
+			BaseDefinition requestBody = requestEntity.getApiInfo().getRequestBodyDefinition();
+			if (requestBody != null && !CollectionUtils.isEmpty(requestBody.getChildren())) {
 				requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
 				doValidate(VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
 					put(requestBody.getName(), bodyValue);
@@ -151,21 +153,23 @@ public class RequestHandler extends MagicController {
 
 	private <T extends BaseDefinition> Map<String, Object> doValidate(String comment, List<T> validateParameters, Map<String, Object> parameters, JsonCode jsonCode) {
 		parameters = parameters != null ? parameters : EMPTY_MAP;
+		if(CollectionUtils.isEmpty(validateParameters)){
+			return parameters;
+		}
 		for (BaseDefinition parameter : validateParameters) {
 			// 针对requestBody多层级的情况
-			if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
+			if (DataType.Object == parameter.getDataType()) {
 				if (doValidateBody(comment, parameter, parameters, jsonCode, Map.class)) {
 					continue;
 				}
 				doValidate(VAR_NAME_REQUEST_BODY, parameter.getChildren(), (Map) parameters.get(parameter.getName()), jsonCode);
-			} else if (VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY.equalsIgnoreCase(parameter.getDataType().getJavascriptType())) {
+			} else if (DataType.Array == parameter.getDataType()) {
 				if (doValidateBody(comment, parameter, parameters, jsonCode, List.class)) {
 					continue;
 				}
 				List<Object> list = (List) parameters.get(parameter.getName());
 				if (list != null) {
-					List<BaseDefinition> definitions = parameter.getChildren();
-					List<Map<String, Object>> newList = list.stream().map(it -> doValidate(VAR_NAME_REQUEST_BODY, definitions, new HashMap<String, Object>() {{    // 使用 hashmap
+					List<Map<String, Object>> newList = list.stream().map(it -> doValidate(VAR_NAME_REQUEST_BODY, parameter.getChildren(), new HashMap<String, Object>() {{    // 使用 hashmap
 						put(EMPTY, it);
 					}}, jsonCode)).collect(Collectors.toList());
 					for (int i = 0, size = newList.size(); i < size; i++) {
@@ -234,9 +238,9 @@ public class RequestHandler extends MagicController {
 				if (decimal == null) {
 					throw new IllegalArgumentException();
 				}
-				return dataType.getInvoker().invoke0(decimal, null, EMPTY_OBJECT_ARRAY);
+				return dataType.getInvoker().invoke(decimal, null, EMPTY_OBJECT_ARRAY);
 			} else {
-				JavaInvoker<Method> invoker = dataType.getInvoker();
+				Invoker invoker = dataType.getInvoker();
 				if (invoker != null) {
 					List<Object> params = new ArrayList<>();
 					if (dataType.isNeedName()) {
@@ -245,7 +249,7 @@ public class RequestHandler extends MagicController {
 					if (dataType.isNeedValue()) {
 						params.add(value);
 					}
-					return invoker.invoke0(null, null, params.toArray());
+					return invoker.invoke(null, null, params.toArray());
 				}
 			}
 			return value;
