@@ -464,6 +464,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	public String testDataSource(DataSourceInfo properties) {
 		DataSource dataSource = null;
 		try {
+			properties.remove("id");
 			dataSource = createDataSource(properties);
 			Connection connection = dataSource.getConnection();
 			DataSourceUtils.doCloseConnection(connection, dataSource);
