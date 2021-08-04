@@ -427,6 +427,7 @@ export default {
         } else {
           bus.$emit('report','script_add')
         }
+        bus.$emit('status',`接口「${thisInfo.groupName}/${thisInfo.name}(${thisInfo.groupPath}/${thisInfo.path})」已保存`.replace(/\/+/g, '/'))
         thisInfo.id = id
         this.info.ext.tmpScript = saveObj.script
       })
@@ -448,6 +449,7 @@ export default {
         } else {
           bus.$emit('report','function_add')
         }
+        bus.$emit('status',`函数「${thisInfo.groupName}/${thisInfo.name}(${thisInfo.groupPath}/${thisInfo.path})」已保存`.replace(/\/+/g, '/'))
         thisInfo.id = id
         this.info.ext.tmpScript = saveObj.script
       })
