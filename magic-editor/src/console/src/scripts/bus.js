@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import contants from './contants.js'
-
+import {formatDate} from "@/scripts/utils.js";
+const statusLog = [];
 const bus = new Vue()
 try {
     let element = document.createElement("script");
@@ -22,4 +23,12 @@ bus.$on('report', (eventId) => {
 
     }
 })
+bus.$on('status', (content) => {
+    statusLog.push({
+        timestamp: formatDate(new Date()),
+        content
+    })
+})
+bus.$getStatusLog = () => statusLog;
+bus.$clearStatusLog = () => statusLog.length = 0
 export default bus 

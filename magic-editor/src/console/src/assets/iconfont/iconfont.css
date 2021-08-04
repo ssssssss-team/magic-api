@@ -1,6 +1,6 @@
 @font-face {
   font-family: "magic-iconfont"; /* Project id 1928593 */
-  src: url('iconfont.ttf?t=1626489914543') format('truetype');
+  src: url('iconfont.ttf?t=1628077606269') format('truetype');
 }
 
 .ma-icon {
@@ -9,6 +9,30 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.ma-icon-mysql:before {
+  content: "\e61e";
+}
+
+.ma-icon-postgresql:before {
+  content: "\e603";
+}
+
+.ma-icon-oracle:before {
+  content: "\e7c8";
+}
+
+.ma-icon-event:before {
+  content: "\e664";
+}
+
+.ma-icon-sql-server:before {
+  content: "\e605";
+}
+
+.ma-icon-clickhouse:before {
+  content: "\ec35";
 }
 
 .ma-icon-todo:before {

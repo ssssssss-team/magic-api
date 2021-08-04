@@ -45,6 +45,7 @@ export default {
   mounted() {
     bus.$on('status', (message) => this.message = message)
     bus.$on('login',() => {
+      bus.$emit('status', '获取当前登录用户信息')
       request.send('/user').success(user => this.user = user)
     })
   },
@@ -53,6 +54,7 @@ export default {
       window.open(url)
     },
     logout(){
+      bus.$emit('status', '准备注销登录')
       this.$magicConfirm({
         title: '注销登录',
         content: `是否要注销登录「${this.user.username}」`,
@@ -62,6 +64,7 @@ export default {
             contants.HEADER_MAGIC_TOKEN_VALUE = 'unauthorization';
             store.remove(contants.HEADER_MAGIC_TOKEN);
             bus.$emit('logout')
+            bus.$emit('status', '成功注销登录')
           })
         }
       })

@@ -160,20 +160,24 @@ export default {
     },
     open(item) {
       bus.$emit('open', item)
+      bus.$emit('status', `查看函数「${item.name}(${item.path})」详情`)
       this.currentFileItem = item
     },
     // 初始化数据
     initData() {
       this.showLoading = true
       this.tree = []
+      bus.$emit('status', '正在初始化函数列表')
       return new Promise((resolve) => {
         request.send('group/list?type=2').success(data => {
           this.listGroupData = data;
+          bus.$emit('status', '函数分组加载完毕')
           request.send('function/list').success(data => {
             this.listChildrenData = data
             this.initTreeData()
             this.openItemById()
             this.showLoading = false
+            bus.$emit('status', '函数信息加载完毕')
             resolve()
           })
         })
@@ -361,6 +365,7 @@ export default {
             icon: 'ma-icon-move',
             onClick: () => {
               item.parentId = '0'
+              bus.$emit('status', `准备移动函数分组「${item.name}」至根节点`)
               requestGroup('group/update', item).success(data => {
                 bus.$emit('report', 'group_update')
                 // 先删除移动前的分组
@@ -370,6 +375,7 @@ export default {
                 this.rebuildTree()
                 this.initCreateGroupObj()
                 this.changeForceUpdate()
+                bus.$emit('status', `函数分组「${item.name}」已移动至根节点`)
               })
             }
           }
@@ -395,6 +401,7 @@ export default {
                 this.$magicAlert({content: '请先保存在复制！'})
                 return
               }
+              bus.$emit('status', `复制函数「${item.name}」`)
               let newItem = {
                 ...deepClone(item),
                 copy: true

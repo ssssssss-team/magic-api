@@ -19,6 +19,7 @@ import MagicDialog from '@/components/common/modal/magic-dialog'
 import request from '@/api/request.js'
 import contants from '@/scripts/contants.js'
 import store from '@/scripts/store.js'
+import bus from "@/scripts/bus.js";
 
 export default {
   name: 'MagicLogin',
@@ -42,10 +43,12 @@ export default {
         password: this.password
       }).success((res, response) => {
         if (res) {
+          bus.$emit('status', '登录成功')
           contants.HEADER_MAGIC_TOKEN_VALUE = response.headers[contants.HEADER_MAGIC_TOKEN];
           store.set(contants.HEADER_MAGIC_TOKEN, contants.HEADER_MAGIC_TOKEN_VALUE);
           this.onLogin();
         } else {
+          bus.$emit('status', '登录失败')
           this.$magicAlert({
             title: '登录',
             content: '登录失败,用户名或密码不正确'

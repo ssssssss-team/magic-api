@@ -264,8 +264,10 @@ export default {
     },
     async login() {
       contants.HEADER_MAGIC_TOKEN_VALUE = store.get(contants.HEADER_MAGIC_TOKEN) || contants.HEADER_MAGIC_TOKEN_VALUE
+      bus.$emit('status', '尝试自动登录')
       request.send('/login').success(isLogin => {
         if (isLogin) {
+          bus.$emit('status', '自动登录成功')
           this.onLogin()
         } else {
           this.showLogin = true

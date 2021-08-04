@@ -156,21 +156,25 @@ export default {
       this.changeForceUpdate()
     },
     open(item) {
+      bus.$emit('status', `查看接口「${item.name}(${item.path})」详情`)
       bus.$emit('open', item)
       this.currentFileItem = item
     },
     // 初始化数据
     initData() {
+      bus.$emit('status', '正在初始化接口列表')
       this.showLoading = true
       this.tree = []
       return new Promise((resolve) => {
         request.send('group/list?type=1').success(data => {
           this.listGroupData = data
+          bus.$emit('status', '接口分组加载完毕')
           request.send('list').success(data => {
             this.listChildrenData = data
             this.initTreeData()
             this.openItemById()
             this.showLoading = false
+            bus.$emit('status', '接口信息加载完毕')
             resolve()
           })
         })
@@ -365,6 +369,7 @@ export default {
             icon: 'ma-icon-move',
             onClick: () => {
               item.parentId = '0'
+              bus.$emit('status', `准备移动接口分组「${item.name}」至根节点`)
               requestGroup('group/update', item).success(data => {
                 bus.$emit('report', 'group_update')
                 // 先删除移动前的分组
@@ -374,6 +379,7 @@ export default {
                 this.rebuildTree()
                 this.initCreateGroupObj()
                 this.changeForceUpdate()
+                bus.$emit('status', `接口分组「${item.name}」已移动至根节点`)
               })
             }
           },
@@ -381,12 +387,16 @@ export default {
             label: '导出',
             icon: 'ma-icon-download',
             onClick: () => {
+              bus.$emit('status', `准备导出接口分组「${item.name}」相关接口`)
               request.send(`/download?groupId=${item.id}`,null,{
                 headers: {
                   'Content-Type': 'application/json'
                 },
                 responseType: 'blob'
-              }).success(blob => downloadFile(blob,`${item.name}.zip`))
+              }).success(blob => {
+                downloadFile(blob,`${item.name}.zip`)
+                bus.$emit('status', `接口分组「${item.name}」相关接口已导出`)
+              })
             }
           }
         ],
@@ -411,6 +421,7 @@ export default {
                 this.$magicAlert({content: '请先保存在复制！'})
                 return
               }
+              bus.$emit('status', `复制接口「${item.name}」`)
               let newItem = {
                 ...deepClone(item),
                 copy: true
@@ -722,6 +733,7 @@ export default {
               if (checkChildrenFolder(this.draggableItem.children) === false) {
                 let params = JSON.parse(JSON.stringify(this.draggableItem))
                 params.parentId = this.draggableTargetItem.id
+                bus.$emit('status', `准备移动接口分组「${params.name}」`)
                 requestGroup('group/update', params).success(data => {
                   bus.$emit('report', 'group_update')
                   // 先删除移动前的分组
@@ -731,6 +743,7 @@ export default {
                   this.rebuildTree()
                   this.initCreateGroupObj()
                   this.changeForceUpdate()
+                  bus.$emit('status', `接口分组「${params.name}」移动成功`)
                 })
               } else {
                 this.$magicAlert({content: `不能移到${this.draggableTargetItem.name}`})
@@ -739,6 +752,7 @@ export default {
               // 移动接口
               // 接口不能在目标分组的第一级children里
               if (this.draggableTargetItem.children.some(item => item.id === this.draggableItem.id) === false) {
+                bus.$emit('status', `准备移动接口「${this.draggableItem.name}」`)
                 request.send('api/move', {
                   id: this.draggableItem.id,
                   groupId: this.draggableTargetItem.id
@@ -751,6 +765,7 @@ export default {
                   this.rebuildTree()
                   this.initCreateGroupObj()
                   this.changeForceUpdate()
+                  bus.$emit('status', `接口「${this.draggableItem.name}」移动成功`)
                 })
               }
             }

@@ -16,7 +16,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-if="variables.length == 0">
+        <tr v-if="variables.length === 0">
           <td align="center" colspan="3">no message.</td>
         </tr>
         <tr v-for="(item,key) in variables" :key="'debug_var_' + key">

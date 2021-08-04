@@ -143,6 +143,7 @@ export default {
     doExport() {
       let selected = this.$refs.resourceExport.getSelected()
       if (selected.length > 0) {
+        bus.$emit('status', `准备导出全部数据`)
         request.send('/download', JSON.stringify(selected), {
           method: 'post',
           headers: {
@@ -152,6 +153,7 @@ export default {
           responseType: 'blob'
         }).success(blob => {
           downloadFile(blob, 'magic-api.zip')
+          bus.$emit('status', `全部数据已导出完毕`)
         });
       }
     },
@@ -169,6 +171,7 @@ export default {
     doPush(mode) {
       let selected = 'full' === mode ? [] : this.$refs.resourcePush.getSelected()
       let _push = () => {
+        bus.$emit('status', `准备${mode === 'full' ? '全量': '增量'}推送`)
         request.send('/push', JSON.stringify(selected), {
           method: 'post',
           headers: {
@@ -182,6 +185,7 @@ export default {
           this.$magicAlert({
             content: '推送成功!'
           })
+          bus.$emit('status', `${mode === 'full' ? '全量': '增量'}推送成功`)
           this.showPushDialog = false;
         })
       }
@@ -207,6 +211,7 @@ export default {
         formData.append('mode', mode);
         let _upload = () => {
           this.showUploadDialog = false;
+          bus.$emit('status', `准备${mode === 'full' ? '全量': '增量'}上传`)
           request.send('/upload', formData, {
             method: 'post',
             headers: {
@@ -216,6 +221,7 @@ export default {
             this.$magicAlert({
               content: '上传成功!'
             })
+            bus.$emit('status', `${mode === 'full' ? '全量': '增量'}上传成功`)
             bus.$emit('refresh-resource')
           })
           this.filename = '';
@@ -248,6 +254,7 @@ export default {
       this.$emit('update:themeStyle', this.themeStyle)
     },
     refresh() {
+      bus.$emit('status', `准备刷新资源`)
       request.send('refresh').success(() => {
         bus.$emit('refresh-resource')
         bus.$emit('status', `刷新资源成功`)

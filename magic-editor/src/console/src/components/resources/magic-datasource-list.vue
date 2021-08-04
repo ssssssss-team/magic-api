@@ -17,7 +17,7 @@
       </div>
       <ul v-show="!showLoading">
         <template v-for="(item,index) in datasources" >
-        <li v-if="item._searchShow === true || item._searchShow === undefined" :key="index" @click="showDetail(item.id)" @contextmenu.prevent="e => datasourceContextMenu(e, item)">
+        <li v-if="item._searchShow === true || item._searchShow === undefined" :key="index" @click="showDetail(item)" @contextmenu.prevent="e => datasourceContextMenu(e, item)">
           <i class="ma-icon ma-icon-datasource"/>
           <label>{{item.name || '主数据源'}}</label>
           <span>({{item.key || 'default'}})</span>
@@ -165,6 +165,7 @@ export default {
     initData() {
       this.showLoading = true
       this.datasources = []
+      bus.$emit('status', '正在初始化数据源列表')
       return new Promise((resolve) => {
         request.send('datasource/list').success(data => {
           this.datasources = data;
@@ -178,19 +179,22 @@ export default {
           setTimeout(() => {
             this.showLoading = false
           }, 500)
+          bus.$emit('status', '数据源初始化完毕')
           resolve()
         })
       })
     },
-    showDetail(id){
-      if(!id){
+    showDetail(item){
+      if(!item.id){
         this.$magicAlert({
           content : '该数据源不能被修改'
         })
       }else{
-        request.send('datasource/detail',{id : id}).success(res => {
+        bus.$emit('status', `加载数据源「${item.name}」详情`)
+        request.send('datasource/detail',{id : item.id}).success(res => {
           this.datasourceObj = res;
           this.toogleDialog(true)
+          bus.$emit('status', `数据源「${item.name}」详情加载完毕`)
         });
       }
     },

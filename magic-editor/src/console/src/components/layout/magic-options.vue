@@ -9,11 +9,8 @@
       </magic-bottom-panel>
     </div>
     <ul class="ma-bottom-tab not-select">
-      <li v-for="item in tabs" :key="'bottom_tab_' + item.id" :class="{ selected: selectedTab === item.id }"
-          @click="selectedTab = selectedTab === item.id ? null : item.id"><i :class="'ma-icon ma-icon-' + item.icon"/>{{
-          item.name
-        }}
-      </li>
+      <li v-for="item in tabs" :key="'bottom_tab_' + item.id" :class="{ selected: selectedTab === item.id, 'float-right': item.right }"
+          @click="selectedTab = selectedTab === item.id ? null : item.id"><i :class="'ma-icon ma-icon-' + item.icon"/>{{item.name}}</li>
     </ul>
   </div>
 </template>
@@ -29,6 +26,7 @@ import MagicLog from './magic-log.vue'
 import MagicSettings from './magic-settings.vue'
 import MagicFunction from './magic-function.vue'
 import MagicTodo from './magic-todo.vue'
+import MagicEvent from './magic-event.vue'
 import bus from '@/scripts/bus.js'
 
 export default {
@@ -55,7 +53,8 @@ export default {
       commonTabs: [
         {id: 'log', name: '运行日志', icon: 'log', component: MagicLog},
         {id: 'setting', name: '全局参数', icon: 'settings', component: MagicSettings},
-        {id: 'todo', name: 'TODO', icon: 'todo', component: MagicTodo}
+        {id: 'todo', name: 'TODO', icon: 'todo', component: MagicTodo},
+        {id: 'event', name: '事件', icon: 'event', component: MagicEvent, right: true}
       ]
     }
   },
@@ -157,10 +156,13 @@ export default {
 .ma-bottom-tab li {
   float: left;
   cursor: pointer;
-  padding: 0 10px;
+  padding: 0 8px;
   height: 24px;
   line-height: 24px;
   color: var(--color);
+}
+.ma-bottom-tab li.float-right{
+  float: right;
 }
 
 .ma-bottom-tab li i {

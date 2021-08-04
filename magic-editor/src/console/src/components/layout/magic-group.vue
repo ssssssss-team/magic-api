@@ -160,10 +160,11 @@ export default {
       let saveObj = {...this.info}
       saveObj.paths =  saveObj.paths.filter(it => it.name)
       saveObj.options =  saveObj.options.filter(it => it.name)
+      bus.$emit('status', `准备保存分组「${saveObj.name}」`)
       requestGroup('group/update', saveObj).success(data => {
         bus.$emit('update-group')
         bus.$emit('report', 'group_update')
-        bus.$emit('status', '保存分组成功!')
+        bus.$emit('status', `保存分组「${saveObj.name}」成功!`)
       })
     },
     addRow() {
