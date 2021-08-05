@@ -4,6 +4,7 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -363,6 +364,14 @@ public class RequestHandler extends MagicController {
 	 */
 	private Object response(RequestEntity requestEntity, Object value) {
 		if (value instanceof ResponseEntity) {
+			if(requestEntity.isRequestedFromTest()){
+				ResponseEntity<?> entity = (ResponseEntity<?>) value;
+				Set<String> headerKeys = entity.getHeaders().keySet();
+				if(!headerKeys.isEmpty()){
+					// 允许前端读取自定义的header（跨域情况）。
+					requestEntity.getResponse().setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, String.join(",", headerKeys));
+				}
+			}
 			return value;
 		} else if (value instanceof ResponseModule.NullValue) {
 			return null;

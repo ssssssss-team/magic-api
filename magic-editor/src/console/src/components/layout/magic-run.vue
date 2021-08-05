@@ -17,7 +17,7 @@ import MagicJson from '@/components/common/magic-json.vue'
 import bus from '@/scripts/bus.js'
 import * as monaco from 'monaco-editor'
 import store from '@/scripts/store.js'
-import {isVisible, deepClone} from '@/scripts/utils.js'
+import {isVisible, deepClone, download as downloadFile} from '@/scripts/utils.js'
 import {parseJson} from '@/scripts/parsing/parser.js'
 
 export default {
@@ -63,9 +63,21 @@ export default {
     bus.$on('update-response-body-definition', (responseBodyDefinition) => {
       this.responseBody = responseBodyDefinition ? [responseBodyDefinition] : []
     })
-    bus.$on('update-response-blob',(contentType, blob) => {
+    bus.$on('update-response-blob',(contentType, blob, headers) => {
       this.contentType = contentType
+      let disposition = headers['content-disposition'];
+      if(disposition){
+        try {
+          let filename = disposition.replace(/.*filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/, '$1')
+          downloadFile(blob, decodeURIComponent(filename))
+          return
+        } catch (_e){
+
+        }
+      }
       this.objectUrl = URL.createObjectURL(blob)
+      //
+
     })
   },
   methods: {
@@ -108,7 +120,7 @@ export default {
         }
         let ret = parseJson(bodyStr)
         if(ret){
-          this.responseBody = this.valueCopy(ret, [this.info.responseBodyDefinition]);
+          this.responseBody = this.valueCopy(ret, [this.info.responseBodyDefinition || []]);
           this.forceUpdate = !this.forceUpdate
         }
     },

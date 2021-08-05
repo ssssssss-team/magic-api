@@ -685,7 +685,7 @@ export default {
                 // 执行完毕
                 target.running = false
                 bus.$emit('switch-tab', 'result')
-                bus.$emit('update-response-blob', contentType, data);
+                bus.$emit('update-response-blob', contentType, data, res.headers);
               }
             })
           })
