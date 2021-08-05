@@ -451,33 +451,35 @@ class BinaryOperation extends Node {
     async getJavaType(env) {
         let lType = await this.left.getJavaType(env);
         let rType = await this.right.getJavaType(env);
-        if (this.operator.type == TokenType.Plus || this.operator.type == TokenType.PlusEqual) {
-            if (lType == 'string' || rType == 'string' || lType == 'java.lang.String' || rType == 'java.lang.String') {
+        lType = lType.toLowerCase().substring(lType.lastIndexOf(".") + 1)
+        rType = rType.toLowerCase().substring(rType.lastIndexOf(".") + 1)
+        if (this.operator.type === TokenType.Plus || this.operator.type === TokenType.PlusEqual) {
+            if (lType === 'string' || rType === 'string') {
                 return 'java.lang.String';
             }
         }
-        if (this.operator.type == TokenType.Equal || (this.operator.type == TokenType.Assignment && this.linqLevel > 0)) {
+        if (this.operator.type === TokenType.Equal || (this.operator.type === TokenType.Assignment && this.linqLevel > 0)) {
             return 'java.lang.Boolean';
         }
-        if (lType == 'BigDecimal' || rType == 'BigDecimal') {
+        if (lType === 'bigdecimal' || rType === 'bigdecimal') {
             return 'java.math.BigDecimal';
         }
-        if (lType == 'double' || rType == 'double') {
+        if (lType === 'double' || rType === 'double') {
             return 'java.lang.Double';
         }
-        if (lType == 'float' || rType == 'float') {
+        if (lType === 'float' || rType === 'float') {
             return 'java.lang.Float';
         }
-        if (lType == 'long' || rType == 'long') {
+        if (lType === 'long' || rType === 'long') {
             return 'java.lang.Long';
         }
-        if (lType == 'int' || rType == 'int') {
+        if (lType === 'integer' || rType === 'integer') {
             return 'java.lang.Integer';
         }
-        if (lType == 'short' || rType == 'short') {
+        if (lType === 'short' || rType === 'short') {
             return 'java.lang.Short';
         }
-        if (lType == 'byte' || rType == 'byte') {
+        if (lType === 'byte' || rType === 'byte') {
             return 'java.lang.Byte';
         }
         return 'java.lang.Object';

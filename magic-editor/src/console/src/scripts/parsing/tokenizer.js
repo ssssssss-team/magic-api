@@ -1,9 +1,9 @@
-import {CharacterStream, LiteralToken, ParseException, Token, TokenType} from './index.js'
+import {CharacterStream, LiteralToken, ParseException, Token, TokenStream, TokenType} from './index.js'
 
-let regexpToken = (stream, tokens) => {
+const regexpToken = (stream, tokens) => {
     if (tokens.length > 0) {
         let token = tokens[tokens.length - 1];
-        if (token instanceof LiteralToken || token.getTokenType() == TokenType.Identifier) {
+        if (token instanceof LiteralToken || token.getTokenType() === TokenType.Identifier) {
             return false;
         }
     }
@@ -27,7 +27,7 @@ let regexpToken = (stream, tokens) => {
             } else if (deep > 0 && stream.match("]", false)) {
                 deep--;
             } else if (stream.match(TokenType.ForwardSlash.literal, true)) {
-                if (deep == 0) {
+                if (deep === 0) {
                     if (stream.match("g", true)) {
                     }
                     if (stream.match("i", true)) {
@@ -47,12 +47,12 @@ let regexpToken = (stream, tokens) => {
                 }
             }
             let ch = stream.consume();
-            if (ch == '\r' || ch == '\n') {
+            if (ch === '\r' || ch === '\n') {
                 stream.reset(mark);
                 return false;
             }
         }
-        if (deep != 0) {
+        if (deep !== 0) {
             throw new ParseException("Missing ']'", stream.getSpan(maybeMissForwardSlash, maybeMissForwardSlashEnd - 1));
         }
         if (!matchedEndQuote) {
@@ -67,9 +67,9 @@ let regexpToken = (stream, tokens) => {
     return false;
 }
 
-let stringToken = (stream, tokens) => {
+const tokenizerString = (stream, tokenType, tokens) => {
     // String literal
-    if (stream.match(TokenType.SingleQuote.literal, true)) {
+    if (stream.match(tokenType, true)) {
         stream.startSpan();
         let matchedEndQuote = false;
         while (stream.hasMore()) {
@@ -78,85 +78,196 @@ let stringToken = (stream, tokens) => {
                 stream.consume();
                 continue;
             }
-            if (stream.match(TokenType.SingleQuote.literal, true)) {
+            if (stream.match(tokenType.literal, true)) {
                 matchedEndQuote = true;
                 break;
             }
             let ch = stream.consume();
-            if (ch == '\r' || ch == '\n') {
-                throw new ParseException("''定义的字符串不能换行", stream.endSpan());
+            if (tokenType !== TokenType.TripleQuote && (ch === '\r' || ch === '\n')) {
+                throw new ParseException(tokenType.getError() + tokenType.getError() + "定义的字符串不能换行", stream.endSpan());
             }
         }
         if (!matchedEndQuote) {
-            throw new ParseException("字符串没有结束符\'", stream.endSpan());
+            throw new ParseException("字符串没有结束符" + tokenType.error, stream.endSpan());
         }
         let stringSpan = stream.endSpan();
-        stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd());
-        tokens.push(new LiteralToken(TokenType.StringLiteral, stringSpan));
-        return true;
-    }
-
-    // String literal
-    if (stream.match('"""', true)) {
-        stream.startSpan();
-        let matchedEndQuote = false;
-        while (stream.hasMore()) {
-            // Note: escape sequences like \n are parsed in StringLiteral
-            if (stream.match("\\", true)) {
-                stream.consume();
-                continue;
-            }
-            if (stream.match('"""', true)) {
-                matchedEndQuote = true;
-                break;
-            }
-            stream.consume();
-        }
-        if (!matchedEndQuote) {
-            throw new ParseException('多行字符串没有结束符"""', stream.endSpan());
-        }
-        let stringSpan = stream.endSpan();
-        stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd() - 2);
-        tokens.push(new LiteralToken(TokenType.StringLiteral, stringSpan));
-        return true;
-    }
-
-    // String literal
-    if (stream.match(TokenType.DoubleQuote.literal, true)) {
-        stream.startSpan();
-        let matchedEndQuote = false;
-        while (stream.hasMore()) {
-            // Note: escape sequences like \n are parsed in StringLiteral
-            if (stream.match("\\", true)) {
-                stream.consume();
-                continue;
-            }
-            if (stream.match(TokenType.DoubleQuote.literal, true)) {
-                matchedEndQuote = true;
-                break;
-            }
-            let ch = stream.consume();
-            if (ch === '\r' || ch === '\n') {
-                throw new ParseException("\"\"定义的字符串不能换行", stream.endSpan());
-            }
-        }
-        if (!matchedEndQuote) {
-            throw new ParseException("字符串没有结束符\"", stream.endSpan());
-        }
-        let stringSpan = stream.endSpan();
-        stringSpan = stream.getSpan(stringSpan.getStart(), stringSpan.getEnd() - 1);
+        stringSpan = stream.getSpan(stringSpan.getStart(), stringSpan.getEnd() - tokenType.literal.length);
         tokens.push(new LiteralToken(TokenType.StringLiteral, stringSpan));
         return true;
     }
     return false;
 };
-export default (source) => {
-    let stream = new CharacterStream(source, 0, source.length);
-    let tokens = [];
+const autoNumberType = (span, radix) => {
+    let value = Number.parseInt(span.getText().substring(2).replace(/\_/g,''), radix)
+    if (value > 0x7fffffff || value < -0x80000000) {
+        return new LiteralToken(TokenType.LongLiteral, span, value);
+    } else if (value > 127 || value < -128) {
+        return new LiteralToken(TokenType.LongLiteral, span, value);
+    }
+    return new LiteralToken(TokenType.ByteLiteral, span, value);
+}
+const tokenizerNumber = (stream, tokens) => {
+    if (stream.match('0', false)) {
+        let index = stream.getPosition();
+        stream.startSpan();
+        stream.consume();
+        if (stream.matchAny(['x', 'X'], true)) {
+            while (stream.matchDigit(true) || stream.matchAny(["A", "B", "C", "D", "E", "F", "a", "b", "c", "d", "e", "f", "_"], true)) {
+                ;
+            }
+            if (stream.matchAny(["L", "l"], true)) {
+                let span = stream.endSpan();
+                let text = span.getText();
+                tokens.push(new LiteralToken(TokenType.LongLiteral, span, parseInt(text.substring(2, text.length() - 1).replace(/\_/g,''), 16)));
+                return true;
+            }
+            tokens.push(autoNumberType(stream.endSpan(), 16));
+            return true;
+        } else if (stream.matchAny(['b','B'], true)){
+            while (stream.matchAny([ '0', '1', '_'], true)) {
+                ;
+            }
+            if (stream.matchAny([ "L", "l"], true)) {
+                let span = stream.endSpan();
+                let text = span.getText();
+                tokens.push(new LiteralToken(TokenType.LongLiteral, span, parseInt(text.substring(0, text.length() - 1).replace(/\_/g,''), 2)));
+                return true;
+            }
+            tokens.push(autoNumberType(stream.endSpan(), 2));
+            return true;
+        }
+        stream.reset(index);
+    }
+    if (stream.matchDigit(false)) {
+        let type = TokenType.IntegerLiteral;
+        stream.startSpan();
+        while (stream.matchDigit(true) || stream.match('_', true)) {
+        }
+        if (stream.match(TokenType.Period.literal, true)) {
+            type = TokenType.DoubleLiteral;
+            while (stream.matchDigit(true) || stream.match('_',true)) {
+            }
+        }
+        if (stream.matchAny(['b', 'B'], true)) {
+            if (type === TokenType.DoubleLiteral) {
+                throw new ParseException('Byte literal can not have a decimal point.', stream.endSpan());
+            }
+            type = TokenType.ByteLiteral;
+        } else if (stream.matchAny(['s', 'S'], true)) {
+            if (type === TokenType.DoubleLiteral) {
+                throw new ParseException('Short literal can not have a decimal point.', stream.endSpan());
+            }
+            type = TokenType.ShortLiteral;
+        } else if (stream.matchAny(['l', 'L'], true)) {
+            if (type === TokenType.DoubleLiteral) {
+                throw new ParseException('Long literal can not have a decimal point.', stream.endSpan());
+            }
+            type = TokenType.LongLiteral;
+        } else if (stream.matchAny(['f', 'F'], true)) {
+            type = TokenType.FloatLiteral;
+        } else if (stream.matchAny(['d', 'D'], true)) {
+            type = TokenType.DoubleLiteral;
+        } else if (stream.matchAny(['m', 'M'], true)) {
+            type = TokenType.DecimalLiteral;
+        }
+        tokens.push(new LiteralToken(type, stream.endSpan()));
+        return true
+    }
+    return false;
+}
+
+const tokenizerLanguage = (stream, tokens) => {
+    if (stream.match("```", true)) {
+        stream.startSpan();
+        if (stream.matchIdentifierStart(true)) {
+            while (stream.matchIdentifierPart(true)) {
+            }
+            let language = stream.endSpan();
+            tokens.push(new Token(TokenType.Language, language));
+            stream.startSpan();
+            if (!stream.skipUntil("```")) {
+                throw new ParseException('```需要以```结尾', stream.endSpan());
+            }
+            tokens.push(new Token(TokenType.Language, stream.endSpan(-3)));
+            return true;
+        } else {
+            throw new ParseException('```后需要标识语言类型', stream.endSpan());
+        }
+    }
+    return false;
+}
+const tokenizerIdentifier = (stream, tokens) => {
+    if (stream.matchIdentifierStart(true)) {
+        stream.startSpan();
+        while (stream.matchIdentifierPart(true)) {
+        }
+        let identifierSpan = stream.endSpan();
+        identifierSpan = stream.getSpan(identifierSpan.getStart() - 1, identifierSpan.getEnd());
+        if ("true" === identifierSpan.getText() || "false" === identifierSpan.getText()) {
+            tokens.push(new LiteralToken(TokenType.BooleanLiteral, identifierSpan));
+        } else if ("null" === identifierSpan.getText()) {
+            tokens.push(new LiteralToken(TokenType.NullLiteral, identifierSpan));
+        } else if (TokenType.SqlAnd.literal === identifierSpan.getText()) {
+            tokens.push(new Token(TokenType.SqlAnd, identifierSpan));
+        } else if (TokenType.SqlOr.literal === identifierSpan.getText()) {
+            tokens.push(new Token(TokenType.SqlOr, identifierSpan));
+        } else {
+            tokens.push(new Token(TokenType.Identifier, identifierSpan));
+        }
+        return true;
+    }
+    return false;
+}
+
+const tokenizerTemplateString = (stream, tokens)=>{
+    if (stream.match("`", true)) {
+        let begin = stream.getPosition();
+        let start = begin;
+        let matchedEndQuote = false;
+        let subTokens = [];
+        while (stream.hasMore()) {
+            if (stream.match("\\", true)) {
+                stream.consume();
+                continue;
+            }
+            if (stream.match("`", true)) {
+                matchedEndQuote = true;
+                break;
+            }
+            if (stream.match("${", true)) {
+                let end = stream.getPosition();
+                if (start < end - 2) {
+                    subTokens.push(new LiteralToken(TokenType.StringLiteral, stream.endSpan(start, end - 2)));
+                }
+                subTokens.push(...tokenizer(stream, [], "}"));
+                start = stream.getPosition();
+                continue;
+            }
+            stream.consume();
+        }
+        if (!matchedEndQuote) {
+            throw new ParseException("模板字符串没有结束符`", stream.endSpan());
+        }
+        let stringSpan = stream.endSpan(begin, stream.getPosition());
+        let end = stream.getPosition() - 1;
+        if (end - start > 0) {
+            subTokens.push(new LiteralToken(TokenType.StringLiteral, stream.endSpan(start, end)));
+        }
+        stringSpan = stream.getSpan(stringSpan.getStart() - 1, stringSpan.getEnd());
+        tokens.push(new LiteralToken(TokenType.StringLiteral, stringSpan, new TokenStream(subTokens)));
+        return true;
+    }
+    return false;
+}
+
+const tokenizer = (stream, tokens, except) => {
     let leftCount = 0;
     let rightCount = 0;
     while (stream.hasMore()) {
         stream.skipWhiteSpace();
+        if (except && stream.match(except, true)) {
+            return tokens;
+        }
         if (stream.match("//", true)) {    //注释
             stream.skipLine();
             continue;
@@ -165,43 +276,12 @@ export default (source) => {
             stream.skipUntil("*/");
             continue;
         }
-        if (stream.matchDigit(false)) {
-            let type = TokenType.IntegerLiteral;
-            stream.startSpan();
-            while (stream.matchDigit(true)) {
-            }
-            if (stream.match(TokenType.Period.literal, true)) {
-                type = TokenType.DoubleLiteral;
-                while (stream.matchDigit(true)) {
-                }
-            }
-            if (stream.match("b", true) || stream.match("B", true)) {
-                if (type === TokenType.DoubleLiteral) {
-                    throw new ParseException('Byte literal can not have a decimal point.', stream.endSpan());
-                }
-                type = TokenType.ByteLiteral;
-            } else if (stream.match("s", true) || stream.match("S", true)) {
-                if (type === TokenType.DoubleLiteral) {
-                    throw new ParseException('Short literal can not have a decimal point.', stream.endSpan());
-                }
-                type = TokenType.ShortLiteral;
-            } else if (stream.match("l", true) || stream.match("L", true)) {
-                if (type === TokenType.DoubleLiteral) {
-                    throw new ParseException('Long literal can not have a decimal point.', stream.endSpan());
-                }
-                type = TokenType.LongLiteral;
-            } else if (stream.match("f", true) || stream.match("F", true)) {
-                type = TokenType.FloatLiteral;
-            } else if (stream.match("d", true) || stream.match("D", true)) {
-                type = TokenType.DoubleLiteral;
-            } else if (stream.match("m", true) || stream.match("M", true)) {
-                type = TokenType.DecimalLiteral;
-            }
-            tokens.push(new LiteralToken(type, stream.endSpan()));
+        // int short double long float byte decimal
+        if (tokenizerNumber(stream, tokens)) {
             continue;
         }
-        // string
-        if (stringToken(stream, tokens)) {
+        // '' "" """ """
+        if (tokenizerString(stream, TokenType.SingleQuote, tokens) || tokenizerString(stream, TokenType.TripleQuote, tokens) || tokenizerString(stream, TokenType.DoubleQuote, tokens)) {
             continue;
         }
 
@@ -209,45 +289,21 @@ export default (source) => {
         if (regexpToken(stream, tokens)) {
             continue;
         }
-
-        // TODO exception
-        if (stream.match("```", true)) {
-            stream.startSpan();
-            if (stream.matchIdentifierStart(true)) {
-                while (stream.matchIdentifierPart(true)) {
-                }
-                let language = stream.endSpan();
-                tokens.push(new Token(TokenType.Language, language));
-                stream.startSpan();
-                if (!stream.skipUntil("```")) {
-                    throw new ParseException('```需要以```结尾', stream.endSpan());
-                }
-                tokens.push(new Token(TokenType.Language, stream.endSpan(-3)));
-            } else {
-                throw new ParseException('```后需要标识语言类型', stream.endSpan());
-            }
-        }
-        // Identifier, keyword, boolean literal, or null literal
-        if (stream.matchIdentifierStart(true)) {
-            stream.startSpan();
-            while (stream.matchIdentifierPart(true)) {
-            }
-            let identifierSpan = stream.endSpan();
-            identifierSpan = stream.getSpan(identifierSpan.getStart() - 1, identifierSpan.getEnd());
-            if ("true" === identifierSpan.getText() || "false" === identifierSpan.getText()) {
-                tokens.push(new LiteralToken(TokenType.BooleanLiteral, identifierSpan));
-            } else if ("null" === identifierSpan.getText()) {
-                tokens.push(new LiteralToken(TokenType.NullLiteral, identifierSpan));
-            } else if (TokenType.SqlAnd.literal === identifierSpan.getText()) {
-                tokens.push(new Token(TokenType.SqlAnd, identifierSpan));
-            } else if (TokenType.SqlOr.literal === identifierSpan.getText()) {
-                tokens.push(new Token(TokenType.SqlOr, identifierSpan));
-            } else {
-                tokens.push(new Token(TokenType.Identifier, identifierSpan));
-            }
+        // ``` ```
+        if(tokenizerLanguage(stream, tokens)){
             continue;
         }
-        if (stream.match("=>", true) || stream.match("->", true)) {
+        // template string
+        if (tokenizerTemplateString(stream, tokens)) {
+            continue;
+        }
+
+        // Identifier, keyword, boolean literal, or null literal
+        if(tokenizerIdentifier(stream, tokens)){
+            continue;
+        }
+        // lambda
+        if (stream.matchAny(['=>','->'], true)) {
             tokens.push(new Token(TokenType.Lambda, stream.getSpan(stream.getPosition() - 2, stream.getPosition())));
             continue;
         }
@@ -280,4 +336,8 @@ export default (source) => {
         }
     }
     return tokens;
+}
+
+export default (source) => {
+    return tokenizer(new CharacterStream(source, 0, source.length), [])
 }

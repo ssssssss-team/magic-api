@@ -1,7 +1,9 @@
 export const HighLightOptions = {
     escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
     builtinFunctions: [],
-    digits: /\d+(_+\d+)*/,
+    digits: /[0-9_]+/,
+    binarydigits: /[0-1_]+/,
+    hexdigits: /[[0-9a-fA-F_]+/,
     regexpctl: /[(){}\[\]\$\^|\-*+?\.]/,
     regexpesc: /\\(?:[bBdDfnrstvwWn0\\\/]|@regexpctl|c[A-Z]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4})/,
     tokenizer: {
@@ -15,13 +17,16 @@ export const HighLightOptions = {
             [/[a-zA-Z_$][\w$]*[\s]?/, {
                 cases: {
                     '@builtinFunctions': 'predefined',
-                    "~(new|var|if|else|for|in|return|import|break|continue|as|null|true|false|try|catch|finally|async|while|exit|asc|desc|ASC|DESC|assert)[\\s]?": {token: "keywords"},
+                    "~(new|var|if|else|for|in|return|import|break|continue|as|null|true|false|try|catch|finally|async|while|exit|asc|desc|ASC|DESC|assert|let|const)[\\s]?": {token: "keywords"},
                     "~(select|from|left|join|on|and|or|order|by|where|group|having|SELECT|FROM|LEFT|JOIN|ON|AND|OR|ORDER|BY|WHERE|GROUP|HAVING)[\\s]{1}": {token: "keywords"},
                     "@default": "identifier"
                 }
             }],
             [/::[a-zA-Z]+/, 'keywords'],
             [/[{}()[\]]/, '@brackets'],
+            [/(@digits)\.(@digits)/, 'number.float'],
+            [/0[xX](@hexdigits)n?/, 'number.hex'],
+            [/0[bB](@binarydigits)n?/, 'number.binary'],
             [/(@digits)[lLbBsSdDfFmM]?/, 'number'],
             [/\/\*/, 'comment', '@comment'],
             [/\/\//, 'comment', '@commentTodo'],
@@ -35,6 +40,7 @@ export const HighLightOptions = {
             [/'([^'\\]|\\.)*$/, 'string.invalid'],
             [/"/, 'string', '@string_double'],
             [/'/, 'string', '@string_single'],
+            [/`/, 'string', '@string_backtick']
         ],
         comment: [
             [/((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n(?!\*\/)]+/, 'comment.todo'],
@@ -108,5 +114,17 @@ export const HighLightOptions = {
             [/\\./, 'string.escape.invalid'],
             [/'/, 'string', '@pop']
         ],
+        string_backtick: [
+            [/\$\{/, { token: 'delimiter.bracket', next: '@bracketCounting' }],
+            [/[^\\`$]+/, 'string'],
+            [/@escapes/, 'string.escape'],
+            [/\\./, 'string.escape.invalid'],
+            [/`/, 'string', '@pop']
+        ],
+        bracketCounting: [
+            [/\{/, 'delimiter.bracket', '@bracketCounting'],
+            [/\}/, 'delimiter.bracket', '@pop'],
+            { include: 'root' }
+        ]
     }
 };

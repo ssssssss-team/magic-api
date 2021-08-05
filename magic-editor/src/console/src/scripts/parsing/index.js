@@ -156,12 +156,26 @@ const TokenType = {
     Or: {literal: '||', error: '||'},
     Xor: {literal: '^', error: '^'},
     Not: {literal: '!', error: '!'},
+    BitAnd: {literal:'&', error: '&'},
+    BitOr: {literal:'|', error: '|'},
+    BitNot: {literal:'~', error: '~'},
+    LShift: {literal:'<<', error: '<<'},
+    RShift: {literal:'>>', error: '>>'},
+    RShift2: {literal:'>>>', error: '>>>'},
+    XorEqual: {literal:'^=', error: '^=', modifiable: true},
+    BitAndEqual: {literal:'&=', error: '&=', modifiable: true},
+    BitOrEqual: {literal:'|=', error: '|=', modifiable: true},
+    LShiftEqual: {literal:'<<=', error: '<<=', modifiable: true},
+    RShiftEqual: {literal:'>>=', error: '>>=', modifiable: true},
+    RShift2Equal: {literal:'>>>=', error: '>>>=', modifiable: true},
+
 
     SqlAnd: {literal: 'and', error: 'and', inLinq: true},
     SqlOr: {literal: 'or', error: 'or', inLinq: true},
     SqlNotEqual: {literal: '<>', error: '<>', inLinq: true},
     Questionmark: {literal: '?', error: '?'},
     DoubleQuote: {literal: '"', error: '"'},
+    TripleQuote: {literal: '"""', error: '"""'},
     SingleQuote: {literal: '\'', error: '\''},
     Lambda: {error: '=> 或 ->'},
     BooleanLiteral: {error: 'true 或 false'},
@@ -200,13 +214,22 @@ TokenType.getSortedValues = function () {
 };
 
 class Token {
-    constructor(tokenType, span) {
+    constructor(tokenType, span, valueOrTokenStream) {
         this.type = tokenType;
         this.span = span;
+        if(valueOrTokenStream instanceof TokenStream){
+            this.tokenStream = valueOrTokenStream;
+        }else if(valueOrTokenStream){
+            this.value = valueOrTokenStream;
+        }
     }
 
     getTokenType() {
         return this.type;
+    }
+
+    getTokenStream() {
+        return this.tokenStream;
     }
 
     getSpan() {
@@ -219,8 +242,8 @@ class Token {
 }
 
 class LiteralToken extends Token {
-    constructor(tokenType, span) {
-        super(tokenType, span)
+    constructor(tokenType, span, valueOrTokenStream) {
+        super(tokenType, span, valueOrTokenStream)
     }
 }
 
@@ -257,6 +280,14 @@ class CharacterStream {
         if (consume)
             this.index += needleLength;
         return true;
+    }
+    matchAny(strs, consume) {
+        for(let i=0,len = strs.length; i < len;i++){
+            if(this.match(strs[i], consume)){
+                return true;
+            }
+        }
+        return false;
     }
 
     matchDigit(consume) {

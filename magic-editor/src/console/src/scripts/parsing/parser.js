@@ -37,26 +37,34 @@ import {
     LanguageExpression
 } from './ast.js'
 
-export const keywords = ["import", "as", "var", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", /*"assert"*/];
+export const keywords = ["import", "as", "var", "let", "const", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", /*"assert"*/];
 export const linqKeywords = ["from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on"];
 const binaryOperatorPrecedence = [
     [TokenType.Assignment],
-    [TokenType.PlusEqual, TokenType.MinusEqual, TokenType.AsteriskEqual, TokenType.ForwardSlashEqual, TokenType.PercentEqual],
-    [TokenType.Or, TokenType.And, TokenType.SqlOr, TokenType.SqlAnd, TokenType.Xor],
+    [TokenType.RShift2Equal, TokenType.RShiftEqual, TokenType.LShiftEqual, TokenType.XorEqual, TokenType.BitOrEqual, TokenType.BitAndEqual, TokenType.PercentEqual, TokenType.ForwardSlashEqual, TokenType.AsteriskEqual, TokenType.MinusEqual, TokenType.PlusEqual],
+    [TokenType.Or, TokenType.And, TokenType.SqlOr, TokenType.SqlAnd],
+    [TokenType.BitOr],
+    [TokenType.Xor],
+    [TokenType.BitAnd],
     [TokenType.EqualEqualEqual, TokenType.Equal, TokenType.NotEqualEqual, TokenType.NotEqual, TokenType.SqlNotEqual],
     [TokenType.Plus, TokenType.Minus],
     [TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual],
+    [TokenType.LShift, TokenType.RShift, TokenType.RShift2],
     [TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage]
 ];
 const linqBinaryOperatorPrecedence = [
-    [TokenType.PlusEqual, TokenType.MinusEqual, TokenType.AsteriskEqual, TokenType.ForwardSlashEqual, TokenType.PercentEqual],
+    [TokenType.RShift2Equal, TokenType.RShiftEqual, TokenType.LShiftEqual, TokenType.XorEqual, TokenType.BitOrEqual, TokenType.BitAndEqual, TokenType.PercentEqual, TokenType.ForwardSlashEqual, TokenType.AsteriskEqual, TokenType.MinusEqual, TokenType.PlusEqual],
     [TokenType.Or, TokenType.And, TokenType.SqlOr, TokenType.SqlAnd, TokenType.Xor],
+    [TokenType.BitOr],
+    [TokenType.Xor],
+    [TokenType.BitAnd],
     [TokenType.Assignment, TokenType.EqualEqualEqual, TokenType.Equal, TokenType.NotEqualEqual, TokenType.Equal, TokenType.NotEqual, TokenType.SqlNotEqual],
     [TokenType.Plus, TokenType.Minus],
     [TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual],
+    [TokenType.LShift, TokenType.RShift, TokenType.RShift2],
     [TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage]
 ]
-const unaryOperators = [TokenType.Not, TokenType.PlusPlus, TokenType.MinusMinus, TokenType.Plus, TokenType.Minus];
+const unaryOperators = [TokenType.MinusMinus, TokenType.PlusPlus, TokenType.BitNot, TokenType.Minus, TokenType.Plus, TokenType.Not];
 
 export class Parser {
     constructor(stream) {
@@ -75,10 +83,10 @@ export class Parser {
                 }
             }
         } catch (e) {
+            //console.error(e)
             if (ignoreError !== true) {
                 throw e;
             }
-            //console.error(e)
         }
         return nodes;
     }
@@ -93,7 +101,7 @@ export class Parser {
         let result = null;
         if (this.stream.match("import", false)) {
             result = this.parseImport();
-        } else if (this.stream.match("var", false)) {
+        } else if (this.stream.match(["var", "let", "const"], false)) {
             result = this.parseVarDefine();
         } else if (this.stream.match("if", false)) {
             result = this.parseIfStatement();
@@ -236,7 +244,7 @@ export class Parser {
     }
 
     parseNewExpression(opening) {
-        let identifier = this.stream.expect(TokenType.Identifier);
+        let expression = this.parseAccessOrCall(TokenType.Identifier, true);
         let args = this.parseArguments();
         let closing = this.stream.expect(")").getSpan();
         return this.parseConverterOrAccessOrCall(new NewStatement(new Span(opening, closing), identifier.getText(), args));
@@ -271,7 +279,7 @@ export class Parser {
     }
 
     parseVarDefine() {
-        let opening = this.stream.expect("var").getSpan();
+        let opening = this.stream.consume().getSpan();
         let token = this.stream.expect(TokenType.Identifier);
         this.checkKeyword(token.getSpan());
         if (this.stream.match(TokenType.Assignment, true)) {
@@ -441,7 +449,7 @@ export class Parser {
         return new Spread(new Span(spread.getSpan(), target.getSpan()), target);
     }
 
-    parseAccessOrCall(target) {
+    parseAccessOrCall(target, isNew) {
         if (target === TokenType.StringLiteral || target === TokenType.Identifier) {
             let identifier = this.stream.expect(target).getSpan();
             if (target === TokenType.Identifier && "new" === identifier.getText()) {
@@ -451,7 +459,7 @@ export class Parser {
                 return this.parseLambdaBody(identifier, [identifier.getText()]);
             }
             let result = target === TokenType.StringLiteral ? new Literal(identifier, 'java.lang.String') : new VariableAccess(identifier, identifier.getText());
-            return this.parseAccessOrCall(result);
+            return this.parseAccessOrCall(result, isNew);
         } else {
             while (this.stream.hasMore() && this.stream.match([TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period, TokenType.QuestionPeriod], false)) {
                 // function or method call
@@ -464,6 +472,9 @@ export class Parser {
                         target = new MethodCall(new Span(target.getSpan(), closingSpan), target, args, this.linqLevel > 0);
                     } else {
                         throw new ParseException("Expected a variable, field or method.", this.stream.hasMore() ? this.stream.consume().getSpan() : this.stream.getPrev().getSpan());
+                    }
+                    if(isNew){
+                        break;
                     }
                 }
 
@@ -499,7 +510,7 @@ export class Parser {
             let key;
             if (this.stream.hasPrev()) {
                 let prev = this.stream.getPrev();
-                if (this.stream.match(TokenType.Spread, false) && (prev.getTokenType() == TokenType.LeftCurly || prev.getTokenType() == TokenType.Comma)) {
+                if (this.stream.match(TokenType.Spread, false) && (prev.getTokenType() === TokenType.LeftCurly || prev.getTokenType() === TokenType.Comma)) {
                     let spread = this.stream.expect(TokenType.Spread);
                     keys.push(spread);
                     values.push(this.parseSpreadAccess(spread));
@@ -520,7 +531,7 @@ export class Parser {
                 if (key.getTokenType() === TokenType.Identifier) {
                     values.push(new VariableAccess(key.getSpan(), key.getText()));
                 } else {
-                    values.push(new StringLiteral(key.getSpan(), 'java.lang.String'));
+                    values.push(new Literal(key.getSpan(), 'java.lang.String'));
                 }
             } else {
                 this.stream.expect(":");
@@ -719,7 +730,7 @@ export class Parser {
             let token = this.stream.consume();
             let index = this.stream.makeIndex();
             try {
-                if (token.type === TokenType.Identifier && token.getText() === 'var') {
+                if (token.type === TokenType.Identifier && ['var','let','const'].indexOf(token.getText()) > -1 ) {
                     let varName = this.stream.consume().getText();
                     if (this.stream.match(TokenType.Assignment, true)) {
                         let isAsync = this.stream.match("async", true);
