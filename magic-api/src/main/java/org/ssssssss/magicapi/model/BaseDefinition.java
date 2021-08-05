@@ -1,6 +1,5 @@
 package org.ssssssss.magicapi.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
