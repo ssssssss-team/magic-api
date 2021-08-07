@@ -61,6 +61,7 @@ public class DatabaseResource extends KeyValueResource {
 
 	@Override
 	public void readAll() {
+		this.cachedContent.entrySet().removeIf(entry -> entry.getKey().startsWith(path));
 		String sql = String.format("select file_path, file_content from %s where file_path like '%s%%'", tableName, this.path);
 		SqlRowSet sqlRowSet = template.queryForRowSet(sql);
 		while (sqlRowSet.next()) {

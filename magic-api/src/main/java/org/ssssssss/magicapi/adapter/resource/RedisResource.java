@@ -33,6 +33,7 @@ public class RedisResource extends KeyValueResource {
 	public void readAll() {
 		List<String> keys = new ArrayList<>(keys());
 		List<String> values = redisTemplate.opsForValue().multiGet(keys);
+		this.cachedContent.entrySet().removeIf(entry -> entry.getKey().startsWith(path));
 		if (values != null) {
 			for (int i = 0, size = keys.size(); i < size; i++) {
 				this.cachedContent.put(keys.get(i), values.get(i));
