@@ -1,7 +1,7 @@
 <template>
   <div class="ma-history">
     <ul class="not-select">
-      <li v-for="(item, key) in timestampes" :key="'history_' + key" :class="{ selected: currentItem == item }"
+      <li v-for="(item, key) in timestampes" :key="'history_' + key" :class="{ selected: currentItem === item }"
           @click.stop="open(item)">
         {{ item.dateTime }}
       </li>
@@ -96,7 +96,7 @@ export default {
   overflow: auto;
   position: relative;
   width: 100%;
-  height: 685px;
+  height: 485px;
   border-top: 1px solid var(--border-color);
 }
 
