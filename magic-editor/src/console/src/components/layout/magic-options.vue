@@ -261,7 +261,7 @@ export default {
 }
 
 .ma-layout .ma-sider {
-  border-left: 1px solid var(--tab-bar-border-color);
+  border-right: 1px solid var(--tab-bar-border-color);
 }
 
 .ma-layout .ma-sider > * {

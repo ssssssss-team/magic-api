@@ -13,6 +13,10 @@
         </li>
       </ul>
       <div class="ma-layout">
+        <div class="not-select ma-sider">
+          <div @click="addRow"><i class="ma-icon ma-icon-plus"/></div>
+          <div @click="removeRow"><i class="ma-icon ma-icon-minus"/></div>
+        </div>
         <div v-show="showIndex === 0" class="ma-layout-container">
           <div class="ma-header ma-table-row ma-table-request-row">
             <div style="flex: 1">Key</div>
@@ -75,10 +79,6 @@
               </div>
             </div>
           </div>
-        </div>
-        <div class="not-select ma-sider">
-          <div @click="addRow"><i class="ma-icon ma-icon-plus"/></div>
-          <div @click="removeRow"><i class="ma-icon ma-icon-minus"/></div>
         </div>
       </div>
     </div>

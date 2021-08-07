@@ -73,10 +73,6 @@ export default {
 .ma-event .ma-layout .ma-content .content-bg:hover {
   background: var(--toolbox-list-hover-background);
 }
-.ma-layout .ma-sider {
-  border: none;
-  border-right: 1px solid var(--tab-bar-border-color);
-}
 .ma-layout .ma-table-row{
   display: flex;
 }

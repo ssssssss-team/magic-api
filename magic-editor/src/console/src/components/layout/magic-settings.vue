@@ -7,7 +7,11 @@
       </li>
     </ul>
     <div class="ma-layout">
-      <div v-if="showIndex == 0" class="ma-layout-container">
+      <div v-if="showIndex < 2" class="not-select ma-sider">
+        <div @click="addRow"><i class="ma-icon ma-icon-plus"/></div>
+        <div @click="removeRow"><i class="ma-icon ma-icon-minus"/></div>
+      </div>
+      <div v-if="showIndex === 0" class="ma-layout-container">
         <div class="ma-header ma-table-row">
           <div>键</div>
           <div>值</div>
@@ -15,7 +19,7 @@
         </div>
         <div class="ma-content">
           <div v-for="(item, key) in parameters" :key="'request_parameter_' + key" class="ma-table-row">
-            <div :class="{ focus: parameterIndex == key && !item.name }">
+            <div :class="{ focus: parameterIndex === key && !item.name }">
               <magic-input :focus="() => (parameterIndex = key)" :value.sync="item.name" style="width: 100%"/>
             </div>
             <div>
@@ -27,7 +31,7 @@
           </div>
         </div>
       </div>
-      <div v-if="showIndex == 1" class="ma-layout-container">
+      <div v-if="showIndex === 1" class="ma-layout-container">
         <div class="ma-header ma-table-row">
           <div>键</div>
           <div>值</div>
@@ -35,7 +39,7 @@
         </div>
         <div class="ma-content">
           <div v-for="(item, key) in headers" :key="'request_header_' + key" class="ma-table-row">
-            <div :class="{ focus: headerIndex == key && !item.name }">
+            <div :class="{ focus: headerIndex === key && !item.name }">
               <magic-input :focus="() => (headerIndex = key)" :value.sync="item.name" style="width: 100%"/>
             </div>
             <div>
@@ -46,10 +50,6 @@
             </div>
           </div>
         </div>
-      </div>
-      <div v-if="showIndex < 2" class="not-select ma-sider">
-        <div @click="addRow"><i class="ma-icon ma-icon-plus"/></div>
-        <div @click="removeRow"><i class="ma-icon ma-icon-minus"/></div>
       </div>
     </div>
   </div>

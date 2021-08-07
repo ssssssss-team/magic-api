@@ -15,6 +15,10 @@
         </li>
       </ul>
       <div class="ma-layout">
+        <div v-show="showIndex < 3" class="not-select ma-sider">
+          <div @click="addRow"><i class="ma-icon ma-icon-plus"/></div>
+          <div @click="removeRow"><i class="ma-icon ma-icon-minus"/></div>
+        </div>
         <div v-show="showIndex === 0" class="ma-layout-container">
           <div class="ma-header ma-table-row ma-table-request-row">
             <div style="width: 32px">必填</div>
@@ -165,10 +169,6 @@
         </div>
         <div v-show="showIndex === 4" class="ma-layout-container" style="overflow: hidden; right: 0">
           <magic-textarea :value.sync="info.description" style="width: 100%; height: 100%; margin: 2px"/>
-        </div>
-        <div v-show="showIndex < 3" class="not-select ma-sider">
-          <div @click="addRow"><i class="ma-icon ma-icon-plus"/></div>
-          <div @click="removeRow"><i class="ma-icon ma-icon-minus"/></div>
         </div>
       </div>
     </div>
