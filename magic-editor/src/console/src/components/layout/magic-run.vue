@@ -132,7 +132,7 @@ export default {
       let that = this;
       newBody.map(item => {
         let oldItemArr = oldBody.filter(old => {
-          if (old.level === 0 || arrayFlag) {
+          if (arrayFlag) {
             return old
           }
           return old.name === item.name
