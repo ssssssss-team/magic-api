@@ -59,7 +59,7 @@
         <button class="ma-button active" @click="doExport">导出</button>
       </template>
     </magic-dialog>
-    <magic-dialog title="远程推送" v-model="showPushDialog" align="right" class="ma-remote-push-container ma-tree-wrapper"
+    <magic-dialog title="远程推送" v-model="showPushDialog" align="right" :moveable="false" class="ma-remote-push-container ma-tree-wrapper"
                   width="400px" height="540px">
       <template #content>
         <magic-resource-choose ref="resourcePush" height="400px" max-height="400px"/>
