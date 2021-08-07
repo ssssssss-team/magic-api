@@ -9,8 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.ssssssss.magicapi.model.Constants.HEADER_REQUEST_BREAKPOINTS;
-import static org.ssssssss.magicapi.model.Constants.HEADER_REQUEST_SESSION;
+import static org.ssssssss.magicapi.model.Constants.*;
 
 public class RequestEntity {
 
@@ -147,6 +146,13 @@ public class RequestEntity {
 
 	public String getRequestId() {
 		return requestId;
+	}
+
+	/**
+	 * 获取 RequestBody
+	 */
+	public Object getRequestBody(){
+		return magicScriptContext == null ? null : this.magicScriptContext.get(VAR_NAME_REQUEST_BODY);
 	}
 
 	/**
