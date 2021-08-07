@@ -1,4 +1,4 @@
-import {ParseException, Span, TokenType, TokenStream} from './index.js'
+import {ParseException, Span, TokenStream, TokenType} from './index.js'
 import tokenizer from './tokenizer.js'
 import JavaClass from '../editor/java-class.js'
 import {
@@ -14,6 +14,7 @@ import {
     IfStatement,
     Import,
     LambdaFunction,
+    LanguageExpression,
     LinqField,
     LinqJoin,
     LinqOrder,
@@ -33,8 +34,7 @@ import {
     VarDefine,
     VariableAccess,
     WhileStatement,
-    WholeLiteral,
-    LanguageExpression
+    WholeLiteral
 } from './ast.js'
 
 export const keywords = ["import", "as", "var", "let", "const", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", /*"assert"*/];
@@ -124,7 +124,15 @@ export class Parser {
         } else if (this.stream.match("assert", false)) {
             result = this.parseAssert();
         } else {
-            result = this.parseExpression(expectRightCurly);
+            let index = this.stream.makeIndex();
+            if (this.stream.match(TokenType.Identifier, true) && this.stream.match(TokenType.Identifier, false)) {
+                this.stream.resetIndex(index);
+                result = this.parseVarDefine();
+            }
+            if (result == null) {
+                this.stream.resetIndex(index);
+                result = this.parseExpression(expectRightCurly);
+            }
         }
         while (this.stream.match(";", true)) {
 
@@ -473,7 +481,7 @@ export class Parser {
                     } else {
                         throw new ParseException("Expected a variable, field or method.", this.stream.hasMore() ? this.stream.consume().getSpan() : this.stream.getPrev().getSpan());
                     }
-                    if(isNew){
+                    if (isNew) {
                         break;
                     }
                 }
@@ -491,7 +499,7 @@ export class Parser {
                     if (this.linqLevel > 0 && this.stream.match(TokenType.Asterisk, false)) {
                         target = new MemberAccess(target, optional, this.stream.expect(TokenType.Asterisk).getSpan(), true);
                     } else {
-                        let name = this.stream.expect([TokenType.Identifier,TokenType.SqlAnd,TokenType.SqlOr]).getSpan()
+                        let name = this.stream.expect([TokenType.Identifier, TokenType.SqlAnd, TokenType.SqlOr]).getSpan()
                         target = new MemberAccess(new Span(target.getSpan(), name), target, optional, name, false);
                     }
                 }
@@ -705,7 +713,7 @@ export class Parser {
             expression = new Literal(this.stream.expect(TokenType.NullLiteral).getSpan(), 'null');
         } else if (this.linqLevel > 0 && this.stream.match(TokenType.Asterisk, false)) {
             expression = new WholeLiteral(this.stream.expect(TokenType.Asterisk).getSpan());
-        } else if(this.stream.match(TokenType.Language, false)){
+        } else if (this.stream.match(TokenType.Language, false)) {
             expression = new LanguageExpression(this.stream.consume().getSpan(), this.stream.consume().getSpan());
         }
         if (expression == null) {
@@ -723,24 +731,14 @@ export class Parser {
             ...defineEnvironment,
             ...JavaClass.getAutoImportClass(),
             ...JavaClass.getAutoImportModule(),
-            '@import' : []
+            '@import': []
         }
         let expression;
         while (this.stream.hasMore()) {
             let token = this.stream.consume();
             let index = this.stream.makeIndex();
             try {
-                if (token.type === TokenType.Identifier && ['var','let','const'].indexOf(token.getText()) > -1 ) {
-                    let varName = this.stream.consume().getText();
-                    if (this.stream.match(TokenType.Assignment, true)) {
-                        let isAsync = this.stream.match("async", true);
-                        let value = this.parseStatement();
-                        env[varName] = isAsync ? "java.util.concurrent.Future" : await value.getJavaType(env);
-                        if (!this.stream.hasMore()) {
-                            expression = value;
-                        }
-                    }
-                } else if (token.type === TokenType.Identifier && token.getText() === 'import') {
+                if (token.type === TokenType.Identifier && token.getText() === 'import') {
                     let varName;
                     let value;
                     if (this.stream.match(TokenType.Identifier, false)) {
@@ -759,9 +757,9 @@ export class Parser {
                             varName = value.substring(index + 1)
                         }
                     }
-                    if(value.endsWith(".*")){
-                        env['@import'].push(value.substring(0,value.length - 1))
-                    }else if (varName) {
+                    if (value.endsWith(".*")) {
+                        env['@import'].push(value.substring(0, value.length - 1))
+                    } else if (varName) {
                         env[varName] = value;
                     }
                 } else if (token.getTokenType() === TokenType.Assignment) {
@@ -772,8 +770,22 @@ export class Parser {
                         expression = value;
                     }
                 } else if (token.getTokenType() === TokenType.Identifier) {
-                    this.stream.prev();
-                    expression = this.parseAccessOrCall(token.getTokenType());
+                    if (this.stream.match(TokenType.Identifier, false)) {
+                        let varName = this.stream.consume().getText();
+                        if (['var', 'let', 'const'].indexOf(token.getText()) === -1) {
+                            env[varName] = env[token.getText()];
+                        } else if (this.stream.match(TokenType.Assignment, true)) {
+                            let isAsync = this.stream.match("async", true);
+                            let value = this.parseStatement();
+                            env[varName] = isAsync ? "java.util.concurrent.Future" : await value.getJavaType(env);
+                            if (!this.stream.hasMore()) {
+                                expression = value;
+                            }
+                        }
+                    } else {
+                        this.stream.prev();
+                        expression = this.parseAccessOrCall(token.getTokenType());
+                    }
                 }
             } catch (e) {
                 this.stream.resetIndex(index);
@@ -808,29 +820,29 @@ function processBody(body, level) {
         level: level + 1,
         selected: false
     }
-    if(body instanceof MapLiteral){
-        body.keys.forEach((key,index) => {
+    if (body instanceof MapLiteral) {
+        body.keys.forEach((key, index) => {
             let value = body.values[index];
             let param = {
                 ...defaultParam,
-                name: key.span.getText().replace(/['"]/g,''),
+                name: key.span.getText().replace(/['"]/g, ''),
                 value: isSimpleObject(value) ? value.span.getText().trim() : '',
                 dataType: getType(value),
             }
-            if(value instanceof MapLiteral || value instanceof ListLiteral){
+            if (value instanceof MapLiteral || value instanceof ListLiteral) {
                 param.children = processBody(value, level + 1);
             }
             arr.push(param)
         });
-    }else if(body instanceof ListLiteral){
-        if(body.values[0]){
+    } else if (body instanceof ListLiteral) {
+        if (body.values[0]) {
             let value = body.values[0]
             let param = {
                 ...defaultParam,
                 value: isSimpleObject(value) ? value.span.getText().trim() : '',
                 dataType: getType(value),
             }
-            if(value instanceof MapLiteral || value instanceof ListLiteral){
+            if (value instanceof MapLiteral || value instanceof ListLiteral) {
                 param.children = processBody(value, level + 1);
             }
             arr.push(param)
@@ -838,27 +850,29 @@ function processBody(body, level) {
     }
     return arr;
 }
-function isSimpleObject(object){
+
+function isSimpleObject(object) {
     return !(object instanceof MapLiteral || object instanceof ListLiteral)
 }
+
 function getType(object) {
-    if(object instanceof MapLiteral){
+    if (object instanceof MapLiteral) {
         return "Object";
     }
-    if(object instanceof ListLiteral){
+    if (object instanceof ListLiteral) {
         return "Array";
     }
-    if(object instanceof UnaryOperation){
+    if (object instanceof UnaryOperation) {
         object = object.operand;
     }
     let type = object.javaType.substring(object.javaType.lastIndexOf(".") + 1);
-    if(type === 'Integer' && Number(object.span.getText()) > 0x7fffffff || Number(object.span.getText()) < -0x80000000){
+    if (type === 'Integer' && Number(object.span.getText()) > 0x7fffffff || Number(object.span.getText()) < -0x80000000) {
         return 'Long'
     }
     return type === 'null' ? 'Object' : type;
 }
 
-export function parseJson(bodyStr){
+export function parseJson(bodyStr) {
     try {
         JSON.parse(bodyStr)
         let parser = new Parser(new TokenStream(tokenizer(bodyStr)))

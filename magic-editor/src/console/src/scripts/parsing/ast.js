@@ -110,16 +110,16 @@ class MemberAccess extends Node {
         let javaType = await this.target.getJavaType(env);
 
         let clazz = await JavaClass.loadClass(javaType);
-        var methods = clazz.methods;
+        let methods = clazz.methods;
         if (methods) {
             for (let i = 0, len = methods.length; i < len; i++) {
                 let method = methods[i];
-                if (clazz.superClass == 'java.util.HashMap' && method.name == 'get' && method.parameters.length == 1) {
+                if (clazz.superClass === 'java.util.HashMap' && method.name === 'get' && method.parameters.length === 1) {
                     return JavaClass.getWrapperClass(method.returnType);
                 }
             }
         }
-        return javaType || 'java.lang.Object';
+        return 'java.lang.Object';
     }
 }
 
