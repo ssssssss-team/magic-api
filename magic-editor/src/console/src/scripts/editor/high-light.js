@@ -43,17 +43,16 @@ export const HighLightOptions = {
             [/`/, 'string', '@string_backtick']
         ],
         comment: [
-            [/((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n(?!\*\/)]+/, 'comment.todo'],
-            [/[ \t]+/, 'comment'],
-            [/\*\//, 'comment', '@pop'],
-            [/[^ \t*\/]+(?!((TODO)|(todo)|(fixme)|(FIXME)))/, 'comment'],
-            [/./, 'comment'],
+            [/\*\//, 'comment', '@popall'],
+            [/\S((TODO)|(todo)|(fixme)|(FIXME))\s+/, 'comment'],
+            [/((TODO)|(todo)|(fixme)|(FIXME))\s+[^(*/)]+/, 'comment.todo'],
+            [/\S/, 'comment'],
         ],
         commentTodo: [
-            [/((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n]+/, 'comment.todo','@popall'],
             [/^/,'', '@popall'],
-            [/[^ \t]+(?!((TODO)|(todo)|(fixme)|(FIXME)))/, 'comment', '@commentTodo']
-
+            [/\S((TODO)|(todo)|(fixme)|(FIXME))\s+/, 'comment'],
+            [/((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n]+/, 'comment.todo','@popall'],
+            [/\S/, 'comment'],
         ],
         regexp: [
             [
