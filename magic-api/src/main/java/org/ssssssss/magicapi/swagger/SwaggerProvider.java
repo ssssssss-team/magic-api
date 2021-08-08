@@ -188,7 +188,7 @@ public class SwaggerProvider {
 	}
 
 	private Map<String, Object> doProcessDefinition(BaseDefinition target, ApiInfo info, String parentName, String definitionType, int level) {
-		Map<String, Object> result = new HashMap<>(3);
+		Map<String, Object> result = new HashMap<>(4);
 		result.put("description", target.getDescription());
 		if (DataType.Array == target.getDataType()) {
 			if (!CollectionUtils.isEmpty(target.getChildren())) {
@@ -201,15 +201,19 @@ public class SwaggerProvider {
 			String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
 			String voName = groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + (StringUtils.equals("response", definitionType) ? "«response«" : "«request«") + parentName + target.getName() + "»»»";
 
-			Map<String, Object> definition = new HashMap<>(3);
+			Map<String, Object> definition = new HashMap<>(4);
 			Map<String, Map<String, Object>> properties = new HashMap<>(target.getChildren().size());
+			Set<String> requiredSet = new HashSet <>(target.getChildren().size());
 			for (BaseDefinition obj : target.getChildren()) {
 				properties.put(obj.getName(), doProcessDefinition(obj, info, parentName + target.getName() + "_", definitionType, level + 1));
+				if (obj.isRequired()) {
+					requiredSet.add(obj.getName());
+				}
 			}
 			definition.put("properties", properties);
 			definition.put("description", target.getDescription());
 			definition.put("type", target.getDataType().getJavascriptType());
-
+			definition.put("required", requiredSet);
 			if (this.DEFINITION_MAP.containsKey(voName)) {
 				// TODO 应该不会出现名字都一样的
 				voName = voName.replace("»»»", "_" + level + "»»»");

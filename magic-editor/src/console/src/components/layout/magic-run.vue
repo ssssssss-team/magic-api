@@ -41,7 +41,7 @@ export default {
   watch: {
     responseBody: {
       handler(responseBodyArr) {
-        this.info.responseBodyDefinition = responseBodyArr[0]
+        this.info.responseBodyDefinition = deepClone(responseBodyArr[0], ['level'])
       },
       deep: true
     }
