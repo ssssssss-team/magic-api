@@ -1,6 +1,10 @@
 <template>
   <div class="ma-options">
     <div class="ma-layout">
+      <div class="not-select ma-sider">
+        <div @click="addRow"><i class="ma-icon ma-icon-plus"/></div>
+        <div @click="removeRow"><i class="ma-icon ma-icon-minus"/></div>
+      </div>
       <div class="ma-layout-container">
         <div class="ma-header ma-table-row">
           <div>键</div>
@@ -22,10 +26,6 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class="not-select ma-sider">
-        <div @click="addRow"><i class="ma-icon ma-icon-plus"/></div>
-        <div @click="removeRow"><i class="ma-icon ma-icon-minus"/></div>
       </div>
     </div>
   </div>
