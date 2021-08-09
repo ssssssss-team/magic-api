@@ -770,11 +770,9 @@ export class Parser {
                         expression = value;
                     }
                 } else if (token.getTokenType() === TokenType.Identifier) {
-                    if (this.stream.match(TokenType.Identifier, false)) {
+                    if (['var','let','const'].indexOf(token.getText()) > -1 ) {
                         let varName = this.stream.consume().getText();
-                        if (['var', 'let', 'const'].indexOf(token.getText()) === -1) {
-                            env[varName] = env[token.getText()];
-                        } else if (this.stream.match(TokenType.Assignment, true)) {
+                        if (this.stream.match(TokenType.Assignment, true)) {
                             let isAsync = this.stream.match("async", true);
                             let value = this.parseStatement();
                             env[varName] = isAsync ? "java.util.concurrent.Future" : await value.getJavaType(env);

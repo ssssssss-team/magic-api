@@ -119,7 +119,7 @@ class MemberAccess extends Node {
                 }
             }
         }
-        return 'java.lang.Object';
+        return javaType || 'java.lang.Object';
     }
 }
 
