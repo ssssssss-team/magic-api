@@ -28,7 +28,7 @@ export const HighLightOptions = {
             [/0[xX](@hexdigits)n?/, 'number.hex'],
             [/0[bB](@binarydigits)n?/, 'number.binary'],
             [/(@digits)[lLbBsSdDfFmM]?/, 'number'],
-            [/\/\*/, 'comment', '@comment'],
+            [/\/\*\**/, 'comment', '@comment'],
             [/\/\//, 'comment', '@commentTodo'],
             [
                 /\/(?=([^\\\/]|\\.)+\/([gimsuy]*)(\s*)(\.|;|,|\)|\]|\}|$))/,
