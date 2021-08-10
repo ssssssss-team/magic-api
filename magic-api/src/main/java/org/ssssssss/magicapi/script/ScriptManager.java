@@ -6,8 +6,10 @@ import org.ssssssss.magicapi.utils.MD5Utils;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
+import org.ssssssss.script.reflection.JavaReflection;
 
 import javax.script.*;
+import java.util.Objects;
 
 public class ScriptManager {
 
@@ -18,6 +20,13 @@ public class ScriptManager {
 	 * 编译缓存
 	 */
 	private static final DefaultSqlCache compileCache = new DefaultSqlCache(500, -1);
+
+	private static final String DEBUG_MARK;
+
+	static {
+		// TODO 兼容asm处理，切换后删除。
+		DEBUG_MARK = Objects.toString(JavaReflection.getFieldValue(MagicScript.class, JavaReflection.getField(MagicScript.class, "DEBUG_MARK")),"");
+	}
 
 	/**
 	 * 编译脚本
@@ -54,7 +63,7 @@ public class ScriptManager {
 		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, context, ScriptContext.ENGINE_SCOPE);
 		// 执行脚本
 		try {
-			return compile("MagicScript", (context instanceof MagicScriptDebugContext ? MagicScript.DEBUG_MARK: "") +script).eval(simpleScriptContext);
+			return compile("MagicScript", (context instanceof MagicScriptDebugContext ? DEBUG_MARK: "") +script).eval(simpleScriptContext);
 		} catch (ScriptException e) {
 			throw new MagicAPIException(e.getMessage(), e);
 		} finally {
