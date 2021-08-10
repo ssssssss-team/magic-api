@@ -230,9 +230,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			throw new MagicAPIException("当前未配置数据源，如已配置，请引入 spring-boot-starter-jdbc 后在试!");
 		}
 		MagicDynamicDataSource.DataSourceNode dataSourceNode = magicDynamicDataSource.getDataSource(resourceConfig.getDatasource());
-		if (dataSourceNode == null) {
-			throw new IllegalArgumentException(String.format("找不到数据源:%s", resourceConfig.getDatasource()));
-		}
 		return new DatabaseResource(new JdbcTemplate(dataSourceNode.getDataSource()), resourceConfig.getTableName(), resourceConfig.getPrefix(), resourceConfig.isReadonly());
 	}
 
@@ -250,9 +247,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	public MagicBackupService magicDatabaseBackupService(MagicDynamicDataSource magicDynamicDataSource) {
 		BackupConfig backupConfig = properties.getBackupConfig();
 		MagicDynamicDataSource.DataSourceNode dataSourceNode = magicDynamicDataSource.getDataSource(backupConfig.getDatasource());
-		if (dataSourceNode == null) {
-			throw new IllegalArgumentException(String.format("找不到数据源:%s", backupConfig.getDatasource()));
-		}
 		return new MagicDatabaseBackupService(new JdbcTemplate(dataSourceNode.getDataSource()), backupConfig.getTableName());
 	}
 
@@ -408,6 +402,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 									PageProvider pageProvider,
 									SqlCache sqlCache) {
 		SQLModule sqlModule = new SQLModule(dynamicDataSource);
+		if(!dynamicDataSource.isEmpty()){
+			sqlModule.setDataSourceNode(dynamicDataSource.getDataSource());
+		}
 		sqlModule.setResultProvider(resultProvider);
 		sqlModule.setPageProvider(pageProvider);
 		sqlModule.setSqlInterceptors(sqlInterceptorsProvider.getIfAvailable(Collections::emptyList));

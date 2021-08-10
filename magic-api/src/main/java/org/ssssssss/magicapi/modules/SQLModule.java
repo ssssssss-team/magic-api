@@ -73,7 +73,6 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	public SQLModule(MagicDynamicDataSource dynamicDataSource) {
 		this.dynamicDataSource = dynamicDataSource;
-		this.dataSourceNode = dynamicDataSource.getDataSource();
 	}
 
 	@UnableCall
@@ -115,7 +114,8 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		this.sqlInterceptors = sqlInterceptors;
 	}
 
-	private void setDataSourceNode(DataSourceNode dataSourceNode) {
+	@UnableCall
+	public void setDataSourceNode(DataSourceNode dataSourceNode) {
 		this.dataSourceNode = dataSourceNode;
 	}
 
@@ -290,7 +290,14 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	@UnableCall
 	public List<Map<String, Object>> select(BoundSql boundSql) {
+		assertDatasourceNotNull();
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.columnMapRowMapper, boundSql.getParameters()));
+	}
+
+	private void assertDatasourceNotNull(){
+		if(dataSourceNode == null){
+			throw new NullPointerException("当前数据源未设置");
+		}
 	}
 
 	/**
@@ -303,6 +310,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	@UnableCall
 	public int update(BoundSql boundSql) {
+		assertDatasourceNotNull();
 		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql, RequestContext.getRequestEntity()));
 		int value = dataSourceNode.getJdbcTemplate().update(boundSql.getSql(), boundSql.getParameters());
 		if (this.cacheName != null) {
@@ -330,6 +338,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	}
 
 	void insert(BoundSql boundSql, MagicKeyHolder keyHolder) {
+		assertDatasourceNotNull();
 		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql, RequestContext.getRequestEntity()));
 		dataSourceNode.getJdbcTemplate().update(con -> {
 			PreparedStatement ps = keyHolder.createPrepareStatement(con, boundSql.getSql());
@@ -346,6 +355,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("批量执行insert操作，返回插入主键数组")
 	public int[] batchInsert(@Comment("`SQL`语句") String sql, @Comment("参数") List<Object[]> list) {
+		assertDatasourceNotNull();
 		return dataSourceNode.getJdbcTemplate().batchUpdate(sql, list);
 	}
 
@@ -354,6 +364,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("批量执行insert操作，返回插入主键数组")
 	public int[] batchInsert(@Comment("`SQL`语句") String[] sqls) {
+		assertDatasourceNotNull();
 		return dataSourceNode.getJdbcTemplate().batchUpdate(sqls);
 	}
 
@@ -388,6 +399,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	}
 
 	private Object page(BoundSql boundSql, Page page) {
+		assertDatasourceNotNull();
 		Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
 		BoundSql countBoundSql = boundSql.copy(dialect.getCountSql(boundSql.getSql()));
 		int count = countBoundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(countBoundSql.getSql(), new SingleRowResultSetExtractor<>(Integer.class), countBoundSql.getParameters()));
@@ -410,6 +422,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	@UnableCall
 	public Integer selectInt(BoundSql boundSql) {
+		assertDatasourceNotNull();
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), new SingleRowResultSetExtractor<>(Integer.class), boundSql.getParameters()));
 	}
 
@@ -423,6 +436,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	@UnableCall
 	public Map<String, Object> selectOne(BoundSql boundSql) {
+		assertDatasourceNotNull();
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
 			Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
 			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, 0, 1);
@@ -435,6 +449,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("查询单行单列的值")
 	public Object selectValue(@Comment("`SQL`语句") String sql) {
+		assertDatasourceNotNull();
 		BoundSql boundSql = new BoundSql(sql, this);
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
 			Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
