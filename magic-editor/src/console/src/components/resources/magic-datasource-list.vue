@@ -247,7 +247,7 @@ export default {
       })
     },
     doSave(){
-      if(!this.datasourceObj.username){
+      if(!this.datasourceObj.name){
         this.$magicAlert({
           content : '数据源名称不能为空'
         })
