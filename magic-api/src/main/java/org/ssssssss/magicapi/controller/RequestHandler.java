@@ -1,6 +1,5 @@
 package org.ssssssss.magicapi.controller;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,18 +36,16 @@ import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
-import org.ssssssss.script.reflection.JavaInvoker;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS;
 import static org.ssssssss.magicapi.config.MessageType.BREAKPOINT;
+import static org.ssssssss.magicapi.config.MessageType.EXCEPTION;
 import static org.ssssssss.magicapi.model.Constants.*;
 
 public class RequestHandler extends MagicController {
@@ -291,16 +288,18 @@ public class RequestHandler extends MagicController {
 				se = (MagicScriptException) parent;
 			}
 		} while ((parent = parent.getCause()) != null);
+		if(se != null && requestEntity.isRequestedFromTest()){
+			Span.Line line = se.getLine();
+			WebSocketSessionManager.sendBySessionId(requestEntity.getRequestedSessionId(), EXCEPTION, Arrays.asList(
+					requestEntity.getRequestedSessionId(),
+					se.getSimpleMessage(),
+					line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol())
+			));
+		}
 		if (configuration.isThrowException()) {
 			throw root;
 		}
 		logger.error("接口{}请求出错", requestEntity.getRequest().getRequestURI(), root);
-		if (se != null && requestEntity.isRequestedFromTest()) {
-			Span.Line line = se.getLine();
-			requestEntity.getResponse().setHeader(ACCESS_CONTROL_EXPOSE_HEADERS, HEADER_RESPONSE_WITH_MAGIC_API);
-			requestEntity.getResponse().setHeader(HEADER_RESPONSE_WITH_MAGIC_API, CONST_STRING_TRUE);
-			return new JsonBodyBean<>(-1000, se.getSimpleMessage(), resultProvider.buildException(requestEntity, se), line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol()));
-		}
 		return resultProvider.buildException(requestEntity, root);
 	}
 

@@ -193,6 +193,7 @@ export default {
     })
     bus.$on('ws_log', rows => this.onLogReceived(rows[0]))
     bus.$on('ws_breakpoint', rows => this.onBreakpoint(rows[0]))
+    bus.$on('ws_exception', args => this.onException(args[0]))
     let javaTypes = {
       'String': 'java.lang.String',
       'Integer': 'java.lang.Integer',
@@ -233,6 +234,28 @@ export default {
               throwable: true
             })
           }
+        }
+      }
+    },
+    onException(args){
+      if (this.info?.ext?.sessionId === args[0]) {
+        let line = args[2]
+        let range = new monaco.Range(line[0], line[2], line[1], line[3] + 1)
+        let decorations = this.editor.deltaDecorations(
+            [],
+            [{
+              range,
+              options: {
+                hoverMessage: {
+                  value: args[1]
+                },
+                inlineClassName: 'squiggly-error'
+              }
+            }])
+        this.editor.revealRangeInCenter(range)
+        this.editor.focus()
+        if (contants.DECORATION_TIMEOUT >= 0) {
+          setTimeout(() => this.editor.deltaDecorations(decorations, []), contants.DECORATION_TIMEOUT)
         }
       }
     },
@@ -650,32 +673,6 @@ export default {
               target.ext.debugDecorations = target.ext.debugDecoration = null
               if (!(data instanceof Blob)) {
                 target.ext.debuging = target.running = false
-                if (data.body && res.headers[contants.HEADER_RESPONSE_WITH_MAGIC_API] === 'true') {
-                  let line = data.body
-                  if (this.info.id === target.id) {
-                    let range = new monaco.Range(line[0], line[2], line[1], line[3] + 1)
-                    let decorations = this.editor.deltaDecorations(
-                        [],
-                        [
-                          {
-                            range,
-                            options: {
-                              hoverMessage: {
-                                value: data.message
-                              },
-                              inlineClassName: 'squiggly-error'
-                            }
-                          }
-                        ]
-                    )
-                    this.editor.revealRangeInCenter(range)
-                    this.editor.focus()
-                    if(contants.DECORATION_TIMEOUT >= 0){
-                      setTimeout(() => this.editor.deltaDecorations(decorations, []), contants.DECORATION_TIMEOUT)
-                    }
-                  }
-                  data = data.data;
-                }
                 target.responseBody = utils.formatJson(data)
                 bus.$emit('switch-tab', 'result')
                 bus.$emit('update-response-body-definition', target.responseBodyDefinition);

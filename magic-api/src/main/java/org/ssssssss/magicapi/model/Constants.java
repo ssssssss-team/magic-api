@@ -99,8 +99,6 @@ public class Constants {
 
 	public static final String HEADER_REQUEST_BREAKPOINTS = "Magic-Request-Breakpoints";
 
-	public static final String HEADER_RESPONSE_WITH_MAGIC_API = "Response-With-Magic-API";
-
 	public static final String ATTRIBUTE_MAGIC_USER = "MAGIC_API_ATTRIBUTE_USER";
 
 	public static final String MAGIC_TOKEN_HEADER = "Magic-Token";

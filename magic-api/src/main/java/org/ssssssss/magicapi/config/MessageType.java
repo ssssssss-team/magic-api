@@ -9,6 +9,8 @@ public enum MessageType {
 	LOG,
 	/* 进入断点 */
 	BREAKPOINT,
+	/* 请求接口发生异常 */
+	EXCEPTION,
 
 	/* C -> S message */
 	/* 设置断点 */
