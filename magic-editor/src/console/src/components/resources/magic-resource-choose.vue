@@ -334,12 +334,16 @@ export default {
 
 <style>
 @import './magic-resource.css';
+.ma-tree-wrapper .ma-checkbox input + label{
+  width: 12px !important;
+  height: 12px !important;
+}
 .ma-tree-wrapper .ma-checkbox input + label::after{
   width: 12px !important;
   height: 12px !important;
   line-height: 12px !important;
   top: 0 !important;
-  left: -5px !important;
+  left: 0 !important;
 }
 </style>
 <style scoped>

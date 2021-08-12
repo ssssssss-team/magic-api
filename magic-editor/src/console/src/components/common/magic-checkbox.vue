@@ -50,8 +50,9 @@ export default {
   font-size: 12px;
   height: 24px;
   line-height: 24px;
+  width: 24px;
   user-select: none;
-  display: inline;
+  display: inline-block;
 }
 
 .ma-checkbox input + label::after {
@@ -64,7 +65,7 @@ export default {
   line-height: 16px;
   position: absolute;
   top: 2px;
-  left: -10px;
+  left: 3px;
   text-align: center;
   font-size: 12px;
   color: var(--checkbox-text-color);
