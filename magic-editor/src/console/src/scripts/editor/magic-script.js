@@ -4,6 +4,7 @@ import CompletionItemProvider from './completion.js';
 import FoldingRangeProvider from './folding.js';
 import SignatureHelpProvider from './signature.js';
 import HoverProvider from './hover.js';
+const Beautifier = require('../beautifier/javascript/beautifier').Beautifier
 
 export const initializeMagicScript = () => {
     const language = 'magicscript';
@@ -78,4 +79,13 @@ export const initializeMagicScript = () => {
     monaco.languages.registerSignatureHelpProvider(language, SignatureHelpProvider);
     // 设置悬浮提示
     monaco.languages.registerHoverProvider(language, HoverProvider);
+    // 设置代码格式化
+    monaco.languages.registerDocumentFormattingEditProvider(language, {
+        provideDocumentFormattingEdits(model, options, token) {
+            return [{
+                text: new Beautifier(model.getValue()).beautify(),
+                range: model.getFullModelRange()
+            }]
+        }
+    })
 }
