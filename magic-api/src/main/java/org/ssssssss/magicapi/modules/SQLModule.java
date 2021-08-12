@@ -171,6 +171,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		sqlModule.setRowMapColumnMapper(this.rowMapColumnMapper);
 		sqlModule.setSqlCache(this.sqlCache);
 		sqlModule.setTtl(this.ttl);
+		sqlModule.setCacheName(this.cacheName);
 		sqlModule.setResultProvider(this.resultProvider);
 		sqlModule.setDialectAdapter(this.dialectAdapter);
 		sqlModule.setSqlInterceptors(this.sqlInterceptors);
