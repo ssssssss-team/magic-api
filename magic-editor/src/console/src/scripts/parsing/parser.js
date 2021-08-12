@@ -253,9 +253,14 @@ export class Parser {
 
     parseNewExpression(opening) {
         let expression = this.parseAccessOrCall(TokenType.Identifier, true);
-        let args = this.parseArguments();
-        let closing = this.stream.expect(")").getSpan();
-        return this.parseConverterOrAccessOrCall(new NewStatement(new Span(opening, closing), identifier.getText(), args));
+        if (expression instanceof MethodCall) {
+            let span = new Span(opening.getSource(), opening.getStart(), this.stream.getPrev().getSpan().getEnd());
+            return this.parseConverterOrAccessOrCall(new NewStatement(span, expression.getMethod(), expression.getArguments()));
+        } else if (expression instanceof FunctionCall) {
+            let span = new Span(opening.getSource(), opening.getStart(), this.stream.getPrev().getSpan().getEnd());
+            return this.parseConverterOrAccessOrCall(new NewStatement(span, expression.getFunction(), expression.getArguments()));
+        }
+        throw new ParseException("Expected MethodCall or FunctionCall or LambdaFunction", this.stream.getPrev().getSpan());
     }
 
     parseArguments() {
@@ -746,7 +751,6 @@ export class Parser {
                         value = varName;
                     } else if (this.stream.match(TokenType.StringLiteral, false)) {
                         value = this.stream.consume().getText();
-                        value = value.substring(1, value.length - 1);
                     }
                     let index = -1;
                     if (this.stream.match('as', true)) {
@@ -774,7 +778,7 @@ export class Parser {
                         let varName = this.stream.consume().getText();
                         if (this.stream.match(TokenType.Assignment, true)) {
                             let isAsync = this.stream.match("async", true);
-                            let value = this.parseStatement();
+                            let value = this.parseExpression();
                             env[varName] = isAsync ? "java.util.concurrent.Future" : await value.getJavaType(env);
                             if (!this.stream.hasMore()) {
                                 expression = value;

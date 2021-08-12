@@ -52,6 +52,14 @@ class MethodCall extends Node {
         return [this.target, ...this.args]
     }
 
+    getMethod(){
+        return this.target;
+    }
+
+    getArguments(){
+        return this.args;
+    }
+
     async getJavaType(env) {
         let method = this.target.member.getText()
         let targetType = await this.target.getJavaType(env)
@@ -78,6 +86,14 @@ class FunctionCall extends Node {
 
     expressions() {
         return [this.target, ...this.args]
+    }
+
+    getFunction(){
+        return this.target;
+    }
+
+    getArguments(){
+        return this.args;
     }
 
     async getJavaType(env) {
@@ -362,6 +378,10 @@ class VarDefine extends Node {
 
     expressions() {
         return this.expression == null ? [] : [this.expression]
+    }
+
+    async getJavaType(env) {
+        return this.expression.getJavaType(env);
     }
 }
 
