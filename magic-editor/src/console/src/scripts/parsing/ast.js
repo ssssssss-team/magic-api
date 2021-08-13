@@ -253,6 +253,17 @@ class Exit extends Node {
     }
 }
 
+class Throw extends Node {
+    constructor(span, value) {
+        super(span)
+        this.value = value
+    }
+
+    expressions() {
+        return [this.value]
+    }
+}
+
 class Assert extends Node {
     constructor(span, condition, values) {
         super(span)
@@ -646,5 +657,6 @@ export {
     LinqSelect,
     WholeLiteral,
     ClassConverter,
-    LanguageExpression
+    LanguageExpression,
+    Throw
 }

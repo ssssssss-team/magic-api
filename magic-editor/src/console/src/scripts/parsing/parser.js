@@ -34,10 +34,11 @@ import {
     VarDefine,
     VariableAccess,
     WhileStatement,
-    WholeLiteral
+    WholeLiteral,
+    Throw
 } from './ast.js'
 
-export const keywords = ["import", "as", "var", "let", "const", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", /*"assert"*/];
+export const keywords = ["import", "as", "var", "let", "const", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", "throw"/*"assert"*/];
 export const linqKeywords = ["from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on"];
 const binaryOperatorPrecedence = [
     [TokenType.Assignment],
@@ -121,6 +122,8 @@ export class Parser {
             result = new Break(this.stream.consume().getSpan());
         } else if (this.stream.match("exit", false)) {
             result = this.parseExit();
+        } else if (this.stream.match("throw", false)) {
+            result = this.parseThrow();
         } else if (this.stream.match("assert", false)) {
             result = this.parseAssert();
         } else {
@@ -163,6 +166,12 @@ export class Parser {
         if (keywords.indexOf(span.getText()) > -1) {
             throw new ParseException('变量名不能定义为关键字', span);
         }
+    }
+
+    parseThrow() {
+        let opening = this.stream.consume().getSpan();
+        let expression = this.parseExpression();
+        return new Throw(new Span(opening, this.stream.getPrev().getSpan()), expression);
     }
 
     parseExit() {
