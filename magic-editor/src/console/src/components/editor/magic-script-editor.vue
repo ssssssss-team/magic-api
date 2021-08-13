@@ -31,7 +31,8 @@
           测试<em>Ctrl + Q</em><br/>
           代码提示<em>Alt + /</em><br/>
           恢复断点<em>F8</em><br/>
-          步进<em>F6</em>
+          步进<em>F6</em><br/>
+          代码格式化<em>Ctrl + Alt + L</em>
         </p>
       </div>
     </div>
