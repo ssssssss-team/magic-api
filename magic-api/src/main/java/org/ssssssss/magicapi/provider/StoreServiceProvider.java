@@ -1,9 +1,9 @@
 package org.ssssssss.magicapi.provider;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ssssssss.magicapi.adapter.Resource;
-import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.MagicEntity;
 import org.ssssssss.magicapi.utils.JsonUtils;
 
@@ -36,7 +36,9 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	 * 添加
 	 */
 	public boolean insert(T info) {
-		info.setId(UUID.randomUUID().toString().replace("-", ""));
+		if(StringUtils.isBlank(info.getId())){
+			info.setId(UUID.randomUUID().toString().replace("-", ""));
+		}
 		info.setUpdateTime(System.currentTimeMillis());
 		info.setCreateTime(info.getUpdateTime());
 		Resource dest = groupServiceProvider.getGroupResource(info.getGroupId()).getResource(info.getName() + ".ms");
