@@ -74,6 +74,7 @@ import {Parser} from '@/scripts/parsing/parser.js'
 import tokenizer from '@/scripts/parsing/tokenizer.js'
 import {TokenStream} from '@/scripts/parsing/index.js'
 import RequestParameter from '@/scripts/editor/request-parameter.js';
+import { CommandsRegistry } from 'monaco-editor/esm/vs/platform/commands/common/commands'
 
 export default {
   name: 'MagicScriptEditor',
@@ -131,6 +132,11 @@ export default {
         },
         '!findWidgetVisible && !inreferenceSearchEditor && !editorHasSelection'
     )
+    this.editor._standaloneKeybindingService.addDynamicKeybinding(`-editor.action.formatDocument`, undefined, () => {})
+    const { handler, when } = CommandsRegistry.getCommand('editor.action.formatDocument') ?? {}
+    if (handler) {
+      this.editor._standaloneKeybindingService.addDynamicKeybinding('editor.action.formatDocument', monaco.KeyMod.CtrlCmd | monaco.KeyMod.Alt | monaco.KeyCode.KEY_L, handler, when)
+    }
     this.editor.onMouseDown(e => {
       if (e.target.element.classList.contains('codicon')) {
         return
