@@ -39,9 +39,7 @@
     </div>
     <magic-dialog title="上传接口" :value="showUploadDialog" align="right" @onClose="showUploadDialog = false">
       <template #content>
-        <input type="file" style="display: none" ref="file" @change="onFileSelected" accept="application/zip">
-        <magic-input icon="upload" :readonly="true" width="235px" placeholder="未选择文件" :onClick="choseFile"
-                     :value="filename"/>
+        <magic-file ref="uploadFile" placeholder="未选择文件" />
       </template>
       <template #buttons>
         <button class="ma-button active" @click="() => doUpload('increment')">增量上传</button>
@@ -92,6 +90,7 @@ import store from '@/scripts/store.js'
 import request from '@/api/request.js'
 import MagicDialog from '@/components/common/modal/magic-dialog.vue'
 import MagicInput from '@/components/common/magic-input.vue'
+import MagicFile from '@/components/common/magic-file.vue'
 import MagicResourceChoose from '@/components/resources/magic-resource-choose.vue'
 import MagicSearch from './magic-search.vue'
 
@@ -101,6 +100,7 @@ export default {
     MagicDialog,
     MagicInput,
     MagicSearch,
+    MagicFile,
     MagicResourceChoose
   },
   props: {
@@ -116,7 +116,6 @@ export default {
       showUploadDialog: false,
       showPushDialog: false,
       exportVisible: false,
-      filename: null,
       target: 'http://host:port/_magic-api-sync',
       secretKey: '123456789',
       skinRight: 40 + 'px',
@@ -157,14 +156,6 @@ export default {
         });
       }
     },
-    onFileSelected() {
-      if (this.$refs.file.files[0]) {
-        this.filename = this.$refs.file.files[0].name;
-      }
-    },
-    choseFile() {
-      this.$refs.file.click();
-    },
     upload() {
       this.showUploadDialog = true;
     },
@@ -204,10 +195,10 @@ export default {
       }
     },
     doUpload(mode) {
-      let file = this.$refs.file.files[0];
+      let file = this.$refs.uploadFile.getFile();
       if (file) {
         let formData = new FormData();
-        formData.append('file', file, this.filename);
+        formData.append('file', file, file.name);
         formData.append('mode', mode);
         let _upload = () => {
           this.showUploadDialog = false;
@@ -224,8 +215,6 @@ export default {
             bus.$emit('status', `${mode === 'full' ? '全量': '增量'}上传成功`)
             bus.$emit('refresh-resource')
           })
-          this.filename = '';
-          this.$refs.file.value = '';
         }
         if (mode === 'full') {
           this.$magicConfirm({

@@ -22,7 +22,7 @@
         <div v-show="showIndex === 0" class="ma-layout-container">
           <div class="ma-header ma-table-row ma-table-request-row">
             <div style="width: 32px">必填</div>
-            <div style="flex:1">Key</div>
+            <div style="width: 80px">Key</div>
             <div style="flex:1">Value</div>
             <div style="width:135px">参数类型</div>
             <div style="flex:1">默认值</div>
@@ -37,15 +37,15 @@
               <div style="width: 32px">
                 <magic-checkbox :focus="() => (parameterIndex = key)" :value.sync="item.required"/>
               </div>
-              <div :class="{ focus: parameterIndex === key && !item.name }" style="flex:1">
+              <div :class="{ focus: parameterIndex === key && !item.name }" style="width: 80px">
                 <magic-input :focus="() => (parameterIndex = key)" :value.sync="item.name" style="width: 100%"/>
               </div>
               <div style="flex:1">
-                <magic-input :focus="() => (parameterIndex = key)" :value.sync="item.value" style="width: 100%"/>
+                <magic-file v-if="item.dataType && item.dataType.startsWith('MultipartFile')" :focus="() => (parameterIndex = key)" :value.sync="item.value" :multiple="item.dataType === 'MultipartFiles'"/>
+                <magic-input v-else :focus="() => (parameterIndex = key)" :value.sync="item.value" style="width: 100%"/>
               </div>
               <div style="width: 135px">
-                <magic-select :border="false" :focus="() => (parameterIndex = key)" :options="types" :value.sync="item.dataType"
-                              default-value="String" style="width: 100%"/>
+                <magic-select :border="false" :focus="() => (parameterIndex = key)" :options="types" :value.sync="item.dataType" default-value="String" style="width: 100%"/>
               </div>
               <div style="flex:1">
                 <magic-input :focus="() => (parameterIndex = key)" :value.sync="item.defaultValue" style="width: 100%"/>
@@ -69,7 +69,7 @@
         <div v-show="showIndex === 1" class="ma-layout-container">
           <div class="ma-header ma-table-row ma-table-request-row">
             <div style="width:32px">必填</div>
-            <div style="flex:1">Key</div>
+            <div style="width: 80px">Key</div>
             <div style="flex:1">Value</div>
             <div style="width: 100px">参数类型</div>
             <div style="flex:1">默认值</div>
@@ -84,7 +84,7 @@
               <div style="width: 32px">
                 <magic-checkbox :focus="() => (headerIndex = key)" :value.sync="item.required"/>
               </div>
-              <div :class="{ focus: headerIndex === key && !item.name }" style="flex:1">
+              <div :class="{ focus: headerIndex === key && !item.name }" style="width: 80px">
                 <magic-input :focus="() => (headerIndex = key)" :value.sync="item.name" style="width: 100%"/>
               </div>
               <div style="flex:1">
@@ -116,7 +116,7 @@
 
         <div v-show="showIndex === 2" class="ma-layout-container">
           <div class="ma-header ma-table-row ma-table-request-row">
-            <div style="flex: 1">Key</div>
+            <div style="width: 80px">Key</div>
             <div style="flex: 1">Value</div>
             <div style="width: 100px">参数类型</div>
             <div style="width: 100px">验证方式</div>
@@ -127,7 +127,7 @@
           <div class="ma-content">
             <div v-for="(item, key) in info.paths" :key="'request_header_' + key"
                  class="ma-table-row ma-table-request-row">
-              <div :class="{ focus: pathIndex === key && !item.name }" style="flex:1">
+              <div :class="{ focus: pathIndex === key && !item.name }" style="width: 80px">
                 <magic-input :focus="() => (pathIndex = key)" :value.sync="item.name" style="width: 100%"/>
               </div>
               <div style="flex:1">
@@ -177,6 +177,7 @@
 
 <script>
   import MagicInput from '@/components/common/magic-input.vue'
+  import MagicFile from '@/components/common/magic-file.vue'
   import MagicSelect from '@/components/common/magic-select.vue'
   import MagicCheckbox from '@/components/common/magic-checkbox.vue'
   import MagicTextarea from '@/components/common/magic-textarea.vue'
@@ -195,6 +196,7 @@
     },
     components: {
       MagicInput,
+      MagicFile,
       MagicSelect,
       MagicTextarea,
       MagicCheckbox,

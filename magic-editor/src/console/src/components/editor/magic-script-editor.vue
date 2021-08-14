@@ -440,7 +440,14 @@ export default {
       delete saveObj.responseHeader
       delete saveObj.running
       // saveObj.responseHeader = JSON.stringify(saveObj.responseHeader)
-      saveObj.parameters = saveObj.parameters.filter(it => it.name)
+      saveObj.parameters = saveObj.parameters.filter(it => it.name).map(it => {
+        if(it.value instanceof FileList){
+          let temp = {...it};
+          delete temp.value;
+          return temp;
+        }
+        return it;
+      })
       saveObj.paths = saveObj.paths.filter(it => it.name)
       saveObj.headers = saveObj.headers.filter(it => it.name)
       saveObj.option = JSON.stringify(saveObj.option)
@@ -648,6 +655,19 @@ export default {
       requestConfig.headers[contants.HEADER_REQUEST_SESSION] = sessionId
       requestConfig.headers[contants.HEADER_MAGIC_TOKEN] = contants.HEADER_MAGIC_TOKEN_VALUE
       this.mergeGlobalSettings(requestConfig)
+      if(requestConfig.data && Object.values(requestConfig.data).some(it => it instanceof FileList)){
+        requestConfig.headers['Content-Type'] = 'multipart/form-data';
+        let formData = new FormData()
+        Object.keys(requestConfig.data).forEach(key => {
+          let value = requestConfig.data[key];
+          if(value instanceof FileList){
+            value.forEach(file => formData.append(key, file, file.name))
+          }else{
+            formData.append(key, value);
+          }
+        });
+        requestConfig.data = formData;
+      }
       requestConfig.headers[contants.HEADER_REQUEST_BREAKPOINTS] = this.editor
           .getModel()
           .getAllDecorations()
