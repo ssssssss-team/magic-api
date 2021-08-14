@@ -32,7 +32,7 @@
       </div>
       <div class="no-data" v-show="!showLoading && (!datasources || datasources.length === 0)">无数据</div>
     </div>
-    <magic-dialog width="400px" height="450px" v-model="showDialog" :title="datasourceObj.id ? '修改数据源:' + datasourceObj.name : '创建数据源'" align="right" @onClose="toogleDialog(false)">
+    <magic-dialog width="450px" height="450px" v-model="showDialog" :title="datasourceObj.id ? '修改数据源:' + datasourceObj.name : '创建数据源'" align="right" @onClose="toogleDialog(false)">
       <template #content>
         <div class="ds-form">
           <label>名称</label>
