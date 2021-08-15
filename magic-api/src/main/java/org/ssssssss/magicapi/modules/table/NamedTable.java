@@ -10,9 +10,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/**
- * @author
- */
 public class NamedTable {
 	String tableName;
 
@@ -38,6 +35,8 @@ public class NamedTable {
 
 	boolean useLogic = false;
 
+	boolean withBlank = false;
+
 	Where where = new Where(this);
 
 	public NamedTable(String tableName, SQLModule sqlModule, Function<String, String> rowMapColumnMapper) {
@@ -51,6 +50,12 @@ public class NamedTable {
 	@Comment("使用逻辑删除")
 	public NamedTable logic(){
 		this.useLogic = true;
+		return this;
+	}
+
+	@Comment("更新空值")
+	public NamedTable withBlank(){
+		this.withBlank = true;
 		return this;
 	}
 
@@ -125,7 +130,10 @@ public class NamedTable {
 		return this;
 	}
 
-	private List<Map.Entry<String, Object>> filterNotBlanks() {
+	private Collection<Map.Entry<String, Object>> filterNotBlanks() {
+		if(this.withBlank){
+			return this.columns.entrySet();
+		}
 		return this.columns.entrySet().stream()
 				.filter(it -> StringUtils.isNotBlank(Objects.toString(it.getValue(), "")))
 				.collect(Collectors.toList());
@@ -144,7 +152,7 @@ public class NamedTable {
 		if (this.defaultPrimaryValue != null && StringUtils.isBlank(Objects.toString(this.columns.getOrDefault(this.primary, "")))) {
 			this.columns.put(this.primary, this.defaultPrimaryValue);
 		}
-		List<Map.Entry<String, Object>> entries = filterNotBlanks();
+		Collection<Map.Entry<String, Object>> entries = filterNotBlanks();
 		if (entries.isEmpty()) {
 			throw new MagicAPIException("参数不能为空");
 		}
@@ -281,13 +289,8 @@ public class NamedTable {
 		if (StringUtils.isNotBlank(this.primary)) {
 			primaryValue = this.columns.remove(this.primary);
 		}
-		List<Map.Entry<String, Object>> entries = null;
-		if (!isUpdateBlank) {
-			entries = filterNotBlanks();
-		} else {
-			entries = new ArrayList<>(this.columns.entrySet());
-		}
-
+		this.withBlank = isUpdateBlank;
+		List<Map.Entry<String, Object>> entries = new ArrayList<>(filterNotBlanks());
 		if (entries.isEmpty()) {
 			throw new MagicAPIException("要修改的列不能为空");
 		}
