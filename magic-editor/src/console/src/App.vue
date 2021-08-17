@@ -14,8 +14,11 @@ export default {
   },
   data() {
     let defaultConfig = {};
-    if (parent && parent.MAGIC_EDITOR_CONFIG) {
-      defaultConfig = {...parent.MAGIC_EDITOR_CONFIG};
+    try {
+      if (parent && parent.MAGIC_EDITOR_CONFIG) {
+        defaultConfig = {...parent.MAGIC_EDITOR_CONFIG};
+      }
+    } catch (ignored) {
     }
     if (window.MAGIC_EDITOR_CONFIG) {
       defaultConfig = {...defaultConfig, ...window.MAGIC_EDITOR_CONFIG}
