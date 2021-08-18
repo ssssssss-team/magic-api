@@ -696,7 +696,7 @@ Beautifier.prototype.handle_start_block = function(current_token) {
     } else {
       this.set_mode(MODE.BlockStatement);
     }
-  } else if (this._flags.last_token.type === TOKEN.OPERATOR && this._flags.last_token.text === '=>') {
+  } else if (this._flags.last_token.type === TOKEN.OPERATOR && (this._flags.last_token.text === '=>' || this._flags.last_token.text === '->')) {
     // arrow function: (param1, paramN) => { statements }
     this.set_mode(MODE.BlockStatement);
   } else if (in_array(this._flags.last_token.type, [TOKEN.EQUALS, TOKEN.START_EXPR, TOKEN.COMMA, TOKEN.OPERATOR]) ||
