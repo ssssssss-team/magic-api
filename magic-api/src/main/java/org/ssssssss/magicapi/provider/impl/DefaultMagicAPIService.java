@@ -603,7 +603,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		if (StringUtils.isNotBlank(groupId)) {
 			Resource resource = groupServiceProvider.getGroupResource(groupId);
 			notNull(resource, GROUP_NOT_FOUND);
-			resource.parent().export(os);
+			resource.export(os);
 		} else if (resources == null || resources.isEmpty()) {
 			workspace.export(os, PATH_BACKUPS, "backup");
 		} else {
