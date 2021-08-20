@@ -185,8 +185,7 @@ export default {
   line-height: 30px;
   padding-left: 30px;
   padding-right: 75px;
-  background-size: 22px 24px;
-  background-position: 5px 4px;
+  background-position: 7px 7px;
   background-repeat: no-repeat;
   text-align: left;
 }

@@ -286,8 +286,7 @@ export default {
   font-size: 0px;
   letter-spacing: 0px;
   background-repeat: no-repeat;
-  background-size: 24px 24px;
-  background-position: 0px 4px;
+  background-position: 4px 7px;
   padding-left: 25px;
 }
 
