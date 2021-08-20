@@ -167,10 +167,10 @@ export default {
       this.tree = []
       return new Promise((resolve) => {
         request.send('group/list?type=1').success(data => {
-          this.listGroupData = data
+          this.listGroupData = data || []
           bus.$emit('status', '接口分组加载完毕')
           request.send('list').success(data => {
-            this.listChildrenData = data
+            this.listChildrenData = data || []
             this.initTreeData()
             this.openItemById()
             this.showLoading = false

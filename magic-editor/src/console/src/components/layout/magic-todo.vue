@@ -56,7 +56,7 @@ export default {
       request.send('todo').success(data => {
         this.todoList = data
         const $parent = this.$parent.$parent.$parent.$refs
-        this.todoList.forEach(item => {
+        this.todoList&&this.todoList.forEach(item => {
           let cache
           if (item.type === 1) {
             cache = $parent.apiList.getItemById(item.id)

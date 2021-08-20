@@ -170,10 +170,10 @@ export default {
       bus.$emit('status', '正在初始化函数列表')
       return new Promise((resolve) => {
         request.send('group/list?type=2').success(data => {
-          this.listGroupData = data;
+          this.listGroupData = data || [];
           bus.$emit('status', '函数分组加载完毕')
           request.send('function/list').success(data => {
-            this.listChildrenData = data
+            this.listChildrenData = data || []
             this.initTreeData()
             this.openItemById()
             this.showLoading = false

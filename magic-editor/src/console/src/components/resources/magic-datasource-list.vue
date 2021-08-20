@@ -168,7 +168,7 @@ export default {
       bus.$emit('status', '正在初始化数据源列表')
       return new Promise((resolve) => {
         request.send('datasource/list').success(data => {
-          this.datasources = data;
+          this.datasources = data || [];
           JavaClass.setExtensionAttribute('org.ssssssss.magicapi.modules.SQLModule', this.datasources.filter(it => it.key).map(it => {
             return {
               name: it.key,

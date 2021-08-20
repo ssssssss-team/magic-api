@@ -85,6 +85,7 @@ export default {
           { id: 'datasource',_type: 'root', name: '3.数据源', parentId: 'root', path:'', selected: false, checkedHalf: false}
       ]
       request.send('group/list?type=1').success(data => {
+        data = data || []
         this.listGroupData.push(...data.map(it => {
           it.parentId = it.parentId == '0' ? 'api' : it.parentId;
           it.selected = false;
@@ -93,6 +94,7 @@ export default {
           return it;
         }))
         request.send('list').success(data => {
+          data = data || []
           this.listChildrenData.push(...data.map(it => {
             it._type = 'api';
             it.selected = false;
@@ -103,6 +105,7 @@ export default {
         })
       })
       request.send('group/list?type=2').success(data => {
+        data = data || []
         this.listGroupData.push(...data.map(it => {
           it.parentId = it.parentId == '0' ? 'function' : it.parentId;
           it.selected = false;
@@ -111,6 +114,7 @@ export default {
           return it;
         }))
         request.send('function/list').success(data => {
+          data = data || []
           this.listChildrenData.push(...data.map(it => {
             it._type = 'function';
             it.selected = false;
@@ -121,6 +125,7 @@ export default {
         })
       })
       request.send('datasource/list').success(data => {
+        data = data || []
         this.listChildrenData.push(...data.filter(it => it.id).map(it => {
           it._type = 'datasource';
           it.selected = false;

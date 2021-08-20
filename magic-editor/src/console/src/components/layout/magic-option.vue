@@ -55,7 +55,7 @@ export default {
   mounted() {
     let map = {}
       request.send('/options').success(data => {
-        this.defaultOptions = data.map(e => {
+        this.defaultOptions = data&&data.map(e => {
           let item = {text: e[0], value: e[0], description: e[1], defaultValue: e[2]}
           this.optionsMap[item.value] = item;
           return item;
