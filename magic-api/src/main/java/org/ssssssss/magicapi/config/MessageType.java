@@ -19,4 +19,6 @@ public enum MessageType {
 	RESUME_BREAKPOINT,
 	/* 设置 Session ID */
 	SET_SESSION_ID,
+	/* 登录 */
+	LOGIN
 }

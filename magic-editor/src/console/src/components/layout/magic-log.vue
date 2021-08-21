@@ -11,39 +11,53 @@
 </template>
 
 <script>
+import bus from "@/scripts/bus";
+import * as utils from "@/scripts/utils";
+
 export default {
   name: "MagicLog",
   props: {
     info: Object
   },
-  mounted() {
-
-  },
-  computed: {
-    logs() {
-      return this.info && this.info.ext && this.info.ext.logs || []
+  data(){
+    return {
+      logs: []
     }
   },
+  mounted() {
+    bus.$on('ws_log', rows => this.onLogReceived(rows[0]))
+  },
   methods: {
+    onLogReceived(row){
+      row.timestamp = utils.formatDate(new Date())
+      let throwable = row.throwable
+      delete row.throwable
+      row.message = (row.message || '').replace(/ /g, '&nbsp;').replace(/\n/g,'<br>')
+      console.log(row.message)
+      this.logs.push(row)
+      if (throwable) {
+        let messages = throwable.replace(/ /g, '&nbsp;').split('\n');
+        for (let i = 0; i < messages.length; i++) {
+          this.logs.push({
+            level: row.level,
+            message: messages[i],
+            throwable: true
+          })
+        }
+      }
+      let container = this.$refs.container;
+      this.$nextTick(() => container.scrollTop = container.scrollHeight)
+    },
     onContextMenu(event) {
       this.$magicContextmenu({
         event,
         menus: [{
           label: '清空日志',
-          onClick: () => this.info && this.info.ext && this.info.ext.logs && this.info.ext.logs.splice(0)
+          onClick: () => this.logs.splice(0)
         }]
       })
     }
   },
-  watch: {
-    'info.ext.logs': {
-      deep: true,
-      handler(newVal) {
-        let container = this.$refs.container;
-        this.$nextTick(() => container.scrollTop = container.scrollHeight)
-      }
-    }
-  }
 };
 </script>
 
@@ -56,7 +70,7 @@ export default {
 }
 
 .ma-log > div > div {
-  display: inline-block;
+  display: inline;
   line-height: 20px;
   white-space: nowrap;
 }

@@ -4,33 +4,32 @@ import org.springframework.web.socket.WebSocketSession;
 import org.ssssssss.script.MagicScriptDebugContext;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MagicConsoleSession {
 
 	private static final Map<String, MagicConsoleSession> cached = new ConcurrentHashMap<>();
 
-	private String id;
+	private final String id = UUID.randomUUID().toString();
 
 	private WebSocketSession webSocketSession;
 
 	private MagicScriptDebugContext magicScriptDebugContext;
 
+	private String sessionId;
+
 	public MagicConsoleSession(WebSocketSession webSocketSession) {
 		this.webSocketSession = webSocketSession;
 	}
 
-	public MagicConsoleSession(String id, MagicScriptDebugContext magicScriptDebugContext) {
-		this.id = id;
+	public MagicConsoleSession(String sessionId, MagicScriptDebugContext magicScriptDebugContext) {
+		this.sessionId = sessionId;
 		this.magicScriptDebugContext = magicScriptDebugContext;
 	}
 
 	public String getId() {
 		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
 	}
 
 	public WebSocketSession getWebSocketSession() {
@@ -51,6 +50,14 @@ public class MagicConsoleSession {
 
 	public boolean writeable(){
 		return webSocketSession != null && webSocketSession.isOpen();
+	}
+
+	public String getSessionId() {
+		return sessionId;
+	}
+
+	public void setSessionId(String sessionId) {
+		this.sessionId = sessionId;
 	}
 
 	public static MagicConsoleSession from(WebSocketSession session){

@@ -12,6 +12,7 @@ import org.ssssssss.script.MagicScriptDebugContext;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class WebSocketSessionManager {
@@ -29,7 +30,7 @@ public class WebSocketSessionManager {
 	}
 
 	public static void remove(MagicConsoleSession session) {
-		if(session.getId() != null){
+		if (session.getId() != null) {
 			remove(session.getId());
 		}
 	}
@@ -38,8 +39,29 @@ public class WebSocketSessionManager {
 		SESSION.remove(sessionId);
 	}
 
+	public static void sendToAll(MessageType messageType, Object... values) {
+		String content = buildMessage(messageType, values);
+		sendToAll(content);
+		// 通知其他机器去发送消息
+		magicNotifyService.sendNotify(new MagicNotify(instanceId, Constants.NOTIFY_WS_S_C, null, content));
+	}
+
+	private static void sendToAll(String content) {
+		SESSION.values().stream().filter(MagicConsoleSession::writeable).forEach(session -> sendBySession(session, content));
+	}
+
 	public static void sendBySessionId(String sessionId, MessageType messageType, Object... values) {
 		MagicConsoleSession session = findSession(sessionId);
+		String content = buildMessage(messageType, values);
+		if (session != null && session.writeable()) {
+			sendBySession(session, content);
+		} else if (magicNotifyService != null) {
+			// 通知其他机器去发送消息
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, Constants.NOTIFY_WS_S_C, sessionId, content));
+		}
+	}
+
+	private static String buildMessage(MessageType messageType, Object... values) {
 		StringBuilder builder = new StringBuilder(messageType.name().toLowerCase());
 		if (values != null) {
 			for (int i = 0, len = values.length; i < len; i++) {
@@ -52,22 +74,21 @@ public class WebSocketSessionManager {
 				}
 			}
 		}
-		if (session != null && session.writeable()) {
-			sendBySession(session, builder.toString());
-		} else if(magicNotifyService != null){
-			// 通知其他机器去发送消息
-			magicNotifyService.sendNotify(new MagicNotify(instanceId, Constants.NOTIFY_WS_S_C, sessionId, builder.toString()));
+		return builder.toString();
+	}
+
+	public static void sendBySessionId(String sessionId, String content) {
+		if (sessionId == null) {
+			sendToAll(content);
+		} else {
+			MagicConsoleSession session = findSession(sessionId);
+			if (session != null) {
+				sendBySession(session, content);
+			}
 		}
 	}
 
-	public static void sendBySessionId(String sessionId, String content){
-		MagicConsoleSession session = findSession(sessionId);
-		if (session != null) {
-			sendBySession(session, content);
-		}
-	}
-
-	public static void sendBySession(MagicConsoleSession session, String content){
+	public static void sendBySession(MagicConsoleSession session, String content) {
 		try {
 			session.getWebSocketSession().sendMessage(new TextMessage(content));
 		} catch (IOException e) {
@@ -76,7 +97,10 @@ public class WebSocketSessionManager {
 	}
 
 	public static MagicConsoleSession findSession(String sessionId) {
-		return SESSION.get(sessionId);
+		return SESSION.values().stream()
+				.filter(it -> Objects.equals(sessionId, it.getSessionId()))
+				.findFirst()
+				.orElse(null);
 	}
 
 	public static void setMagicNotifyService(MagicNotifyService magicNotifyService) {
@@ -87,12 +111,12 @@ public class WebSocketSessionManager {
 		WebSocketSessionManager.instanceId = instanceId;
 	}
 
-	public static void createSession(String sessionId, MagicScriptDebugContext debugContext){
-		MagicConsoleSession consoleSession = SESSION.get(sessionId);
-		if(consoleSession == null){
+	public static void createSession(String sessionId, MagicScriptDebugContext debugContext) {
+		MagicConsoleSession consoleSession = findSession(sessionId);
+		if (consoleSession == null) {
 			consoleSession = new MagicConsoleSession(sessionId, debugContext);
 			SESSION.put(sessionId, consoleSession);
-		}else{
+		} else {
 			consoleSession.setMagicScriptDebugContext(debugContext);
 		}
 	}

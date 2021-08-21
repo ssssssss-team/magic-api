@@ -199,7 +199,6 @@ export default {
         bus.$emit('delete-api', this.info)
       }
     })
-    bus.$on('ws_log', rows => this.onLogReceived(rows[0]))
     bus.$on('ws_breakpoint', rows => this.onBreakpoint(rows[0]))
     bus.$on('ws_exception', args => this.onException(args[0]))
     let javaTypes = {
@@ -227,24 +226,6 @@ export default {
     })
   },
   methods: {
-    onLogReceived(row){
-      if(this.info){
-        row.timestamp = utils.formatDate(new Date())
-        let throwable = row.throwable
-        delete row.throwable
-        this.info.ext.logs.push(row)
-        if (throwable) {
-          let messages = throwable.replace(/ /g, '&nbsp;').split('\n');
-          for (let i = 0; i < messages.length; i++) {
-            this.info.ext.logs.push({
-              level: row.level,
-              message: messages[i],
-              throwable: true
-            })
-          }
-        }
-      }
-    },
     onException(args){
       if (this.info?.ext?.sessionId === args[0]) {
         let line = args[2]

@@ -18,9 +18,7 @@ public class MagicDebugHandler {
 	 */
 	@Message(MessageType.SET_SESSION_ID)
 	public void setSessionId(MagicConsoleSession session, String sessionId) {
-		WebSocketSessionManager.remove(session);
-		session.setId(sessionId);
-		WebSocketSessionManager.add(session);
+		session.setSessionId(sessionId);
 	}
 
 	/**

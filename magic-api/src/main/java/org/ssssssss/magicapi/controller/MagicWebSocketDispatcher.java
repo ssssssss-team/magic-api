@@ -46,6 +46,7 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+		WebSocketSessionManager.remove(MagicConsoleSession.from(session));
 		MagicConsoleSession.remove(session);
 	}
 

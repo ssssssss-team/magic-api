@@ -11,6 +11,9 @@ function MagicWebSocket(url) {
             this.socket.send(msgType)
         }
     })
+    this.socket.onopen = ()=> {
+        bus.$emit('ws_open')
+    }
 }
 
 MagicWebSocket.prototype.on = function (msgType, callback) {

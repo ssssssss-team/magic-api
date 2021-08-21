@@ -109,7 +109,10 @@ export default {
     } else {
       link = link + '/' + contants.BASE_URL
     }
-    this.websocket = new MagicWebSocket(replaceURL(link.replace(/^http/, 'ws') + '/console'))
+    bus.$on('login', () => {
+      this.websocket = new MagicWebSocket(replaceURL(link.replace(/^http/, 'ws') + '/console'))
+    })
+    bus.$on('ws_open', () => bus.$emit('message', 'login', contants.HEADER_MAGIC_TOKEN_VALUE))
     contants.DEFAULT_EXPAND = this.config.defaultExpand !== false
     this.config.version = contants.MAGIC_API_VERSION_TEXT
     this.config.title = this.config.title || 'magic-api'
@@ -195,7 +198,10 @@ export default {
         this.toolbarIndex = 1
       }
     })
-    bus.$on('logout', () => this.showLogin = true)
+    bus.$on('logout', () => {
+      this.showLogin = true
+      this.websocket.close()
+    })
     bus.$on('showLogin', () => this.showLogin = true)
     this.open()
   },
