@@ -9,6 +9,7 @@
             :title="item.name"
             :id="'ma-tab-item-' + item.tmp_id"
             @click="open(item)" @contextmenu.prevent="e => tabsContextmenuHandle(e, item, index)"
+            @mousedown.middle.stop="close(item.id || item.tmp_id)"
             :draggable="true"
             @dragenter="e => tabDraggable(item, e, 'dragenter')"
             @dragstart.stop="e => tabDraggable(item, e, 'dragstart')"
