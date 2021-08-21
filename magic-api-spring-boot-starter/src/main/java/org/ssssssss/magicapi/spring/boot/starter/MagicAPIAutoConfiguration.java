@@ -594,9 +594,15 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		return configuration;
 	}
 
+	private DefaultAuthorizationInterceptor defaultAuthorizationInterceptor;
+
 	public AuthorizationInterceptor createAuthorizationInterceptor() {
+		if(defaultAuthorizationInterceptor != null){
+			return defaultAuthorizationInterceptor;
+		}
 		SecurityConfig securityConfig = properties.getSecurityConfig();
-		return new DefaultAuthorizationInterceptor(securityConfig.getUsername(), securityConfig.getPassword());
+		defaultAuthorizationInterceptor = new DefaultAuthorizationInterceptor(securityConfig.getUsername(), securityConfig.getPassword());
+		return defaultAuthorizationInterceptor;
 	}
 
 	private RestTemplate createRestTemplate() {
@@ -620,7 +626,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		if (web != null && !registerWebsocket) {
 			registerWebsocket = true;
 			MagicWebSocketDispatcher dispatcher = new MagicWebSocketDispatcher(properties.getClusterConfig().getInstanceId(), magicNotifyServiceProvider.getObject(), Arrays.asList(
-					new MagicDebugHandler()
+					new MagicDebugHandler(),
+					new MagicWorkbenchHandler(authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor))
 			));
 			WebSocketHandlerRegistration registration = webSocketHandlerRegistry.addHandler(dispatcher, web + "/console");
 			if (properties.isSupportCrossDomain()) {
