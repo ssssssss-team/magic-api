@@ -28,6 +28,7 @@ import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
 import org.ssssssss.magicapi.utils.Invoker;
+import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.magicapi.utils.PatternUtils;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
@@ -336,7 +337,13 @@ public class RequestHandler extends MagicController {
 			String sessionId = requestEntity.getRequestedSessionId();
 			debugContext.setTimeout(configuration.getDebugTimeout());
 			debugContext.setId(sessionId);
-			debugContext.setCallback(variables -> WebSocketSessionManager.sendBySessionId(sessionId, BREAKPOINT, variables));
+			debugContext.setCallback(variables -> {
+				List<Map<String, Object>> varList = (List<Map<String, Object>>) variables.get("variables");
+				varList.stream().filter(it -> it.containsKey("value")).forEach(variable -> {
+					variable.put("value", JsonUtils.toJsonString(variable.get("value")));
+				});
+				WebSocketSessionManager.sendBySessionId(sessionId, BREAKPOINT, variables);
+			});
 			WebSocketSessionManager.createSession(sessionId, debugContext);
 			context = debugContext;
 		} else {
