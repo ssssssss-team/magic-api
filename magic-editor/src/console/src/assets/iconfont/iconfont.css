@@ -11,6 +11,14 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.ma-icon-collapse:before {
+  content: "\e609";
+}
+
+.ma-icon-expand:before {
+  content: "\efad";
+}
+
 .ma-icon-mysql:before {
   content: "\e61e";
 }

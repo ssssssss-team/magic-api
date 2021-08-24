@@ -1,7 +1,7 @@
 .ma-container {
     font-size: 12px;
     font-family: 'Consolas', '微软雅黑';
-    letter-spacing: 1px;
+    letter-spacing: 0px;
     overflow: auto;
     display: flex;
     flex-direction: column;
@@ -109,6 +109,12 @@
     --todo-color: #008DDE;
     --history-select-background: #1A7DC4;
     --history-select-color: #fff;
+
+    --text-number-color: #0000FF;
+    --text-string-color: #008000;
+    --text-boolean-color: #000080;
+    --text-default-color: #000000;
+    --text-key-color: #660e7a;
     scrollbar-color: var(--scollbar-color) var(--scollbar-color);
     scrollbar-width: thin;
     outline: 0;

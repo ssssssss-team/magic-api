@@ -33,7 +33,6 @@ export default {
       let throwable = row.throwable
       delete row.throwable
       row.message = (row.message || '').replace(/ /g, '&nbsp;').replace(/\n/g,'<br>')
-      console.log(row.message)
       this.logs.push(row)
       if (throwable) {
         let messages = throwable.replace(/ /g, '&nbsp;').split('\n');

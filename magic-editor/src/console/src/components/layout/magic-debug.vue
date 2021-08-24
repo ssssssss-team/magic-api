@@ -1,5 +1,5 @@
 <template>
-  <div class="ma-debug-contianer">
+  <div class="ma-debug-container">
     <ul>
       <li :class="{ disabled: !debuging }" title="继续(F8)" @click="bus.$emit('doContinue')"><i
           class="ma-icon ma-icon-continue"/></li>
@@ -21,7 +21,7 @@
         </tr>
         <tr v-for="(item,key) in variables" :key="'debug_var_' + key">
           <td>{{ item.name }}</td>
-          <td>{{ item.value }}</td>
+          <td><magic-structure :data="item.value" :type="item.type"/></td>
           <td>{{ item.type }}</td>
         </tr>
         </tbody>
@@ -32,12 +32,13 @@
 
 <script>
 import bus from '@/scripts/bus.js'
-
+import MagicStructure from '@/components/common/magic-structure.vue'
 export default {
   name: 'MagicDebug',
   props: {
     info: Object
   },
+  components: { MagicStructure },
   data() {
     return {
       bus
@@ -49,13 +50,34 @@ export default {
     },
     variables() {
       return this.info && this.info.ext && this.info.ext.variables || []
+      /*return [{
+        name: "11",
+        type: "java.lang.String",
+        value: "abcd"
+      },{
+        name: "11",
+        type: "xx.xx.xx",
+        value: `[{
+          "ne" : {
+            "xx" :1
+          },
+          "name": "xx",
+          "b" : true,
+          "i" : 1,
+          "arr" : ${JSON.stringify(new Array(301).fill(1).map((it,index) => index))},
+          "arr1" : [{
+            "name": 123
+          },2,3,4,5,6,7,8,9,10],
+          "f" : 123.456
+        }]`
+      }]*/
     }
   }
 }
 </script>
 
 <style scoped>
-.ma-debug-contianer {
+.ma-debug-container {
   height: 100%;
   width: 100%;
   position: relative;
@@ -96,7 +118,7 @@ ul li:last-child:not(.disabled) i {
   color: var(--icon-step-color);
 }
 
-.ma-debug-contianer > div {
+.ma-debug-container > div {
   position: absolute;
   left: 24px;
   top: 0px;
@@ -130,8 +152,4 @@ table tbody tr:nth-child(even) {
   background: var(--table-even-background);
 }
 
-table tr:hover td {
-  background: var(--table-hover-background);
-  color: var(--table-hover-color);
-}
 </style>

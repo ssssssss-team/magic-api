@@ -89,6 +89,11 @@ export default {
         'checkbox-selected-background': '#43494A',
         'checkbox-selected-border': '#6B6B6B',
         'todo-color': '#A8C023',
-        'log-error-color': '#CC666E'
+        'log-error-color': '#CC666E',
+        'text-string-color': '#6A8759',
+        'text-number-color': '#6897BB',
+        'text-boolean-color': '#CC7832',
+        'text-property-color': '#9876aa',
+        'text-key-color': '#9876aa'
     }
 };
