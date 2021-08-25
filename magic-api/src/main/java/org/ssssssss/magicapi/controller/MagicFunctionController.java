@@ -59,7 +59,9 @@ public class MagicFunctionController extends MagicController implements MagicExc
 	@ResponseBody
 	@Valid(readonly = false)
 	public JsonBean<Boolean> move(HttpServletRequest request, String id, String groupId) {
-		isTrue(allowVisit(request, Authorization.SAVE, getFunctionInfo(id)), PERMISSION_INVALID);
+		FunctionInfo functionInfo = getFunctionInfo(id);
+		functionInfo.setGroupId(groupId);
+		isTrue(allowVisit(request, Authorization.SAVE, functionInfo), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.moveFunction(id, groupId));
 	}
 

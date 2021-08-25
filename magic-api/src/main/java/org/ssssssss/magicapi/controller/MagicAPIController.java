@@ -97,7 +97,10 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(readonly = false)
 	public JsonBean<Boolean> apiMove(HttpServletRequest request, String id, String groupId) {
-		isTrue(allowVisit(request, Authorization.SAVE, getApiInfo(id)), PERMISSION_INVALID);
+		ApiInfo apiInfo = getApiInfo(id).copy();
+		// 新的分组ID
+		apiInfo.setGroupId(groupId);
+		isTrue(allowVisit(request, Authorization.SAVE, apiInfo), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.moveApi(id, groupId));
 	}
 
