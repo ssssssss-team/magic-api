@@ -324,5 +324,27 @@ public class NamedTable {
 		return update(data, false);
 	}
 
+	@Comment("查询条数")
+	public int count(){
+		StringBuilder builder = new StringBuilder();
+		builder.append("select count(1) from ").append(tableName);
+		List<Object> params = new ArrayList<>();
+		if (!where.isEmpty()) {
+			where.and();
+			where.ne(useLogic, logicDeleteColumn, logicDeleteValue);
+			builder.append(where.getSql());
+			params.addAll(where.getParams());
+		}else if(useLogic){
+			where.ne(logicDeleteColumn, logicDeleteValue);
+			builder.append(where.getSql());
+			params.addAll(where.getParams());
+		}
+		return sqlModule.selectInt(new BoundSql(builder.toString(), params, sqlModule));
+	}
+
+	@Comment("判断是否存在")
+	public boolean exists(){
+		return count() > 0;
+	}
 
 }

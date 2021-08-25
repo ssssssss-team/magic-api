@@ -408,4 +408,14 @@ public class Where {
 	public Map<String, Object> selectOne() {
 		return namedTable.selectOne();
 	}
+
+	@Comment("查询条数")
+	public int count(){
+		return namedTable.count();
+	}
+
+	@Comment("查询是否存在")
+	public boolean exists(){
+		return namedTable.exists();
+	}
 }
