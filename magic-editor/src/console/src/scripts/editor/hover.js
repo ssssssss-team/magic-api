@@ -15,7 +15,7 @@ import JavaClass from "./java-class"
 import RequestParameter from './request-parameter.js';
 
 const findBestMatch = (node, row, col) => {
-    let expressions = node.expressions();
+    let expressions = node.expressions().filter(it => it);
     for (let index in expressions) {
         let expr = expressions[index];
         if (expr instanceof FunctionCall && expr.target instanceof VariableAccess && expr.getSpan().inPosition(row, col)) {

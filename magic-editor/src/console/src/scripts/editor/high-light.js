@@ -18,7 +18,7 @@ export const HighLightOptions = {
                 cases: {
                     '@builtinFunctions': 'predefined',
                     "~(new|var|if|else|for|in|return|import|break|continue|as|null|true|false|try|catch|finally|async|while|exit|asc|desc|ASC|DESC|assert|let|const|throw)[\\s]?": {token: "keywords"},
-                    "~(select|from|left|join|on|and|or|order|by|where|group|having|SELECT|FROM|LEFT|JOIN|ON|AND|OR|ORDER|BY|WHERE|GROUP|HAVING)[\\s]{1}": {token: "keywords"},
+                    "~(select|from|left|join|on|and|or|order|by|where|group|having|limit|offset|SELECT|FROM|LEFT|JOIN|ON|AND|OR|ORDER|BY|WHERE|GROUP|HAVING|LIMIT|OFFSET)[\\s]{1}": {token: "keywords"},
                     "@default": "identifier"
                 }
             }],

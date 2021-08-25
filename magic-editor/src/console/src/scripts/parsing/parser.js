@@ -39,7 +39,7 @@ import {
 } from './ast.js'
 
 export const keywords = ["import", "as", "var", "let", "const", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", "throw"/*"assert"*/];
-export const linqKeywords = ["from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on"];
+export const linqKeywords = ["from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on", "limit", "offset"];
 const binaryOperatorPrecedence = [
     [TokenType.Assignment],
     [TokenType.RShift2Equal, TokenType.RShiftEqual, TokenType.LShiftEqual, TokenType.XorEqual, TokenType.BitOrEqual, TokenType.BitAndEqual, TokenType.PercentEqual, TokenType.ForwardSlashEqual, TokenType.AsteriskEqual, TokenType.MinusEqual, TokenType.PlusEqual],
@@ -93,7 +93,8 @@ export class Parser {
     }
 
     validateNode(node) {
-        if (node instanceof Literal) {
+        if (node instanceof Literal || node instanceof VariableAccess || node instanceof MapOrArrayAccess) {
+            console.log(new Error('111111'))
             throw new ParseException('literal cannot be used alone', node.getSpan());
         }
     }
@@ -582,7 +583,7 @@ export class Parser {
     }
 
     parseSelect() {
-        let opeing = this.stream.expect("select", true).getSpan();
+        let opening = this.stream.expect("select", true).getSpan();
         this.linqLevel++;
         let fields = this.parseLinqFields();
         this.stream.expect("from", true);
@@ -599,8 +600,15 @@ export class Parser {
         }
         let orders = this.parseLinqOrders();
         this.linqLevel--;
+        let limit,offset;
+        if(this.stream.match("limit", true, true)){
+            limit = this.parseExpression();
+            if(this.stream.match("offset", true, true)){
+                offset = this.parseExpression();
+            }
+        }
         let close = this.stream.getPrev().getSpan();
-        return new LinqSelect(new Span(opeing, close), fields, from, joins, where, groups, having, orders);
+        return new LinqSelect(new Span(opening, close), fields, from, joins, where, groups, having, orders, limit, offset);
     }
 
     parseGroup() {

@@ -294,7 +294,7 @@ class CharacterStream {
         if (this.index >= this.end)
             return false;
         let c = this.source.charAt(this.index);
-        if (!isNaN(c)) {
+        if (c!== ' ' && !isNaN(c)) {
             if (consume)
                 this.index++;
             return true;

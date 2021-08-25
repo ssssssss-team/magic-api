@@ -594,7 +594,7 @@ class ClassConverter extends Expression {
 }
 
 class LinqSelect extends Expression {
-    constructor(span, fields, from, joins, where, groups, having, orders) {
+    constructor(span, fields, from, joins, where, groups, having, orders, limit, offset) {
         super(span)
         this.fields = fields;
         this.from = from;
@@ -603,6 +603,8 @@ class LinqSelect extends Expression {
         this.groups = groups;
         this.having = having;
         this.orders = orders;
+        this.limit = limit;
+        this.offset = offset;
     }
 
     expressions() {
@@ -613,7 +615,7 @@ class LinqSelect extends Expression {
         if (this.having) {
             temp.push(this.having)
         }
-        return [...this.fields, this.from, ...this.joins, ...this.groups, ...temp, ...this.orders];
+        return [...this.fields, this.from, ...this.joins, ...this.groups, ...temp, ...this.orders, this.limit, this.offset];
     }
 
     async getJavaType() {
