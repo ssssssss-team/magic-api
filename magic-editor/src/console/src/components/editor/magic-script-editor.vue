@@ -657,6 +657,7 @@ export default {
           .map(it => it.range.startLineNumber)
           .join(',')
       requestConfig.responseType = 'blob'
+      requestConfig.validateStatus = () => true
       requestConfig.transformResponse = [function(data){
         return new Promise(function(resolve, reject){
           let reader = new FileReader()
