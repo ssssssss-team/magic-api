@@ -67,6 +67,8 @@ public class MagicSwaggerConfiguration {
 
 		return () -> {
 			List<SwaggerResource> resources = new ArrayList<>();
+			// 追加Magic Swagger信息
+			resources.add(swaggerResource(config.getName(), config.getLocation()));
 			Map<String, SwaggerResourcesProvider> beans = applicationContext.getBeansOfType(SwaggerResourcesProvider.class);
 			// 获取已定义的文档信息
 			for (Map.Entry<String, SwaggerResourcesProvider> entry : beans.entrySet()) {
@@ -74,8 +76,6 @@ public class MagicSwaggerConfiguration {
 					resources.addAll(entry.getValue().get());
 				}
 			}
-			// 追加Magic Swagger信息
-			resources.add(swaggerResource(config.getName(), config.getLocation()));
 			return resources;
 		};
 	}
