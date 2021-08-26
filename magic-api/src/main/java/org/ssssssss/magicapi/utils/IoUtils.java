@@ -15,7 +15,7 @@ public class IoUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(IoUtils.class);
 
-	private static final Pattern FILE_NAME_PATTERN = Pattern.compile("^[\\u4e00-\\u9fa5_a-zA-Z0-9]+$");
+	private static final Pattern FILE_NAME_PATTERN = Pattern.compile("^(?!\\.)[\\u4e00-\\u9fa5_a-zA-Z0-9.\\-()]+$");
 
 	public static boolean validateFileName(String name) {
 		return FILE_NAME_PATTERN.matcher(name).matches();
@@ -152,6 +152,5 @@ public class IoUtils {
 				logger.warn("DataSource can not close");
 			}
 		}
-
 	}
 }

@@ -39,7 +39,7 @@ public interface JsonCodeConstants {
 
 	JsonCode FUNCTION_NAME_REQUIRED = new JsonCode(0, "函数名称不能为空");
 
-	JsonCode NAME_INVALID = new JsonCode(0, "名称不能包含特殊字符，只允许中文、数字、字母以及_组合");
+	JsonCode NAME_INVALID = new JsonCode(0, "名称不能包含特殊字符，只允许中文、数字、字母以及+_-.()的组合且不能.开头");
 
 	JsonCode DATASOURCE_KEY_INVALID = new JsonCode(0, "数据源Key不能包含特殊字符，只允许中文、数字、字母以及_组合");
 
@@ -68,8 +68,6 @@ public interface JsonCodeConstants {
 	JsonCode SIGN_IS_INVALID = new JsonCode(0, "签名验证失败");
 
 	JsonCode UPLOAD_PATH_CONFLICT = new JsonCode(0, "上传后%s路径会有冲突，请检查");
-
-	JsonCode DEBUG_SESSION_NOT_FOUND = new JsonCode(0, "debug session not found!");
 
 	JsonCode API_NOT_FOUND = new JsonCode(1001, "api not found");
 
