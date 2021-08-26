@@ -544,25 +544,39 @@ export default {
           .forEach(it => {
             params[it.name] = it.value
           })
-      requestConfig.headers['Content-Type'] = 'application/x-www-form-urlencoded'
-      if (requestConfig.method !== 'POST' || this.info.requestBody) {
-        requestConfig.params = params
-      } else {
-        requestConfig.data = params
-      }
-      if (this.info.requestBody) {
-        try {
-         let requestBody = JSON.parse(this.info.requestBody)
+      if(Object.values(params).some(it => it instanceof FileList)){
+        requestConfig.headers['Content-Type'] = 'multipart/form-data';
+        let formData = new FormData()
+        Object.keys(params).forEach(key => {
+          let value = requestConfig.data[key];
+          if(value instanceof FileList){
+            value.forEach(file => formData.append(key, file, file.name))
+          }else{
+            formData.append(key, value);
+          }
+        });
+        requestConfig.data = formData;
+      }else{
+        requestConfig.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+        if (requestConfig.method !== 'POST' || this.info.requestBody) {
           requestConfig.params = params
-          requestConfig.data = this.info.requestBody
-          requestConfig.headers['Content-Type'] = 'application/json'
-          requestConfig.transformRequest = []
-        } catch (e) {
-          this.$magicAlert({
-            content: 'RequestBody 参数有误，请检查！'
-          })
-          this.$set(this.info, 'running', false)
-          return
+        } else {
+          requestConfig.data = params
+        }
+        if (this.info.requestBody) {
+          try {
+            let requestBody = JSON.parse(this.info.requestBody)
+            requestConfig.params = params
+            requestConfig.data = this.info.requestBody
+            requestConfig.headers['Content-Type'] = 'application/json'
+            requestConfig.transformRequest = []
+          } catch (e) {
+            this.$magicAlert({
+              content: 'RequestBody 参数有误，请检查！'
+            })
+            this.$set(this.info, 'running', false)
+            return
+          }
         }
       }
       const info = this.info
@@ -637,19 +651,6 @@ export default {
       requestConfig.headers[contants.HEADER_REQUEST_SESSION] = sessionId
       requestConfig.headers[contants.HEADER_MAGIC_TOKEN] = contants.HEADER_MAGIC_TOKEN_VALUE
       this.mergeGlobalSettings(requestConfig)
-      if(requestConfig.data && Object.values(requestConfig.data).some(it => it instanceof FileList)){
-        requestConfig.headers['Content-Type'] = 'multipart/form-data';
-        let formData = new FormData()
-        Object.keys(requestConfig.data).forEach(key => {
-          let value = requestConfig.data[key];
-          if(value instanceof FileList){
-            value.forEach(file => formData.append(key, file, file.name))
-          }else{
-            formData.append(key, value);
-          }
-        });
-        requestConfig.data = formData;
-      }
       requestConfig.headers[contants.HEADER_REQUEST_BREAKPOINTS] = this.editor
           .getModel()
           .getAllDecorations()
