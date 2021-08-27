@@ -326,10 +326,11 @@ Tokenizer.prototype._read_comment = function(c) {
   return token;
 };
 Tokenizer.prototype._read_multi_string = function() {
-	if(this._input.match(/"""/)){
-		return this._create_token(TOKEN.STRING, '"""' + this._input.readUntil(/^\\"""/,true));
-	}
-	return null;
+  if(this._input.match(/"""/)){
+    let result = this._input.readUntilAfter(/"""/g)
+    return this._create_token(TOKEN.STRING, '"""' + result);
+  }
+  return null;
 }
 Tokenizer.prototype._read_string = function(c) {
   if (c === '`' || c === "'" || c === '"') {
