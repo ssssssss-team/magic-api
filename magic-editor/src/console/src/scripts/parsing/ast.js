@@ -318,7 +318,12 @@ class UnaryOperation extends Node {
     constructor(operator, operand, atAfter) {
         super(new Span(operator.getSpan(), operand.getSpan()))
         this.operand = operand
+        this.operator = operator
         this.atAfter = atAfter
+    }
+
+    async getJavaType() {
+        return this.operand.getJavaType();
     }
 
 }

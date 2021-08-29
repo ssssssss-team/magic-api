@@ -94,7 +94,6 @@ export class Parser {
 
     validateNode(node) {
         if (node instanceof Literal || node instanceof VariableAccess || node instanceof MapOrArrayAccess) {
-            console.log(new Error('111111'))
             throw new ParseException('literal cannot be used alone', node.getSpan());
         }
     }
@@ -157,7 +156,7 @@ export class Parser {
                 }
                 expression = new ClassConverter(new Span(open, closing), identifier.getText(), expression, args);
             } else {
-                expression = this.parseAccessOrCall(stream, expression);
+                expression = this.parseAccessOrCall(expression);
             }
         }
         return expression;
