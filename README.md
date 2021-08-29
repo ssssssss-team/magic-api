@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://www.ssssssss.org/images/logo-magic-api.png" width="600">
+    <img src="https://www.ssssssss.org/images/logo-magic-api.png" width="256">
 </p>
 <p align="center">
     <a target="_blank" href="https://www.oracle.com/technetwork/java/javase/downloads/index.html"><img src="https://img.shields.io/badge/JDK-1.8+-green.svg" /></a>
