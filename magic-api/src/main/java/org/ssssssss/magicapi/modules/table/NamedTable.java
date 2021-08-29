@@ -29,6 +29,8 @@ public class NamedTable {
 
 	List<String> orders = new ArrayList<>();
 
+	Set<String> excludeColumns = new HashSet<>();
+
 	Function<String, String> rowMapColumnMapper;
 
 	Object defaultPrimaryValue;
@@ -92,6 +94,30 @@ public class NamedTable {
 		return this;
 	}
 
+	@Comment("设置要排除的列")
+	public NamedTable exclude(String column){
+		if(column != null){
+			excludeColumns.add(column);
+		}
+		return this;
+	}
+
+	@Comment("设置要排除的列")
+	public NamedTable excludes(String ... columns){
+		if(columns != null){
+			excludeColumns.addAll(Arrays.asList(columns));
+		}
+		return this;
+	}
+
+	@Comment("设置要排除的列")
+	public NamedTable excludes(List<String> columns){
+		if(columns != null){
+			excludeColumns.addAll(columns);
+		}
+		return this;
+	}
+
 	@Comment("设置查询的列，如`columns(['a','b','c'])`")
 	public NamedTable columns(Collection<String> columns) {
 		if (columns != null) {
@@ -132,10 +158,15 @@ public class NamedTable {
 
 	private Collection<Map.Entry<String, Object>> filterNotBlanks() {
 		if(this.withBlank){
-			return this.columns.entrySet();
+			return this.columns.entrySet()
+					.stream()
+					.filter(it -> !excludeColumns.contains(it.getKey()))
+					.collect(Collectors.toList());
 		}
-		return this.columns.entrySet().stream()
+		return this.columns.entrySet()
+				.stream()
 				.filter(it -> StringUtils.isNotBlank(Objects.toString(it.getValue(), "")))
+				.filter(it -> !excludeColumns.contains(it.getKey()))
 				.collect(Collectors.toList());
 	}
 
@@ -242,12 +273,30 @@ public class NamedTable {
 	private BoundSql buildSelect() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("select ");
-		if (this.fields.isEmpty()) {
+		List<String> fields = this.fields.stream()
+				.filter(it -> !excludeColumns.contains(it))
+				.collect(Collectors.toList());
+		if (fields.isEmpty()) {
 			builder.append("*");
 		} else {
-			builder.append(StringUtils.join(this.fields, ","));
+			builder.append(StringUtils.join(fields, ","));
 		}
 		builder.append(" from ").append(tableName);
+		List<Object> params = buildWhere(builder);
+		if (!orders.isEmpty()) {
+			builder.append(" order by ");
+			builder.append(String.join(",", orders));
+		}
+		if (!groups.isEmpty()) {
+			builder.append(" group by ");
+			builder.append(String.join(",", groups));
+		}
+		BoundSql boundSql = new BoundSql(builder.toString(), params, sqlModule);
+		boundSql.setExcludeColumns(excludeColumns);
+		return boundSql;
+	}
+
+	private List<Object> buildWhere(StringBuilder builder) {
 		List<Object> params = new ArrayList<>();
 		if (!where.isEmpty()) {
 			where.and();
@@ -259,15 +308,7 @@ public class NamedTable {
 			builder.append(where.getSql());
 			params.addAll(where.getParams());
 		}
-		if (!orders.isEmpty()) {
-			builder.append(" order by ");
-			builder.append(String.join(",", orders));
-		}
-		if (!groups.isEmpty()) {
-			builder.append(" group by ");
-			builder.append(String.join(",", groups));
-		}
-		return new BoundSql(builder.toString(), params, sqlModule);
+		return params;
 	}
 
 	@Comment("执行分页查询")
@@ -328,17 +369,7 @@ public class NamedTable {
 	public int count(){
 		StringBuilder builder = new StringBuilder();
 		builder.append("select count(1) from ").append(tableName);
-		List<Object> params = new ArrayList<>();
-		if (!where.isEmpty()) {
-			where.and();
-			where.ne(useLogic, logicDeleteColumn, logicDeleteValue);
-			builder.append(where.getSql());
-			params.addAll(where.getParams());
-		}else if(useLogic){
-			where.ne(logicDeleteColumn, logicDeleteValue);
-			builder.append(where.getSql());
-			params.addAll(where.getParams());
-		}
+		List<Object> params = buildWhere(builder);
 		return sqlModule.selectInt(new BoundSql(builder.toString(), params, sqlModule));
 	}
 

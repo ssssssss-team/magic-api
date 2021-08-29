@@ -292,7 +292,15 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@UnableCall
 	public List<Map<String, Object>> select(BoundSql boundSql) {
 		assertDatasourceNotNull();
-		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.columnMapRowMapper, boundSql.getParameters()));
+		return boundSql.getCacheValue(this.sqlInterceptors, () -> queryForList(boundSql));
+	}
+
+	private List<Map<String, Object>> queryForList(BoundSql boundSql){
+		List<Map<String, Object>> list = dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.columnMapRowMapper, boundSql.getParameters());
+		if(boundSql.getExcludeColumns() != null){
+			list.forEach(row -> boundSql.getExcludeColumns().forEach(row::remove));
+		}
+		return list;
 	}
 
 	private void assertDatasourceNotNull(){
@@ -407,7 +415,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		List<Map<String, Object>> list = null;
 		if (count > 0) {
 			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, page.getOffset(), page.getLimit());
-			list = pageBoundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), this.columnMapRowMapper, pageBoundSql.getParameters()));
+			list = pageBoundSql.getCacheValue(this.sqlInterceptors, () -> queryForList(pageBoundSql));
 		}
 		RequestEntity requestEntity = RequestContext.getRequestEntity();
 		return resultProvider.buildPageResult(requestEntity, page, count, list);
@@ -441,7 +449,11 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
 			Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
 			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, 0, 1);
-			return dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), new SingleRowResultSetExtractor<>(this.columnMapRowMapper), pageBoundSql.getParameters());
+			Map<String, Object> row = dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), new SingleRowResultSetExtractor<>(this.columnMapRowMapper), pageBoundSql.getParameters());
+			if(row != null && boundSql.getExcludeColumns() != null){
+				boundSql.getExcludeColumns().forEach(row::remove);
+			}
+			return row;
 		});
 	}
 

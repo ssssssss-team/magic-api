@@ -10,6 +10,7 @@ import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -37,6 +38,8 @@ public class BoundSql {
 	private String cacheName;
 
 	private long ttl;
+
+	private Set<String> excludeColumns;
 
 	public BoundSql(String sql, List<Object> parameters, SQLModule sqlModule) {
 		this.sql = sql;
@@ -98,7 +101,16 @@ public class BoundSql {
 		boundSql.cacheName = this.cacheName;
 		boundSql.sqlCache = this.sqlCache;
 		boundSql.sql = newSql;
+		boundSql.excludeColumns = this.excludeColumns;
 		return boundSql;
+	}
+
+	public Set<String> getExcludeColumns() {
+		return excludeColumns;
+	}
+
+	public void setExcludeColumns(Set<String> excludeColumns) {
+		this.excludeColumns = excludeColumns;
 	}
 
 	/**
