@@ -15,7 +15,7 @@ public interface AuthorizationInterceptor {
 	 * 是否需要登录
 	 */
 	default boolean requireLogin() {
-		return true;
+		return false;
 	}
 
 	/**
