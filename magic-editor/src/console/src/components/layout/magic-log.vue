@@ -1,10 +1,11 @@
 <template>
   <div ref="container" class="ma-log" @contextmenu.prevent="e=>onContextMenu(e)">
-    <div v-for="(item, key) in logs" :key="'run_log_' + key">
+    <div v-for="(item, key) in logs" :key="'run_log_' + key" :class="{collapse: item.newline&&!item.expand}">
       <div>{{ item.timestamp }}</div>
-      <div v-show="!item.throwable" :style="{color :'var(--log-'+ item.level.toLocaleLowerCase() + '-color)'}">
+      <div :style="{color :'var(--log-'+ item.level.toLocaleLowerCase() + '-color)'}">
         {{ item.level }}
       </div>
+      <i class="ma-icon" :class="{'ma-icon-expand': !item.expand, 'ma-icon-collapse': item.expand}" v-if="item.newline" @click.stop="doExpand(item)"></i>
       <div :class="{throwable: item.throwable === true}" v-html="item.message"></div>
     </div>
   </div>
@@ -28,22 +29,21 @@ export default {
     bus.$on('ws_log', rows => this.onLogReceived(rows[0]))
   },
   methods: {
+    doExpand(item){
+      item.expand = !item.expand;
+    },
     onLogReceived(row){
       row.timestamp = utils.formatDate(new Date())
       let throwable = row.throwable
       delete row.throwable
       row.message = (row.message || '').replace(/ /g, '&nbsp;').replace(/\n/g,'<br>')
-      this.logs.push(row)
+      row.expand = false;
       if (throwable) {
-        let messages = throwable.replace(/ /g, '&nbsp;').split('\n');
-        for (let i = 0; i < messages.length; i++) {
-          this.logs.push({
-            level: row.level,
-            message: messages[i],
-            throwable: true
-          })
-        }
+        row.message += throwable.replace(/ /g, '&nbsp;').replace(/\n/g,'<br>')
+        row.throwable = true
       }
+      row.newline = row.message.indexOf('<br>') > -1
+      this.logs.push(row)
       let container = this.$refs.container;
       this.$nextTick(() => container.scrollTop = container.scrollHeight)
     },
@@ -91,5 +91,20 @@ export default {
 
 .ma-log .throwable {
   color: var(--log-error-color)
+}
+
+.ma-log i{
+  margin-right: -10px;
+  margin-left: -10px;
+  font-size: 12px;
+  width: 20px;
+  display: inline-block;
+  height: 20px;
+  text-align: center;
+}
+.ma-log .collapse{
+  height: 20px;
+  line-height: 20px;
+  overflow: hidden;
 }
 </style>
