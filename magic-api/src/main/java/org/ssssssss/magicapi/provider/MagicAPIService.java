@@ -19,7 +19,7 @@ public interface MagicAPIService extends MagicModule {
 	 *
 	 * @param method  请求方法
 	 * @param path    请求路径
-	 * @param context 请求上下文，主要给脚本中使用
+	 * @param context 变量信息
 	 */
 	Object execute(String method, String path, Map<String, Object> context);
 
@@ -28,9 +28,17 @@ public interface MagicAPIService extends MagicModule {
 	 *
 	 * @param method  请求方法
 	 * @param path    请求路径
-	 * @param context 请求上下文，主要给脚本中使用
+	 * @param context 变量信息
 	 */
 	Object call(String method, String path, Map<String, Object> context);
+
+	/**
+	 * 执行MagicAPI中的函数
+	 *
+	 * @param path    函数路径
+	 * @param context 变量信息
+	 */
+	Object invoke(String path, Map<String, Object> context);
 
 	/**
 	 * 保存接口

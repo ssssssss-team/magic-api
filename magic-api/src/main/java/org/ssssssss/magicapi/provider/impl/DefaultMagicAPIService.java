@@ -181,6 +181,19 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
+	public Object invoke(String path, Map<String, Object> context) {
+		FunctionInfo functionInfo = magicFunctionManager.getFunctionInfo(path);
+		if (functionInfo == null) {
+			throw new MagicServiceException(String.format("找不到对应函数 [%s]", path));
+		}
+		MagicScriptContext scriptContext = new MagicScriptContext(context);
+		scriptContext.putMapIntoContext(context);
+		SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
+		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, scriptContext, ScriptContext.ENGINE_SCOPE);
+		return ((MagicScript) ScriptManager.compile("MagicScript", functionInfo.getScript())).eval(simpleScriptContext);
+	}
+
+	@Override
 	public String saveApi(ApiInfo info) {
 		// 非空验证
 		notBlank(info.getMethod(), REQUEST_METHOD_REQUIRED);

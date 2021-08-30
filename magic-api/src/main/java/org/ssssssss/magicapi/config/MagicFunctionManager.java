@@ -136,6 +136,10 @@ public class MagicFunctionManager {
 		return mappings.values().stream().distinct().collect(Collectors.toList());
 	}
 
+	public FunctionInfo getFunctionInfo(String path) {
+		return mappings.get(path);
+	}
+
 	private boolean hasConflict(TreeNode<Group> group, String newPath) {
 		// 获取要移动的接口
 		List<FunctionInfo> infos = mappings.values().stream()
