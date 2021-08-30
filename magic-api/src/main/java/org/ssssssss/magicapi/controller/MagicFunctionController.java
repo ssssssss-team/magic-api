@@ -9,11 +9,9 @@ import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.model.Backup;
 import org.ssssssss.magicapi.model.FunctionInfo;
 import org.ssssssss.magicapi.model.JsonBean;
-import org.ssssssss.magicapi.provider.FunctionServiceProvider;
-import org.ssssssss.magicapi.provider.MagicAPIService;
-import org.ssssssss.magicapi.provider.MagicBackupService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,7 +50,10 @@ public class MagicFunctionController extends MagicController implements MagicExc
 	@ResponseBody
 	public JsonBean<List<Backup>> backupList(HttpServletRequest request, String id) {
 		isTrue(allowVisit(request, Authorization.VIEW, getFunctionInfo(id)), PERMISSION_INVALID);
-		return new JsonBean<>(magicBackupService.backupById(id));
+		return new JsonBean<>(magicBackupService.backupById(id)
+				.stream()
+				.sorted(Comparator.comparing(Backup::getCreateDate).reversed())
+				.collect(Collectors.toList()));
 	}
 
 	@RequestMapping("/function/move")
