@@ -617,9 +617,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	@Override
 	public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
 		String web = properties.getWeb();
+		MagicNotifyService magicNotifyService = magicNotifyServiceProvider.getObject();
+		WebSocketSessionManager.setMagicNotifyService(magicNotifyService);
 		if (web != null && !registerWebsocket) {
 			registerWebsocket = true;
-			MagicWebSocketDispatcher dispatcher = new MagicWebSocketDispatcher(properties.getClusterConfig().getInstanceId(), magicNotifyServiceProvider.getObject(), Arrays.asList(
+			MagicWebSocketDispatcher dispatcher = new MagicWebSocketDispatcher(properties.getClusterConfig().getInstanceId(), magicNotifyService, Arrays.asList(
 					new MagicDebugHandler(),
 					new MagicWorkbenchHandler(authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor))
 			));
