@@ -19,7 +19,7 @@ public class NamedTable {
 
 	String logicDeleteColumn;
 
-	String logicDeleteValue;
+	Object logicDeleteValue;
 
 	Map<String, Object> columns = new HashMap<>();
 
@@ -46,7 +46,19 @@ public class NamedTable {
 		this.sqlModule = sqlModule;
 		this.rowMapColumnMapper = rowMapColumnMapper;
 		this.logicDeleteColumn = sqlModule.getLogicDeleteColumn();
-		this.logicDeleteValue = sqlModule.getLogicDeleteValue();
+		String deleteValue = sqlModule.getLogicDeleteValue();
+		this.logicDeleteValue = deleteValue;
+		if(deleteValue != null){
+			if((deleteValue.startsWith("'") || deleteValue.startsWith("\"")) && deleteValue.length() > 2){
+				this.logicDeleteValue = deleteValue.substring(1,deleteValue.length() - 1);
+			}else{
+				try {
+					this.logicDeleteValue = Integer.parseInt(deleteValue);
+				} catch (NumberFormatException e) {
+					this.logicDeleteValue = deleteValue;
+				}
+			}
+		}
 	}
 
 	@Comment("使用逻辑删除")
