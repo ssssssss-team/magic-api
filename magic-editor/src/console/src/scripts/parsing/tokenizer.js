@@ -84,7 +84,7 @@ const tokenizerString = (stream, tokenType, tokens) => {
             }
             let ch = stream.consume();
             if (tokenType !== TokenType.TripleQuote && (ch === '\r' || ch === '\n')) {
-                throw new ParseException(tokenType.getError() + tokenType.getError() + "定义的字符串不能换行", stream.endSpan());
+                throw new ParseException(tokenType.error + tokenType.error + "定义的字符串不能换行", stream.endSpan());
             }
         }
         if (!matchedEndQuote) {
