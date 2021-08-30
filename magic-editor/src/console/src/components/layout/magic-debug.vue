@@ -50,27 +50,6 @@ export default {
     },
     variables() {
       return this.info && this.info.ext && this.info.ext.variables || []
-      /*return [{
-        name: "11",
-        type: "java.lang.String",
-        value: "abcd"
-      },{
-        name: "11",
-        type: "xx.xx.xx",
-        value: `[{
-          "ne" : {
-            "xx" :1
-          },
-          "name": "xx",
-          "b" : true,
-          "i" : 1,
-          "arr" : ${JSON.stringify(new Array(301).fill(1).map((it,index) => index))},
-          "arr1" : [{
-            "name": 123
-          },2,3,4,5,6,7,8,9,10],
-          "f" : 123.456
-        }]`
-      }]*/
     }
   }
 }

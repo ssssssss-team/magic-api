@@ -1,6 +1,7 @@
 <template>
   <div class="ma-structure-container">
     <span :class="type.substring(10).toLowerCase()" v-if="displayText">{{ data }}</span>
+    <span class="boolean" v-else-if="!type">null</span>
     <magic-structure-array v-else-if="Array.isArray(jsonData)" :data="jsonData"/>
     <magic-structure-object v-else :data="jsonData"/>
   </div>

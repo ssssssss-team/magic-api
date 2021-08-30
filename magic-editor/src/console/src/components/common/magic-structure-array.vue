@@ -26,6 +26,7 @@
           <span v-else-if="typeof value === 'string'" class="string">"{{value.replace(/"/g, "\"")}}"</span>
           <span v-else-if="typeof value === 'number'" class="number">{{value}}</span>
           <span v-else-if="typeof value === 'boolean'" class="boolean">{{value}}</span>
+          <span v-else-if="value == null" class="boolean">null</span>
           <span v-else>{{value}}</span>
           <magic-structure-array v-if="value && Array.isArray(value) && expandKeys[key]" :data="value" :indent="indent + 1" :simple="false"/>
           <magic-structure-object v-else-if="value && typeof value === 'object' && expandKeys[key]" :data="value" :indent="indent + 1" :simple="false"/>
