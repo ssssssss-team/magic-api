@@ -12,7 +12,7 @@ public class Backup {
 	/**
 	 * 备份时间
 	 */
-	private long createDate;
+	private Long createDate = 0L;
 
 	/**
 	 * 标签，只允许有一个
@@ -58,11 +58,11 @@ public class Backup {
 		this.type = type;
 	}
 
-	public long getCreateDate() {
+	public Long getCreateDate() {
 		return createDate;
 	}
 
-	public void setCreateDate(long createDate) {
+	public void setCreateDate(Long createDate) {
 		this.createDate = createDate;
 	}
 

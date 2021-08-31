@@ -536,6 +536,8 @@ export default {
           requestGroup('group/create', this.createGroupObj).success(data => {
             this.createGroupObj.id = data
             this.createGroupObj.folder = true
+            this.createGroupObj.paths = []
+            this.createGroupObj.options = []
             bus.$emit('report', 'group_create')
             bus.$emit('status', `分组「${this.createGroupObj.name}」创建成功`)
             this.deleteOrAddGroupToTree(this.tree, this.createGroupObj)

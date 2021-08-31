@@ -291,15 +291,7 @@ class CharacterStream {
     }
 
     matchDigit(consume) {
-        if (this.index >= this.end)
-            return false;
-        let c = this.source.charAt(this.index);
-        if (c!== ' ' && !isNaN(c)) {
-            if (consume)
-                this.index++;
-            return true;
-        }
-        return false;
+        return this.matchAny('0123456789', consume)
     }
 
     matchIdentifierStart(consume) {

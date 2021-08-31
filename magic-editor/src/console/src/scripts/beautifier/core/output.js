@@ -310,7 +310,9 @@ Output.prototype.get_code = function(eol) {
 
   var sweet_code = this.__lines.join('\n');
 
-  if (eol !== '\n') {
+  if (eol === '\r\n') {
+    sweet_code = sweet_code.replaceAll(/([^\r])\n/g, `$1${eol}`);
+  }else if (eol !== '\n') {
     sweet_code = sweet_code.replace(/[\n]/g, eol);
   }
   return sweet_code;

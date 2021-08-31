@@ -42,12 +42,11 @@ public class WebSocketSessionManager {
 	public static void sendToAll(MessageType messageType, Object... values) {
 		String content = buildMessage(messageType, values);
 		sendToAll(content);
-		// 通知其他机器去发送消息
-		magicNotifyService.sendNotify(new MagicNotify(instanceId, Constants.NOTIFY_WS_S_C, null, content));
 	}
 
 	private static void sendToAll(String content) {
 		SESSION.values().stream().filter(MagicConsoleSession::writeable).forEach(session -> sendBySession(session, content));
+		sendToOther(null, content);
 	}
 
 	public static void sendBySessionId(String sessionId, MessageType messageType, Object... values) {
@@ -55,7 +54,13 @@ public class WebSocketSessionManager {
 		String content = buildMessage(messageType, values);
 		if (session != null && session.writeable()) {
 			sendBySession(session, content);
-		} else if (magicNotifyService != null) {
+		} else {
+			sendToOther(sessionId, content);
+		}
+	}
+
+	private static void sendToOther(String sessionId, String content){
+		if (magicNotifyService != null) {
 			// 通知其他机器去发送消息
 			magicNotifyService.sendNotify(new MagicNotify(instanceId, Constants.NOTIFY_WS_S_C, sessionId, content));
 		}
