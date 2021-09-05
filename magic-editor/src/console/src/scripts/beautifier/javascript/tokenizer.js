@@ -326,7 +326,7 @@ Tokenizer.prototype._read_comment = function(c) {
   return token;
 };
 Tokenizer.prototype._read_multi_string = function() {
-  if(this._input.match(/"""/)){
+  if(this._input.match(/"""/g)){
     let result = this._input.readUntilAfter(/"""/g)
     return this._create_token(TOKEN.STRING, '"""' + result);
   }

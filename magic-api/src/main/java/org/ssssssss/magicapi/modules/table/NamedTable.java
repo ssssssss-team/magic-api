@@ -374,7 +374,7 @@ public class NamedTable {
 
 	@Comment("执行update语句")
 	public int update(@Comment("各项列和值") Map<String, Object> data) {
-		return update(data, false);
+		return update(data, this.withBlank);
 	}
 
 	@Comment("查询条数")
