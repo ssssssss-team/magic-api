@@ -28,9 +28,11 @@ import java.util.Objects;
 public class ApplicationUriPrinter implements CommandLineRunner {
 	@Resource
 	private ConfigurableEnvironment springEnv;
+
 	@Autowired
 	private MagicAPIProperties properties;
-	@Autowired
+
+	@Autowired(required = false)
 	private WebServerApplicationContext serverApplicationContext;
 
 	@Override
@@ -42,20 +44,20 @@ public class ApplicationUriPrinter implements CommandLineRunner {
 		} catch (UnknownHostException e) {
 			System.out.println("当前服务地址获取失败");
 		}
-		int port = serverApplicationContext.getWebServer().getPort();
+		int port = serverApplicationContext != null ? serverApplicationContext.getWebServer().getPort() : Integer.parseInt(springEnv.getProperty("server.port", "9999"));
 		String path = springEnv.getProperty("server.servlet.context-path", "");
 		String magicWebPath = properties.getWeb();
 		String schema = "http://";
-		String localUrl = schema + PathUtils.replaceSlash(String.format("localhost:%s/%s/%s/",port,path, Objects.toString(properties.getPrefix(),"")));
-		String externUrl = schema + PathUtils.replaceSlash(String.format("%s:%s/%s/%s/",ip,port,path, Objects.toString(properties.getPrefix(),"")));
+		String localUrl = schema + PathUtils.replaceSlash(String.format("localhost:%s/%s/%s/", port, path, Objects.toString(properties.getPrefix(), "")));
+		String externUrl = schema + PathUtils.replaceSlash(String.format("%s:%s/%s/%s/", ip, port, path, Objects.toString(properties.getPrefix(), "")));
 		System.out.println(
 				"服务启动成功，magic-api已内置启动! Access URLs:\n\t" +
-						"接口本地地址: \t\t"+localUrl+"\n\t" +
+						"接口本地地址: \t\t" + localUrl + "\n\t" +
 						"接口外部访问地址: \t" + externUrl
 		);
 		if (!StringUtils.isEmpty(magicWebPath)) {
-            String webPath = schema + PathUtils.replaceSlash(String.format("%s:%s/%s/%s/index.html", ip, port, path, magicWebPath));
-            System.out.println("\t接口配置平台: \t\t" + webPath);
+			String webPath = schema + PathUtils.replaceSlash(String.format("%s:%s/%s/%s/index.html", ip, port, path, magicWebPath));
+			System.out.println("\t接口配置平台: \t\t" + webPath);
 		}
 		System.out.println("\t可通过配置关闭输出: \tmagic-api.show-url=false");
 		System.out.println("********************************************当前服务相关地址********************************************");
