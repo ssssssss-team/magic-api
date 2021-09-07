@@ -31,6 +31,14 @@ public class JsonUtils {
 		}
 	}
 
+	public static String toJsonStringWithoutLog(Object target) {
+		try {
+			return mapper.writeValueAsString(target);
+		} catch (Exception e) {
+			return target == null ? null : target.toString();
+		}
+	}
+
 	public static <T> T readValue(String json, TypeReference<T> typeReference) {
 		try {
 			return mapper.readValue(json, typeReference);
