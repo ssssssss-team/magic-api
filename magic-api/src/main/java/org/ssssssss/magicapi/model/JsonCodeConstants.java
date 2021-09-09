@@ -19,6 +19,8 @@ public interface JsonCodeConstants {
 
 	JsonCode NAME_CONFLICT = new JsonCode(0, "移动后名称会重复，请修改名称后在试。");
 
+	JsonCode RESOURCE_LOCKED = new JsonCode(0, "当前资源已被锁定，请解锁后在操作。");
+
 	JsonCode REQUEST_PATH_CONFLICT = new JsonCode(0, "该路径已被映射,请换一个请求方法或路径");
 
 	JsonCode FUNCTION_PATH_CONFLICT = new JsonCode(0, "该路径已被映射,请换一个请求方法或路径");

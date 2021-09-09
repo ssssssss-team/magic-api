@@ -14,6 +14,8 @@ public class MagicEntity extends Attributes<Object> implements Cloneable {
 
 	protected Long updateTime;
 
+	protected String lock;
+
 	public String getId() {
 		return id;
 	}
@@ -60,6 +62,14 @@ public class MagicEntity extends Attributes<Object> implements Cloneable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getLock() {
+		return lock;
+	}
+
+	public void setLock(String lock) {
+		this.lock = lock;
 	}
 
 	public MagicEntity clone() {

@@ -107,6 +107,10 @@ public class Constants {
 
 	public static final String UPLOAD_MODE_FULL = "full";
 
+	public static final String LOCK = "1";
+
+	public static final String UNLOCK = "0";
+
 	/**
 	 * 执行成功的code值
 	 */

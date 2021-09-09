@@ -47,6 +47,14 @@ public interface MagicAPIService extends MagicModule {
 	 */
 	String saveApi(ApiInfo apiInfo);
 
+	boolean lockApi(String id);
+
+	boolean unlockApi(String id);
+
+	boolean lockFunction(String id);
+
+	boolean unlockFunction(String id);
+
 	/**
 	 * 获取接口详情
 	 *

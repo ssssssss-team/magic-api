@@ -229,6 +229,33 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
+	public boolean lockApi(String id) {
+		return lockWithNotify(apiServiceProvider.lock(id), id, NOTIFY_ACTION_API);
+	}
+
+	@Override
+	public boolean unlockApi(String id) {
+		return lockWithNotify(apiServiceProvider.unlock(id), id, NOTIFY_ACTION_API);
+	}
+
+	@Override
+	public boolean lockFunction(String id) {
+		return lockWithNotify(functionServiceProvider.lock(id), id, NOTIFY_ACTION_FUNCTION);
+	}
+
+	@Override
+	public boolean unlockFunction(String id) {
+		return lockWithNotify(functionServiceProvider.unlock(id), id, NOTIFY_ACTION_FUNCTION);
+	}
+
+	private boolean lockWithNotify(boolean success, String id, int type){
+		if(success){
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, id, NOTIFY_ACTION_UPDATE, type));
+		}
+		return success;
+	}
+
+	@Override
 	public ApiInfo getApiInfo(String id) {
 		return apiServiceProvider.get(id);
 	}

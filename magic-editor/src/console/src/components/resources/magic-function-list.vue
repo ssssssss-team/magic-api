@@ -62,6 +62,7 @@
           <i class="ma-svg-icon icon-function" />
           <label>{{ item.name }}</label>
           <span>({{ item.path }})</span>
+          <i class="ma-icon ma-icon-lock" v-if="item.lock === '1'"></i>
         </div>
       </template>
     </magic-tree>
@@ -319,6 +320,7 @@ export default {
                 path: '',
                 script: null,
                 name: '未定义名称',
+                lock: '0',
                 parameters: null,
                 description: null,
                 level: item.level + 1,
@@ -414,8 +416,26 @@ export default {
             }
           },
           {
+            label: `${item.lock === '1' ? '解锁' : '锁定'}`,
+            icon: `ma-icon-${item.lock === '1' ? 'unlock' : 'lock'}`,
+            onClick: () => {
+              let action = item.lock === '1' ? '解锁函数' : '锁定函数';
+              request.send(item.lock === '1' ? 'function/unlock' : 'function/lock', {id: item.id}).success(data => {
+                if (data) {
+                  bus.$emit('status', `${action}「${item.name}(${item.path})」`)
+                  bus.$emit('report', `function_${item.lock === '1' ? 'unlock' : 'lock'}`)
+                  item['lock'] = item.lock === '1' ? '0' : '1';
+                  this.changeForceUpdate()
+                } else {
+                  this.$magicAlert({content: `${action}失败`})
+                }
+              })
+            }
+          },
+          {
             label: '刷新函数',
             icon: 'ma-icon-refresh',
+            divided: true,
             onClick: () => {
               this.initData()
             }

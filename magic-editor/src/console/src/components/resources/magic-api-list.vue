@@ -64,6 +64,7 @@
           <i class="ma-svg-icon" :class="['request-method-' + item.method]" />
           <label>{{ item.name }}</label>
           <span>({{ item.path }})</span>
+          <i class="ma-icon ma-icon-lock" v-if="item.lock === '1'"></i>
         </div>
       </template>
     </magic-tree>
@@ -320,6 +321,7 @@ export default {
                 parameters: null,
                 paths: null,
                 option: null,
+                lock: '0',
                 requestBody: null,
                 headers: null,
                 responseBody: null,
@@ -450,8 +452,26 @@ export default {
             }
           },
           {
+            label: `${item.lock === '1' ? '解锁' : '锁定'}`,
+            icon: `ma-icon-${item.lock === '1' ? 'unlock' : 'lock'}`,
+            onClick: () => {
+              let action = item.lock === '1' ? '解锁接口' : '锁定接口';
+              request.send(item.lock === '1' ? 'unlock' : 'lock', {id: item.id}).success(data => {
+                if (data) {
+                  bus.$emit('status', `${action}「${item.name}(${item.path})」`)
+                  bus.$emit('report', `api_${item.lock === '1' ? 'unlock' : 'lock'}`)
+                  item['lock'] = item.lock === '1' ? '0' : '1';
+                  this.changeForceUpdate()
+                } else {
+                  this.$magicAlert({content: `${action}失败`})
+                }
+              })
+            }
+          },
+          {
             label: '刷新接口',
             icon: 'ma-icon-refresh',
+            divided: true,
             onClick: () => {
               this.initData()
             }
