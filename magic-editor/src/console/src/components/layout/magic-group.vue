@@ -90,7 +90,8 @@ import MagicInput from '@/components/common/magic-input.vue'
 import MagicSelect from '@/components/common/magic-select.vue'
 import request from "@/api/request"
 import { requestGroup } from '@/scripts/utils.js'
-import bus from "@/scripts/bus";
+import bus from "@/scripts/bus"
+import contants from "@/scripts/contants.js"
 
 export default {
   name: 'MagicGroup',
@@ -128,6 +129,8 @@ export default {
   mounted() {
     let map = {}
     request.send('/options').success(data => {
+      data = data || []
+      data = data.concat(contants.OPTIONS)
       this.defaultOptions = data&&data.map(e => {
         let item = {text: e[0], value: e[0], description: e[1], defaultValue: e[2]}
         this.optionsMap[item.value] = item;

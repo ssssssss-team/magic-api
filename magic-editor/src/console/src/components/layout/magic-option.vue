@@ -35,6 +35,7 @@
 import request from '@/api/request.js'
 import MagicInput from '@/components/common/magic-input.vue'
 import MagicSelect from '@/components/common/magic-select.vue'
+import contants from "@/scripts/contants.js"
 
 export default {
   name: 'MagicOption',
@@ -55,6 +56,8 @@ export default {
   mounted() {
     let map = {}
       request.send('/options').success(data => {
+        data = data || []
+        data = data.concat(contants.OPTIONS)
         this.defaultOptions = data&&data.map(e => {
           let item = {text: e[0], value: e[0], description: e[1], defaultValue: e[2]}
           this.optionsMap[item.value] = item;
