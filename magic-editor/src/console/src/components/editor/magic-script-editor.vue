@@ -621,7 +621,12 @@ export default {
         target.ext.debugDecorations && this.editor.deltaDecorations(target.ext.debugDecorations, [])
         target.ext.debuging = false
         target.ext.variables = []
-        bus.$emit('message', 'resume_breakpoint', step === true ? '1' : '0')
+        bus.$emit('message', 'resume_breakpoint', (step === true ? '1' : '0')+ ',' + this.editor
+          .getModel()
+          .getAllDecorations()
+          .filter(it => it.options.linesDecorationsClassName === 'breakpoints')
+          .map(it => it.range.startLineNumber)
+          .join('|'))
       }
     },
     doStepInto() {
