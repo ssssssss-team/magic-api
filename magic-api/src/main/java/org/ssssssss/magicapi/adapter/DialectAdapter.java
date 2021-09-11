@@ -28,7 +28,7 @@ public class DialectAdapter {
 	}
 
 	public void add(Dialect dialect) {
-		this.dialectList.add(dialect);
+		this.dialectList.add(0, dialect);
 	}
 
 	public Dialect getDialectFromConnection(Connection connection) {
