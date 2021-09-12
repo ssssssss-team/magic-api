@@ -221,7 +221,7 @@ public class SwaggerEntity {
 
 		private String description;
 
-		private String operationId = UUID.randomUUID().toString().replace("-", "");
+		private String operationId;
 
 		private List<String> produces = new ArrayList<>();
 
@@ -247,7 +247,7 @@ public class SwaggerEntity {
 			return operationId;
 		}
 
-		public void setOperationId(String operationId) {
+		public Path(String operationId) {
 			this.operationId = operationId;
 		}
 
