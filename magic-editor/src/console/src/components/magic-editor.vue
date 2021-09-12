@@ -105,7 +105,7 @@ export default {
     if (contants.BASE_URL.startsWith('http')) { // http开头
       link = contants.BASE_URL
     } else if (contants.BASE_URL.startsWith('/')) { // / 开头的
-      link = link + contants.BASE_URL
+      link = `${location.protocol}/${location.host}${contants.BASE_URL}`
     } else {
       link = link + '/' + contants.BASE_URL
     }
