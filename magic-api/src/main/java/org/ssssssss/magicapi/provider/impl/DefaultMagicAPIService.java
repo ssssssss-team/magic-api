@@ -123,7 +123,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 						MagicScriptContext.set(newContext);
 						try {
 							Object value = ScriptManager.executeScript(info.getScript(), newContext);
-							if(value instanceof ExitValue){
+							if (value instanceof ExitValue) {
 								throw new MagicExitException((ExitValue) value);
 							}
 							return value;
@@ -248,8 +248,8 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		return lockWithNotify(functionServiceProvider.unlock(id), id, NOTIFY_ACTION_FUNCTION);
 	}
 
-	private boolean lockWithNotify(boolean success, String id, int type){
-		if(success){
+	private boolean lockWithNotify(boolean success, String id, int type) {
+		if (success) {
 			magicNotifyService.sendNotify(new MagicNotify(instanceId, id, NOTIFY_ACTION_UPDATE, type));
 		}
 		return success;
@@ -315,7 +315,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			isTrue(!functionServiceProvider.existsWithoutId(functionInfo), FUNCTION_ALREADY_EXISTS.format(functionInfo.getPath()));
 			FunctionInfo oldInfo = functionServiceProvider.get(functionInfo.getId());
 			isTrue(functionServiceProvider.update(functionInfo), FUNCTION_SAVE_FAILURE);
-			if(!oldInfo.getScript().equals(functionInfo.getScript())){
+			if (!oldInfo.getScript().equals(functionInfo.getScript())) {
 				backupService.backup(functionInfo);
 			}
 		}
@@ -582,7 +582,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			// 检查上级分组是否存在
 			isTrue("0".equals(group.getParentId()) || groupServiceProvider.getGroupResource(group.getParentId()).exists(), GROUP_NOT_FOUND);
 		}
-		if(checked) {
+		if (checked) {
 			// 检测分组是否有冲突
 			groups.forEach(group -> {
 				Resource resource;
@@ -596,7 +596,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 					isTrue(src == null || src.getId().equals(group.getId()), GROUP_CONFLICT);
 				}
 			});
-		}else{
+		} else {
 			Resource resource = workspace.getDirectory(PATH_API);
 			resource.delete();
 			resource.mkdir();
@@ -737,13 +737,39 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			case NOTIFY_ACTION_ALL:
 				return processAllNotify();
 		}
-		switch (action){
+		switch (action) {
 			case NOTIFY_WS_C_S:
 				return processWebSocketMessageReceived(magicNotify.getSessionId(), magicNotify.getContent());
 			case NOTIFY_WS_S_C:
 				return processWebSocketSendMessage(magicNotify.getSessionId(), magicNotify.getContent());
 		}
 		return false;
+	}
+
+	@Override
+	public String copyGroup(String srcId, String target) {
+		Group src = getGroup(srcId);
+		src.setId(null);
+		src.setParentId(target);
+		src.setName(src.getName() + "(复制)");
+		src.setPath(src.getPath() + "_copy");
+		String newId = createGroup(src);
+		if (GROUP_TYPE_API.equals(src.getType())) {
+			apiServiceProvider.listWithScript()
+					.stream().filter(it -> srcId.equals(it.getGroupId()))
+					.map(ApiInfo::copy)
+					.peek(it -> it.setGroupId(newId))
+					.peek(it -> it.setId(null))
+					.forEach(this::saveApi);
+		} else {
+			functionServiceProvider.listWithScript()
+					.stream().filter(it -> srcId.equals(it.getGroupId()))
+					.map(FunctionInfo::copy)
+					.peek(it -> it.setGroupId(newId))
+					.peek(it -> it.setId(null))
+					.forEach(this::saveFunction);
+		}
+		return newId;
 	}
 
 	@Override
@@ -894,7 +920,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			for (Resource file : root.files(".ms")) {
 				if (isApi) {
 					ApiInfo info = apiServiceProvider.deserialize(file.read());
-					if (checked){
+					if (checked) {
 						checkApiConflict(info);
 					}
 					apiInfos.add(info);
@@ -902,7 +928,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 					isTrue(apiPaths.add(apiPath), UPLOAD_PATH_CONFLICT.format(apiPath));
 				} else {
 					FunctionInfo info = functionServiceProvider.deserialize(file.read());
-					if (checked){
+					if (checked) {
 						checkFunctionConflict(info);
 					}
 					functionInfos.add(info);

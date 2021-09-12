@@ -83,6 +83,15 @@
         <button class="ma-button" @click="createGroupAction(false)">取消</button>
       </template>
     </magic-dialog>
+    <magic-dialog v-model="groupChooseVisible" title="复制分组" align="right" :moveable="false" width="340px" height="390px"
+                  className="ma-tree-wrapper">
+      <template #content>
+        <magic-group-choose ref="groupChoose" rootName="接口分组" type="1" height="300px" max-height="300px"/>
+      </template>
+      <template #buttons>
+        <button class="ma-button active" @click="copyGroup">复制</button>
+      </template>
+    </magic-dialog>
   </div>
 </template>
 
@@ -92,6 +101,7 @@ import MagicTree from '../common/magic-tree.vue'
 import request from '@/api/request.js'
 import MagicDialog from '@/components/common/modal/magic-dialog.vue'
 import MagicInput from '@/components/common/magic-input.vue'
+import MagicGroupChoose from '@/components/resources/magic-group-choose.vue'
 import { replaceURL, download as downloadFile, requestGroup, goToAnchor, deepClone } from '@/scripts/utils.js'
 import contants from '@/scripts/contants.js'
 import Key from '@/scripts/hotkey.js'
@@ -104,7 +114,8 @@ export default {
   components: {
     MagicTree,
     MagicDialog,
-    MagicInput
+    MagicInput,
+    MagicGroupChoose
   },
   data() {
     return {
@@ -117,6 +128,8 @@ export default {
       tree: [],
       // 数据排序规则,true:升序,false:降序
       treeSort: true,
+      groupChooseVisible: false,
+      srcId: '',
       // 新建分组对象
       createGroupObj: {
         visible: false,
@@ -359,6 +372,15 @@ export default {
             }
           },
           {
+            label: '复制分组',
+            icon: 'ma-icon-copy',
+            onClick: () => {
+              this.srcId = item.id
+              this.groupChooseVisible = true
+              this.$refs.groupChoose.initData()
+            }
+          },
+          {
             label: '删除分组',
             icon: 'ma-icon-delete',
             divided: true,
@@ -492,6 +514,15 @@ export default {
         }
       })
       return false
+    },
+    copyGroup(){
+      let target = this.$refs.groupChoose.getSelected()
+      if(target && this.srcId){
+        this.groupChooseVisible = false
+        request.send('group/copy', { src: this.srcId, target }).success(() => {
+          this.initData();
+        })
+      }
     },
     // 删除接口
     deleteApiInfo(item) {

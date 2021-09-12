@@ -312,6 +312,8 @@ public class ApiInfo extends MagicEntity {
 		info.setPaths(this.paths);
 		info.setRequestBodyDefinition(this.requestBodyDefinition);
 		info.setResponseBodyDefinition(this.responseBodyDefinition);
+		info.setLock(this.lock);
+		info.setProperties(this.properties);
 		return info;
 	}
 }

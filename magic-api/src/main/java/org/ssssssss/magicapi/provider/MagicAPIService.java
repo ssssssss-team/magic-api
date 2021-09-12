@@ -209,4 +209,6 @@ public interface MagicAPIService extends MagicModule {
 	 * 处理刷新通知
 	 */
 	boolean processNotify(MagicNotify magicNotify);
+
+	String copyGroup(String src, String target);
 }
