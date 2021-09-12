@@ -83,6 +83,7 @@
 <script>
 import bus from '@/scripts/bus.js'
 import request from '@/api/request.js'
+import contants from "@/scripts/contants.js"
 import MagicDialog from '@/components/common/modal/magic-dialog.vue'
 import MagicInput from '@/components/common/magic-input.vue'
 import {formatJson, isVisible, replaceURL} from '@/scripts/utils.js'
@@ -121,12 +122,14 @@ export default {
           'org.postgresql.Driver',
           'com.microsoft.sqlserver.jdbc.SQLServerDriver',
           'com.ibm.db2.jcc.DB2Driver',
+          ...contants.JDBC_DRIVERS
       ].map(it => { return {text: it, value: it} }),
       datasourceTypes: [
           'com.zaxxer.hikari.HikariDataSource',
           'com.alibaba.druid.pool.DruidDataSource',
           'org.apache.tomcat.jdbc.pool.DataSource',
           'org.apache.commons.dbcp2.BasicDataSource',
+          ...contants.DATASOURCE_TYPES
       ].map(it => { return {text: it, value: it} }),
       editor: null,
       // 是否展示loading

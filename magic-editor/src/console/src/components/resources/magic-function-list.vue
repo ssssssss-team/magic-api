@@ -62,6 +62,7 @@
           <i class="ma-svg-icon icon-function" />
           <label>{{ item.name }}</label>
           <span>({{ item.path }})</span>
+          <i class="ma-icon ma-icon-lock" v-if="item.lock === '1'"></i>
         </div>
       </template>
     </magic-tree>
@@ -80,6 +81,16 @@
         <button class="ma-button" @click="createGroupAction(false)">取消</button>
       </template>
     </magic-dialog>
+
+    <magic-dialog v-model="groupChooseVisible" title="复制分组" align="right" :moveable="false" width="340px" height="390px"
+                  className="ma-tree-wrapper">
+      <template #content>
+        <magic-group-choose ref="groupChoose" rootName="函数分组" type="2" height="300px" max-height="300px"/>
+      </template>
+      <template #buttons>
+        <button class="ma-button active" @click="copyGroup">复制</button>
+      </template>
+    </magic-dialog>
   </div>
 </template>
 
@@ -89,6 +100,7 @@ import MagicTree from '@/components/common/magic-tree.vue'
 import request from '@/api/request.js'
 import MagicDialog from '@/components/common/modal/magic-dialog.vue'
 import MagicInput from '@/components/common/magic-input.vue'
+import MagicGroupChoose from '@/components/resources/magic-group-choose.vue'
 import { replaceURL, requestGroup, goToAnchor, deepClone } from '@/scripts/utils.js'
 import JavaClass from '@/scripts/editor/java-class.js'
 import Key from '@/scripts/hotkey.js'
@@ -102,7 +114,8 @@ export default {
   components: {
     MagicTree,
     MagicDialog,
-    MagicInput
+    MagicInput,
+    MagicGroupChoose
   },
   data() {
     return {
@@ -115,6 +128,8 @@ export default {
       tree: [],
       // 数据排序规则,true:升序,false:降序
       treeSort: true,
+      groupChooseVisible: false,
+      srcId: '',
       // 新建分组对象
       createGroupObj: {
         visible: false,
@@ -319,6 +334,7 @@ export default {
                 path: '',
                 script: null,
                 name: '未定义名称',
+                lock: '0',
                 parameters: null,
                 description: null,
                 level: item.level + 1,
@@ -350,6 +366,15 @@ export default {
             icon: 'ma-icon-update',
             onClick: () => {
               this.openCreateGroupModal(item)
+            }
+          },
+          {
+            label: '复制分组',
+            icon: 'ma-icon-copy',
+            onClick: () => {
+              this.srcId = item.id
+              this.groupChooseVisible = true
+              this.$refs.groupChoose.initData()
             }
           },
           {
@@ -414,8 +439,26 @@ export default {
             }
           },
           {
+            label: `${item.lock === '1' ? '解锁' : '锁定'}`,
+            icon: `ma-icon-${item.lock === '1' ? 'unlock' : 'lock'}`,
+            onClick: () => {
+              let action = item.lock === '1' ? '解锁函数' : '锁定函数';
+              request.send(item.lock === '1' ? 'function/unlock' : 'function/lock', {id: item.id}).success(data => {
+                if (data) {
+                  bus.$emit('status', `${action}「${item.name}(${item.path})」`)
+                  bus.$emit('report', `function_${item.lock === '1' ? 'unlock' : 'lock'}`)
+                  item['lock'] = item.lock === '1' ? '0' : '1';
+                  this.changeForceUpdate()
+                } else {
+                  this.$magicAlert({content: `${action}失败`})
+                }
+              })
+            }
+          },
+          {
             label: '刷新函数',
             icon: 'ma-icon-refresh',
+            divided: true,
             onClick: () => {
               this.initData()
             }
@@ -436,6 +479,15 @@ export default {
         }
       })
       return false
+    },
+    copyGroup(){
+      let target = this.$refs.groupChoose.getSelected()
+      if(target && this.srcId){
+        this.groupChooseVisible = false
+        request.send('group/copy', { src: this.srcId, target }).success(() => {
+          this.initData();
+        })
+      }
     },
     // 删除接口
     deleteApiInfo(item) {

@@ -47,6 +47,14 @@ public interface MagicAPIService extends MagicModule {
 	 */
 	String saveApi(ApiInfo apiInfo);
 
+	boolean lockApi(String id);
+
+	boolean unlockApi(String id);
+
+	boolean lockFunction(String id);
+
+	boolean unlockFunction(String id);
+
 	/**
 	 * 获取接口详情
 	 *
@@ -201,4 +209,6 @@ public interface MagicAPIService extends MagicModule {
 	 * 处理刷新通知
 	 */
 	boolean processNotify(MagicNotify magicNotify);
+
+	String copyGroup(String src, String target);
 }

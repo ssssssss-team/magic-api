@@ -22,6 +22,9 @@ const contants = {
   RESPONSE_CODE_SCRIPT_ERROR: -1000,
   RESPONSE_NO_PERMISSION: -10,
   DEFAULT_EXPAND: true,
+  JDBC_DRIVERS: [],
+  DATASOURCE_TYPES: [],
+  OPTIONS: [],
   config: {}
 }
 

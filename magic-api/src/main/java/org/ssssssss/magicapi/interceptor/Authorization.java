@@ -28,5 +28,13 @@ public enum Authorization {
 	/**
 	 * 执行推送动作
 	 */
-	PUSH
+	PUSH,
+	/**
+	 * 锁定动作
+	 */
+	LOCK,
+	/**
+	 * 解锁动作
+	 */
+	UNLOCK
 }

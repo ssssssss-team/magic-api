@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -8,6 +9,7 @@ import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.Backup;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.JsonBean;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,7 +35,9 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	@Valid(readonly = false)
 	public JsonBean<Boolean> delete(HttpServletRequest request, String id) {
-		isTrue(allowVisit(request, Authorization.DELETE, getApiInfo(id)), PERMISSION_INVALID);
+		ApiInfo apiInfo = getApiInfo(id);
+		isTrue(allowVisit(request, Authorization.DELETE, apiInfo), PERMISSION_INVALID);
+		isTrue(!Constants.LOCK.equals(apiInfo.getLock()), RESOURCE_LOCKED);
 		return new JsonBean<>(magicAPIService.deleteApi(id));
 	}
 
@@ -102,6 +106,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 		// 新的分组ID
 		apiInfo.setGroupId(groupId);
 		isTrue(allowVisit(request, Authorization.SAVE, apiInfo), PERMISSION_INVALID);
+		isTrue(!Constants.LOCK.equals(apiInfo.getLock()), RESOURCE_LOCKED);
 		return new JsonBean<>(magicAPIService.moveApi(id, groupId));
 	}
 
@@ -113,10 +118,36 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@Valid(readonly = false)
 	public JsonBean<String> save(HttpServletRequest request, @RequestBody ApiInfo info) {
 		isTrue(allowVisit(request, Authorization.SAVE, info), PERMISSION_INVALID);
+		if (StringUtils.isNotBlank(info.getId())) {
+			ApiInfo oldInfo = getApiInfo(info.getId());
+			isTrue(!Constants.LOCK.equals(oldInfo.getLock()), RESOURCE_LOCKED);
+		}
 		return new JsonBean<>(magicAPIService.saveApi(info));
 	}
 
-	private ApiInfo getApiInfo(String id){
+	/**
+	 * 锁定接口
+	 */
+	@RequestMapping("/lock")
+	@ResponseBody
+	@Valid(readonly = false)
+	public JsonBean<Boolean> lock(HttpServletRequest request, String id) {
+		isTrue(allowVisit(request, Authorization.LOCK, getApiInfo(id)), PERMISSION_INVALID);
+		return new JsonBean<>(magicAPIService.lockApi(id));
+	}
+
+	/**
+	 * 解锁接口
+	 */
+	@RequestMapping("/unlock")
+	@ResponseBody
+	@Valid(readonly = false)
+	public JsonBean<Boolean> unlock(HttpServletRequest request, String id) {
+		isTrue(allowVisit(request, Authorization.UNLOCK, getApiInfo(id)), PERMISSION_INVALID);
+		return new JsonBean<>(magicAPIService.unlockApi(id));
+	}
+
+	private ApiInfo getApiInfo(String id) {
 		ApiInfo apiInfo = magicAPIService.getApiInfo(id);
 		notNull(apiInfo, API_NOT_FOUND);
 		return apiInfo;

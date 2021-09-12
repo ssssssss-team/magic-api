@@ -264,6 +264,7 @@ public class ApiInfo extends MagicEntity {
 		target.setGroupId(this.getGroupId());
 		target.setPath(this.getPath());
 		target.setMethod(this.getMethod());
+		target.setLock(this.getLock());
 		return target;
 	}
 
@@ -311,6 +312,8 @@ public class ApiInfo extends MagicEntity {
 		info.setPaths(this.paths);
 		info.setRequestBodyDefinition(this.requestBodyDefinition);
 		info.setResponseBodyDefinition(this.responseBodyDefinition);
+		info.setLock(this.lock);
+		info.setProperties(this.properties);
 		return info;
 	}
 }

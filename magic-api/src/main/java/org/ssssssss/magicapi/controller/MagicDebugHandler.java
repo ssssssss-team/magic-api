@@ -1,8 +1,8 @@
 package org.ssssssss.magicapi.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.magicapi.config.Message;
 import org.ssssssss.magicapi.config.MessageType;
-import org.ssssssss.magicapi.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.model.MagicConsoleSession;
 import org.ssssssss.script.MagicScriptDebugContext;
 
@@ -40,10 +40,13 @@ public class MagicDebugHandler {
 	 * 当本机没有该Session时，通知其他机器处理
 	 */
 	@Message(MessageType.RESUME_BREAKPOINT)
-	public boolean resumeBreakpoint(MagicConsoleSession session, String stepInto) {
+	public boolean resumeBreakpoint(MagicConsoleSession session, String stepInto, String breakpoints) {
 		MagicScriptDebugContext context = session.getMagicScriptDebugContext();
 		if (context != null) {
 			context.setStepInto("1".equals(stepInto));
+			if(StringUtils.isNotBlank(breakpoints)){
+				context.setBreakpoints(Stream.of(breakpoints.split("\\|")).map(Integer::valueOf).collect(Collectors.toList()));
+			}
 			try {
 				context.singal();
 			} catch (InterruptedException ignored) {

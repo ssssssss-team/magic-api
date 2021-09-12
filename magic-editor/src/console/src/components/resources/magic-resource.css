@@ -41,10 +41,21 @@
 
 .ma-tree-wrapper span {
     color: var(--toolbox-list-span-color);
+    display: inline-block;
+    height: 22px;
+    line-height: 22px;
+}
+
+.ma-tree-wrapper .ma-icon-lock {
+    color: var(--toolbox-list-label-color);
+    margin-left: 5px;
 }
 
 .ma-tree-wrapper label {
     color: var(--toolbox-list-label-color);
+    display: inline-block;
+    height: 22px;
+    line-height: 22px;
 }
 
 .ma-tree-wrapper .ma-tree-toolbar-search {

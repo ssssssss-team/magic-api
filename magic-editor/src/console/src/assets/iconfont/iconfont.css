@@ -11,6 +11,14 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+.ma-icon-lock:before {
+  content: "\e64f";
+}
+
+.ma-icon-unlock:before {
+  content: "\e783";
+}
+
 .ma-icon-collapse:before {
   content: "\e609";
 }

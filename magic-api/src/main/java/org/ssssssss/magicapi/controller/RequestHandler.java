@@ -340,7 +340,7 @@ public class RequestHandler extends MagicController {
 			debugContext.setCallback(variables -> {
 				List<Map<String, Object>> varList = (List<Map<String, Object>>) variables.get("variables");
 				varList.stream().filter(it -> it.containsKey("value")).forEach(variable -> {
-					variable.put("value", JsonUtils.toJsonString(variable.get("value")));
+					variable.put("value", JsonUtils.toJsonStringWithoutLog(variable.get("value")));
 				});
 				WebSocketSessionManager.sendBySessionId(sessionId, BREAKPOINT, variables);
 			});

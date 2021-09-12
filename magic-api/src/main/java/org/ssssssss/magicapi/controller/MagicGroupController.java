@@ -70,4 +70,22 @@ public class MagicGroupController extends MagicController implements MagicExcept
 		isTrue(allowVisit(request, Authorization.SAVE, group), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.createGroup(group));
 	}
+
+	/**
+	 * 复制分组
+	 */
+	@RequestMapping("/group/copy")
+	@ResponseBody
+	@Valid(readonly = false)
+	public JsonBean<String> copyGroup(HttpServletRequest request, String src, String target) {
+		Group group = magicAPIService.getGroup(src);
+		notNull(group, GROUP_NOT_FOUND);
+		if(!"0".equals(target)){
+			Group targetGroup = magicAPIService.getGroup(target);
+			notNull(targetGroup, GROUP_NOT_FOUND);
+			isTrue(allowVisit(request, Authorization.SAVE, targetGroup), PERMISSION_INVALID);
+		}
+		isTrue(allowVisit(request, Authorization.VIEW, group), PERMISSION_INVALID);
+		return new JsonBean<>(magicAPIService.copyGroup(src, target));
+	}
 }

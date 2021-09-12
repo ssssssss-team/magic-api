@@ -18,7 +18,8 @@
         >
           <i class="ma-svg-icon" v-if="item._type === 'api'" :class="['request-method-' + item.method]" />
           <i class="ma-svg-icon" v-if="item._type !== 'api'" :class="['icon-function']" />
-          {{item.name}}<span v-show="!item.id || item.script !== item.ext.tmpScript">*</span>
+          {{item.name}}<i class="ma-icon ma-icon-lock" v-if="item.lock === '1'" />
+          <span v-show="!item.id || item.script !== item.ext.tmpScript">*</span>
           <i class="ma-icon ma-icon-close" @click.stop="close(item.id || item.tmp_id)"/>
         </li>
       </ul>
@@ -548,7 +549,7 @@ export default {
         requestConfig.headers['Content-Type'] = 'multipart/form-data';
         let formData = new FormData()
         Object.keys(params).forEach(key => {
-          let value = requestConfig.data[key];
+          let value = params[key];
           if(value instanceof FileList){
             value.forEach(file => formData.append(key, file, file.name))
           }else{
@@ -620,7 +621,12 @@ export default {
         target.ext.debugDecorations && this.editor.deltaDecorations(target.ext.debugDecorations, [])
         target.ext.debuging = false
         target.ext.variables = []
-        bus.$emit('message', 'resume_breakpoint', step === true ? '1' : '0')
+        bus.$emit('message', 'resume_breakpoint', (step === true ? '1' : '0')+ ',' + this.editor
+          .getModel()
+          .getAllDecorations()
+          .filter(it => it.options.linesDecorationsClassName === 'breakpoints')
+          .map(it => it.range.startLineNumber)
+          .join('|'))
       }
     },
     doStepInto() {
@@ -958,12 +964,14 @@ ul li.draggableTargetItem {
   background: var(--hover-background);
 }
 
-ul li i {
+ul li i:not(.ma-icon-lock) {
   color: var(--icon-color);
   margin-left: 5px;
   font-size: 0.5em;
 }
-
+.ma-icon-lock{
+  margin-left: 5px;
+}
 .ma-editor-container > div {
   flex: 1;
 }

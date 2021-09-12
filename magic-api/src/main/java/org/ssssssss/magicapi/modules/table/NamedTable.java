@@ -48,10 +48,10 @@ public class NamedTable {
 		this.logicDeleteColumn = sqlModule.getLogicDeleteColumn();
 		String deleteValue = sqlModule.getLogicDeleteValue();
 		this.logicDeleteValue = deleteValue;
-		if(deleteValue != null){
-			if((deleteValue.startsWith("'") || deleteValue.startsWith("\"")) && deleteValue.length() > 2){
-				this.logicDeleteValue = deleteValue.substring(1,deleteValue.length() - 1);
-			}else{
+		if (deleteValue != null) {
+			if ((deleteValue.startsWith("'") || deleteValue.startsWith("\"")) && deleteValue.length() > 2) {
+				this.logicDeleteValue = deleteValue.substring(1, deleteValue.length() - 1);
+			} else {
 				try {
 					this.logicDeleteValue = Integer.parseInt(deleteValue);
 				} catch (NumberFormatException e) {
@@ -62,13 +62,13 @@ public class NamedTable {
 	}
 
 	@Comment("使用逻辑删除")
-	public NamedTable logic(){
+	public NamedTable logic() {
 		this.useLogic = true;
 		return this;
 	}
 
 	@Comment("更新空值")
-	public NamedTable withBlank(){
+	public NamedTable withBlank() {
 		this.withBlank = true;
 		return this;
 	}
@@ -107,24 +107,24 @@ public class NamedTable {
 	}
 
 	@Comment("设置要排除的列")
-	public NamedTable exclude(String column){
-		if(column != null){
+	public NamedTable exclude(String column) {
+		if (column != null) {
 			excludeColumns.add(column);
 		}
 		return this;
 	}
 
 	@Comment("设置要排除的列")
-	public NamedTable excludes(String ... columns){
-		if(columns != null){
+	public NamedTable excludes(String... columns) {
+		if (columns != null) {
 			excludeColumns.addAll(Arrays.asList(columns));
 		}
 		return this;
 	}
 
 	@Comment("设置要排除的列")
-	public NamedTable excludes(List<String> columns){
-		if(columns != null){
+	public NamedTable excludes(List<String> columns) {
+		if (columns != null) {
 			excludeColumns.addAll(columns);
 		}
 		return this;
@@ -169,7 +169,7 @@ public class NamedTable {
 	}
 
 	private Collection<Map.Entry<String, Object>> filterNotBlanks() {
-		if(this.withBlank){
+		if (this.withBlank) {
 			return this.columns.entrySet()
 					.stream()
 					.filter(it -> !excludeColumns.contains(it.getKey()))
@@ -212,7 +212,7 @@ public class NamedTable {
 
 	@Comment("执行delete语句")
 	public int delete() {
-		if(useLogic){
+		if (useLogic) {
 			Map<String, Object> dataMap = new HashMap<>();
 			dataMap.put(logicDeleteColumn, logicDeleteValue);
 			return update(dataMap);
@@ -315,7 +315,7 @@ public class NamedTable {
 			where.ne(useLogic, logicDeleteColumn, logicDeleteValue);
 			builder.append(where.getSql());
 			params.addAll(where.getParams());
-		}else if(useLogic){
+		} else if (useLogic) {
 			where.ne(logicDeleteColumn, logicDeleteValue);
 			builder.append(where.getSql());
 			params.addAll(where.getParams());
@@ -378,7 +378,7 @@ public class NamedTable {
 	}
 
 	@Comment("查询条数")
-	public int count(){
+	public int count() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("select count(1) from ").append(tableName);
 		List<Object> params = buildWhere(builder);
@@ -386,7 +386,7 @@ public class NamedTable {
 	}
 
 	@Comment("判断是否存在")
-	public boolean exists(){
+	public boolean exists() {
 		return count() > 0;
 	}
 

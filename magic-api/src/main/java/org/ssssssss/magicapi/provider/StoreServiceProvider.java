@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ssssssss.magicapi.adapter.Resource;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.MagicEntity;
 import org.ssssssss.magicapi.utils.JsonUtils;
 
@@ -80,6 +81,24 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 			mappings.remove(id);
 			infos.remove(id);
 			return true;
+		}
+		return false;
+	}
+
+	public boolean lock(String id){
+		T info = get(id);
+		if(info != null){
+			info.setLock(Constants.LOCK);
+			return update(info);
+		}
+		return false;
+	}
+
+	public boolean unlock(String id){
+		T info = get(id);
+		if(info != null){
+			info.setLock(Constants.UNLOCK);
+			return update(info);
 		}
 		return false;
 	}

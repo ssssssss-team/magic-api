@@ -87,4 +87,20 @@ public class FunctionInfo extends MagicEntity {
 	public int hashCode() {
 		return Objects.hash(id, path, script, name, groupId, parameters, description, returnType);
 	}
+
+	public FunctionInfo copy(){
+		FunctionInfo info = new FunctionInfo();
+		info.setId(this.id);
+		info.setName(this.name);
+		info.setGroupId(this.groupId);
+		info.setScript(this.script);
+		info.setDescription(this.description);
+		info.setParameters(this.parameters);
+		info.setPath(this.path);
+		info.setMappingPath(this.mappingPath);
+		info.setReturnType(this.returnType);
+		info.setProperties(this.properties);
+		info.setLock(this.lock);
+		return info;
+	}
 }

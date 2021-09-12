@@ -71,7 +71,7 @@ public class SwaggerProvider {
 		for (ApiInfo info : infos) {
 			String groupName = groupServiceProvider.getFullName(info.getGroupId()).replace("/", "-");
 			String requestPath = "/" + mappingHandlerMapping.getRequestPath(info.getGroupId(), info.getPath());
-			SwaggerEntity.Path path = new SwaggerEntity.Path();
+			SwaggerEntity.Path path = new SwaggerEntity.Path(info.getId());
 			path.addTag(groupName);
 			boolean hasBody = false;
 			try {
