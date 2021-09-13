@@ -790,7 +790,7 @@ export class Parser {
                         expression = value;
                     }
                 } else if (token.getTokenType() === TokenType.Identifier) {
-                    if (['var','let','const'].indexOf(token.getText()) > -1 ) {
+                    if (['var','let','const'].indexOf(token.getText()) > -1 || (this.stream.hasMore() && this.stream.getToken().type === TokenType.Identifier)) {
                         let varName = this.stream.consume().getText();
                         if (this.stream.match(TokenType.Assignment, true)) {
                             let isAsync = this.stream.match("async", true);
