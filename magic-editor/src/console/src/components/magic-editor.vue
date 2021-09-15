@@ -117,6 +117,12 @@ export default {
     contants.JDBC_DRIVERS = this.config.jdbcDrivers || []
     contants.DATASOURCE_TYPES = this.config.datasourceTypes || []
     contants.OPTIONS = this.config.options || []
+    if(this.config.editorFontFamily !== undefined){
+      contants.EDITOR_FONT_FAMILY = this.config.editorFontFamily
+    }
+    if(this.config.editorFontSize !== undefined){
+      contants.EDITOR_FONT_SIZE = this.config.editorFontSize
+    }
     this.config.version = contants.MAGIC_API_VERSION_TEXT
     this.config.title = this.config.title || 'magic-api'
     this.config.themes = this.config.themes || {}

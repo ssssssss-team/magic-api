@@ -188,6 +188,7 @@
   import bus from '@/scripts/bus.js'
   import store from '@/scripts/store.js'
   import {parseJson} from '@/scripts/parsing/parser.js'
+  import contants from "@/scripts/contants";
   let timeout = null;
   export default {
     name: 'MagicRequest',
@@ -345,6 +346,8 @@
             folding: true,
             wordWrap: 'on',
             lineDecorationsWidth: 35,
+            fontFamily: contants.EDITOR_FONT_FAMILY,
+            fontSize: contants.EDITOR_FONT_SIZE,
             theme: store.get('skin') || 'default',
             value: formatJson(this.info.requestBody) || '{\r\n\t\r\n}'
           })

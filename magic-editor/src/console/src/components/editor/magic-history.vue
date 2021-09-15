@@ -19,6 +19,7 @@ import * as monaco from 'monaco-editor'
 import bus from '@/scripts/bus.js'
 import {formatDate, isVisible} from '@/scripts/utils.js'
 import request from '@/api/request.js'
+import contants from "@/scripts/contants";
 
 export default {
   name: 'MagicHistory',
@@ -43,6 +44,8 @@ export default {
       folding: false,
       lineDecorationsWidth: 20,
       fixedOverflowWidgets: false,
+      fontFamily: contants.EDITOR_FONT_FAMILY,
+      fontSize: contants.EDITOR_FONT_SIZE,
     })
     bus.$on('update-window-size', this.layout)
   },

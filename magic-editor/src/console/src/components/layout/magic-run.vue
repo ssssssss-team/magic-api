@@ -19,6 +19,7 @@ import * as monaco from 'monaco-editor'
 import store from '@/scripts/store.js'
 import {isVisible, deepClone, download as downloadFile} from '@/scripts/utils.js'
 import {parseJson} from '@/scripts/parsing/parser.js'
+import contants from "@/scripts/contants";
 
 export default {
   name: 'MagicRun',
@@ -92,6 +93,8 @@ export default {
         readOnly: true, //只读模式
         lineDecorationsWidth: 35,
         wordWrap: 'on',
+        fontFamily: contants.EDITOR_FONT_FAMILY,
+        fontSize: contants.EDITOR_FONT_SIZE,
         value: this.info.responseBody || '',
         theme: store.get('skin') || 'default'
       })
