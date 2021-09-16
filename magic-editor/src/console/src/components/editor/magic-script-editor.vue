@@ -491,11 +491,11 @@ export default {
           content: '请打开接口在执行测试'
         })
       } else {
-        bus.$emit('switch-tab','request')
         if (this.info.running || this.info._type !== 'api') {
           return
         }
-        if (contants.AUTO_SAVE) {
+        bus.$emit('switch-tab','request')
+        if (contants.AUTO_SAVE && this.info.lock !== '1') {
           // 自动保存
           let resp = this.doSave()
           resp && resp.end((successed) => {
