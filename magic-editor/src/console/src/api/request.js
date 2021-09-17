@@ -140,21 +140,39 @@ class HttpRequest {
         requestConfig.baseURL = config.baseURL
         let httpResponse = new HttpResponse()
         let successed = false;
+        let processResult = (data, response) => {
+            if(data instanceof Blob){
+                successed = true
+                httpResponse.successHandle && httpResponse.successHandle(data, response)
+            } else if (data.code === 1) {
+                successed = true
+                httpResponse.successHandle && httpResponse.successHandle(data.data, response)
+            } else {
+                if (data.code === 401) {
+                    bus.$emit('showLogin')
+                }
+                httpResponse.exceptionHandle && httpResponse.exceptionHandle(data.code, data.message, response)
+            }
+        }
         this.execute(requestConfig)
             .then(response => {
                 let data = response.data
-                if(data instanceof Blob){
-                    successed = true
-                    httpResponse.successHandle && httpResponse.successHandle(data, response)
-                } else if (data.code === 1) {
-                    successed = true
-                    httpResponse.successHandle && httpResponse.successHandle(data.data, response)
-                } else {
-                    if (data.code === 401) {
-                        bus.$emit('showLogin')
+                let isJson = response.headers['content-type'] && response.headers['content-type'].startsWith('application/json')
+                if(data instanceof Blob && isJson){
+                    let reader = new FileReader()
+                    reader.readAsText(data)
+                    reader.onload = function() {
+                        try{
+                            data = JSON.parse(this.result)
+                            processResult(data, response)
+                        }catch(e){
+                            console.error(e);
+                            processResult(data, response)
+                        }
                     }
-                    httpResponse.exceptionHandle && httpResponse.exceptionHandle(data.code, data.message, response)
+                    return;
                 }
+                processResult(data, response)
             })
             .catch((error) => {
                 if (typeof httpResponse.errorHandle === 'function') {
