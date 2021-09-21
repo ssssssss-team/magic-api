@@ -12,7 +12,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
@@ -28,7 +31,10 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.springframework.web.socket.config.annotation.*;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.ssssssss.magicapi.adapter.ColumnMapperAdapter;
 import org.ssssssss.magicapi.adapter.DialectAdapter;
 import org.ssssssss.magicapi.adapter.Resource;
@@ -55,6 +61,7 @@ import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
+import org.ssssssss.script.exception.MagicScriptRuntimeException;
 import org.ssssssss.script.functions.ExtensionMethod;
 import org.ssssssss.script.parsing.ast.statement.AsyncCall;
 import org.ssssssss.script.reflection.JavaReflection;
@@ -196,7 +203,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 
 	@Bean
 	@ConditionalOnMissingBean(HttpModule.class)
-	public HttpModule magicHttpModule(){
+	public HttpModule magicHttpModule() {
 		return new HttpModule(createRestTemplate());
 	}
 
@@ -269,7 +276,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
-		if(!registerInterceptor){
+		if (!registerInterceptor) {
 			registerInterceptor = true;
 			registry.addInterceptor(new MagicWebRequestInterceptor(properties.isSupportCrossDomain() ? magicCorsFilter : null, authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor)))
 					.addPathPatterns("/**");
@@ -396,7 +403,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 									PageProvider pageProvider,
 									SqlCache sqlCache) {
 		SQLModule sqlModule = new SQLModule(dynamicDataSource);
-		if(!dynamicDataSource.isEmpty()){
+		if (!dynamicDataSource.isEmpty()) {
 			sqlModule.setDataSourceNode(dynamicDataSource.getDataSource());
 		}
 		sqlModule.setResultProvider(resultProvider);
@@ -434,6 +441,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 					clazz = Class.forName(className);
 					return applicationContext.getBean(clazz);
 				} catch (Exception ex) {
+					if (clazz == null) {
+						throw new MagicScriptRuntimeException(new ClassNotFoundException(className));
+					}
 					return clazz;
 				}
 			}
@@ -577,7 +587,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
 				try {
 					long count = magicBackupService.removeBackupByTimestamp(System.currentTimeMillis() - interval);
-					if(count > 0){
+					if (count > 0) {
 						logger.info("已删除备份记录{}条", count);
 					}
 				} catch (Exception e) {
@@ -591,7 +601,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	private DefaultAuthorizationInterceptor defaultAuthorizationInterceptor;
 
 	public AuthorizationInterceptor createAuthorizationInterceptor() {
-		if(defaultAuthorizationInterceptor != null){
+		if (defaultAuthorizationInterceptor != null) {
 			return defaultAuthorizationInterceptor;
 		}
 		SecurityConfig securityConfig = properties.getSecurityConfig();

@@ -86,7 +86,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	 */
 	@RequestMapping("/class")
 	@ResponseBody
-	public JsonBean<List<ScriptClass>> clazz(String className) {
+	public JsonBean<Set<ScriptClass>> clazz(String className) {
 		return new JsonBean<>(MagicScriptEngine.getScriptClass(className));
 	}
 

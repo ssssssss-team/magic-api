@@ -43,6 +43,7 @@ import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.exception.MagicExitException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.runtime.ExitValue;
+import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 
 import javax.script.ScriptContext;
 import javax.script.SimpleScriptContext;
@@ -50,7 +51,6 @@ import javax.sql.DataSource;
 import java.io.*;
 import java.sql.Connection;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -116,10 +116,12 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				String path = name.substring(index + 1);
 				ApiInfo info = this.mappingHandlerMapping.getApiInfo(method, path);
 				if (info != null) {
-					return (Function<Object[], Object>) objects -> {
+					return (MagicScriptLambdaFunction) (variables, args) -> {
 						MagicScriptContext context = MagicScriptContext.get();
 						MagicScriptContext newContext = new MagicScriptContext();
-						newContext.putMapIntoContext(context.getVariables());
+						Map<String, Object> varMap = new LinkedHashMap<>(context.getRootVariables());
+						varMap.putAll(variables.getVariables());
+						newContext.putMapIntoContext(varMap);
 						MagicScriptContext.set(newContext);
 						try {
 							Object value = ScriptManager.executeScript(info.getScript(), newContext);

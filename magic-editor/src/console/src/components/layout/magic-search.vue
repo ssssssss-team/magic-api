@@ -35,6 +35,7 @@ import request from '@/api/request.js'
 import bus from '@/scripts/bus.js'
 import { TokenizationRegistry } from 'monaco-editor/esm/vs/editor/common/modes.js'
 import { tokenizeToString } from 'monaco-editor/esm/vs/editor/common/modes/textToHtmlTokenizer.js'
+import contants from "@/scripts/contants";
 export default {
   name: 'MagicSearch',
   components: {
@@ -76,6 +77,8 @@ export default {
           wordWrap: 'on',
           readOnly: true,
           scrollBeyondLastLine: false,
+          fontFamily: contants.EDITOR_FONT_FAMILY,
+          fontSize: contants.EDITOR_FONT_SIZE,
           theme: store.get('skin') || 'default'
         })
       }
@@ -128,7 +131,7 @@ export default {
       this.searchList.forEach(async item => {
         // 增加关键字高亮
         //item.text = item.text.replace(new RegExp(text, 'g'), `<span class="keyword">${text}</span>`)
-        item.text = (await this.getHighlight(item.text)).replaceAll(/(?<=>)(.|\s)*?(?=<\/?\w+[^<]*>)/g, it=> it.replaceAll(text, `<span class="keyword">${text}</span>`))
+        item.text = (await this.getHighlight(item.text)).replaceAll(/>(.|\s)*?(?=<\/?\w+[^<]*>)/g, it=> it.replaceAll(text, `<span class="keyword">${text}</span>`))
         if (item.type === 1) {
           item.cache = $parent.apiList.getItemById(item.id)
         } else if (item.type === 2) {

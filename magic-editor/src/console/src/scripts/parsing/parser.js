@@ -790,12 +790,18 @@ export class Parser {
                         expression = value;
                     }
                 } else if (token.getTokenType() === TokenType.Identifier) {
-                    if (['var','let','const'].indexOf(token.getText()) > -1 ) {
+                    let defineName = token.getText()
+                    let define = ['var','let','const'].indexOf(token.getText()) > -1;
+                    if (define || (this.stream.hasMore() && this.stream.getToken().type === TokenType.Identifier)) {
                         let varName = this.stream.consume().getText();
                         if (this.stream.match(TokenType.Assignment, true)) {
                             let isAsync = this.stream.match("async", true);
                             let value = this.parseExpression();
-                            env[varName] = isAsync ? "java.util.concurrent.Future" : await value.getJavaType(env);
+                            if(!define){
+                                env[varName] = env[defineName]
+                            }else{
+                                env[varName] = isAsync ? "java.util.concurrent.Future" : await value.getJavaType(env);
+                            }
                             if (!this.stream.hasMore()) {
                                 expression = value;
                             }
@@ -812,6 +818,9 @@ export class Parser {
 
         }
         if (returnJavaType) {
+            if(expression instanceof VariableAccess){
+                return env[expression.getVariable()];
+            }
             return expression && await expression.getJavaType(env);
         }
         return env;

@@ -100,7 +100,7 @@ public class Where {
 
 	@Comment("是否过滤`blank`的参数")
 	public Where notBlank(boolean flag) {
-		this.notNull = flag;
+		this.notBlank = flag;
 		return this;
 	}
 
@@ -119,7 +119,7 @@ public class Where {
 	@Comment("等于`=`,如：`eq('name', '老王') ---> name = '老王'`")
 	public Where eq(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		if (condition && filterNullAndBlank(value)) {
-			tokens.add(column);
+			tokens.add(namedTable.rowMapColumnMapper.apply(column));
 			if (value == null) {
 				append(" is null");
 			} else {
@@ -139,7 +139,7 @@ public class Where {
 	@Comment("不等于`<>`,如：`ne('name', '老王') ---> name <> '老王'`")
 	public Where ne(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column, @Comment("值") Object value) {
 		if (condition && filterNullAndBlank(value)) {
-			append(column);
+			append(namedTable.rowMapColumnMapper.apply(column));
 			if (value == null) {
 				append("is not null");
 			} else {
@@ -153,7 +153,7 @@ public class Where {
 
 	private Where append(boolean append, String column, String condition, Object value) {
 		if (append && filterNullAndBlank(value)) {
-			append(column);
+			append(namedTable.rowMapColumnMapper.apply(column));
 			append(condition);
 			appendAnd();
 			params.add(value);
@@ -211,7 +211,7 @@ public class Where {
 		if (condition && value != null) {
 			List<Object> objects = StreamExtension.arrayLikeToList(value);
 			if (objects.size() > 0) {
-				append(column);
+				append(namedTable.rowMapColumnMapper.apply(column));
 				append(" in (");
 				append(String.join(",", Collections.nCopies(objects.size(), "?")));
 				append(")");
@@ -232,7 +232,7 @@ public class Where {
 		if (condition && value != null) {
 			List<Object> objects = StreamExtension.arrayLikeToList(value);
 			if (objects.size() > 0) {
-				append(column);
+				append(namedTable.rowMapColumnMapper.apply(column));
 				append("not in (");
 				append(String.join(",", Collections.nCopies(objects.size(), "?")));
 				append(")");
@@ -271,7 +271,7 @@ public class Where {
 	@Comment("`is null`,如：`isNull('name') ---> name is null")
 	public Where isNull(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column) {
 		if (condition) {
-			append(column);
+			append(namedTable.rowMapColumnMapper.apply(column));
 			append("is null");
 			appendAnd();
 		}
@@ -286,7 +286,7 @@ public class Where {
 	@Comment("`is not null`,如：`isNotNull('name') ---> name is not null")
 	public Where isNotNull(@Comment("判断表达式，当为true时拼接条件") boolean condition, @Comment("数据库中的列名") String column) {
 		if (condition) {
-			append(column);
+			append(namedTable.rowMapColumnMapper.apply(column));
 			append("is not null");
 			appendAnd();
 		}
@@ -397,6 +397,11 @@ public class Where {
 	@Comment("执行分页查询")
 	public Object page() {
 		return namedTable.page();
+	}
+
+	@Comment("执行分页查询，分页条件手动传入")
+	public Object page(@Comment("限制条数") long limit, @Comment("跳过条数") long offset) {
+		return namedTable.page(limit, offset);
 	}
 
 	@Comment("执行select查询")

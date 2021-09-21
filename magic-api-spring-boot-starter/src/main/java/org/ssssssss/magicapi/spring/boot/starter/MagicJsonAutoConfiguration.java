@@ -47,10 +47,10 @@ public class MagicJsonAutoConfiguration {
 
 	@ConditionalOnBean({ObjectMapper.class})
 	@Configuration
-	static class JacksonAutoConfiguration {
+	static class MagicJacksonAutoConfiguration {
 
 
-		JacksonAutoConfiguration(ObjectMapper objectMapper) {
+		MagicJacksonAutoConfiguration(ObjectMapper objectMapper) {
 			register(str -> {
 				try {
 					return objectMapper.readValue(str, Object.class);
@@ -82,9 +82,9 @@ public class MagicJsonAutoConfiguration {
 	@ConditionalOnMissingBean({ObjectMapper.class})
 	@ConditionalOnClass(JSON.class)
 	@Configuration
-	static class FastJsonAutoConfiguration {
+	static class MagicFastJsonAutoConfiguration {
 
-		FastJsonAutoConfiguration() {
+		MagicFastJsonAutoConfiguration() {
 			register(JSON::parse, JSON::parse, JSON::toJSONString);
 		}
 	}
