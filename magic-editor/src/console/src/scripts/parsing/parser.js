@@ -792,7 +792,7 @@ export class Parser {
                 } else if (token.getTokenType() === TokenType.Identifier) {
                     let defineName = token.getText()
                     let define = ['var','let','const'].indexOf(token.getText()) > -1;
-                    if (define || (this.stream.hasMore() && this.stream.getToken().type === TokenType.Identifier)) {
+                    if (define || (this.stream.hasMore() && this.stream.getToken().type === TokenType.Identifier && keywords.indexOf(defineName) === -1)) {
                         let varName = this.stream.consume().getText();
                         if (this.stream.match(TokenType.Assignment, true)) {
                             let isAsync = this.stream.match("async", true);
@@ -818,9 +818,6 @@ export class Parser {
 
         }
         if (returnJavaType) {
-            if(expression instanceof VariableAccess){
-                return env[expression.getVariable()];
-            }
             return expression && await expression.getJavaType(env);
         }
         return env;
