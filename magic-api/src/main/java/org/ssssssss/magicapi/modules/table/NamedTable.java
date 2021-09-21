@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.modules.table;
 
 import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.magicapi.exception.MagicAPIException;
+import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.modules.BoundSql;
 import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.script.annotation.Comment;
@@ -109,7 +110,7 @@ public class NamedTable {
 	@Comment("设置要排除的列")
 	public NamedTable exclude(String column) {
 		if (column != null) {
-			excludeColumns.add(column);
+			excludeColumns.add(rowMapColumnMapper.apply(column));
 		}
 		return this;
 	}
@@ -117,7 +118,7 @@ public class NamedTable {
 	@Comment("设置要排除的列")
 	public NamedTable excludes(String... columns) {
 		if (columns != null) {
-			excludeColumns.addAll(Arrays.asList(columns));
+			excludeColumns.addAll(Arrays.stream(columns).map(rowMapColumnMapper).collect(Collectors.toList()));
 		}
 		return this;
 	}
@@ -125,7 +126,7 @@ public class NamedTable {
 	@Comment("设置要排除的列")
 	public NamedTable excludes(List<String> columns) {
 		if (columns != null) {
-			excludeColumns.addAll(columns);
+			excludeColumns.addAll(columns.stream().map(rowMapColumnMapper).collect(Collectors.toList()));
 		}
 		return this;
 	}
@@ -148,7 +149,7 @@ public class NamedTable {
 
 	@Comment("拼接`order by xxx asc/desc`")
 	public NamedTable orderBy(@Comment("要排序的列") String column, @Comment("`asc`或`desc`") String sort) {
-		this.orders.add(column + " " + sort);
+		this.orders.add(rowMapColumnMapper.apply(column) + " " + sort);
 		return this;
 	}
 
@@ -164,7 +165,7 @@ public class NamedTable {
 
 	@Comment("拼接`group by`")
 	public NamedTable groupBy(@Comment("要分组的列") String... columns) {
-		this.groups.addAll(Arrays.asList(columns));
+		this.groups.addAll(Arrays.stream(columns).map(rowMapColumnMapper).collect(Collectors.toList()));
 		return this;
 	}
 
@@ -326,6 +327,11 @@ public class NamedTable {
 	@Comment("执行分页查询")
 	public Object page() {
 		return sqlModule.page(buildSelect());
+	}
+
+	@Comment("执行分页查询，分页条件手动传入")
+	public Object page(@Comment("限制条数") long limit, @Comment("跳过条数") long offset) {
+		return sqlModule.page(buildSelect(), new Page(limit, offset));
 	}
 
 	@Comment("执行update语句")

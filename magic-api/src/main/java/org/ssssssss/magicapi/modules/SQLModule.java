@@ -407,7 +407,8 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return page(boundSql, page);
 	}
 
-	private Object page(BoundSql boundSql, Page page) {
+	@UnableCall
+	public Object page(BoundSql boundSql, Page page) {
 		assertDatasourceNotNull();
 		Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
 		BoundSql countBoundSql = boundSql.copy(dialect.getCountSql(boundSql.getSql()));
