@@ -118,7 +118,7 @@ const tokenizerNumber = (stream, tokens) => {
             if (stream.matchAny(["L", "l"], true)) {
                 let span = stream.endSpan();
                 let text = span.getText();
-                tokens.push(new LiteralToken(TokenType.LongLiteral, span, parseInt(text.substring(2, text.length() - 1).replace(/\_/g,''), 16)));
+                tokens.push(new LiteralToken(TokenType.LongLiteral, span, parseInt(text.substring(2, text.length - 1).replace(/\_/g,''), 16)));
                 return true;
             }
             tokens.push(autoNumberType(stream.endSpan(), 16));
@@ -130,7 +130,7 @@ const tokenizerNumber = (stream, tokens) => {
             if (stream.matchAny([ "L", "l"], true)) {
                 let span = stream.endSpan();
                 let text = span.getText();
-                tokens.push(new LiteralToken(TokenType.LongLiteral, span, parseInt(text.substring(0, text.length() - 1).replace(/\_/g,''), 2)));
+                tokens.push(new LiteralToken(TokenType.LongLiteral, span, parseInt(text.substring(2, text.length - 1).replace(/\_/g,''), 2)));
                 return true;
             }
             tokens.push(autoNumberType(stream.endSpan(), 2));
