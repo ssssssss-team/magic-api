@@ -511,6 +511,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			Connection connection = dataSource.getConnection();
 			DataSourceUtils.doCloseConnection(connection, dataSource);
 		} catch (Exception e) {
+			logger.error("测试数据源连接失败", e);
 			return e.getMessage();
 		} finally {
 			IoUtils.closeDataSource(dataSource);
