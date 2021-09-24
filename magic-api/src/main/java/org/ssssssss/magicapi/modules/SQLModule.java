@@ -135,18 +135,22 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		this.ttl = ttl;
 	}
 
+	@UnableCall
 	public String getLogicDeleteColumn() {
 		return logicDeleteColumn;
 	}
 
+	@UnableCall
 	public void setLogicDeleteColumn(String logicDeleteColumn) {
 		this.logicDeleteColumn = logicDeleteColumn;
 	}
 
+	@UnableCall
 	public String getLogicDeleteValue() {
 		return logicDeleteValue;
 	}
 
+	@UnableCall
 	public void setLogicDeleteValue(String logicDeleteValue) {
 		this.logicDeleteValue = logicDeleteValue;
 	}
