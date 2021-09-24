@@ -544,13 +544,23 @@ export class Parser {
             }
             if (this.stream.match(TokenType.StringLiteral, false)) {
                 key = this.stream.expect(TokenType.StringLiteral);
+            } else if (this.stream.match(TokenType.LeftBracket, false)) {	// [key]
+                let opening = this.stream.expect(TokenType.LeftBracket).getSpan();
+                this.stream.expect(TokenType.Identifier);
+                let closing = this.stream.expect(TokenType.RightBracket).getSpan();
+                let span = new Span(opening, closing);
+                let dynamicKey = span.getText();
+                dynamicKey = dynamicKey.substring(1, dynamicKey.length - 1);
+                key = new VariableAccess(span, dynamicKey);
             } else {
                 key = this.stream.expect(TokenType.Identifier);
             }
             keys.push(key);
             if (this.stream.match([TokenType.Comma, TokenType.RightCurly], false)) {
                 this.stream.match(TokenType.Comma, true);
-                if (key.getTokenType() === TokenType.Identifier) {
+                if (key instanceof VariableAccess){
+                    values.push(key)
+                } else if (key.getTokenType() === TokenType.Identifier) {
                     values.push(new VariableAccess(key.getSpan(), key.getText()));
                 } else {
                     values.push(new Literal(key.getSpan(), 'java.lang.String'));
