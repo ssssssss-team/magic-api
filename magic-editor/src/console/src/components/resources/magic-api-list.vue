@@ -5,6 +5,9 @@
                                                                                        @input="e => doSearch(e.target.value)"/>
       </div>
       <div>
+        <div class="ma-tree-toolbar-btn" title="定位" @click="positionApi()">
+          <i class="ma-icon ma-icon-position"></i>
+        </div>
         <div class="ma-tree-toolbar-btn" title="新建分组" @click="openCreateGroupModal()">
           <i class="ma-icon ma-icon-group-add"></i>
         </div>
@@ -92,6 +95,14 @@
         <button class="ma-button active" @click="copyGroup">复制</button>
       </template>
     </magic-dialog>
+    <magic-dialog v-model="recentlyOpenedVisible" title="最近打开" align="right" :moveable="false" width="340px" height="390px"
+                  className="ma-tree-wrapper">
+      <template #content>
+        <div v-for="(it, i) in recentlyOpenedScripts" :key="i" @click="recentlyOpened(it)">
+          {{ it.groupName + '/' + it.name }}({{ it.groupPath + '/' + it.path }})
+        </div>
+      </template>
+    </magic-dialog>
   </div>
 </template>
 
@@ -129,6 +140,7 @@ export default {
       // 数据排序规则,true:升序,false:降序
       treeSort: true,
       groupChooseVisible: false,
+      recentlyOpenedVisible: false,
       srcId: '',
       // 新建分组对象
       createGroupObj: {
@@ -152,7 +164,9 @@ export default {
       // 是否展示tree-loading
       showLoading: true,
       // 缓存一个openId
-      tmpOpenId: []
+      tmpOpenId: [],
+      // 最近打开
+      recentlyOpenedScripts: []
     }
   },
   methods: {
@@ -173,6 +187,10 @@ export default {
       bus.$emit('status', `查看接口「${item.name}(${item.path})」详情`)
       bus.$emit('open', item)
       this.currentFileItem = item
+    },
+    recentlyOpened(item){
+      this.open(item)
+      this.recentlyOpenedVisible = false
     },
     // 初始化数据
     initData() {
@@ -551,6 +569,9 @@ export default {
         }
       })
     },
+    positionApi(){
+      document.querySelector('.ma-tree-select').scrollIntoView(true)
+    },
     // 打开新建分组弹窗
     openCreateGroupModal(item, parentItem) {
       if (item) {
@@ -892,9 +913,16 @@ export default {
       this.initCreateGroupObj()
       this.changeForceUpdate()
     })
+    this.bus.$on('close', item => {
+      this.recentlyOpenedScripts.push(item)
+    })
     let element = document.getElementsByClassName('ma-container')[0]
     // 新建分组快捷键
     Key.bind(element, Key.Alt | Key.G, () => this.openCreateGroupModal())
+    // 显示最近打开的文件记录列表
+    Key.bind(element, Key.Ctrl | Key.E, () => {
+      this.recentlyOpenedVisible = true
+    })
   }
 }
 </script>

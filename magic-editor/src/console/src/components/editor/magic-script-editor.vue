@@ -6,7 +6,7 @@
             v-for="(item, index) in scripts"
             :key="'api_' + item.tmp_id || item.id"
             :class="{ selected: selected === item, draggableTargetItem: item.ext.tabDraggable }"
-            :title="item.name"
+            :title="item.displayName || item.name"
             :id="'ma-tab-item-' + item.tmp_id"
             @click="open(item)" @contextmenu.prevent="e => tabsContextmenuHandle(e, item, index)"
             @mousedown.middle.stop="close(item.id || item.tmp_id)"
@@ -18,7 +18,7 @@
         >
           <i class="ma-svg-icon" v-if="item._type === 'api'" :class="['request-method-' + item.method]" />
           <i class="ma-svg-icon" v-if="item._type !== 'api'" :class="['icon-function']" />
-          {{item.name}}<i class="ma-icon ma-icon-lock" v-if="item.lock === '1'" />
+          {{item.displayName || item.name}}<i class="ma-icon ma-icon-lock" v-if="item.lock === '1'" />
           <span v-show="!item.id || item.script !== item.ext.tmpScript">*</span>
           <i class="ma-icon ma-icon-close" @click.stop="close(item.id || item.tmp_id)"/>
         </li>
@@ -397,6 +397,12 @@ export default {
             item.id = ''
             item.copy = false
           }
+          this.scripts.forEach(it => {
+            if (it.name == item.name) {
+              it.displayName = it.groupName + '/' + it.name
+              item.displayName = item.groupName + '/' + item.name
+            }
+          })
           this.scripts.push(item)
           this.info = item
           this.editor.setValue(item.script)
@@ -714,6 +720,7 @@ export default {
     close(id) {
       this.scripts.forEach((item, index) => {
         if (item.id === id || item.tmp_id === id) {
+          bus.$emit('close', item)
           this.scripts.splice(index, 1)
           if (this.selected === item) {
             let info
@@ -732,6 +739,17 @@ export default {
       if (this.scripts.length === 0) {
         bus.$emit('opened', {empty: true})
       }
+      this.scripts.forEach(it => {
+        var equalIndex = 0
+        this.scripts.forEach(item => {
+          if (it.name == item.name) {
+            equalIndex ++
+          }
+        })
+        if (equalIndex == 1) {
+          it.displayName = it.name
+        }
+      })
     },
     closeAll() {
       let items = [...this.scripts]
