@@ -121,6 +121,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 						MagicScriptContext newContext = new MagicScriptContext();
 						Map<String, Object> varMap = new LinkedHashMap<>(context.getRootVariables());
 						varMap.putAll(variables.getVariables());
+						newContext.setScriptName(groupServiceProvider.getScriptName(info.getId(), info.getName(), info.getPath()));
 						newContext.putMapIntoContext(varMap);
 						MagicScriptContext.set(newContext);
 						try {
@@ -145,6 +146,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		final MagicScriptContext magicScriptContext = MagicScriptContext.get();
 
 		MagicScriptContext scriptContext = new MagicScriptContext();
+		scriptContext.setScriptName(groupServiceProvider.getScriptName(info.getGroupId(), info.getName(), info.getPath()));
 		scriptContext.putMapIntoContext(context);
 		SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
 		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, scriptContext, ScriptContext.ENGINE_SCOPE);
@@ -189,6 +191,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			throw new MagicServiceException(String.format("找不到对应函数 [%s]", path));
 		}
 		MagicScriptContext scriptContext = new MagicScriptContext(context);
+		scriptContext.setScriptName(groupServiceProvider.getScriptName(functionInfo.getGroupId(), functionInfo.getName(), functionInfo.getPath()));
 		scriptContext.putMapIntoContext(context);
 		SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
 		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, scriptContext, ScriptContext.ENGINE_SCOPE);

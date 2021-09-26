@@ -59,9 +59,9 @@ import org.ssssssss.magicapi.utils.ClassScanner;
 import org.ssssssss.magicapi.utils.Mapping;
 import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.script.MagicResourceLoader;
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.exception.MagicScriptRuntimeException;
+import org.ssssssss.script.functions.DynamicModuleImport;
 import org.ssssssss.script.functions.ExtensionMethod;
 import org.ssssssss.script.parsing.ast.statement.AsyncCall;
 import org.ssssssss.script.reflection.JavaReflection;
@@ -459,7 +459,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 				}).orElse(null)
 		);
 		logger.info("注册模块:{} -> {}", "log", Logger.class);
-		MagicResourceLoader.addModule("log", LoggerFactory.getLogger(MagicScript.class));
+		MagicResourceLoader.addModule("log", (DynamicModuleImport) context -> LoggerFactory.getLogger(context.getScriptName()));
 		List<String> importModules = properties.getAutoImportModuleList();
 		logger.info("注册模块:{} -> {}", "env", EnvModule.class);
 		MagicResourceLoader.addModule("env", new EnvModule(environment));

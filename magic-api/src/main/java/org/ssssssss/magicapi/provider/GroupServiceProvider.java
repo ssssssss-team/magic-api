@@ -3,9 +3,9 @@ package org.ssssssss.magicapi.provider;
 import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.TreeNode;
+import org.ssssssss.magicapi.utils.PathUtils;
 
 import java.util.List;
-import java.util.Set;
 
 
 public interface GroupServiceProvider {
@@ -67,4 +67,8 @@ public interface GroupServiceProvider {
 	Resource getGroupResource(String groupId);
 
 	List<String> getGroupsWithoutGroups(List<String> groupIds);
+
+	default String getScriptName(String groupId, String name, String path) {
+		return PathUtils.replaceSlash("/" + getFullName(groupId) + "/" + name) + "(" + PathUtils.replaceSlash(getFullPath(groupId) + "/" + path) + ")";
+	}
 }

@@ -353,6 +353,8 @@ public class RequestHandler extends MagicController {
 		if (wrap != null && StringUtils.isNotBlank(wrap.toString())) {
 			context.set(wrap.toString(), requestEntity.getParameters());
 		}
+		ApiInfo info = requestEntity.getApiInfo();
+		context.setScriptName(configuration.getGroupServiceProvider().getScriptName(info.getGroupId(), info.getName(), info.getPath()));
 		context.putMapIntoContext(requestEntity.getParameters());
 		context.putMapIntoContext(requestEntity.getPathVariables());
 		context.set(VAR_NAME_COOKIE, new CookieContext(requestEntity.getRequest()));
