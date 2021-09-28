@@ -192,17 +192,20 @@ export default {
 
 .ma-dialog-wrapper .ma-dialog .ma-dialog-header span {
   display: inline-block;
-  width: 40px;
+  width: 30px;
   position: absolute;
   right: 0px;
   text-align: center;
   cursor: pointer;
   font-size: 12px;
   height: 30px;
+  line-height: 30px;
 }
 
 .ma-dialog-wrapper .ma-dialog .ma-dialog-header span:hover:not(.disabled) {
   background: #e81123;
+}
+.ma-dialog-wrapper .ma-dialog .ma-dialog-header span:hover:not(.disabled) i{
   color: var(--select-icon-background);
 }
 
