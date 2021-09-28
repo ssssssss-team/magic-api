@@ -5,6 +5,7 @@ import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.ssssssss.magicapi.adapter.ColumnMapperAdapter;
 import org.ssssssss.magicapi.adapter.DialectAdapter;
@@ -23,16 +24,15 @@ import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.annotation.UnableCall;
+import org.ssssssss.script.parsing.ast.statement.ClassConverter;
+import org.ssssssss.script.reflection.JavaReflection;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.sql.*;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 数据库查询模块
@@ -69,6 +69,30 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	public SQLModule() {
 
+	}
+
+	static {
+		try {
+			Field[] fields = Types.class.getFields();
+			Map<String, Integer> mappings = Stream.of(fields)
+					.collect(Collectors.toMap(field -> field.getName().toLowerCase(), field -> (Integer)JavaReflection.getFieldValue(Types.class, field)));
+			ClassConverter.register("sql", (value, params) -> {
+				if(params == null || params.length == 0){
+					return value;
+				}
+				if(params[0] instanceof Number){
+					return new SqlParameterValue(((Number) params[0]).intValue(), value);
+				}
+				String target = Objects.toString(params[0], null);
+				if(StringUtils.isBlank(target)){
+					return value;
+				}
+				Integer sqlType = mappings.get(target.toLowerCase());
+				return sqlType == null ? value : new SqlParameterValue(sqlType, target, value);
+			});
+		} catch (Exception ignored) {
+
+		}
 	}
 
 	public SQLModule(MagicDynamicDataSource dynamicDataSource) {

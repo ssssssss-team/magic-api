@@ -199,10 +199,10 @@ const CompletionItemProvider = {
             completionImport(suggestions, position, line, importIndex)
         } else if (line.endsWith(":")) {
             if (line.endsWith("::")) {
-                suggestions = ['int', 'long', 'date', 'string', 'short', 'byte', 'float', 'double', 'json','stringify'].map(it => {
+                suggestions = ['int', 'long', 'date', 'string', 'short', 'byte', 'float', 'double', 'json','stringify', 'sql'].map(it => {
                     return {
                         label: it,
-                        detail: `转换为${it === 'stringify' ? 'json字符串': it}`,
+                        detail: `转换为${it === 'stringify' ? 'json字符串': it === 'sql' ? 'sql参数类型': it}`,
                         insertText: it,
                         kind: monaco.languages.CompletionItemKind.TypeParameter,
                         insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
