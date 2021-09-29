@@ -439,6 +439,14 @@ export default {
             }
           },
           {
+            label: '复制路径',
+            icon: 'ma-icon-copy',
+            divided: true,
+            onClick: () => {
+              this.copyPathToClipboard(item)
+            }
+          },
+          {
             label: `${item.lock === '1' ? '解锁' : '锁定'}`,
             icon: `ma-icon-${item.lock === '1' ? 'unlock' : 'lock'}`,
             onClick: () => {
@@ -609,6 +617,23 @@ export default {
           })
         }
       })
+    },
+    // 复制函数路径到剪贴板
+    copyPathToClipboard(fileItem) {
+      let path = replaceURL('/' + fileItem.groupPath + '/' + fileItem.path)
+      try {
+        var copyText = document.createElement('textarea')
+        copyText.style = 'position:absolute;left:-99999999px'
+        document.body.appendChild(copyText)
+        copyText.innerHTML = path
+        copyText.readOnly = false
+        copyText.select()
+        document.execCommand('copy')
+        bus.$emit('status', `函数路径「${path}」复制成功`)
+      } catch (e) {
+        this.$magicAlert({title: '复制函数路径失败，请手动复制', content: path})
+        console.error(e)
+      }
     },
     // 将文件类型的对象，放入到点击的同级
     pushFileItemToGroup(tree, newItem) {
