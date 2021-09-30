@@ -34,21 +34,35 @@ public interface RequestInterceptor {
 	/**
 	 * 执行完毕之后执行
 	 *
-	 * @param value 即将要返回到页面的值
+	 * @param returnValue 即将要返回到页面的值
 	 * @return 返回到页面的对象, 当返回null时执行后续拦截器，否则直接返回该值，不执行后续拦截器
 	 */
-	default Object postHandle(ApiInfo info, MagicScriptContext context, Object value, HttpServletRequest request, HttpServletResponse response) throws Exception {
+	default Object postHandle(ApiInfo info, MagicScriptContext context, Object returnValue, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		return null;
 	}
 
 	/**
 	 * 执行完毕之后执行
 	 *
-	 * @param value 即将要返回到页面的值
+	 * @param returnValue 即将要返回到页面的值
 	 * @return 返回到页面的对象, 当返回null时执行后续拦截器，否则直接返回该值，不执行后续拦截器
 	 */
-	default Object postHandle(RequestEntity requestEntity, Object value) throws Exception {
-		return postHandle(requestEntity.getApiInfo(), requestEntity.getMagicScriptContext(), value, requestEntity.getRequest(), requestEntity.getResponse());
+	default Object postHandle(RequestEntity requestEntity, Object returnValue) throws Exception {
+		return postHandle(requestEntity.getApiInfo(), requestEntity.getMagicScriptContext(), returnValue, requestEntity.getRequest(), requestEntity.getResponse());
+	}
+
+	/**
+	 * 接口执行完毕之后执行
+	 */
+	default void afterCompletion(RequestEntity requestEntity, Object returnValue, Throwable throwable){
+		afterCompletion(requestEntity.getApiInfo(), requestEntity.getMagicScriptContext(), returnValue, requestEntity.getRequest(), requestEntity.getResponse(), throwable);
+	}
+
+	/**
+	 * 接口执行完毕之后执行
+	 */
+	default void afterCompletion(ApiInfo info, MagicScriptContext context, Object returnValue, HttpServletRequest request, HttpServletResponse response, Throwable throwable){
+
 	}
 
 }

@@ -75,7 +75,7 @@ public class RequestHandler extends MagicController {
 		RequestEntity requestEntity = new RequestEntity(request, response, requestedFromTest, parameters, pathVariables);
 		if (requestEntity.getApiInfo() == null) {
 			logger.error("{}找不到对应接口", request.getRequestURI());
-			return buildResult(requestEntity, API_NOT_FOUND, "接口不存在");
+			return afterCompletion(requestEntity, buildResult(requestEntity, API_NOT_FOUND, "接口不存在"));
 		}
 		Map<String, Object> headers = new HashMap<String, Object>() {
 			@Override
@@ -106,9 +106,9 @@ public class RequestHandler extends MagicController {
 				}}, BODY_INVALID);
 			}
 		} catch (ValidateException e) {
-			return resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, e.getMessage());
+			return afterCompletion(requestEntity, resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, e.getMessage()));
 		} catch (Throwable root) {
-			return processException(requestEntity, root);
+			return afterCompletion(requestEntity, processException(requestEntity, root), root);
 		}
 		MagicScriptContext context = createMagicScriptContext(requestEntity, bodyValue);
 		requestEntity.setMagicScriptContext(context);
@@ -116,7 +116,7 @@ public class RequestHandler extends MagicController {
 		Object value;
 		// 执行前置拦截器
 		if ((value = doPreHandle(requestEntity)) != null) {
-			return value;
+			return afterCompletion(requestEntity, value);
 		}
 		if (requestedFromTest) {
 			try {
@@ -152,7 +152,7 @@ public class RequestHandler extends MagicController {
 
 	private <T extends BaseDefinition> Map<String, Object> doValidate(String comment, List<T> validateParameters, Map<String, Object> parameters, JsonCode jsonCode) {
 		parameters = parameters != null ? parameters : EMPTY_MAP;
-		if(CollectionUtils.isEmpty(validateParameters)){
+		if (CollectionUtils.isEmpty(validateParameters)) {
 			return parameters;
 		}
 		for (BaseDefinition parameter : validateParameters) {
@@ -265,12 +265,12 @@ public class RequestHandler extends MagicController {
 			Object value = result;
 			// 执行后置拦截器
 			if ((value = doPostHandle(requestEntity, value)) != null) {
-				return value;
+				return afterCompletion(requestEntity, value);
 			}
 			// 对返回结果包装处理
-			return response(requestEntity, result);
+			return afterCompletion(requestEntity, response(requestEntity, result));
 		} catch (Throwable root) {
-			return processException(requestEntity, root);
+			return afterCompletion(requestEntity, processException(requestEntity, root), root);
 		} finally {
 			RequestContext.remove();
 			MagicScriptContext.remove();
@@ -289,7 +289,7 @@ public class RequestHandler extends MagicController {
 				se = (MagicScriptException) parent;
 			}
 		} while ((parent = parent.getCause()) != null);
-		if(se != null && requestEntity.isRequestedFromTest()){
+		if (se != null && requestEntity.isRequestedFromTest()) {
 			Span.Line line = se.getLine();
 			WebSocketSessionManager.sendBySessionId(requestEntity.getRequestedSessionId(), EXCEPTION, Arrays.asList(
 					requestEntity.getRequestedSessionId(),
@@ -372,10 +372,10 @@ public class RequestHandler extends MagicController {
 	 */
 	private Object response(RequestEntity requestEntity, Object value) {
 		if (value instanceof ResponseEntity) {
-			if(requestEntity.isRequestedFromTest()){
+			if (requestEntity.isRequestedFromTest()) {
 				ResponseEntity<?> entity = (ResponseEntity<?>) value;
 				Set<String> headerKeys = entity.getHeaders().keySet();
-				if(!headerKeys.isEmpty()){
+				if (!headerKeys.isEmpty()) {
 					// 允许前端读取自定义的header（跨域情况）。
 					requestEntity.getResponse().setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, String.join(",", headerKeys));
 				}
@@ -394,10 +394,25 @@ public class RequestHandler extends MagicController {
 		for (RequestInterceptor requestInterceptor : configuration.getRequestInterceptors()) {
 			Object target = requestInterceptor.postHandle(requestEntity, value);
 			if (target != null) {
-				return target;
+				return afterCompletion(requestEntity, target);
 			}
 		}
 		return null;
+	}
+
+	private Object afterCompletion(RequestEntity requestEntity, Object returnValue) {
+		return afterCompletion(requestEntity, returnValue, null);
+	}
+
+	private Object afterCompletion(RequestEntity requestEntity, Object returnValue, Throwable throwable) {
+		for (RequestInterceptor requestInterceptor : configuration.getRequestInterceptors()) {
+			try {
+				requestInterceptor.afterCompletion(requestEntity, returnValue, throwable);
+			} catch (Exception e) {
+				logger.warn("执行afterCompletion出现出错", e);
+			}
+		}
+		return returnValue;
 	}
 
 	/**
