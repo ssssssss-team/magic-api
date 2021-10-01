@@ -95,8 +95,11 @@
     <magic-dialog v-model="recentlyOpenedVisible" title="最近打开" align="right" :moveable="false" width="340px" height="390px"
                   className="ma-tree-wrapper">
       <template #content>
-        <div v-for="(it, i) in recentlyOpenedScripts" :key="i" @click="recentlyOpened(it)">
-          {{ it.groupName + '/' + it.name }}({{ it.groupPath + '/' + it.path }})
+        <div v-for="(it, i) in recentlyOpenedScripts" :key="i" @click="recentlyOpened(it)" class="ma-tree-item">
+          <div :title="it.method + ':' + it.groupName + '/' + it.name + '(' + it.groupPath + '/' + it.path + ')'" class="ma-tree-hover" style="padding-left: 17px;">
+            <i :class="'ma-svg-icon request-method-' + it.method"></i>
+            <label>{{ it.groupName + '/' + it.name }}({{ it.groupPath + '/' + it.path }})</label>
+          </div>
         </div>
       </template>
     </magic-dialog>
@@ -913,6 +916,7 @@ export default {
       this.changeForceUpdate()
     })
     this.bus.$on('close', item => {
+      console.log(item)
       this.recentlyOpenedScripts.push(item)
     })
     let element = document.getElementsByClassName('ma-container')[0]
