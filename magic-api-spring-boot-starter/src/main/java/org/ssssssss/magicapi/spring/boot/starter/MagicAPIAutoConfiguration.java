@@ -46,10 +46,7 @@ import org.ssssssss.magicapi.config.*;
 import org.ssssssss.magicapi.controller.*;
 import org.ssssssss.magicapi.dialect.Dialect;
 import org.ssssssss.magicapi.exception.MagicAPIException;
-import org.ssssssss.magicapi.interceptor.AuthorizationInterceptor;
-import org.ssssssss.magicapi.interceptor.DefaultAuthorizationInterceptor;
-import org.ssssssss.magicapi.interceptor.RequestInterceptor;
-import org.ssssssss.magicapi.interceptor.SQLInterceptor;
+import org.ssssssss.magicapi.interceptor.*;
 import org.ssssssss.magicapi.logging.LoggerManager;
 import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.modules.*;
@@ -408,7 +405,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		}
 		sqlModule.setResultProvider(resultProvider);
 		sqlModule.setPageProvider(pageProvider);
-		sqlModule.setSqlInterceptors(sqlInterceptorsProvider.getIfAvailable(Collections::emptyList));
+		List<SQLInterceptor> sqlInterceptors = sqlInterceptorsProvider.getIfAvailable(ArrayList::new);
+		if(properties.isShowSql()){
+			sqlInterceptors.add(new DefaultSqlInterceptor());
+		}
+		sqlModule.setSqlInterceptors(sqlInterceptors);
 		ColumnMapperAdapter columnMapperAdapter = new ColumnMapperAdapter();
 		this.columnMapperProvidersProvider.getIfAvailable(Collections::emptyList).stream().filter(mapperProvider -> !"default".equals(mapperProvider.name())).forEach(columnMapperAdapter::add);
 		columnMapperAdapter.setDefault(properties.getSqlColumnCase());

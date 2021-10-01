@@ -102,6 +102,12 @@ public class MagicAPIProperties {
 	 */
 	private boolean showUrl = true;
 
+	/**
+	 * 是否要打印SQL
+	 * @since 1.5.0
+	 */
+	private boolean showSql = true;
+
 	@NestedConfigurationProperty
 	private SecurityConfig securityConfig = new SecurityConfig();
 
@@ -359,4 +365,13 @@ public class MagicAPIProperties {
 	public void setBackupConfig(BackupConfig backupConfig) {
 		this.backupConfig = backupConfig;
 	}
+
+	public boolean isShowSql() {
+		return showSql;
+	}
+
+	public void setShowSql(boolean showSql) {
+		this.showSql = showSql;
+	}
+
 }

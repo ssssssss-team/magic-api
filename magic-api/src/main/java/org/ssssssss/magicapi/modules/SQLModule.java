@@ -342,7 +342,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("执行update操作，返回受影响行数")
 	public int update(@Comment("`SQL`语句") String sql) {
-		return update(new BoundSql(sql));
+		return update(new BoundSql(sql, this));
 	}
 
 	@UnableCall
@@ -362,7 +362,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@Comment("执行insert操作，返回插入主键")
 	public long insert(@Comment("`SQL`语句") String sql) {
 		MagicKeyHolder magicKeyHolder = new MagicKeyHolder();
-		insert(new BoundSql(sql), magicKeyHolder);
+		insert(new BoundSql(sql, this), magicKeyHolder);
 		return magicKeyHolder.getLongKey();
 	}
 
@@ -371,7 +371,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("执行insert操作，返回插入主键")
 	public Object insert(@Comment("`SQL`语句") String sql, @Comment("主键列") String primary) {
-		return insert(new BoundSql(sql), primary);
+		return insert(new BoundSql(sql, this), primary);
 	}
 
 	void insert(BoundSql boundSql, MagicKeyHolder keyHolder) {
@@ -433,6 +433,11 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	public Object page(BoundSql boundSql) {
 		Page page = pageProvider.getPage(MagicScriptContext.get());
 		return page(boundSql, page);
+	}
+
+	@UnableCall
+	public String getDataSourceName(){
+		return this.dataSourceNode == null ? "unknown" : dataSourceNode.getName();
 	}
 
 	@UnableCall

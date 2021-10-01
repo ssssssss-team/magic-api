@@ -33,23 +33,17 @@ public class BoundSql {
 
 	private List<Object> parameters = new ArrayList<>();
 
-	private SqlCache sqlCache;
-
-	private String cacheName;
-
-	private long ttl;
-
 	private Set<String> excludeColumns;
+
+	private SQLModule sqlModule;
 
 	public BoundSql(String sql, List<Object> parameters, SQLModule sqlModule) {
 		this.sql = sql;
 		this.parameters = parameters;
-		this.sqlCache = sqlModule.getSqlCache();
-		this.cacheName = sqlModule.getCacheName();
-		this.ttl = sqlModule.getTtl();
+		this.sqlModule = sqlModule;
 	}
 
-	BoundSql(String sql) {
+	private BoundSql(String sql) {
 		MagicScriptContext context = MagicScriptContext.get();
 		// 处理?{}参数
 		this.sql = ifTokenParser.parse(sql.trim(), text -> {
@@ -84,24 +78,24 @@ public class BoundSql {
 
 	BoundSql(String sql, SQLModule sqlModule) {
 		this(sql);
-		this.sqlCache = sqlModule.getSqlCache();
-		this.cacheName = sqlModule.getCacheName();
-		this.ttl = sqlModule.getTtl();
+		this.sqlModule = sqlModule;
 	}
 
 	private BoundSql() {
 
 	}
 
+	public SQLModule getSqlModule() {
+		return sqlModule;
+	}
+
 	BoundSql copy(String newSql) {
 		BoundSql boundSql = new BoundSql();
 		boundSql.setParameters(new ArrayList<>(this.parameters));
 		boundSql.setSql(this.sql);
-		boundSql.ttl = this.ttl;
-		boundSql.cacheName = this.cacheName;
-		boundSql.sqlCache = this.sqlCache;
 		boundSql.sql = newSql;
 		boundSql.excludeColumns = this.excludeColumns;
+		boundSql.sqlModule = this.sqlModule;
 		return boundSql;
 	}
 
@@ -153,16 +147,16 @@ public class BoundSql {
 	 */
 	@SuppressWarnings({"unchecked"})
 	private <T> T getCacheValue(String sql, Object[] params, Supplier<T> supplier) {
-		if (cacheName == null) {
+		if (sqlModule.getCacheName() == null) {
 			return supplier.get();
 		}
-		String cacheKey = sqlCache.buildSqlCacheKey(sql, params);
-		Object cacheValue = sqlCache.get(cacheName, cacheKey);
+		String cacheKey = sqlModule.getSqlCache().buildSqlCacheKey(sql, params);
+		Object cacheValue = sqlModule.getSqlCache().get(sqlModule.getCacheName(), cacheKey);
 		if (cacheValue != null) {
 			return (T) cacheValue;
 		}
 		T value = supplier.get();
-		sqlCache.put(cacheName, cacheKey, value, ttl);
+		sqlModule.getSqlCache().put(sqlModule.getCacheName(), cacheKey, value, sqlModule.getTtl());
 		return value;
 	}
 
