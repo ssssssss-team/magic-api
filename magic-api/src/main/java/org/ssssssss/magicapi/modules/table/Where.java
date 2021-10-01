@@ -30,6 +30,16 @@ public class Where {
 		this.needWhere = needWhere;
 	}
 
+	@Comment("克隆")
+	public Where clone(){
+		Where where = new Where(this.namedTable, this.needWhere);
+		where.tokens.addAll(this.tokens);
+		where.params.addAll(this.params);
+		where.notNull = this.notNull;
+		where.notBlank = this.notBlank;
+		return where;
+	}
+
 	void appendAnd() {
 		remove();
 		tokens.add("and");

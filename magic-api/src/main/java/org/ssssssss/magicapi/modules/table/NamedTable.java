@@ -7,11 +7,14 @@ import org.ssssssss.magicapi.modules.BoundSql;
 import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.script.annotation.Comment;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class NamedTable {
+
 	String tableName;
 
 	SQLModule sqlModule;
@@ -62,6 +65,30 @@ public class NamedTable {
 		}
 	}
 
+	private NamedTable() {
+	}
+
+	@Comment("克隆")
+	public NamedTable clone(){
+		NamedTable namedTable = new NamedTable();
+		namedTable.tableName = this.tableName;
+		namedTable.sqlModule = this.sqlModule;
+		namedTable.primary = this.primary;
+		namedTable.logicDeleteValue = this.logicDeleteValue;
+		namedTable.logicDeleteColumn = this.logicDeleteColumn;
+		namedTable.columns = new HashMap<>(this.columns);
+		namedTable.fields = new ArrayList<>(fields);
+		namedTable.groups = new ArrayList<>(groups);
+		namedTable.orders = new ArrayList<>(orders);
+		namedTable.excludeColumns = new HashSet<>(excludeColumns);
+		namedTable.rowMapColumnMapper = this.rowMapColumnMapper;
+		namedTable.defaultPrimaryValue = this.defaultPrimaryValue;
+		namedTable.useLogic = this.useLogic;
+		namedTable.withBlank = this.withBlank;
+		namedTable.where = new Where(namedTable);
+		return namedTable;
+	}
+
 	@Comment("使用逻辑删除")
 	public NamedTable logic() {
 		this.useLogic = true;
@@ -76,11 +103,19 @@ public class NamedTable {
 
 	@Comment("设置主键名，update时使用")
 	public NamedTable primary(String primary) {
-		return primary(primary, null);
+		this.primary = rowMapColumnMapper.apply(primary);
+		return this;
 	}
 
 	@Comment("设置主键名，并设置默认主键值(主要用于insert)")
-	public NamedTable primary(String primary, Object defaultPrimaryValue) {
+	public NamedTable primary(String primary, Serializable defaultPrimaryValue) {
+		this.primary = rowMapColumnMapper.apply(primary);
+		this.defaultPrimaryValue = defaultPrimaryValue;
+		return this;
+	}
+
+	@Comment("设置主键名，并设置默认主键值(主要用于insert)")
+	public NamedTable primary(String primary, Supplier<Object> defaultPrimaryValue) {
 		this.primary = rowMapColumnMapper.apply(primary);
 		this.defaultPrimaryValue = defaultPrimaryValue;
 		return this;
@@ -194,7 +229,11 @@ public class NamedTable {
 			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
 		}
 		if (this.defaultPrimaryValue != null && StringUtils.isBlank(Objects.toString(this.columns.getOrDefault(this.primary, "")))) {
-			this.columns.put(this.primary, this.defaultPrimaryValue);
+			if (this.defaultPrimaryValue instanceof Supplier){
+				this.columns.put(this.primary, ((Supplier<?>) this.defaultPrimaryValue).get());
+			}else{
+				this.columns.put(this.primary, this.defaultPrimaryValue);
+			}
 		}
 		Collection<Map.Entry<String, Object>> entries = filterNotBlanks();
 		if (entries.isEmpty()) {
