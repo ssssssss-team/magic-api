@@ -66,8 +66,6 @@ public interface GroupServiceProvider {
 
 	Resource getGroupResource(String groupId);
 
-	List<String> getGroupsWithoutGroups(List<String> groupIds);
-
 	default String getScriptName(String groupId, String name, String path) {
 		return PathUtils.replaceSlash("/" + getFullName(groupId) + "/" + name) + "(" + PathUtils.replaceSlash(getFullPath(groupId) + "/" + path) + ")";
 	}
