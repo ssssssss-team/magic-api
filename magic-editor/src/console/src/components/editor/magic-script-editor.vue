@@ -776,8 +776,17 @@ export default {
         menus: [
           {
             label: '关闭',
+            divided: true,
             onClick: () => {
               this.close(item.id || item.tmp_id)
+            }
+          },
+          {
+            label: '定位',
+            divided: true,
+            icon: 'ma-icon-position',
+            onClick: () => {
+              bus.$emit('position-' + item._type, item.id || item.tmp_id)
             }
           },
           {

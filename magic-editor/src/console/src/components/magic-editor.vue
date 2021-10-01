@@ -212,6 +212,14 @@ export default {
       this.websocket.close()
     })
     bus.$on('showLogin', () => this.showLogin = true)
+    bus.$on('position-api', (id) => {
+      this.toolbarIndex = 0
+      this.$refs.apiList.position(id)
+    })
+    bus.$on('position-function', (id) => {
+      this.toolbarIndex = 1
+      this.$refs.functionList.position(id)
+    })
     this.open()
   },
   destroyed() {

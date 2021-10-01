@@ -5,9 +5,6 @@
                                                                                        @input="e => doSearch(e.target.value)"/>
       </div>
       <div>
-        <div class="ma-tree-toolbar-btn" title="定位" @click="positionApi()">
-          <i class="ma-icon ma-icon-position"></i>
-        </div>
         <div class="ma-tree-toolbar-btn" title="新建分组" @click="openCreateGroupModal()">
           <i class="ma-icon ma-icon-group-add"></i>
         </div>
@@ -274,9 +271,7 @@ export default {
           if (element.folder === true) {
             element.tmpName = (parentItem.tmpName + '/' + element.name).replace(new RegExp('(/)+', 'gm'), '/')
             element.tmpPath = (parentItem.tmpPath + '/' + element.path).replace(new RegExp('(/)+', 'gm'), '/')
-            if (folding === true) {
-              this.$set(element, 'opened', false)
-            }
+            this.$set(element, 'opened', folding !== true)
             if (element.children && element.children.length > 0) {
               buildHandle(element.children, element, level + 1)
             }
@@ -568,9 +563,6 @@ export default {
           }
         }
       })
-    },
-    positionApi(){
-      document.querySelector('.ma-tree-select').scrollIntoView(true)
     },
     // 打开新建分组弹窗
     openCreateGroupModal(item, parentItem) {
@@ -875,6 +867,13 @@ export default {
         item = this.getItemById(item.parentId)
       }
       return items
+    },
+    position(id){
+      this.$nextTick(()=> {
+        this.rebuildTree(false)
+        this.listChildrenData.forEach(item => item.selectRightItem = item.id === id || item.tmp_id === id)
+        goToAnchor('.ma-tree-select')
+      })
     },
     // 根据id打开对应item
     openItemById(openId) {
