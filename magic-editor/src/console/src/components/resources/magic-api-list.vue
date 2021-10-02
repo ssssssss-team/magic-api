@@ -92,17 +92,6 @@
         <button class="ma-button active" @click="copyGroup">复制</button>
       </template>
     </magic-dialog>
-    <magic-dialog v-model="recentlyOpenedVisible" title="最近打开" align="right" :moveable="false" width="340px" height="390px"
-                  className="ma-tree-wrapper">
-      <template #content>
-        <div v-for="(it, i) in recentlyOpenedScripts" :key="i" @click="recentlyOpened(it)" class="ma-tree-item">
-          <div :title="it.method + ':' + it.groupName + '/' + it.name + '(' + it.groupPath + '/' + it.path + ')'" class="ma-tree-hover" style="padding-left: 17px;">
-            <i :class="'ma-svg-icon request-method-' + it.method"></i>
-            <label>{{ it.groupName + '/' + it.name }}({{ it.groupPath + '/' + it.path }})</label>
-          </div>
-        </div>
-      </template>
-    </magic-dialog>
   </div>
 </template>
 
@@ -164,9 +153,7 @@ export default {
       // 是否展示tree-loading
       showLoading: true,
       // 缓存一个openId
-      tmpOpenId: [],
-      // 最近打开
-      recentlyOpenedScripts: []
+      tmpOpenId: []
     }
   },
   methods: {
@@ -915,17 +902,9 @@ export default {
       this.initCreateGroupObj()
       this.changeForceUpdate()
     })
-    this.bus.$on('close', item => {
-      console.log(item)
-      this.recentlyOpenedScripts.push(item)
-    })
     let element = document.getElementsByClassName('ma-container')[0]
     // 新建分组快捷键
     Key.bind(element, Key.Alt | Key.G, () => this.openCreateGroupModal())
-    // 显示最近打开的文件记录列表
-    Key.bind(element, Key.Ctrl | Key.E, () => {
-      this.recentlyOpenedVisible = true
-    })
   }
 }
 </script>

@@ -34,7 +34,8 @@
           代码提示<em>Alt + /</em><br/>
           恢复断点<em>F8</em><br/>
           步进<em>F6</em><br/>
-          代码格式化<em>Ctrl + Alt + L</em>
+          代码格式化<em>Ctrl + Alt + L</em><br/>
+          最近打开<em>Ctrl + E</em>
         </p>
       </div>
     </div>
@@ -932,7 +933,7 @@ export default {
 .ma-hot-key {
   position: absolute;
   top: 50%;
-  margin-top: -60px;
+  margin-top: -105px;
   text-align: center;
   color: var(--empty-color);
   font-size: 16px;

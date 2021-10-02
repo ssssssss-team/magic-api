@@ -19,6 +19,8 @@
       <!-- 底部区域 -->
       <magic-options />
     </div>
+    <!-- 最近打开 -->
+    <magic-recent-opened />
     <!-- 状态条 -->
     <magic-status-bar :config="config" />
   </div>
@@ -37,6 +39,7 @@ import MagicApiList from './resources/magic-api-list.vue'
 import MagicFunctionList from './resources/magic-function-list.vue'
 import MagicDatasourceList from './resources/magic-datasource-list.vue'
 import MagicScriptEditor from './editor/magic-script-editor.vue'
+import MagicRecentOpened from './resources/magic-recent-opened.vue'
 import request from '@/api/request.js'
 import contants from '@/scripts/contants.js'
 import MagicWebSocket from '@/scripts/websocket.js'
@@ -75,7 +78,8 @@ export default {
     MagicOptions,
     MagicLoading,
     MagicLogin,
-    MagicDatasourceList
+    MagicDatasourceList,
+    MagicRecentOpened
   },
   data() {
     return {
