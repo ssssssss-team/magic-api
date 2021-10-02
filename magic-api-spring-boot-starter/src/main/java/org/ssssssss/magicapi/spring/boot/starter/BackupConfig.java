@@ -5,7 +5,7 @@ package org.ssssssss.magicapi.spring.boot.starter;
  *
  * @since 1.3.5
  */
-public class BackupConfig extends ResourceConfig {
+public class BackupConfig{
 
 	/**
 	 * 存储类型，可选 file， database
@@ -30,7 +30,7 @@ public class BackupConfig extends ResourceConfig {
 	/**
 	 * 使用数据库存储时使用的数据源
 	 */
-	private String database;
+	private String datasource;
 
 	public String getResourceType() {
 		return resourceType;
@@ -64,11 +64,11 @@ public class BackupConfig extends ResourceConfig {
 		this.tableName = tableName;
 	}
 
-	public String getDatabase() {
-		return database;
+	public String getDatasource() {
+		return datasource;
 	}
 
-	public void setDatabase(String database) {
-		this.database = database;
+	public void setDatasource(String datasource) {
+		this.datasource = datasource;
 	}
 }

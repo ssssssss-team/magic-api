@@ -29,6 +29,9 @@ public class MagicFileBackupService implements MagicBackupService {
 
 	public MagicFileBackupService(File backupDirectory) {
 		this.backupDirectory = backupDirectory;
+		if(!backupDirectory.exists()){
+			backupDirectory.mkdirs();
+		}
 	}
 
 	@Override
