@@ -809,8 +809,7 @@ export default {
     position(id){
       this.$nextTick(()=> {
         this.rebuildTree(false)
-        this.listChildrenData.forEach(item => item.selectRightItem = item.id === id || item.tmp_id === id)
-        goToAnchor('.ma-tree-select')
+        this.openItemById(id)
       })
     },
     // 根据id打开对应item
@@ -827,6 +826,7 @@ export default {
           if (cache) {
             this.$nextTick(() => {
               this.open(cache)
+              this.$nextTick(() => goToAnchor('.ma-tree-select'))
             })
           }
         })

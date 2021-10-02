@@ -129,7 +129,6 @@ export default {
       // 数据排序规则,true:升序,false:降序
       treeSort: true,
       groupChooseVisible: false,
-      recentlyOpenedVisible: false,
       srcId: '',
       // 新建分组对象
       createGroupObj: {
@@ -174,10 +173,6 @@ export default {
       bus.$emit('status', `查看接口「${item.name}(${item.path})」详情`)
       bus.$emit('open', item)
       this.currentFileItem = item
-    },
-    recentlyOpened(item){
-      this.open(item)
-      this.recentlyOpenedVisible = false
     },
     // 初始化数据
     initData() {
@@ -861,8 +856,7 @@ export default {
     position(id){
       this.$nextTick(()=> {
         this.rebuildTree(false)
-        this.listChildrenData.forEach(item => item.selectRightItem = item.id === id || item.tmp_id === id)
-        goToAnchor('.ma-tree-select')
+        this.openItemById(id)
       })
     },
     // 根据id打开对应item
@@ -879,6 +873,7 @@ export default {
           if (cache) {
             this.$nextTick(() => {
               this.open(cache)
+              this.$nextTick(() => goToAnchor('.ma-tree-select'))
             })
           }
         })
