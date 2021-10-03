@@ -6,6 +6,8 @@ import java.io.StringWriter;
 
 /**
  * 打印的日志信息
+ *
+ * @author mxd
  */
 public class LogInfo {
 

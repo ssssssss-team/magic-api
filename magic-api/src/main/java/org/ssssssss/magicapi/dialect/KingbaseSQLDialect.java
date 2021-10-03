@@ -3,7 +3,13 @@ package org.ssssssss.magicapi.dialect;
 
 import org.ssssssss.magicapi.modules.BoundSql;
 
+/**
+ * 人大金仓kingbase方言
+ *
+ * @author is_lixy@163.com
+ */
 public class KingbaseSQLDialect implements Dialect {
+
 	@Override
 	public boolean match(String jdbcUrl) {
 		return jdbcUrl.contains(":kingbase8:");

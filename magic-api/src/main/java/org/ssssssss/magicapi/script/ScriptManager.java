@@ -6,27 +6,25 @@ import org.ssssssss.magicapi.utils.MD5Utils;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
-import org.ssssssss.script.reflection.JavaReflection;
 
 import javax.script.*;
-import java.util.Objects;
 
+/**
+ * 脚本管理
+ *
+ * @author mxd
+ */
 public class ScriptManager {
 
-	private static final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
+	private static final ScriptEngineManager SCRIPT_ENGINE_MANAGER = new ScriptEngineManager();
 
 
 	/**
 	 * 编译缓存
 	 */
-	private static final DefaultSqlCache compileCache = new DefaultSqlCache(500, -1);
+	private static final DefaultSqlCache COMPILE_CACHE = new DefaultSqlCache(500, -1);
 
-	private static final String DEBUG_MARK;
-
-	static {
-		// TODO 兼容asm处理，切换后删除。
-		DEBUG_MARK = Objects.toString(JavaReflection.getFieldValue(MagicScript.class, JavaReflection.getField(MagicScript.class, "DEBUG_MARK")),"");
-	}
+	private static final String DEBUG_MARK = MagicScript.DEBUG_MARK;
 
 	/**
 	 * 编译脚本
@@ -34,12 +32,14 @@ public class ScriptManager {
 	 * @param script 脚本内容
 	 */
 	public static CompiledScript compile(String engine, String script) {
-		String key = MD5Utils.encrypt(script);    //先对脚本MD5作为key
-		CompiledScript scriptObject = (CompiledScript) compileCache.get("default", key);
+		// 先对脚本MD5作为key
+		String key = MD5Utils.encrypt(script);
+		CompiledScript scriptObject = (CompiledScript) COMPILE_CACHE.get("default", key);
 		if (scriptObject == null) {
-			ScriptEngine scriptEngine = scriptEngineManager.getEngineByName(engine);
+			ScriptEngine scriptEngine = SCRIPT_ENGINE_MANAGER.getEngineByName(engine);
 			if (scriptEngine != null) {
-				if (scriptEngine instanceof Compilable) {    //判断是否支持编译
+				// 判断是否支持编译
+				if (scriptEngine instanceof Compilable) {
 					Compilable compilable = (Compilable) scriptEngine;
 					try {
 						scriptObject = compilable.compile(script);
@@ -49,7 +49,7 @@ public class ScriptManager {
 				} else {
 					scriptObject = new UnCompileScript(script, scriptEngine);
 				}
-				compileCache.put("default", key, scriptObject, -1);
+				COMPILE_CACHE.put("default", key, scriptObject, -1);
 			}
 		}
 		return scriptObject;
@@ -63,7 +63,7 @@ public class ScriptManager {
 		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, context, ScriptContext.ENGINE_SCOPE);
 		// 执行脚本
 		try {
-			return compile("MagicScript", (context instanceof MagicScriptDebugContext ? DEBUG_MARK: "") +script).eval(simpleScriptContext);
+			return compile("MagicScript", (context instanceof MagicScriptDebugContext ? DEBUG_MARK : "") + script).eval(simpleScriptContext);
 		} catch (ScriptException e) {
 			throw new MagicAPIException(e.getMessage(), e);
 		} finally {

@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.interceptor;
 
+/**
+ * 鉴权类型枚举
+ *
+ * @author mxd
+ */
 public enum Authorization {
 	/**
 	 * 无实际意义

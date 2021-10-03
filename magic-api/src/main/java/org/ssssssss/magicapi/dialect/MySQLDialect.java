@@ -3,6 +3,11 @@ package org.ssssssss.magicapi.dialect;
 
 import org.ssssssss.magicapi.modules.BoundSql;
 
+/**
+ * mysql 方言
+ *
+ * @author mxd
+ */
 public class MySQLDialect implements Dialect {
 
 	@Override

@@ -4,6 +4,11 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * 数据源信息
+ *
+ * @author mxd
+ */
 public class DataSourceInfo extends Attributes<String> implements Map<String, String> {
 
 	public String getId() {

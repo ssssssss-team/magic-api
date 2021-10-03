@@ -36,55 +36,25 @@ import java.util.stream.Stream;
 
 /**
  * 数据库查询模块
+ *
+ * @author mxd
  */
 public class SQLModule extends HashMap<String, SQLModule> implements MagicModule {
-
-	private MagicDynamicDataSource dynamicDataSource;
-
-	private DataSourceNode dataSourceNode;
-
-	private PageProvider pageProvider;
-
-	private ResultProvider resultProvider;
-
-	private ColumnMapperAdapter columnMapperAdapter;
-
-	private DialectAdapter dialectAdapter;
-
-	private RowMapper<Map<String, Object>> columnMapRowMapper;
-
-	private Function<String, String> rowMapColumnMapper;
-
-	private SqlCache sqlCache;
-
-	private String cacheName;
-
-	private List<SQLInterceptor> sqlInterceptors;
-
-	private long ttl;
-
-	private String logicDeleteColumn;
-
-	private String logicDeleteValue;
-
-	public SQLModule() {
-
-	}
 
 	static {
 		try {
 			Field[] fields = Types.class.getFields();
 			Map<String, Integer> mappings = Stream.of(fields)
-					.collect(Collectors.toMap(field -> field.getName().toLowerCase(), field -> (Integer)JavaReflection.getFieldValue(Types.class, field)));
+					.collect(Collectors.toMap(field -> field.getName().toLowerCase(), field -> (Integer) JavaReflection.getFieldValue(Types.class, field)));
 			ClassConverter.register("sql", (value, params) -> {
-				if(params == null || params.length == 0){
+				if (params == null || params.length == 0) {
 					return value;
 				}
-				if(params[0] instanceof Number){
+				if (params[0] instanceof Number) {
 					return new SqlParameterValue(((Number) params[0]).intValue(), value);
 				}
 				String target = Objects.toString(params[0], null);
-				if(StringUtils.isBlank(target)){
+				if (StringUtils.isBlank(target)) {
 					return value;
 				}
 				Integer sqlType = mappings.get(target.toLowerCase());
@@ -93,6 +63,25 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		} catch (Exception ignored) {
 
 		}
+	}
+
+	private MagicDynamicDataSource dynamicDataSource;
+	private DataSourceNode dataSourceNode;
+	private PageProvider pageProvider;
+	private ResultProvider resultProvider;
+	private ColumnMapperAdapter columnMapperAdapter;
+	private DialectAdapter dialectAdapter;
+	private RowMapper<Map<String, Object>> columnMapRowMapper;
+	private Function<String, String> rowMapColumnMapper;
+	private SqlCache sqlCache;
+	private String cacheName;
+	private List<SQLInterceptor> sqlInterceptors;
+	private long ttl;
+	private String logicDeleteColumn;
+	private String logicDeleteValue;
+
+	public SQLModule() {
+
 	}
 
 	public SQLModule(MagicDynamicDataSource dynamicDataSource) {
@@ -215,7 +204,8 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 */
 	@Comment("开启事务，并在回调中处理")
 	public Object transaction(@Comment("回调函数，如：()=>{....}") Function<?, ?> function) {
-		Transaction transaction = transaction();    //创建事务
+		// 创建事务
+		Transaction transaction = transaction();
 		try {
 			Object val = function.apply(null);
 			transaction.commit();    //提交事务
@@ -323,16 +313,16 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> queryForList(boundSql));
 	}
 
-	private List<Map<String, Object>> queryForList(BoundSql boundSql){
+	private List<Map<String, Object>> queryForList(BoundSql boundSql) {
 		List<Map<String, Object>> list = dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), this.columnMapRowMapper, boundSql.getParameters());
-		if(boundSql.getExcludeColumns() != null){
+		if (boundSql.getExcludeColumns() != null) {
 			list.forEach(row -> boundSql.getExcludeColumns().forEach(row::remove));
 		}
 		return list;
 	}
 
-	private void assertDatasourceNotNull(){
-		if(dataSourceNode == null){
+	private void assertDatasourceNotNull() {
+		if (dataSourceNode == null) {
 			throw new NullPointerException("当前数据源未设置");
 		}
 	}
@@ -436,7 +426,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	}
 
 	@UnableCall
-	public String getDataSourceName(){
+	public String getDataSourceName() {
 		return this.dataSourceNode == null ? "unknown" : dataSourceNode.getName();
 	}
 
@@ -484,7 +474,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 			Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
 			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, 0, 1);
 			Map<String, Object> row = dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), new SingleRowResultSetExtractor<>(this.columnMapRowMapper), pageBoundSql.getParameters());
-			if(row != null && boundSql.getExcludeColumns() != null){
+			if (row != null && boundSql.getExcludeColumns() != null) {
 				boundSql.getExcludeColumns().forEach(row::remove);
 			}
 			return row;

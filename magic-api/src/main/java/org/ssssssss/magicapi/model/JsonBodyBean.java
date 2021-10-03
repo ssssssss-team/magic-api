@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.model;
 
+/**
+ * 统一返回值对象带body
+ *
+ * @author mxd
+ */
 public class JsonBodyBean<T> extends JsonBean<T> {
 
 	private Object body;

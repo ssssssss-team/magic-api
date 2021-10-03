@@ -12,6 +12,11 @@ import org.ssssssss.magicapi.utils.PathUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 默认分组存储实现
+ *
+ * @author mxd
+ */
 public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	private final Map<String, Resource> mappings = new HashMap<>();
@@ -77,7 +82,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	@Override
 	public boolean containsApiGroup(String groupId) {
-		return "0".equals(groupId) || cacheApiTree.containsKey(groupId);
+		return Constants.ROOT_ID.equals(groupId) || cacheApiTree.containsKey(groupId);
 	}
 
 	@Override
@@ -93,7 +98,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 		return convertToTree(groups);
 	}
 
-	private void clearMappings(){
+	private void clearMappings() {
 		Set<String> apiGroups = cacheApiTree.keySet();
 		Set<String> functionGroups = cacheFunctionTree.keySet();
 		mappings.entrySet().removeIf(entry -> !apiGroups.contains(entry.getKey()) && !functionGroups.contains(entry.getKey()));
@@ -114,7 +119,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 		return getGroupList(resource);
 	}
 
-	private List<Group> getGroupList(Resource resource){
+	private List<Group> getGroupList(Resource resource) {
 		return resource.dirs().stream().map(it -> it.getResource(Constants.GROUP_METABASE)).filter(Resource::exists)
 				.map(it -> {
 					Group group = JsonUtils.readValue(it.read(), Group.class);
@@ -139,7 +144,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 			groupId = group.getParentId();
 		}
 		// 需要找到根节点，否则说明中间被删除了
-		if (!"0".equals(groupId)) {
+		if (!Constants.ROOT_ID.equals(groupId)) {
 			return null;
 		}
 		return PathUtils.replaceSlash(path.toString());
@@ -147,7 +152,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	@Override
 	public String getFullName(String groupId) {
-		if (groupId == null || "0".equals(groupId)) {
+		if (groupId == null || Constants.ROOT_ID.equals(groupId)) {
 			return "";
 		}
 		StringBuilder name = new StringBuilder();
@@ -157,7 +162,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 			groupId = group.getParentId();
 		}
 		// 需要找到根节点，否则说明中间被删除了
-		if (!"0".equals(groupId)) {
+		if (!Constants.ROOT_ID.equals(groupId)) {
 			return null;
 		}
 		return name.substring(1);
@@ -165,7 +170,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	@Override
 	public Resource getGroupResource(String groupId) {
-		if (groupId == null || "0".equals(groupId)) {
+		if (groupId == null || Constants.ROOT_ID.equals(groupId)) {
 			return null;
 		}
 		Resource resource = mappings.get(groupId);
@@ -174,7 +179,7 @@ public class DefaultGroupServiceProvider implements GroupServiceProvider {
 
 	private TreeNode<Group> convertToTree(List<Group> groups) {
 		TreeNode<Group> root = new TreeNode<>();
-		root.setNode(new Group("0", "root"));
+		root.setNode(new Group(Constants.ROOT_ID, "root"));
 		convertToTree(groups, root);
 		return root;
 	}

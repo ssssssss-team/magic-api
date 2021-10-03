@@ -1,6 +1,5 @@
 package org.ssssssss.magicapi.modules;
 
-import org.ssssssss.magicapi.cache.SqlCache;
 import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.interceptor.SQLInterceptor;
 import org.ssssssss.script.MagicScriptContext;
@@ -17,15 +16,20 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+/**
+ * SQL参数处理
+ *
+ * @author mxd
+ */
 public class BoundSql {
 
-	private static final GenericTokenParser concatTokenParser = new GenericTokenParser("${", "}", false);
+	private static final GenericTokenParser CONCAT_TOKEN_PARSER = new GenericTokenParser("${", "}", false);
 
-	private static final GenericTokenParser replaceTokenParser = new GenericTokenParser("#{", "}", true);
+	private static final GenericTokenParser REPLACE_TOKEN_PARSER = new GenericTokenParser("#{", "}", true);
 
-	private static final GenericTokenParser ifTokenParser = new GenericTokenParser("?{", "}", true);
+	private static final GenericTokenParser IF_TOKEN_PARSER = new GenericTokenParser("?{", "}", true);
 
-	private static final GenericTokenParser ifParamTokenParser = new GenericTokenParser("?{", ",", true);
+	private static final GenericTokenParser IF_PARAM_TOKEN_PARSER = new GenericTokenParser("?{", ",", true);
 
 	private static final Pattern REPLACE_MULTI_WHITE_LINE = Pattern.compile("(\r?\n(\\s*\r?\n)+)");
 
@@ -46,18 +50,18 @@ public class BoundSql {
 	private BoundSql(String sql) {
 		MagicScriptContext context = MagicScriptContext.get();
 		// 处理?{}参数
-		this.sql = ifTokenParser.parse(sql.trim(), text -> {
+		this.sql = IF_TOKEN_PARSER.parse(sql.trim(), text -> {
 			AtomicBoolean ifTrue = new AtomicBoolean(false);
-			String val = ifParamTokenParser.parse("?{" + text, param -> {
+			String val = IF_PARAM_TOKEN_PARSER.parse("?{" + text, param -> {
 				ifTrue.set(BooleanLiteral.isTrue(context.eval(param)));
 				return null;
 			});
 			return ifTrue.get() ? val : "";
 		});
 		// 处理${}参数
-		this.sql = concatTokenParser.parse(this.sql, text -> String.valueOf(context.eval(text)));
+		this.sql = CONCAT_TOKEN_PARSER.parse(this.sql, text -> String.valueOf(context.eval(text)));
 		// 处理#{}参数
-		this.sql = replaceTokenParser.parse(this.sql, text -> {
+		this.sql = REPLACE_TOKEN_PARSER.parse(this.sql, text -> {
 			Object value = context.eval(text);
 			if (value == null) {
 				parameters.add(null);

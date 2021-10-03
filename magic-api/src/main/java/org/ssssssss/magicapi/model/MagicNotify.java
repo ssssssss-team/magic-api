@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.model;
 
+/**
+ * 消息通知对象
+ *
+ * @author mxd
+ */
 public class MagicNotify {
 
 	/**
@@ -133,7 +138,7 @@ public class MagicNotify {
 			default:
 				builder.append("未知");
 		}
-		if(action != Constants.NOTIFY_ACTION_ALL && action < Constants.NOTIFY_WS_C_S){
+		if (action != Constants.NOTIFY_ACTION_ALL && action < Constants.NOTIFY_WS_C_S) {
 			builder.append(", type=");
 			switch (type) {
 				case Constants.NOTIFY_ACTION_API:

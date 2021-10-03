@@ -4,6 +4,8 @@ import java.util.*;
 
 /**
  * Swagger接口信息
+ *
+ * @author mxd
  */
 public class SwaggerEntity {
 
@@ -64,6 +66,25 @@ public class SwaggerEntity {
 		return "string";
 	}
 
+	public static Map<String, Object> createParameter(boolean required, String name, String in, String type, String description, Object example) {
+		Map<String, Object> parameter = new HashMap<>();
+		parameter.put("required", required);
+		parameter.put("name", name);
+		parameter.put("in", in);
+		parameter.put("description", description);
+
+		if ("body".equalsIgnoreCase(in)) {
+			Map<String, Object> schema = new HashMap<>();
+			schema.put("type", type);
+			schema.put("example", example);
+			parameter.put("schema", schema);
+		} else {
+			parameter.put("x-example", example);
+			parameter.put("type", type);
+		}
+		return parameter;
+	}
+
 	public Info getInfo() {
 		return info;
 	}
@@ -108,9 +129,11 @@ public class SwaggerEntity {
 	public Map<String, Object> getDefinitions() {
 		return definitions;
 	}
+
 	public void addDefinitions(String path, Object definition) {
 		definitions.put(path, definition);
 	}
+
 	public Set<Tag> getTags() {
 		return tags;
 	}
@@ -231,6 +254,10 @@ public class SwaggerEntity {
 
 		private Map<String, Object> responses = new HashMap<>();
 
+		public Path(String operationId) {
+			this.operationId = operationId;
+		}
+
 		public void addProduce(String produce) {
 			this.produces.add(produce);
 		}
@@ -245,10 +272,6 @@ public class SwaggerEntity {
 
 		public String getOperationId() {
 			return operationId;
-		}
-
-		public Path(String operationId) {
-			this.operationId = operationId;
 		}
 
 		public void addResponse(String status, Object object) {
@@ -318,25 +341,6 @@ public class SwaggerEntity {
 		public void setDescription(String description) {
 			this.description = description;
 		}
-	}
-
-	public  static Map<String, Object> createParameter(boolean required, String name, String in, String type, String description, Object example) {
-		Map<String, Object> parameter =  new HashMap<>();
-		parameter.put("required", required);
-		parameter.put("name", name);
-		parameter.put("in", in);
-		parameter.put("description", description);
-
-		if ("body".equalsIgnoreCase(in)) {
-			Map<String, Object> schema = new HashMap<>();
-			schema.put("type", type);
-			schema.put("example", example);
-			parameter.put("schema", schema);
-		} else {
-			parameter.put("x-example", example);
-			parameter.put("type", type);
-		}
-		return parameter;
 	}
 
 	@Deprecated
@@ -463,8 +467,12 @@ public class SwaggerEntity {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) return true;
-			if (o == null || getClass() != o.getClass()) return false;
+			if (this == o) {
+				return true;
+			}
+			if (o == null || getClass() != o.getClass()) {
+				return false;
+			}
 			Tag tag = (Tag) o;
 			return Objects.equals(name, tag.name);
 		}

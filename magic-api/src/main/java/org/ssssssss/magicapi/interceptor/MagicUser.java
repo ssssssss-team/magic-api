@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.interceptor;
 
+/**
+ * magic 用户对象
+ *
+ * @author mxd
+ */
 public class MagicUser {
 
 	private String id;
@@ -12,6 +17,10 @@ public class MagicUser {
 		this.id = id;
 		this.username = username;
 		this.token = token;
+	}
+
+	public static MagicUser guest() {
+		return new MagicUser(null, "guest", null);
 	}
 
 	public String getId() {
@@ -36,9 +45,5 @@ public class MagicUser {
 
 	public void setToken(String token) {
 		this.token = token;
-	}
-
-	public static MagicUser guest(){
-		return new MagicUser(null, "guest", null);
 	}
 }

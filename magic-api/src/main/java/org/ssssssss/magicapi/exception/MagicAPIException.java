@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.exception;
 
+/**
+ * magic-api异常对象
+ *
+ * @author mxd
+ */
 public class MagicAPIException extends RuntimeException {
 
 	public MagicAPIException(String message) {

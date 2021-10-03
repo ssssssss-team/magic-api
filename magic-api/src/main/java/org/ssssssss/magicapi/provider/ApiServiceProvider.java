@@ -6,6 +6,8 @@ import org.ssssssss.magicapi.model.ApiInfo;
 
 /**
  * API存储接口
+ *
+ * @author mxd
  */
 public abstract class ApiServiceProvider extends StoreServiceProvider<ApiInfo> {
 

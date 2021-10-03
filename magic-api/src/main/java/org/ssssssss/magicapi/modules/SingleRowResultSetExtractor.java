@@ -8,7 +8,12 @@ import org.springframework.jdbc.support.JdbcUtils;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class SingleRowResultSetExtractor<T> implements ResultSetExtractor<T>{
+/**
+ * 单行结果抽取
+ *
+ * @author mxd
+ */
+public class SingleRowResultSetExtractor<T> implements ResultSetExtractor<T> {
 
 
 	private final boolean singleColumn;
@@ -34,8 +39,8 @@ public class SingleRowResultSetExtractor<T> implements ResultSetExtractor<T>{
 	@Override
 	@SuppressWarnings("unchecked")
 	public T extractData(ResultSet rs) throws SQLException, DataAccessException {
-		if(rs.next()){
-			if(singleColumn){
+		if (rs.next()) {
+			if (singleColumn) {
 				return (T) JdbcUtils.getResultSetValue(rs, 1, requiredType);
 			}
 			return mapper.mapRow(rs, 0);

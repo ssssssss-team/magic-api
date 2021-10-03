@@ -9,6 +9,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * 接口跨域处理
+ *
+ * @author mxd
+ */
 public class MagicCorsFilter implements Filter {
 
 	@Override

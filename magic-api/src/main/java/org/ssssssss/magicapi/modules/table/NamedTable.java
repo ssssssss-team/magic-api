@@ -13,6 +13,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+/**
+ * 单表操作API
+ *
+ * @author mxd
+ */
 public class NamedTable {
 
 	String tableName;
@@ -53,7 +58,8 @@ public class NamedTable {
 		String deleteValue = sqlModule.getLogicDeleteValue();
 		this.logicDeleteValue = deleteValue;
 		if (deleteValue != null) {
-			if ((deleteValue.startsWith("'") || deleteValue.startsWith("\"")) && deleteValue.length() > 2) {
+			boolean isString = deleteValue.startsWith("'") || deleteValue.startsWith("\"");
+			if (isString && deleteValue.length() > 2) {
 				this.logicDeleteValue = deleteValue.substring(1, deleteValue.length() - 1);
 			} else {
 				try {
@@ -68,8 +74,9 @@ public class NamedTable {
 	private NamedTable() {
 	}
 
+	@Override
 	@Comment("克隆")
-	public NamedTable clone(){
+	public NamedTable clone() {
 		NamedTable namedTable = new NamedTable();
 		namedTable.tableName = this.tableName;
 		namedTable.sqlModule = this.sqlModule;
@@ -229,9 +236,9 @@ public class NamedTable {
 			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
 		}
 		if (this.defaultPrimaryValue != null && StringUtils.isBlank(Objects.toString(this.columns.getOrDefault(this.primary, "")))) {
-			if (this.defaultPrimaryValue instanceof Supplier){
+			if (this.defaultPrimaryValue instanceof Supplier) {
 				this.columns.put(this.primary, ((Supplier<?>) this.defaultPrimaryValue).get());
-			}else{
+			} else {
 				this.columns.put(this.primary, this.defaultPrimaryValue);
 			}
 		}

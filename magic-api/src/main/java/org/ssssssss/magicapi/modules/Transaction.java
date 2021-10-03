@@ -8,6 +8,8 @@ import org.ssssssss.script.annotation.Comment;
 
 /**
  * 事务模块
+ *
+ * @author mxd
  */
 public class Transaction {
 

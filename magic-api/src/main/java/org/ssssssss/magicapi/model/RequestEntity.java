@@ -11,24 +11,21 @@ import java.util.stream.Collectors;
 
 import static org.ssssssss.magicapi.model.Constants.*;
 
+/**
+ * 请求信息
+ *
+ * @author mxd
+ */
 public class RequestEntity {
 
-	private ApiInfo apiInfo;
-
-	private HttpServletRequest request;
-
-	private HttpServletResponse response;
-
-	private boolean requestedFromTest;
-
-	private Map<String, Object> parameters;
-
-	private Map<String, Object> pathVariables;
-
 	private final Long requestTime = System.currentTimeMillis();
-
 	private final String requestId = UUID.randomUUID().toString().replace("-", "");
-
+	private ApiInfo apiInfo;
+	private HttpServletRequest request;
+	private HttpServletResponse response;
+	private boolean requestedFromTest;
+	private Map<String, Object> parameters;
+	private Map<String, Object> pathVariables;
 	private MagicScriptContext magicScriptContext;
 
 	private Map<String, Object> headers;
@@ -100,12 +97,12 @@ public class RequestEntity {
 		return requestedFromTest;
 	}
 
-	public boolean isRequestedFromDebug(){
-		return requestedFromTest && !getRequestedBreakpoints().isEmpty();
-	}
-
 	public void setRequestedFromTest(boolean requestedFromTest) {
 		this.requestedFromTest = requestedFromTest;
+	}
+
+	public boolean isRequestedFromDebug() {
+		return requestedFromTest && !getRequestedBreakpoints().isEmpty();
 	}
 
 	public Map<String, Object> getParameters() {
@@ -151,7 +148,7 @@ public class RequestEntity {
 	/**
 	 * 获取 RequestBody
 	 */
-	public Object getRequestBody(){
+	public Object getRequestBody() {
 		return magicScriptContext == null ? null : this.magicScriptContext.get(VAR_NAME_REQUEST_BODY);
 	}
 

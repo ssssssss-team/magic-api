@@ -6,6 +6,11 @@ import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
 import org.ssssssss.script.MagicScriptContext;
 
+/**
+ * 默认结果封装实现
+ *
+ * @author mxd
+ */
 public class DefaultResultProvider implements ResultProvider {
 
 	private final String responseScript;

@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 /**
  * MongoCollection方法扩展
+ *
+ * @author mxd
  */
 public class MongoCollectionExtension {
 

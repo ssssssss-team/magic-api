@@ -4,6 +4,8 @@ import org.ssssssss.magicapi.provider.ColumnMapperProvider;
 
 /**
  * 默认命名（保持原样）
+ *
+ * @author mxd
  */
 public class DefaultColumnMapperProvider implements ColumnMapperProvider {
 

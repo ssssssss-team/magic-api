@@ -23,6 +23,8 @@ import java.util.Map;
 
 /**
  * response模块
+ *
+ * @author mxd
  */
 public class ResponseModule {
 
@@ -53,7 +55,7 @@ public class ResponseModule {
 	 */
 	@Comment("返回自定义分页结果")
 	public Object page(@Comment("总条数") long total, @Comment("当前结果集") List<Map<String, Object>> values) {
-		return resultProvider.buildPageResult(RequestContext.getRequestEntity(),null, total, values);
+		return resultProvider.buildPageResult(RequestContext.getRequestEntity(), null, total, values);
 	}
 
 	/**
@@ -129,6 +131,7 @@ public class ResponseModule {
 
 	/**
 	 * 获取OutputStream
+	 *
 	 * @since 1.2.3
 	 */
 	@Comment("获取OutputStream")

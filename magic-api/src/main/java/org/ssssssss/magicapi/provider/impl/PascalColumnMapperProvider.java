@@ -4,6 +4,8 @@ import org.ssssssss.magicapi.provider.ColumnMapperProvider;
 
 /**
  * 帕斯卡命名转换
+ *
+ * @author mxd
  */
 public class PascalColumnMapperProvider implements ColumnMapperProvider {
 

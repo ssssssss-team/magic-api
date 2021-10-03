@@ -5,6 +5,11 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
+/**
+ * 不支持编译的脚本
+ *
+ * @author mxd
+ */
 public class UnCompileScript extends CompiledScript {
 
 	private final ScriptEngine engine;

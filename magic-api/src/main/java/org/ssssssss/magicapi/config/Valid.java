@@ -4,6 +4,11 @@ import org.ssssssss.magicapi.interceptor.Authorization;
 
 import java.lang.annotation.*;
 
+/**
+ * 接口验证信息
+ *
+ * @author mxd
+ */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

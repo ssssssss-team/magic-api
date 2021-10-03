@@ -23,10 +23,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * 函数映射管理
+ *
+ * @author mxd
+ */
 public class MagicFunctionManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicFunctionManager.class);
-	private static final Map<String, FunctionInfo> mappings = new ConcurrentHashMap<>();
+	private static final Map<String, FunctionInfo> MAPPINGS = new ConcurrentHashMap<>();
 	private final GroupServiceProvider groupServiceProvider;
 	private final FunctionServiceProvider functionServiceProvider;
 	private TreeNode<Group> groups;
@@ -38,7 +43,7 @@ public class MagicFunctionManager {
 
 	public void registerFunctionLoader() {
 		MagicResourceLoader.addFunctionLoader((path) -> {
-			FunctionInfo info = mappings.get(path);
+			FunctionInfo info = MAPPINGS.get(path);
 			String scriptName = groupServiceProvider.getScriptName(info.getId(), info.getName(), info.getPath());
 			if (info != null) {
 				List<Parameter> parameters = info.getParameters();
@@ -53,8 +58,8 @@ public class MagicFunctionManager {
 								functionContext.set(parameters.get(i).getName(), objects[i]);
 							}
 						}
-						Object value =  ScriptManager.executeScript(info.getScript(), functionContext);
-						if(value instanceof ExitValue){
+						Object value = ScriptManager.executeScript(info.getScript(), functionContext);
+						if (value instanceof ExitValue) {
 							throw new MagicExitException((ExitValue) value);
 						}
 						return value;
@@ -83,24 +88,24 @@ public class MagicFunctionManager {
 
 	public boolean hasRegister(FunctionInfo info) {
 		String path = PathUtils.replaceSlash(Objects.toString(groupServiceProvider.getFullPath(info.getGroupId()), "") + "/" + info.getPath());
-		FunctionInfo functionInfo = mappings.get(path);
+		FunctionInfo functionInfo = MAPPINGS.get(path);
 		return functionInfo != null && !Objects.equals(info.getId(), functionInfo.getId());
 	}
 
 	public boolean hasRegister(Set<String> paths) {
-		return paths.stream().anyMatch(mappings::containsKey);
+		return paths.stream().anyMatch(MAPPINGS::containsKey);
 	}
 
 	/**
 	 * 函数移动
 	 */
 	public boolean move(String id, String groupId) {
-		FunctionInfo info = mappings.get(id);
+		FunctionInfo info = MAPPINGS.get(id);
 		if (info == null) {
 			return false;
 		}
 		String path = Objects.toString(groupServiceProvider.getFullPath(groupId), "");
-		FunctionInfo functionInfo = mappings.get(PathUtils.replaceSlash(path + "/" + info.getPath()));
+		FunctionInfo functionInfo = MAPPINGS.get(PathUtils.replaceSlash(path + "/" + info.getPath()));
 		if (functionInfo != null && !Objects.equals(functionInfo.getId(), id)) {
 			return false;
 		}
@@ -115,7 +120,7 @@ public class MagicFunctionManager {
 		if (functionInfo == null) {
 			return;
 		}
-		FunctionInfo oldFunctionInfo = mappings.get(functionInfo.getId());
+		FunctionInfo oldFunctionInfo = MAPPINGS.get(functionInfo.getId());
 		if (oldFunctionInfo != null) {
 			// 完全一致时不用注册
 			if (functionInfo.equals(oldFunctionInfo)) {
@@ -127,30 +132,30 @@ public class MagicFunctionManager {
 			}
 		}
 		String path = Objects.toString(groupServiceProvider.getFullPath(functionInfo.getGroupId()), "");
-		mappings.put(functionInfo.getId(), functionInfo);
+		MAPPINGS.put(functionInfo.getId(), functionInfo);
 		path = PathUtils.replaceSlash(path + "/" + functionInfo.getPath());
 		functionInfo.setMappingPath(path);
-		mappings.put(path, functionInfo);
+		MAPPINGS.put(path, functionInfo);
 		logger.info("注册函数:[{}:{}]", functionInfo.getName(), path);
 	}
 
 	public List<FunctionInfo> getFunctionInfos() {
-		return mappings.values().stream().distinct().collect(Collectors.toList());
+		return MAPPINGS.values().stream().distinct().collect(Collectors.toList());
 	}
 
 	public FunctionInfo getFunctionInfo(String path) {
-		return mappings.get(path);
+		return MAPPINGS.get(path);
 	}
 
 	private boolean hasConflict(TreeNode<Group> group, String newPath) {
 		// 获取要移动的接口
-		List<FunctionInfo> infos = mappings.values().stream()
+		List<FunctionInfo> infos = MAPPINGS.values().stream()
 				.filter(info -> Objects.equals(info.getGroupId(), group.getNode().getId()))
 				.distinct()
 				.collect(Collectors.toList());
 		// 判断是否有冲突
 		for (FunctionInfo info : infos) {
-			if (mappings.containsKey(PathUtils.replaceSlash(newPath + "/" + info.getPath()))) {
+			if (MAPPINGS.containsKey(PathUtils.replaceSlash(newPath + "/" + info.getPath()))) {
 				return true;
 			}
 		}
@@ -162,7 +167,7 @@ public class MagicFunctionManager {
 		return false;
 	}
 
-	public TreeNode<Group> findGroupTree(String groupId){
+	public TreeNode<Group> findGroupTree(String groupId) {
 		return groups.findTreeNode(it -> it.getId().equals(groupId));
 	}
 
@@ -180,7 +185,7 @@ public class MagicFunctionManager {
 	}
 
 	private void recurseUpdateGroup(TreeNode<Group> node, boolean updateGroupId) {
-		mappings.values().stream()
+		MAPPINGS.values().stream()
 				.filter(info -> Objects.equals(info.getGroupId(), node.getNode().getId()))
 				.distinct()
 				.collect(Collectors.toList())
@@ -204,7 +209,7 @@ public class MagicFunctionManager {
 	}
 
 	public void deleteGroup(List<String> groupIds) {
-		mappings.values().stream()
+		MAPPINGS.values().stream()
 				.filter(info -> groupIds.contains(info.getGroupId()))
 				.distinct()
 				.collect(Collectors.toList())
@@ -214,9 +219,9 @@ public class MagicFunctionManager {
 	}
 
 	public void unregister(String id) {
-		FunctionInfo functionInfo = mappings.remove(id);
+		FunctionInfo functionInfo = MAPPINGS.remove(id);
 		if (functionInfo != null) {
-			mappings.remove(functionInfo.getMappingPath());
+			MAPPINGS.remove(functionInfo.getMappingPath());
 			logger.info("取消注册函数:[{},{}]", functionInfo.getName(), functionInfo.getMappingPath());
 		}
 	}

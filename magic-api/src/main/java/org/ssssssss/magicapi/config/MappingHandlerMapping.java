@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import org.ssssssss.magicapi.controller.RequestHandler;
 import org.ssssssss.magicapi.model.ApiInfo;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.TreeNode;
 import org.ssssssss.magicapi.provider.ApiServiceProvider;
@@ -31,13 +32,15 @@ import java.util.stream.Stream;
 
 /**
  * 请求映射
+ *
+ * @author mxd
  */
 public class MappingHandlerMapping {
 
 	/**
 	 * 已缓存的映射信息
 	 */
-	private static final Map<String, MappingNode> mappings = new ConcurrentHashMap<>();
+	private static final Map<String, MappingNode> MAPPINGS = new ConcurrentHashMap<>();
 
 	private static final Logger logger = LoggerFactory.getLogger(MappingHandlerMapping.class);
 	/**
@@ -95,7 +98,7 @@ public class MappingHandlerMapping {
 	 * 根据绑定的key获取接口信息
 	 */
 	private static ApiInfo getMappingApiInfo(String key) {
-		return mappings.get(key).getInfo();
+		return MAPPINGS.get(key).getInfo();
 	}
 
 	/**
@@ -119,14 +122,14 @@ public class MappingHandlerMapping {
 	public static List<Group> findGroups(String groupId) {
 		List<Group> groups = new ArrayList<>();
 		Group group;
-		while (!"0".equals(groupId) && (group = MappingHandlerMapping.findGroup(groupId)) != null) {
+		while (!Constants.ROOT_ID.equals(groupId) && (group = MappingHandlerMapping.findGroup(groupId)) != null) {
 			groups.add(group);
 			groupId = group.getParentId();
 		}
 		return groups;
 	}
 
-	public TreeNode<Group> findGroupTree(String groupId){
+	public TreeNode<Group> findGroupTree(String groupId) {
 		return groups.findTreeNode(it -> it.getId().equals(groupId));
 	}
 
@@ -197,7 +200,7 @@ public class MappingHandlerMapping {
 	 * @param requestMapping 请求路径
 	 */
 	public ApiInfo getApiInfo(String method, String requestMapping) {
-		MappingNode mappingNode = mappings.get(buildMappingKey(method, concatPath("", requestMapping)));
+		MappingNode mappingNode = MAPPINGS.get(buildMappingKey(method, concatPath("", requestMapping)));
 		return mappingNode == null ? null : mappingNode.getInfo();
 	}
 
@@ -208,7 +211,7 @@ public class MappingHandlerMapping {
 		for (ApiInfo info : infos) {
 			String path = concatPath(newPath, "/" + info.getPath());
 			String mappingKey = buildMappingKey(info.getMethod(), path);
-			MappingNode mappingNode = mappings.get(mappingKey);
+			MappingNode mappingNode = MAPPINGS.get(mappingKey);
 			if (mappingNode != null) {
 				if (mappingNode.getInfo().equals(info)) {
 					continue;
@@ -242,7 +245,8 @@ public class MappingHandlerMapping {
 			return nameEquals || !groupServiceProvider.exists(group);
 		}
 		// 检测名字是否冲突
-		if ((!parentIdEquals || !nameEquals) && groupServiceProvider.exists(group)) {
+		boolean requiredChecked = (!parentIdEquals || !nameEquals);
+		if (requiredChecked && groupServiceProvider.exists(group)) {
 			return false;
 		}
 		// 新的接口分组路径
@@ -252,7 +256,7 @@ public class MappingHandlerMapping {
 	}
 
 	public boolean hasRegister(Set<String> paths) {
-		return paths.stream().anyMatch(mappings::containsKey);
+		return paths.stream().anyMatch(MAPPINGS::containsKey);
 	}
 
 	/**
@@ -298,7 +302,7 @@ public class MappingHandlerMapping {
 	 */
 	public boolean hasRegisterMapping(ApiInfo info) {
 		if (info.getId() != null) {
-			MappingNode mappingNode = mappings.get(info.getId());
+			MappingNode mappingNode = MAPPINGS.get(info.getId());
 			ApiInfo oldInfo = mappingNode == null ? null : mappingNode.getInfo();
 			if (oldInfo != null
 					&& Objects.equals(oldInfo.getGroupId(), info.getGroupId())
@@ -308,8 +312,8 @@ public class MappingHandlerMapping {
 			}
 		}
 		String mappingKey = getMappingKey(info);
-		if (mappings.containsKey(mappingKey)) {
-			return !mappings.get(mappingKey).getInfo().getId().equals(info.getId());
+		if (MAPPINGS.containsKey(mappingKey)) {
+			return !MAPPINGS.get(mappingKey).getInfo().getId().equals(info.getId());
 		}
 		if (!allowOverride) {
 			Map<RequestMappingInfo, HandlerMethod> handlerMethods = this.mappingHelper.getHandlerMethods();
@@ -322,7 +326,7 @@ public class MappingHandlerMapping {
 	 * 接口移动
 	 */
 	public boolean move(String id, String groupId) {
-		MappingNode mappingNode = mappings.get(id);
+		MappingNode mappingNode = MAPPINGS.get(id);
 		if (mappingNode == null) {
 			return false;
 		}
@@ -340,11 +344,11 @@ public class MappingHandlerMapping {
 	 * 注册请求映射
 	 */
 	public void registerMapping(ApiInfo info, boolean delete) {
-		if(info == null){
+		if (info == null) {
 			return;
 		}
 		// 先判断是否已注册，如果已注册，则先取消注册在进行注册。
-		MappingNode mappingNode = mappings.get(info.getId());
+		MappingNode mappingNode = MAPPINGS.get(info.getId());
 		String newMappingKey = getMappingKey(info);
 		if (mappingNode != null) {
 			ApiInfo oldInfo = mappingNode.getInfo();
@@ -353,7 +357,7 @@ public class MappingHandlerMapping {
 			if (Objects.equals(oldMappingKey, newMappingKey)) {
 				if (!info.equals(oldInfo)) {
 					mappingNode.setInfo(info);
-					mappings.get(newMappingKey).setInfo(info);
+					MAPPINGS.get(newMappingKey).setInfo(info);
 					if (delete) {
 						refreshCache(info);
 					}
@@ -364,7 +368,7 @@ public class MappingHandlerMapping {
 			// URL不一致时，需要取消注册旧接口，重新注册新接口
 			logger.info("取消注册接口:{},{}", oldInfo.getName(), oldMappingKey);
 			// 取消注册
-			mappings.remove(oldMappingKey);
+			MAPPINGS.remove(oldMappingKey);
 			mappingHelper.unregister(getRequestMapping(oldInfo));
 		}
 		mappingNode = new MappingNode(info);
@@ -379,10 +383,11 @@ public class MappingHandlerMapping {
 			return;
 		}
 		logger.info("注册接口:{},{}", info.getName(), newMappingKey);
-		mappings.put(info.getId(), mappingNode);
-		mappings.put(newMappingKey, mappingNode);
+		MAPPINGS.put(info.getId(), mappingNode);
+		MAPPINGS.put(newMappingKey, mappingNode);
 		registerMapping(requestMapping, handler, method);
-		if (delete) {   // 刷新缓存
+		if (delete) {
+			// 刷新缓存
 			refreshCache(info);
 		}
 	}
@@ -400,13 +405,14 @@ public class MappingHandlerMapping {
 	 * 取消注册请求映射
 	 */
 	public void unregisterMapping(String id, boolean delete) {
-		MappingNode mappingNode = mappings.remove(id);
+		MappingNode mappingNode = MAPPINGS.remove(id);
 		if (mappingNode != null) {
 			ApiInfo info = mappingNode.getInfo();
 			logger.info("取消注册接口:{}", info.getName());
-			mappings.remove(mappingNode.getMappingKey());
+			MAPPINGS.remove(mappingNode.getMappingKey());
 			mappingHelper.unregister(mappingNode.getRequestMappingInfo());
-			if (delete) {   //刷新缓存
+			if (delete) {
+				// 刷新缓存
 				apiInfos.removeIf(i -> i.getId().equalsIgnoreCase(info.getId()));
 			}
 		}

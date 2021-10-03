@@ -3,7 +3,13 @@ package org.ssssssss.magicapi.dialect;
 import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.magicapi.modules.BoundSql;
 
+/**
+ * SQLServer2005 方言
+ *
+ * @author mxd
+ */
 public class SQLServer2005Dialect implements Dialect {
+
 	@Override
 	public boolean match(String jdbcUrl) {
 		return jdbcUrl.contains(":sqlserver:");

@@ -16,11 +16,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * 文件备份实现
+ *
+ * @author mxd
+ */
 public class MagicFileBackupService implements MagicBackupService {
 
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-	private static final String suffix = ".json";
+	private static final String SUFFIX = ".json";
 
 	/**
 	 * 保存路径
@@ -29,7 +34,7 @@ public class MagicFileBackupService implements MagicBackupService {
 
 	public MagicFileBackupService(File backupDirectory) {
 		this.backupDirectory = backupDirectory;
-		if(!backupDirectory.exists()){
+		if (!backupDirectory.exists()) {
 			backupDirectory.mkdirs();
 		}
 	}
@@ -54,10 +59,10 @@ public class MagicFileBackupService implements MagicBackupService {
 		File[] fileArray = backupDirectory.listFiles();
 		List<Backup> records = new ArrayList<>(FETCH_SIZE);
 		if (fileArray != null) {
-			List<File> dirs = Stream.of(fileArray).sorted(Comparator.comparing(File::getName)).collect(Collectors.toList());
+			List<File> dirs = Stream.of(fileArray).sorted(Comparator.comparing(File::getName).reversed()).collect(Collectors.toList());
 			outer:
 			for (File dir : dirs) {
-				fileArray = dir.listFiles((_dir, name) -> getTimestampFromFilename(name) < timestamp);
+				fileArray = dir.listFiles((directory, name) -> getTimestampFromFilename(name) < timestamp);
 				if (fileArray != null) {
 					for (File file : fileArray) {
 						records.add(JsonUtils.readValue(IoUtils.string(file), Backup.class));
@@ -70,12 +75,13 @@ public class MagicFileBackupService implements MagicBackupService {
 		}
 		return records.stream()
 				.sorted(Comparator.comparing(Backup::getCreateDate).reversed())
+				.map(Backup::small)
 				.collect(Collectors.toList());
 	}
 
 	@Override
 	public List<Backup> backupById(String id) {
-		return backupByFilenameFilter((dir, name) -> name.endsWith(id + suffix))
+		return backupByFilenameFilter((dir, name) -> name.endsWith(id + SUFFIX))
 				.stream()
 				.sorted(Comparator.comparing(Backup::getCreateDate).reversed())
 				.collect(Collectors.toList());
@@ -85,7 +91,7 @@ public class MagicFileBackupService implements MagicBackupService {
 	public Backup backupInfo(String id, long timestamp) {
 		File directory = new File(backupDirectory, Instant.ofEpochMilli(timestamp).atZone(ZoneOffset.ofHours(8)).toLocalDate().format(FORMATTER));
 		if (directory.exists()) {
-			File[] files = directory.listFiles((_dir, name) -> name.startsWith("" + timestamp) && name.endsWith(id + suffix));
+			File[] files = directory.listFiles((dir, name) -> name.startsWith("" + timestamp) && name.endsWith(id + SUFFIX));
 			if (files != null && files.length > 0) {
 				return JsonUtils.readValue(IoUtils.string(files[0]), Backup.class);
 			}
@@ -96,13 +102,13 @@ public class MagicFileBackupService implements MagicBackupService {
 	@Override
 	public List<Backup> backupByTag(String tag) {
 		String tagId = MD5Utils.encrypt(tag);
-		return backupByFilenameFilter((dir, name) -> name.endsWith(suffix) && name.contains("-" + tagId + "-"));
+		return backupByFilenameFilter((dir, name) -> name.endsWith(SUFFIX) && name.contains("-" + tagId + "-"));
 	}
 
 
 	@Override
 	public long removeBackup(String id) {
-		return getFilesByFilenameFilter((dir, name) -> name.endsWith(id + suffix))
+		return getFilesByFilenameFilter((dir, name) -> name.endsWith(id + SUFFIX))
 				.stream()
 				.filter(File::delete)
 				.count();
@@ -110,7 +116,7 @@ public class MagicFileBackupService implements MagicBackupService {
 
 	@Override
 	public long removeBackup(List<String> idList) {
-		List<String> filenames = idList.stream().map(it -> it + suffix).collect(Collectors.toList());
+		List<String> filenames = idList.stream().map(it -> it + SUFFIX).collect(Collectors.toList());
 		return getFilesByFilenameFilter((dir, name) -> filenames.stream().anyMatch(name::endsWith))
 				.stream()
 				.filter(File::delete)
@@ -125,10 +131,10 @@ public class MagicFileBackupService implements MagicBackupService {
 				.count();
 		// 删除空目录
 		File[] files = backupDirectory.listFiles(File::isDirectory);
-		if(files != null){
+		if (files != null) {
 			for (File file : files) {
 				String[] list = file.list();
-				if(list == null || list.length == 0){
+				if (list == null || list.length == 0) {
 					file.delete();
 				}
 			}

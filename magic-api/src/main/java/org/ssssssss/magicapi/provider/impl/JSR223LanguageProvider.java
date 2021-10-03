@@ -7,6 +7,11 @@ import javax.script.ScriptEngineManager;
 import javax.script.SimpleBindings;
 import java.util.Map;
 
+/**
+ * JSR223规范支持
+ *
+ * @author mxd
+ */
 public class JSR223LanguageProvider implements LanguageProvider {
 
 	ScriptEngineManager scriptEngineManager = new ScriptEngineManager();

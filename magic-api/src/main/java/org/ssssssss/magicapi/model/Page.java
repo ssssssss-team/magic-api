@@ -2,6 +2,8 @@ package org.ssssssss.magicapi.model;
 
 /**
  * 分页对象
+ *
+ * @author mxd
  */
 public class Page {
 

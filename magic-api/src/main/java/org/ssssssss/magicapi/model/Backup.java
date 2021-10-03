@@ -2,6 +2,8 @@ package org.ssssssss.magicapi.model;
 
 /**
  * 备份记录
+ *
+ * @author mxd
  */
 public class Backup {
 
@@ -106,7 +108,7 @@ public class Backup {
 		this.name = name;
 	}
 
-	public Backup small(){
+	public Backup small() {
 		setContent(null);
 		return this;
 	}

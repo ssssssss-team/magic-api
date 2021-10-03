@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.dialect;
 
+/**
+ * ClickHouse方言
+ *
+ * @author mxd
+ */
 public class ClickhouseDialect extends MySQLDialect {
 
 	@Override

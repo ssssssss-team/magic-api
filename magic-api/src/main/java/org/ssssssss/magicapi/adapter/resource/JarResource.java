@@ -13,6 +13,11 @@ import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
+/**
+ * Jar存储实现
+ *
+ * @author mxd
+ */
 public class JarResource implements Resource {
 
 	private final JarFile jarFile;
@@ -24,10 +29,8 @@ public class JarResource implements Resource {
 	private final String entryName;
 
 	private final boolean inSpringBoot;
-
+	private final String rootName;
 	private JarResource parent = null;
-
-	private String rootName;
 
 	public JarResource(JarFile jarFile, String entryName, List<JarEntry> entries, boolean inSpringBoot) {
 		this.jarFile = jarFile;
@@ -122,7 +125,7 @@ public class JarResource implements Resource {
 				.filter(it -> it.getName().startsWith(prefix))
 				.map(entry -> new JarResource(jarFile, entry.getName(), entries.stream()
 						.filter(item -> item.getName().startsWith(PathUtils.replaceSlash(entry.getName() + "/")))
-						.collect(Collectors.toList()), this,this.inSpringBoot)
+						.collect(Collectors.toList()), this, this.inSpringBoot)
 				)
 				.collect(Collectors.toList());
 	}
@@ -140,7 +143,7 @@ public class JarResource implements Resource {
 	@Override
 	public String getFilePath() {
 		JarResource root = this;
-		while(root.parent != null){
+		while (root.parent != null) {
 			root = root.parent;
 		}
 		String path = this.entryName.substring(root.rootName.length());

@@ -12,6 +12,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 接口、函数存储抽象实现
+ *
+ * @author mxd
+ */
 public abstract class StoreServiceProvider<T extends MagicEntity> {
 
 	private static final Logger logger = LoggerFactory.getLogger(StoreServiceProvider.class);
@@ -37,7 +42,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	 * 添加
 	 */
 	public boolean insert(T info) {
-		if(StringUtils.isBlank(info.getId())){
+		if (StringUtils.isBlank(info.getId())) {
 			info.setId(UUID.randomUUID().toString().replace("-", ""));
 		}
 		info.setUpdateTime(System.currentTimeMillis());
@@ -85,18 +90,18 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		return false;
 	}
 
-	public boolean lock(String id){
+	public boolean lock(String id) {
 		T info = get(id);
-		if(info != null){
+		if (info != null) {
 			info.setLock(Constants.LOCK);
 			return update(info);
 		}
 		return false;
 	}
 
-	public boolean unlock(String id){
+	public boolean unlock(String id) {
 		T info = get(id);
-		if(info != null){
+		if (info != null) {
 			info.setLock(Constants.UNLOCK);
 			return update(info);
 		}
@@ -117,7 +122,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 	 */
 	public boolean reload(String groupId) {
 		Resource dest = groupServiceProvider.getGroupResource(groupId);
-		if(dest != null){
+		if (dest != null) {
 			dest.files(".ms").forEach(r -> {
 				T info = deserialize(r.read());
 				infos.put(info.getId(), info);
@@ -140,14 +145,14 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 			T info = (T) deserialize(r.read()).clone();
 			infos.put(info.getId(), info);
 			mappings.put(info.getId(), r);
-			return info ;
+			return info;
 		}).collect(Collectors.toList());
 		this.mappings = mappings;
 		this.infos = infos;
 		return result;
 	}
 
-	public List<T> cachedList(){
+	public List<T> cachedList() {
 		return new ArrayList<>(this.infos.values());
 	}
 
@@ -208,7 +213,7 @@ public abstract class StoreServiceProvider<T extends MagicEntity> {
 		return true;
 	}
 
-	public List<String> getIdsWithoutIds(List<String> idList){
+	public List<String> getIdsWithoutIds(List<String> idList) {
 		return this.mappings.keySet().stream()
 				.filter(id -> !idList.contains(id))
 				.collect(Collectors.toList());

@@ -10,6 +10,11 @@ import org.ssssssss.magicapi.provider.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 配置信息
+ *
+ * @author mxd
+ */
 public class MagicConfiguration {
 
 	/**

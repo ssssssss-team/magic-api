@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Zip 存储实现
+ *
+ * @author mxd
+ */
 public class ZipResource implements Resource {
 
 	private final Map<String, byte[]> cachedContent;

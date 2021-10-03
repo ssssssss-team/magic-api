@@ -15,6 +15,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * WebSocket Session 管理
+ *
+ * @author mxd
+ */
 public class WebSocketSessionManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(WebSocketSessionManager.class);
@@ -59,7 +64,7 @@ public class WebSocketSessionManager {
 		}
 	}
 
-	private static void sendToOther(String sessionId, String content){
+	private static void sendToOther(String sessionId, String content) {
 		if (magicNotifyService != null) {
 			// 通知其他机器去发送消息
 			magicNotifyService.sendNotify(new MagicNotify(instanceId, Constants.NOTIFY_WS_S_C, sessionId, content));

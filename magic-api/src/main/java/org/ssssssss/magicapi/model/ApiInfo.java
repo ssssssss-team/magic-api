@@ -7,9 +7,12 @@ import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.utils.JsonUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 接口信息
+ *
+ * @author mxd
  */
 public class ApiInfo extends MagicEntity {
 
@@ -68,10 +71,10 @@ public class ApiInfo extends MagicEntity {
 	 */
 	private BaseDefinition requestBodyDefinition;
 
-    /**
-     * 输出结果属性
-     */
-    private BaseDefinition responseBodyDefinition;
+	/**
+	 * 输出结果属性
+	 */
+	private BaseDefinition responseBodyDefinition;
 
 	public String getMethod() {
 		return method;
@@ -92,28 +95,28 @@ public class ApiInfo extends MagicEntity {
 	public void setParameter(String parameter) {
 		if (parameter != null) {
 			parameter = parameter.trim();
-			if (parameter.startsWith("[")) {    // v0.5.0+
+			// v0.5.0+
+			if (parameter.startsWith("[")) {
 				this.parameters = JsonUtils.readValue(Objects.toString(parameter, "[]"), new TypeReference<List<Parameter>>() {
 				});
 			} else {
-				Map map = JsonUtils.readValue(Objects.toString(parameter, "{}"), Map.class);
+				Map<String, Object> map = JsonUtils.readValue(Objects.toString(parameter, "{}"), new TypeReference<Map<String, Object>>() {
+				});
 				Object request = map.get("request");
 				if (request instanceof Map) {
-					Map requestMap = (Map) request;
-					Set keys = requestMap.keySet();
-					this.parameters = new ArrayList<>();
-					for (Object key : keys) {
-						this.parameters.add(new Parameter(key.toString(), Objects.toString(requestMap.get(key), "")));
-					}
+					Map<String, Object> requestMap = (Map<String, Object>) request;
+					this.parameters = requestMap.keySet()
+							.stream()
+							.map(key -> new Parameter(key, Objects.toString(requestMap.get(key), "")))
+							.collect(Collectors.toList());
 				}
 				Object header = map.get("header");
 				if (header instanceof Map) {
-					Map headers = (Map) header;
-					Set keys = headers.keySet();
-					this.headers = new ArrayList<>();
-					for (Object key : keys) {
-						this.headers.add(new Header(key.toString(), Objects.toString(headers.get(key), "")));
-					}
+					Map<String, Object> headers = (Map<String, Object>) header;
+					this.headers = headers.keySet()
+							.stream()
+							.map(key -> new Header(key, Objects.toString(headers.get(key), "")))
+							.collect(Collectors.toList());
 				}
 				if (map.containsKey("body")) {
 					this.requestBody = Objects.toString(map.get("body"), null);
@@ -149,7 +152,7 @@ public class ApiInfo extends MagicEntity {
 	public Map<String, String> getOptionMap() {
 		Map<String, String> map = new HashMap<>();
 		if (this.jsonNode == null) {
-			return null;
+			return Collections.emptyMap();
 		} else if (this.jsonNode.isArray()) {
 			for (JsonNode node : this.jsonNode) {
 				map.put(node.get("name").asText(), node.get("value").asText());
@@ -185,6 +188,7 @@ public class ApiInfo extends MagicEntity {
 		try {
 			this.jsonNode = new ObjectMapper().readTree(option);
 		} catch (Throwable ignored) {
+			// ignored
 		}
 	}
 
@@ -241,23 +245,23 @@ public class ApiInfo extends MagicEntity {
 				.map(it -> Objects.toString(it.getValue(), null)).orElse(null);
 	}
 
-    public BaseDefinition getRequestBodyDefinition() {
-        return requestBodyDefinition;
-    }
+	public BaseDefinition getRequestBodyDefinition() {
+		return requestBodyDefinition;
+	}
 
-    public void setRequestBodyDefinition(BaseDefinition requestBodyDefinition) {
-        this.requestBodyDefinition = requestBodyDefinition;
-    }
+	public void setRequestBodyDefinition(BaseDefinition requestBodyDefinition) {
+		this.requestBodyDefinition = requestBodyDefinition;
+	}
 
-    public BaseDefinition getResponseBodyDefinition() {
-        return responseBodyDefinition;
-    }
+	public BaseDefinition getResponseBodyDefinition() {
+		return responseBodyDefinition;
+	}
 
-    public void setResponseBodyDefinition(BaseDefinition responseBodyDefinition) {
-        this.responseBodyDefinition = responseBodyDefinition;
-    }
+	public void setResponseBodyDefinition(BaseDefinition responseBodyDefinition) {
+		this.responseBodyDefinition = responseBodyDefinition;
+	}
 
-	public ApiInfo simple(){
+	public ApiInfo simple() {
 		ApiInfo target = new ApiInfo();
 		target.setId(this.getId());
 		target.setName(this.getName());
@@ -268,10 +272,14 @@ public class ApiInfo extends MagicEntity {
 		return target;
 	}
 
-    @Override
+	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		ApiInfo apiInfo = (ApiInfo) o;
 		return Objects.equals(id, apiInfo.id) &&
 				Objects.equals(method, apiInfo.method) &&

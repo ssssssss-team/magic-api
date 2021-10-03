@@ -10,6 +10,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
+/**
+ * WebSocket Debug 处理器
+ *
+ * @author mxd
+ */
 public class MagicDebugHandler {
 
 	/**
@@ -44,7 +49,7 @@ public class MagicDebugHandler {
 		MagicScriptDebugContext context = session.getMagicScriptDebugContext();
 		if (context != null) {
 			context.setStepInto("1".equals(stepInto));
-			if(StringUtils.isNotBlank(breakpoints)){
+			if (StringUtils.isNotBlank(breakpoints)) {
 				context.setBreakpoints(Stream.of(breakpoints.split("\\|")).map(Integer::valueOf).collect(Collectors.toList()));
 			}
 			try {

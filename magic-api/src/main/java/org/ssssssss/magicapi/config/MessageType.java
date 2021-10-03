@@ -1,8 +1,10 @@
 package org.ssssssss.magicapi.config;
 
 /**
- * 消息类型
- * */
+ * WebSocket 消息类型
+ *
+ * @author mxd
+ */
 public enum MessageType {
 	/* S -> C message */
 	/* 日志消息 */

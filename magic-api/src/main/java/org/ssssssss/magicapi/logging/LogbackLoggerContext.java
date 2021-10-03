@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 对接Logback
+ *
+ * @author mxd
  */
 public class LogbackLoggerContext implements MagicLoggerContext {
 

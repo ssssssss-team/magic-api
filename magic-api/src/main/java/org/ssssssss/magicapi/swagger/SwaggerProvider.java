@@ -19,19 +19,10 @@ import static org.ssssssss.magicapi.model.Constants.*;
 
 /**
  * 生成swagger用的json
+ *
+ * @author mxd
  */
 public class SwaggerProvider {
-
-	private MappingHandlerMapping mappingHandlerMapping;
-
-	/**
-	 * 基础路径
-	 */
-	private String basePath;
-
-	private GroupServiceProvider groupServiceProvider;
-
-	private SwaggerEntity.Info info;
 
 	/**
 	 * swagger Model定义路径前缀
@@ -41,8 +32,14 @@ public class SwaggerProvider {
 	 * body空对象
 	 */
 	private static final String BODY_EMPTY = "{}";
-
 	private final Map<String, Object> DEFINITION_MAP = new ConcurrentHashMap<>();
+	private MappingHandlerMapping mappingHandlerMapping;
+	/**
+	 * 基础路径
+	 */
+	private String basePath;
+	private GroupServiceProvider groupServiceProvider;
+	private SwaggerEntity.Info info;
 
 	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
@@ -155,7 +152,8 @@ public class SwaggerProvider {
 				parameters.add(parameter);
 			} else {
 				Object object = mapper.readValue(info.getRequestBody(), Object.class);
-				if ((object instanceof List || object instanceof Map) && BooleanLiteral.isTrue(object)) {
+				boolean isListOrMap = (object instanceof List || object instanceof Map);
+				if (isListOrMap && BooleanLiteral.isTrue(object)) {
 					parameters.add(SwaggerEntity.createParameter(false, VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, object instanceof List ? VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY : VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT, null, object));
 				}
 			}
@@ -203,7 +201,7 @@ public class SwaggerProvider {
 
 			Map<String, Object> definition = new HashMap<>(4);
 			Map<String, Map<String, Object>> properties = new HashMap<>(target.getChildren().size());
-			Set<String> requiredSet = new HashSet <>(target.getChildren().size());
+			Set<String> requiredSet = new HashSet<>(target.getChildren().size());
 			for (BaseDefinition obj : target.getChildren()) {
 				properties.put(obj.getName(), doProcessDefinition(obj, info, parentName + target.getName() + "_", definitionType, level + 1));
 				if (obj.isRequired()) {

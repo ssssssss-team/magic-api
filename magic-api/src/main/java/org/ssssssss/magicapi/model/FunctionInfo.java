@@ -7,6 +7,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 函数信息
+ *
+ * @author mxd
+ */
 public class FunctionInfo extends MagicEntity {
 
 	private String path;
@@ -32,6 +37,7 @@ public class FunctionInfo extends MagicEntity {
 			this.parameters = JsonUtils.readValue(Objects.toString(parameter, "[]"), new TypeReference<List<Parameter>>() {
 			});
 		} catch (Throwable ignored) {
+			// ignored
 		}
 	}
 
@@ -69,8 +75,12 @@ public class FunctionInfo extends MagicEntity {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
 		FunctionInfo functionInfo = (FunctionInfo) o;
 		return Objects.equals(id, functionInfo.id) &&
 				Objects.equals(path, functionInfo.path) &&
@@ -88,7 +98,7 @@ public class FunctionInfo extends MagicEntity {
 		return Objects.hash(id, path, script, name, groupId, parameters, description, returnType);
 	}
 
-	public FunctionInfo copy(){
+	public FunctionInfo copy() {
 		FunctionInfo info = new FunctionInfo();
 		info.setId(this.id);
 		info.setName(this.name);

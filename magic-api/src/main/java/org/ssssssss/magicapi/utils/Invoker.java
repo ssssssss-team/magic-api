@@ -10,8 +10,6 @@ import java.util.Arrays;
  */
 public class Invoker {
 
-	private final JavaInvoker<?> target;
-
 	private static final Method invokeMethod;
 
 	static {
@@ -21,19 +19,21 @@ public class Invoker {
 				.orElse(null);
 	}
 
+	private final JavaInvoker<?> target;
+
 	private Invoker(JavaInvoker<?> target) {
 		this.target = target;
-	}
-
-	public Class<?>[] getParameterTypes(){
-		return this.target.getParameterTypes();
 	}
 
 	public static Invoker from(JavaInvoker<?> target) {
 		return target == null ? null : new Invoker(target);
 	}
 
-	public Object invoke(Object target, Object context, Object ... args) throws Throwable{
+	public Class<?>[] getParameterTypes() {
+		return this.target.getParameterTypes();
+	}
+
+	public Object invoke(Object target, Object context, Object... args) throws Throwable {
 		return invokeMethod.invoke(this.target, target, context, args);
 	}
 }

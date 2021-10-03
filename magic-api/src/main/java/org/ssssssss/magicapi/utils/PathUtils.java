@@ -2,6 +2,11 @@ package org.ssssssss.magicapi.utils;
 
 import java.util.regex.Pattern;
 
+/**
+ * 路径处理工具包
+ *
+ * @author mxd
+ */
 public class PathUtils {
 
 	private static final Pattern REPLACE_SLASH_REGX = Pattern.compile("/+");

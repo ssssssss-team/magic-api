@@ -3,7 +3,13 @@ package org.ssssssss.magicapi.model;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Attributes<T>  {
+/**
+ * 属性信息
+ *
+ * @param <T>
+ * @author mxd
+ */
+public class Attributes<T> {
 
 	protected Map<String, T> properties = new HashMap<>();
 

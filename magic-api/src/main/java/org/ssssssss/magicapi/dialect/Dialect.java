@@ -6,17 +6,29 @@ import org.ssssssss.magicapi.modules.BoundSql;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+/**
+ * 数据库方言接口
+ *
+ * @author mxd
+ */
 public interface Dialect {
 
 	/**
 	 * 根据jdbcUrl匹配
+	 *
+	 * @param jdbcUrl jdbc链接
+	 * @return 是否匹配
 	 */
-	default boolean match(String jdbcUrl){
+	default boolean match(String jdbcUrl) {
 		return false;
 	}
 
 	/**
 	 * 根据Connection匹配
+	 *
+	 * @param connection jdbc连接
+	 * @return 是否匹配
+	 * @throws SQLException 匹配失败时抛出的异常
 	 */
 	default boolean match(Connection connection) throws SQLException {
 		return match(connection.getMetaData().getURL());
@@ -24,6 +36,9 @@ public interface Dialect {
 
 	/**
 	 * 获取查总数的sql
+	 *
+	 * @param sql 原始SQL
+	 * @return 分页 count SQL
 	 */
 	default String getCountSql(String sql) {
 		return "select count(1) from (" + sql + ") count_";
@@ -31,6 +46,12 @@ public interface Dialect {
 
 	/**
 	 * 获取分页sql
+	 *
+	 * @param sql      原始SQL
+	 * @param boundSql boundSql对象
+	 * @param offset   跳过条数
+	 * @param limit    限制条数
+	 * @return 返回分页SQL
 	 */
 	String getPageSql(String sql, BoundSql boundSql, long offset, long limit);
 }

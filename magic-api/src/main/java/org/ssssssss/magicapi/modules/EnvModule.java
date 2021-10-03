@@ -4,6 +4,11 @@ import org.springframework.core.env.Environment;
 import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.script.annotation.Comment;
 
+/**
+ * env模块
+ *
+ * @author mxd
+ */
 public class EnvModule implements MagicModule {
 
 	private final Environment environment;

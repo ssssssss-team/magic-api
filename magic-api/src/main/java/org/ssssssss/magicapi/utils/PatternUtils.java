@@ -4,15 +4,20 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
+/**
+ * 正则相关工具包
+ *
+ * @author mxd
+ */
 public class PatternUtils {
 
-	private static final Map<String, Pattern> cachedPatterns = new ConcurrentHashMap<>();
+	private static final Map<String, Pattern> CACHED_PATTERNS = new ConcurrentHashMap<>();
 
 	public static boolean match(String content, String regex) {
-		Pattern pattern = cachedPatterns.get(regex);
+		Pattern pattern = CACHED_PATTERNS.get(regex);
 		if (pattern == null) {
 			pattern = Pattern.compile(regex);
-			cachedPatterns.put(regex, pattern);
+			CACHED_PATTERNS.put(regex, pattern);
 		}
 		return pattern.matcher(content).find();
 	}

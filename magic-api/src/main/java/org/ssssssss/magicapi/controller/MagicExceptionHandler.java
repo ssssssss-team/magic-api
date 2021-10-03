@@ -7,10 +7,21 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.exception.InvalidArgumentException;
 import org.ssssssss.magicapi.model.JsonBean;
 
+/**
+ * magic-api接口异常处理器
+ *
+ * @author mxd
+ */
 public interface MagicExceptionHandler {
 
 	Logger logger = LoggerFactory.getLogger(MagicExceptionHandler.class);
 
+	/**
+	 * magic-api中的接口异常处理
+	 *
+	 * @param e 异常对象
+	 * @return 返回json对象
+	 */
 	@ExceptionHandler(Exception.class)
 	@ResponseBody
 	default Object exceptionHandler(Exception e) {
@@ -18,6 +29,12 @@ public interface MagicExceptionHandler {
 		return new JsonBean<>(-1, e.getMessage());
 	}
 
+	/**
+	 * magic-api中的接口异常处理
+	 *
+	 * @param e 异常对象
+	 * @return 返回json对象
+	 */
 	@ExceptionHandler(InvalidArgumentException.class)
 	@ResponseBody
 	default Object exceptionHandler(InvalidArgumentException e) {

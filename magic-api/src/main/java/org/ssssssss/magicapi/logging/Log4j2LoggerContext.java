@@ -17,6 +17,8 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * 对接Log4j2
+ *
+ * @author mxd
  */
 public class Log4j2LoggerContext implements MagicLoggerContext {
 

@@ -2,7 +2,12 @@ package org.ssssssss.magicapi.exception;
 
 import org.ssssssss.magicapi.model.JsonCode;
 
-public class ValidateException extends RuntimeException{
+/**
+ * 接口验证异常
+ *
+ * @author mxd
+ */
+public class ValidateException extends RuntimeException {
 
 	private final JsonCode jsonCode;
 

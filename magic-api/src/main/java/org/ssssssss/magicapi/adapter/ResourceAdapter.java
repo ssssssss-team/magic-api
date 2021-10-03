@@ -14,7 +14,12 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 
-public abstract class ResourceAdapter {
+/**
+ * 资源适配器
+ *
+ * @author mxd
+ */
+public class ResourceAdapter {
 
 	public static final String SPRING_BOOT_CLASS_PATH = "BOOT-INF/classes/";
 	private static PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
@@ -44,7 +49,7 @@ public abstract class ResourceAdapter {
 		URL url = resource.getURI().toURL();
 		if (url.getProtocol().equals(ResourceUtils.URL_PROTOCOL_JAR)) {
 			JarURLConnection connection = (JarURLConnection) url.openConnection();
-			boolean springBootClassPath = connection.getClass().getName().equals("org.springframework.boot.loader.jar.JarURLConnection");
+			boolean springBootClassPath = "org.springframework.boot.loader.jar.JarURLConnection".equals(connection.getClass().getName());
 			String entryName = (springBootClassPath ? SPRING_BOOT_CLASS_PATH : "") + connection.getEntryName();
 			JarFile jarFile = connection.getJarFile();
 			List<JarEntry> entries = jarFile.stream().filter(it -> it.getName().startsWith(entryName)).collect(Collectors.toList());

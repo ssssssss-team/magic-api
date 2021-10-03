@@ -17,6 +17,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 函数相关操作
+ *
+ * @author mxd
+ */
 public class MagicFunctionController extends MagicController implements MagicExceptionHandler {
 
 

@@ -6,6 +6,8 @@ import java.util.HashMap;
 
 /**
  * Cookie Context 用于脚本中获取cookie信息
+ *
+ * @author mxd
  */
 public class CookieContext extends HashMap<String, String> {
 

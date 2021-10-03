@@ -3,6 +3,11 @@ package org.ssssssss.magicapi.logging;
 import org.ssssssss.magicapi.config.MessageType;
 import org.ssssssss.magicapi.config.WebSocketSessionManager;
 
+/**
+ * 日志上下文
+ *
+ * @author mxd
+ */
 public interface MagicLoggerContext {
 
 	String LOGGER_NAME = "magic";
@@ -20,6 +25,13 @@ public interface MagicLoggerContext {
 		if (sessionId != null) {
 			WebSocketSessionManager.sendBySessionId(sessionId, MessageType.LOG, logInfo);
 		}
+	}
+
+	/**
+	 * 移除ThreadLocal中的sessionId
+	 */
+	static void remove() {
+		SESSION.remove();
 	}
 
 	/**

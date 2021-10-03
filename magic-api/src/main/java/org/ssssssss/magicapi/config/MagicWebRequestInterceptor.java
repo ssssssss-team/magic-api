@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * /magic/web相关接口的拦截器
+ *
+ * @author mxd
  */
 public class MagicWebRequestInterceptor implements HandlerInterceptor {
 
@@ -35,7 +37,9 @@ public class MagicWebRequestInterceptor implements HandlerInterceptor {
 					magicCorsFilter.process(request, response);
 				}
 				Valid valid = handlerMethod.getMethodAnnotation(Valid.class);
-				if (authorizationInterceptor.requireLogin() && (valid == null || valid.requireLogin())) {
+				boolean requiredLogin = authorizationInterceptor.requireLogin();
+				boolean validRequiredLogin = (valid == null || valid.requireLogin());
+				if (requiredLogin && validRequiredLogin) {
 					request.setAttribute(Constants.ATTRIBUTE_MAGIC_USER, authorizationInterceptor.getUserByToken(request.getHeader(Constants.MAGIC_TOKEN_HEADER)));
 				}
 				((MagicController) handler).doValid(request, valid);

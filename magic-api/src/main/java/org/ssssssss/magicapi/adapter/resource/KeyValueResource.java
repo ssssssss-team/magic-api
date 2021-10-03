@@ -7,6 +7,11 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Key-Value形式的存储
+ *
+ * @author mxd
+ */
 public abstract class KeyValueResource implements Resource {
 
 	protected String separator;
@@ -86,6 +91,9 @@ public abstract class KeyValueResource implements Resource {
 
 	/**
 	 * 需要做修改的key，原key: 新key
+	 *
+	 * @param renameKeys 需重命名的key
+	 * @return 是否修改成功
 	 */
 	protected abstract boolean renameTo(Map<String, String> renameKeys);
 
@@ -133,8 +141,18 @@ public abstract class KeyValueResource implements Resource {
 		return keys().stream().map(mappedFunction()).collect(Collectors.toList());
 	}
 
+	/**
+	 * mapped函数，用于根据路径创建资源对象
+	 *
+	 * @return mapped函数
+	 */
 	protected abstract Function<String, Resource> mappedFunction();
 
+	/**
+	 * 该资源下的keys
+	 *
+	 * @return 返回该资源下的keys
+	 */
 	protected abstract Set<String> keys();
 
 	@Override
@@ -155,12 +173,12 @@ public abstract class KeyValueResource implements Resource {
 	@Override
 	public String getFilePath() {
 		Resource parent = parent();
-		while (parent.parent() != null){
+		while (parent.parent() != null) {
 			parent = parent.parent();
 		}
 		String path = this.getAbsolutePath()
 				.replace(parent.getAbsolutePath(), "")
-				.replace("\\","/")
+				.replace("\\", "/")
 				.replace(this.separator, "/");
 		return path.startsWith("/") ? path.substring(1) : path;
 	}

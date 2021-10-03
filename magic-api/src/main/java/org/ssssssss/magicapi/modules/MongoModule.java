@@ -10,14 +10,14 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.utils.Invoker;
-import org.ssssssss.script.reflection.JavaInvoker;
 import org.ssssssss.script.reflection.JavaReflection;
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 
 /**
  * mongo模块
+ *
+ * @author mxd
  */
 public class MongoModule extends HashMap<String, Object> implements MagicModule {
 

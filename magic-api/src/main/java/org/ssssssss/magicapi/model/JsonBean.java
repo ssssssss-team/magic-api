@@ -2,6 +2,8 @@ package org.ssssssss.magicapi.model;
 
 /**
  * 统一返回值对象
+ *
+ * @author mxd
  */
 public class JsonBean<T> {
 

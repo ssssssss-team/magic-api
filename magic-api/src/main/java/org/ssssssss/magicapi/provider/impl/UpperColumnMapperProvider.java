@@ -4,6 +4,8 @@ import org.ssssssss.magicapi.provider.ColumnMapperProvider;
 
 /**
  * 全大写命名
+ *
+ * @author mxd
  */
 public class UpperColumnMapperProvider implements ColumnMapperProvider {
 

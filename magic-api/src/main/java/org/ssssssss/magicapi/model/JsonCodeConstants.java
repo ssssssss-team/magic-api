@@ -3,6 +3,11 @@ package org.ssssssss.magicapi.model;
 import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.magicapi.exception.InvalidArgumentException;
 
+/**
+ * JSON状态码常量
+ *
+ * @author mxd
+ */
 public interface JsonCodeConstants {
 
 	JsonCode SUCCESS = new JsonCode(1, Constants.RESPONSE_MESSAGE_SUCCESS);
@@ -84,18 +89,36 @@ public interface JsonCodeConstants {
 
 	JsonCode DATASOURCE_TYPE_NOT_SET = new JsonCode(0, "请设置数据源类型");
 
+	/**
+	 * 值不能为空
+	 *
+	 * @param value    值
+	 * @param jsonCode 值为空时的状态码
+	 */
 	default void notNull(Object value, JsonCode jsonCode) {
 		if (value == null) {
 			throw new InvalidArgumentException(jsonCode);
 		}
 	}
 
+	/**
+	 * 值应为true
+	 *
+	 * @param value    值
+	 * @param jsonCode 值为false的状态码
+	 */
 	default void isTrue(boolean value, JsonCode jsonCode) {
 		if (!value) {
 			throw new InvalidArgumentException(jsonCode);
 		}
 	}
 
+	/**
+	 * 值不能为空
+	 *
+	 * @param value    值
+	 * @param jsonCode 值为空的状态码
+	 */
 	default void notBlank(String value, JsonCode jsonCode) {
 		isTrue(StringUtils.isNotBlank(value), jsonCode);
 	}

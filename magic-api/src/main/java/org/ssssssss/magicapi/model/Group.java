@@ -2,7 +2,13 @@ package org.ssssssss.magicapi.model;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
+/**
+ * 分组对象
+ *
+ * @author mxd
+ */
 public class Group extends Attributes<Object> {
 
 	private String id;
@@ -87,5 +93,22 @@ public class Group extends Attributes<Object> {
 
 	public void setOptions(List<BaseDefinition> options) {
 		this.options = options;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof Group)) {
+			return false;
+		}
+		Group group = (Group) o;
+		return Objects.equals(id, group.id) && Objects.equals(name, group.name) && Objects.equals(type, group.type) && Objects.equals(parentId, group.parentId) && Objects.equals(path, group.path);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, name, type, parentId, path);
 	}
 }

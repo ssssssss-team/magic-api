@@ -6,6 +6,8 @@ import java.util.Arrays;
 
 /**
  * SQL缓存接口
+ *
+ * @author mxd
  */
 public interface SqlCache {
 

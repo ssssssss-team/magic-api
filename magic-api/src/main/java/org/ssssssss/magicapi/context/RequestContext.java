@@ -4,6 +4,11 @@ import org.ssssssss.magicapi.model.RequestEntity;
 
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * 请求上下文
+ *
+ * @author mxd
+ */
 public class RequestContext {
 
 	private static final ThreadLocal<RequestEntity> REQUEST_ENTITY_THREAD_LOCAL = new InheritableThreadLocal<>();

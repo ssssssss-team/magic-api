@@ -10,6 +10,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * 数据库备份实现
+ *
+ * @author mxd
+ */
 public class MagicDatabaseBackupService implements MagicBackupService {
 
 	private final static String DEFAULT_COLUMNS = "id,create_date,tag,type,name,create_by";
@@ -38,8 +43,8 @@ public class MagicDatabaseBackupService implements MagicBackupService {
 		this.FIND_BY_ID = String.format("select %s from %s where id = ?", DEFAULT_COLUMNS, tableName);
 		this.DELETE_BY_ID = String.format("delete from %s where id = ?", tableName);
 		this.FIND_BY_TAG = String.format("select %s from %s where tag = ?", DEFAULT_COLUMNS, tableName);
-		this.FIND_BY_TIMESTAMP = String.format("select %s from %s where create_date < ?", DEFAULT_COLUMNS, tableName);
-		this.DELETE_BY_TIMESTAMP = String.format("delete from %s where create_date < ?", tableName);
+		this.FIND_BY_TIMESTAMP = String.format("select %s from %s where create_date < ? order by create_date desc", DEFAULT_COLUMNS, tableName);
+		this.DELETE_BY_TIMESTAMP = String.format("delete from %s where create_date < ? order by create_date desc", tableName);
 		this.FIND_BY_ID_AND_TIMESTAMP = String.format("select * from %s where id = ? and create_date = ?", tableName);
 	}
 
@@ -57,7 +62,7 @@ public class MagicDatabaseBackupService implements MagicBackupService {
 	@Override
 	public List<Backup> backupList(long timestamp) {
 		Stream<Backup> stream = template.queryForStream(FIND_BY_TIMESTAMP, rowMapper, timestamp);
-		return stream.limit(20).collect(Collectors.toList());
+		return stream.limit(FETCH_SIZE).collect(Collectors.toList());
 	}
 
 	@Override

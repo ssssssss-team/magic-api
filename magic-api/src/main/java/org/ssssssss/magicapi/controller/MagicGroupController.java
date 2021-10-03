@@ -6,14 +6,19 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.interceptor.Authorization;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.Group;
 import org.ssssssss.magicapi.model.JsonBean;
-import org.ssssssss.magicapi.provider.MagicAPIService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 分组相关操作
+ *
+ * @author mxd
+ */
 public class MagicGroupController extends MagicController implements MagicExceptionHandler {
 
 	public MagicGroupController(MagicConfiguration configuration) {
@@ -80,7 +85,7 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	public JsonBean<String> copyGroup(HttpServletRequest request, String src, String target) {
 		Group group = magicAPIService.getGroup(src);
 		notNull(group, GROUP_NOT_FOUND);
-		if(!"0".equals(target)){
+		if (!Constants.ROOT_ID.equals(target)) {
 			Group targetGroup = magicAPIService.getGroup(target);
 			notNull(targetGroup, GROUP_NOT_FOUND);
 			isTrue(allowVisit(request, Authorization.SAVE, targetGroup), PERMISSION_INVALID);

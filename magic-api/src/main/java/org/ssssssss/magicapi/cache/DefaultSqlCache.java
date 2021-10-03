@@ -5,6 +5,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * 默认SQL缓存实现
+ *
+ * @author mxd
+ */
 public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.ExpireNode<Object>> implements SqlCache {
 
 	private final String separator = ":";
@@ -31,8 +36,7 @@ public class DefaultSqlCache extends LinkedHashMap<String, DefaultSqlCache.Expir
 
 	@Override
 	public void put(String name, String key, Object value, long ttl) {
-		long expireTime = ttl > 0 ? (System.currentTimeMillis() + ttl) :
-				(this.expire > -1 ? System.currentTimeMillis() + this.expire : Long.MAX_VALUE);
+		long expireTime = ttl > 0 ? (System.currentTimeMillis() + ttl) : (this.expire > -1 ? System.currentTimeMillis() + this.expire : Long.MAX_VALUE);
 		lock.writeLock().lock();
 		try {
 			// 封装成过期时间节点

@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.model;
 
+/**
+ * 选择的资源
+ *
+ * @author mxd
+ */
 public class SelectedResource {
 
 	private String id;

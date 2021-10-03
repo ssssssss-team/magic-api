@@ -5,6 +5,8 @@ import java.util.HashMap;
 
 /**
  * Session Context 用于脚本中获取Session信息
+ *
+ * @author mxd
  */
 public class SessionContext extends HashMap<String, Object> {
 

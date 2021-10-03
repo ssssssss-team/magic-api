@@ -9,6 +9,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 方言适配器
+ *
+ * @author mxd
+ */
 public class DialectAdapter {
 
 	private static final Logger logger = LoggerFactory.getLogger(DialectAdapter.class);

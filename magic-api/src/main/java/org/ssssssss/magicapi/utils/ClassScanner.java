@@ -16,6 +16,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 
+/**
+ * class 扫描器
+ *
+ * @author mxd
+ */
 public class ClassScanner {
 
 	public static List<String> scan() throws URISyntaxException {
@@ -79,8 +84,8 @@ public class ClassScanner {
 	private static Set<String> addJava8Library() {
 		try {
 			// 直接反射调用..
-			Object URLClassPath = Class.forName("sun.misc.Launcher").getMethod("getBootstrapClassPath").invoke(null);
-			return scan((URL[]) URLClassPath.getClass().getMethod("getURLs").invoke(URLClassPath));
+			Object classpath = Class.forName("sun.misc.Launcher").getMethod("getBootstrapClassPath").invoke(null);
+			return scan((URL[]) classpath.getClass().getMethod("getURLs").invoke(classpath));
 		} catch (Exception ignored) {
 		}
 		return Collections.emptySet();
@@ -92,23 +97,14 @@ public class ClassScanner {
 	private static Set<String> addJava9PlusLibrary() {
 		Set<String> classes = new HashSet<>();
 		try {
-			//		ModuleLayer.boot().configuration().modules().stream().map(ResolvedModule::reference).forEach(ref -> {
-			//			try (ModuleReader reader = ref.open()) {
-			//				reader.list().forEach(System.out::println);
-			//			} catch (IOException e) {
-			//				e.printStackTrace();
-			//			}
-			//		});
-			Class<?> ModuleLayer = Class.forName("java.lang.ModuleLayer");
-			Object boot = ModuleLayer.getMethod("boot").invoke(null);
-			Object configuration = ModuleLayer.getMethod("configuration").invoke(boot);
-			Class<?> Configuration = Class.forName("java.lang.module.Configuration");
+			Class<?> moduleLayer = Class.forName("java.lang.ModuleLayer");
+			Object boot = moduleLayer.getMethod("boot").invoke(null);
+			Object configuration = moduleLayer.getMethod("configuration").invoke(boot);
 			//Set<ResolvedModule>
-			Set<?> modules = (Set<?>) Configuration.getMethod("modules").invoke(configuration);
+			Set<?> modules = (Set<?>) Class.forName("java.lang.module.Configuration").getMethod("modules").invoke(configuration);
 			Method reference = Class.forName("java.lang.module.ResolvedModule").getMethod("reference");
-			Class<?> ModuleReader = Class.forName("java.lang.module.ModuleReader");
 			Method open = Class.forName("java.lang.module.ModuleReference").getMethod("open");
-			Method list = ModuleReader.getMethod("list");
+			Method list = Class.forName("java.lang.module.ModuleReader").getMethod("list");
 			modules.forEach(module -> {
 			});
 			for (Object module : modules) {

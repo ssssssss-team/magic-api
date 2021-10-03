@@ -11,6 +11,8 @@ import java.util.List;
 
 /**
  * redis模块
+ *
+ * @author mxd
  */
 public class RedisModule implements MagicModule, DynamicMethod {
 

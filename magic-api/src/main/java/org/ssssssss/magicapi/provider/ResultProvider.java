@@ -18,6 +18,8 @@ import static org.ssssssss.magicapi.model.Constants.*;
 
 /**
  * 结果构建接口
+ *
+ * @author mxd
  */
 public interface ResultProvider {
 
@@ -78,11 +80,12 @@ public interface ResultProvider {
 
 	/**
 	 * 构建异常返回结果
-	 * @param requestEntity	请求相关信息
-	 * @param throwable	异常信息
+	 *
+	 * @param requestEntity 请求相关信息
+	 * @param throwable     异常信息
 	 * @since 1.2.2
 	 */
-	default Object buildException(RequestEntity requestEntity, Throwable throwable){
+	default Object buildException(RequestEntity requestEntity, Throwable throwable) {
 		return buildResult(requestEntity, RESPONSE_CODE_EXCEPTION, "系统内部出现错误");
 	}
 

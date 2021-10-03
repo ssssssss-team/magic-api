@@ -8,6 +8,11 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMappi
 import java.lang.reflect.Method;
 import java.util.Map;
 
+/**
+ * 接口映射封装，兼容不同版本Spring Boot 处理
+ *
+ * @author mxd
+ */
 public class Mapping {
 
 	private final AbstractHandlerMethodMapping<RequestMappingInfo> methodMapping;

@@ -19,6 +19,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * 数据库资源存储
+ *
+ * @author mxd
+ */
 public class DatabaseResource extends KeyValueResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(DatabaseResource.class);

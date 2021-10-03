@@ -14,6 +14,8 @@ import java.util.stream.Collectors;
 
 /**
  * request 模块
+ *
+ * @author mxd
  */
 public class RequestModule {
 

@@ -29,7 +29,7 @@ import org.ssssssss.magicapi.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.controller.MagicDataSourceController;
 import org.ssssssss.magicapi.controller.MagicWebSocketDispatcher;
 import org.ssssssss.magicapi.exception.InvalidArgumentException;
-import org.ssssssss.magicapi.exception.MagicServiceException;
+import org.ssssssss.magicapi.exception.MagicResourceNotFoundException;
 import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.provider.*;
 import org.ssssssss.magicapi.script.ScriptManager;
@@ -58,10 +58,15 @@ import java.util.zip.ZipOutputStream;
 
 import static org.ssssssss.magicapi.model.Constants.*;
 
+/**
+ * 默认接口实现
+ *
+ * @author mxd
+ */
 public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstants {
 
-	private final static Logger logger = LoggerFactory.getLogger(DefaultMagicAPIService.class);
-	private static final ClassLoader classLoader = MagicDataSourceController.class.getClassLoader();
+	private static final Logger logger = LoggerFactory.getLogger(DefaultMagicAPIService.class);
+	private static final ClassLoader CLASSLOADER = MagicDataSourceController.class.getClassLoader();
 	// copy from DataSourceBuilder
 	private static final String[] DATA_SOURCE_TYPE_NAMES = new String[]{
 			"com.zaxxer.hikari.HikariDataSource",
@@ -164,7 +169,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	public Object execute(String method, String path, Map<String, Object> context) {
 		ApiInfo info = this.mappingHandlerMapping.getApiInfo(method, path);
 		if (info == null) {
-			throw new MagicServiceException(String.format("找不到对应接口 [%s:%s]", method, path));
+			throw new MagicResourceNotFoundException(String.format("找不到对应接口 [%s:%s]", method, path));
 		}
 		return execute(info, context);
 	}
@@ -174,8 +179,9 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		RequestEntity requestEntity = RequestEntity.empty();
 		try {
 			return resultProvider.buildResult(requestEntity, execute(method, path, context));
-		} catch (MagicServiceException e) {
-			return null;    //找不到对应接口
+		} catch (MagicResourceNotFoundException e) {
+			//找不到对应接口
+			return null;
 		} catch (Throwable root) {
 			if (throwException) {
 				throw root;
@@ -188,7 +194,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	public Object invoke(String path, Map<String, Object> context) {
 		FunctionInfo functionInfo = magicFunctionManager.getFunctionInfo(path);
 		if (functionInfo == null) {
-			throw new MagicServiceException(String.format("找不到对应函数 [%s]", path));
+			throw new MagicResourceNotFoundException(String.format("找不到对应函数 [%s]", path));
 		}
 		MagicScriptContext scriptContext = new MagicScriptContext(context);
 		scriptContext.setScriptName(groupServiceProvider.getScriptName(functionInfo.getGroupId(), functionInfo.getName(), functionInfo.getPath()));
@@ -281,7 +287,8 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	private boolean deleteApiWithoutNotify(String id) {
-		if (apiServiceProvider.delete(id)) {    //删除成功时在取消注册
+		// 删除成功时在取消注册
+		if (apiServiceProvider.delete(id)) {
 			mappingHandlerMapping.unregisterMapping(id, true);
 			return true;
 		}
@@ -370,7 +377,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	@Override
 	public String createGroup(Group group) {
 		if (StringUtils.isBlank(group.getParentId())) {
-			group.setParentId("0");
+			group.setParentId(ROOT_ID);
 		}
 		notBlank(group.getName(), GROUP_NAME_REQUIRED);
 		isTrue(IoUtils.validateFileName(group.getName()), NAME_INVALID);
@@ -388,7 +395,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	@Override
 	public boolean updateGroup(Group group) {
 		if (StringUtils.isBlank(group.getParentId())) {
-			group.setParentId("0");
+			group.setParentId(ROOT_ID);
 		}
 		notBlank(group.getName(), GROUP_NAME_REQUIRED);
 		isTrue(IoUtils.validateFileName(group.getName()), NAME_INVALID);
@@ -429,14 +436,16 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		boolean success;
 		if (isApi) {
 			// 删除接口
-			if (success = apiServiceProvider.deleteGroup(groupId, children)) {
+			success = apiServiceProvider.deleteGroup(groupId, children);
+			if (success) {
 				// 取消注册
 				mappingHandlerMapping.deleteGroup(children);
 				children.forEach(groupServiceProvider::delete);
 			}
 		} else {
 			// 删除函数
-			if (success = functionServiceProvider.deleteGroup(groupId, children)) {
+			success = functionServiceProvider.deleteGroup(groupId, children);
+			if (success) {
 				// 取消注册
 				magicFunctionManager.deleteGroup(children);
 				children.forEach(groupServiceProvider::delete);
@@ -453,7 +462,8 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	@Override
 	public Group getGroup(String id) {
 		Resource groupResource = groupServiceProvider.getGroupResource(id);
-		if (groupResource != null && (groupResource = groupResource.getResource(GROUP_METABASE)).exists()) {
+		groupResource = groupResource != null ? groupResource.getResource(GROUP_METABASE) : null;
+		if (groupResource != null && groupResource.exists()) {
 			return groupServiceProvider.readGroup(groupResource);
 		}
 		return null;
@@ -462,7 +472,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	@Override
 	public void registerAllDataSource() {
 		datasourceResource.readAll();
-		List<Resource> resources = datasourceResource.files(".json");
+		List<Resource> resources = datasourceResource.files(JSON_SUFFIX);
 		// 删除旧的数据源
 		magicDynamicDataSource.datasourceNodes().stream()
 				.filter(it -> it.getId() != null)
@@ -586,13 +596,13 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		if (item.exists()) {
 			Group group = groupServiceProvider.readGroup(item);
 			// 检查上级分组是否存在
-			isTrue("0".equals(group.getParentId()) || groupServiceProvider.getGroupResource(group.getParentId()).exists(), GROUP_NOT_FOUND);
+			isTrue(ROOT_ID.equals(group.getParentId()) || groupServiceProvider.getGroupResource(group.getParentId()).exists(), GROUP_NOT_FOUND);
 		}
 		if (checked) {
 			// 检测分组是否有冲突
 			groups.forEach(group -> {
 				Resource resource;
-				if ("0".equals(group.getParentId())) {
+				if (ROOT_ID.equals(group.getParentId())) {
 					resource = workspace.getDirectory(GROUP_TYPE_API.equals(group.getType()) ? PATH_API : PATH_FUNCTION).getDirectory(group.getName());
 				} else {
 					resource = groupServiceProvider.getGroupResource(group.getId());
@@ -742,12 +752,16 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				return processDataSourceNotify(id, action);
 			case NOTIFY_ACTION_ALL:
 				return processAllNotify();
+			default:
+				break;
 		}
 		switch (action) {
 			case NOTIFY_WS_C_S:
 				return processWebSocketMessageReceived(magicNotify.getSessionId(), magicNotify.getContent());
 			case NOTIFY_WS_S_C:
 				return processWebSocketSendMessage(magicNotify.getSessionId(), magicNotify.getContent());
+			default:
+				break;
 		}
 		return false;
 	}
@@ -832,17 +846,20 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	private boolean processGroupNotify(String id, int action) {
-		if (action == NOTIFY_ACTION_ADD) {    // 新增分组
+		// 新增分组
+		if (action == NOTIFY_ACTION_ADD) {
 			// 新增时只需要刷新分组缓存即可
 			mappingHandlerMapping.loadGroup();
 			magicFunctionManager.loadGroup();
 			return true;
 		}
-		if (action == NOTIFY_ACTION_UPDATE) {    // 修改分组，包括移动分组
+		// 修改分组，包括移动分组
+		if (action == NOTIFY_ACTION_UPDATE) {
 			if (!mappingHandlerMapping.updateGroup(id)) {
 				return magicFunctionManager.updateGroup(id);
 			}
-		} else if (action == NOTIFY_ACTION_DELETE) {    // 删除分组
+		} else if (action == NOTIFY_ACTION_DELETE) {
+			// 删除分组
 			TreeNode<Group> treeNode = mappingHandlerMapping.findGroupTree(id);
 			if (treeNode == null) {
 				// 删除函数分组
@@ -890,15 +907,16 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	private Class<? extends DataSource> getDataSourceType(String datasourceType) {
 		if (StringUtils.isNotBlank(datasourceType)) {
 			try {
-				return (Class<? extends DataSource>) ClassUtils.forName(datasourceType, classLoader);
+				return (Class<? extends DataSource>) ClassUtils.forName(datasourceType, CLASSLOADER);
 			} catch (Exception e) {
 				throw new InvalidArgumentException(DATASOURCE_TYPE_NOT_FOUND.format(datasourceType));
 			}
 		}
 		for (String name : DATA_SOURCE_TYPE_NAMES) {
 			try {
-				return (Class<? extends DataSource>) ClassUtils.forName(name, classLoader);
+				return (Class<? extends DataSource>) ClassUtils.forName(name, CLASSLOADER);
 			} catch (Exception ignored) {
+				// ignored
 			}
 		}
 		throw new InvalidArgumentException(DATASOURCE_TYPE_NOT_SET);

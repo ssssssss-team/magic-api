@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+/**
+ * 树形结构
+ *
+ * @author mxd
+ */
 public class TreeNode<T> {
 
 	private T node;

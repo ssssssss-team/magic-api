@@ -8,6 +8,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * 列名转换适配器
+ *
+ * @author mxd
+ */
 public class ColumnMapperAdapter {
 
 	private final Map<String, RowMapper<Map<String, Object>>> columnMapRowMappers = new HashMap<>();

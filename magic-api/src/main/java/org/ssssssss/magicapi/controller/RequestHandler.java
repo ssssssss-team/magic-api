@@ -49,13 +49,16 @@ import static org.ssssssss.magicapi.config.MessageType.BREAKPOINT;
 import static org.ssssssss.magicapi.config.MessageType.EXCEPTION;
 import static org.ssssssss.magicapi.model.Constants.*;
 
+/**
+ * 请求入口处理
+ *
+ * @author mxd
+ */
 public class RequestHandler extends MagicController {
 
 	private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
-
-	private final ResultProvider resultProvider;
-
 	private static final Map<String, Object> EMPTY_MAP = new HashMap<>();
+	private final ResultProvider resultProvider;
 
 	public RequestHandler(MagicConfiguration configuration) {
 		super(configuration);
@@ -64,9 +67,16 @@ public class RequestHandler extends MagicController {
 
 	/**
 	 * 测试入口、实际请求入口
+	 *
+	 * @param request       HttpServletRequest
+	 * @param response      HttpServletResponse
+	 * @param pathVariables 路径变量
+	 * @param parameters    表单参数&URL参数
+	 * @return 返回请求结果
+	 * @throws Throwable 处理失败抛出的异常
 	 */
 	@ResponseBody
-	@Valid(requireLogin = false)    // 无需验证是否要登录
+	@Valid(requireLogin = false)
 	public Object invoke(HttpServletRequest request, HttpServletResponse response,
 						 @PathVariable(required = false) Map<String, Object> pathVariables,
 						 @RequestParam(required = false) Map<String, Object> parameters) throws Throwable {
@@ -123,7 +133,7 @@ public class RequestHandler extends MagicController {
 				MagicLoggerContext.SESSION.set(sessionId);
 				return invokeRequest(requestEntity);
 			} finally {
-				MagicLoggerContext.SESSION.remove();
+				MagicLoggerContext.remove();
 				WebSocketSessionManager.remove(sessionId);
 			}
 		} else {
@@ -168,7 +178,7 @@ public class RequestHandler extends MagicController {
 				}
 				List<Object> list = (List) parameters.get(parameter.getName());
 				if (list != null) {
-					List<Map<String, Object>> newList = list.stream().map(it -> doValidate(VAR_NAME_REQUEST_BODY, parameter.getChildren(), new HashMap<String, Object>() {{    // 使用 hashmap
+					List<Map<String, Object>> newList = list.stream().map(it -> doValidate(VAR_NAME_REQUEST_BODY, parameter.getChildren(), new HashMap<String, Object>() {{
 						put(EMPTY, it);
 					}}, jsonCode)).collect(Collectors.toList());
 					for (int i = 0, size = newList.size(); i < size; i++) {
@@ -192,7 +202,8 @@ public class RequestHandler extends MagicController {
 							throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]为必填项", comment, parameter.getName())));
 						}
 					}
-					if (VALIDATE_TYPE_PATTERN.equals(parameter.getValidateType())) {    // 正则验证
+					// 正则验证
+					if (VALIDATE_TYPE_PATTERN.equals(parameter.getValidateType())) {
 						String expression = parameter.getExpression();
 						if (StringUtils.isNotBlank(expression) && !PatternUtils.match(Objects.toString(value, EMPTY), expression)) {
 							throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足正则表达式", comment, parameter.getName())));

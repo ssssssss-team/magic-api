@@ -14,13 +14,16 @@ import org.ssssssss.magicapi.provider.MagicBackupService;
 
 import javax.servlet.http.HttpServletRequest;
 
+/**
+ * Controller 基类
+ *
+ * @author mxd
+ */
 public class MagicController implements JsonCodeConstants {
 
-	MagicConfiguration configuration;
-
 	final MagicAPIService magicAPIService;
-
 	final MagicBackupService magicBackupService;
+	MagicConfiguration configuration;
 
 	MagicController(MagicConfiguration configuration) {
 		this.configuration = configuration;

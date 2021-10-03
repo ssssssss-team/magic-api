@@ -3,6 +3,11 @@ package org.ssssssss.magicapi.dialect;
 
 import org.ssssssss.magicapi.modules.BoundSql;
 
+/**
+ * DB2方言
+ *
+ * @author mxd
+ */
 public class DB2Dialect implements Dialect {
 	@Override
 	public boolean match(String jdbcUrl) {

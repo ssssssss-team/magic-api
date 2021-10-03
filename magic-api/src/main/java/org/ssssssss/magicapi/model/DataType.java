@@ -9,18 +9,67 @@ import java.math.BigDecimal;
 
 import static org.ssssssss.script.reflection.JavaReflection.findInvoker;
 
+/**
+ * 参数类型枚举
+ *
+ * @author mxd
+ */
 public enum DataType {
+	/**
+	 * Object 类型
+	 */
 	Object("object"),
+
+	/**
+	 * 数组类型
+	 */
 	Array("array"),
+
+	/**
+	 * Boolean类型
+	 */
 	Boolean(false, findInvoker(Boolean.class, "valueOf", new Class<?>[]{String.class}), false, true, "boolean"),
+
+	/**
+	 * String 类型
+	 */
 	String("string"),
+
+	/**
+	 * Integer 类型
+	 */
 	Integer(true, findInvoker(BigDecimal.class, "intValue"), "number"),
+
+	/**
+	 * Double 类型
+	 */
 	Double(true, findInvoker(BigDecimal.class, "doubleValue"), "number"),
+	/**
+	 * Long 类型
+	 */
 	Long(true, findInvoker(BigDecimal.class, "longValue"), "number"),
+	/**
+	 * Float 类型
+	 */
 	Float(true, findInvoker(BigDecimal.class, "floatValue"), "number"),
+	/**
+	 * Byte 类型
+	 */
 	Byte(true, findInvoker(BigDecimal.class, "byteValue"), "number"),
+
+	/**
+	 * Short类型
+	 */
 	Short(true, findInvoker(BigDecimal.class, "shortValue"), "number"),
+
+	/**
+	 * MultipartFile 类型
+	 */
 	MultipartFile(findInvoker(RequestModule.class, "getFile", new Class<?>[]{String.class}), true, false, "file"),
+
+	/**
+	 * List<MultipartFile> 类型
+	 */
 	MultipartFiles(findInvoker(RequestModule.class, "getFiles", new Class<?>[]{String.class}), true, false, "file");
 
 

@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.model;
 
+/**
+ * 接口、函数信息基类
+ *
+ * @author mxd
+ */
 public class MagicEntity extends Attributes<Object> implements Cloneable {
 
 	protected String id;
@@ -72,6 +77,7 @@ public class MagicEntity extends Attributes<Object> implements Cloneable {
 		this.lock = lock;
 	}
 
+	@Override
 	public MagicEntity clone() {
 		try {
 			return (MagicEntity) super.clone();

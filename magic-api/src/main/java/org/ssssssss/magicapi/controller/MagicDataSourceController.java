@@ -8,12 +8,16 @@ import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.interceptor.Authorization;
 import org.ssssssss.magicapi.model.DataSourceInfo;
 import org.ssssssss.magicapi.model.JsonBean;
-import org.ssssssss.magicapi.provider.MagicAPIService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * 数据源相关操作
+ *
+ * @author mxd
+ */
 public class MagicDataSourceController extends MagicController implements MagicExceptionHandler {
 
 	public MagicDataSourceController(MagicConfiguration configuration) {
@@ -74,7 +78,7 @@ public class MagicDataSourceController extends MagicController implements MagicE
 		return new JsonBean<>(dataSource);
 	}
 
-	private DataSourceInfo getDataSourceInfo(String id){
+	private DataSourceInfo getDataSourceInfo(String id) {
 		DataSourceInfo dataSource = magicAPIService.getDataSource(id);
 		notNull(dataSource, DATASOURCE_NOT_FOUND);
 		return dataSource;

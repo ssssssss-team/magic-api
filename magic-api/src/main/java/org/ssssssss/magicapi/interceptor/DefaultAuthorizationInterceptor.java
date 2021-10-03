@@ -5,6 +5,11 @@ import org.ssssssss.magicapi.utils.MD5Utils;
 
 import java.util.Objects;
 
+/**
+ * 默认UI鉴权实现
+ *
+ * @author mxd
+ */
 public class DefaultAuthorizationInterceptor implements AuthorizationInterceptor {
 
 	private final boolean requireLogin;

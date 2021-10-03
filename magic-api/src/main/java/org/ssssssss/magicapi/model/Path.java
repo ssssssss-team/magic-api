@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.model;
 
+/**
+ * 路径变量信息
+ *
+ * @author mxd
+ */
 public class Path extends BaseDefinition {
 
 	public Path() {

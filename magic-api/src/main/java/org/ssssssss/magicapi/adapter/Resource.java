@@ -7,24 +7,35 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * 资源对象接口
+ *
+ * @author mxd
+ */
 public interface Resource {
 
 	/**
-	 * 是否是只读
+	 * 判断是否是只读
+	 *
+	 * @return 返回资源是否是只读
 	 */
 	default boolean readonly() {
 		return false;
 	}
 
 	/**
-	 * 是否存在
+	 * 判断是否存在
+	 *
+	 * @return 返回资源是否存在
 	 */
 	default boolean exists() {
 		return false;
 	}
 
 	/**
-	 * 是否是目录
+	 * 判断是否是目录
+	 *
+	 * @return 返回资源是否是目录
 	 */
 	default boolean isDirectory() {
 		return false;
@@ -32,6 +43,8 @@ public interface Resource {
 
 	/**
 	 * 删除
+	 *
+	 * @return 返回是否删除成功
 	 */
 	default boolean delete() {
 		return false;
@@ -39,6 +52,8 @@ public interface Resource {
 
 	/**
 	 * 创建目录
+	 *
+	 * @return 返回是否创建成功
 	 */
 	default boolean mkdir() {
 		return false;
@@ -46,6 +61,9 @@ public interface Resource {
 
 	/**
 	 * 重命名
+	 *
+	 * @param resource 目标资源
+	 * @return 是否重命名成功
 	 */
 	default boolean renameTo(Resource resource) {
 		return false;
@@ -53,6 +71,9 @@ public interface Resource {
 
 	/**
 	 * 写入
+	 *
+	 * @param content 写入的内容
+	 * @return 是否写入成功
 	 */
 	default boolean write(String content) {
 		return false;
@@ -60,15 +81,33 @@ public interface Resource {
 
 	/**
 	 * 写入
+	 *
+	 * @param bytes 写入的内容
+	 * @return 是否写入成功
 	 */
 	default boolean write(byte[] bytes) {
 		return false;
 	}
 
+	/**
+	 * 获取分隔符
+	 *
+	 * @return 返回分隔符
+	 */
 	default String separator() {
 		return null;
 	}
 
+	/**
+	 * 处理导出
+	 *
+	 * @param zos       zip 输出流
+	 * @param path      路径
+	 * @param directory 目录资源对象
+	 * @param resources 资源集合
+	 * @param excludes  排除的目录
+	 * @throws IOException 处理过程中抛出的异常
+	 */
 	default void processExport(ZipOutputStream zos, String path, Resource directory, List<Resource> resources, List<String> excludes) throws IOException {
 		for (Resource resource : resources) {
 			String fullName = directory.getAbsolutePath();
@@ -94,6 +133,13 @@ public interface Resource {
 		}
 	}
 
+	/**
+	 * 处理导出
+	 *
+	 * @param os       输出流
+	 * @param excludes 排除的目录
+	 * @throws IOException 处理过程中抛出的异常
+	 */
 	default void export(OutputStream os, String... excludes) throws IOException {
 		ZipOutputStream zos = new ZipOutputStream(os);
 		processExport(zos, "", this, resources(), Arrays.asList(excludes == null ? new String[0] : excludes));
@@ -102,6 +148,8 @@ public interface Resource {
 
 	/**
 	 * 读取
+	 *
+	 * @return 读取的资源内容
 	 */
 	byte[] read();
 
@@ -113,6 +161,9 @@ public interface Resource {
 
 	/**
 	 * 获取子目录
+	 *
+	 * @param name 目录名称
+	 * @return 返回资源对象
 	 */
 	default Resource getDirectory(String name) {
 		return getResource(name);
@@ -120,39 +171,60 @@ public interface Resource {
 
 	/**
 	 * 获取子资源
+	 *
+	 * @param name 文件名称
+	 * @return 返回资源对象
 	 */
 	Resource getResource(String name);
 
 	/**
 	 * 获取资源名
+	 *
+	 * @return 返回资源名称
 	 */
 	String name();
 
 	/**
 	 * 获取子资源集合
+	 *
+	 * @return 返回资源集合
 	 */
 	List<Resource> resources();
 
 	/**
 	 * 父级资源
+	 *
+	 * @return 返回父级资源
 	 */
 	Resource parent();
 
 	/**
 	 * 目录
+	 *
+	 * @return 返回当前资源下的目录
 	 */
 	List<Resource> dirs();
 
 	/**
 	 * 遍历文件
+	 *
+	 * @param suffix 文件名后缀
+	 * @return 返回当前资源下的文件
 	 */
 	List<Resource> files(String suffix);
 
 	/**
 	 * 获取所在位置
+	 *
+	 * @return 获取绝对路径
 	 */
 	String getAbsolutePath();
 
+	/**
+	 * 获取文件路径
+	 *
+	 * @return 返回文件路径
+	 */
 	String getFilePath();
 
 }

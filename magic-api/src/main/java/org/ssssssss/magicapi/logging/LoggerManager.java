@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 日志管理
+ *
+ * @author mxd
  */
 public class LoggerManager {
 
@@ -18,11 +20,14 @@ public class LoggerManager {
 		ILoggerFactory loggerFactory = LoggerFactory.getILoggerFactory();
 		String loggerFactoryClassName = loggerFactory.getClass().getName();
 		MagicLoggerContext magicLoggerContext = null;
-		if ("ch.qos.logback.classic.LoggerContext".equalsIgnoreCase(loggerFactoryClassName)) {    //logback
+		// logback
+		if ("ch.qos.logback.classic.LoggerContext".equalsIgnoreCase(loggerFactoryClassName)) {
 			magicLoggerContext = new LogbackLoggerContext();
-		} else if ("org.apache.logging.slf4j.Log4jLoggerFactory".equalsIgnoreCase(loggerFactoryClassName)) {    //log4j2
+		} else if ("org.apache.logging.slf4j.Log4jLoggerFactory".equalsIgnoreCase(loggerFactoryClassName)) {
+			// log4j2
 			magicLoggerContext = new Log4j2LoggerContext();
-		} else if ("org.slf4j.impl.Log4jLoggerFactory".equalsIgnoreCase(loggerFactoryClassName)) {    //log4j 1
+		} else if ("org.slf4j.impl.Log4jLoggerFactory".equalsIgnoreCase(loggerFactoryClassName)) {
+			// log4j 1
 			magicLoggerContext = new Log4jLoggerContext();
 		}
 		if (magicLoggerContext == null) {

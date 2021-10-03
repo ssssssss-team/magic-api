@@ -5,6 +5,8 @@ import org.ssssssss.magicapi.exception.MagicAPIException;
 
 /**
  * 断言辅助类
+ *
+ * @author mxd
  */
 public class Assert {
 

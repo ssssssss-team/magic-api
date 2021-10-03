@@ -3,6 +3,11 @@ package org.ssssssss.magicapi.dialect;
 
 import org.ssssssss.magicapi.modules.BoundSql;
 
+/**
+ * Oracle方言
+ *
+ * @author mxd
+ */
 public class OracleDialect implements Dialect {
 
 	@Override

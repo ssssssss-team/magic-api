@@ -10,6 +10,8 @@ import org.apache.log4j.spi.ThrowableInformation;
 
 /**
  * 对接Log4j
+ *
+ * @author mxd
  */
 public class Log4jLoggerContext implements MagicLoggerContext {
 	@Override

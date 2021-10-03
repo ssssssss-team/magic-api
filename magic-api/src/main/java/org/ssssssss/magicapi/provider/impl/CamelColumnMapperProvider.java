@@ -4,6 +4,8 @@ import org.ssssssss.magicapi.provider.ColumnMapperProvider;
 
 /**
  * 驼峰命名转换
+ *
+ * @author mxd
  */
 public class CamelColumnMapperProvider implements ColumnMapperProvider {
 

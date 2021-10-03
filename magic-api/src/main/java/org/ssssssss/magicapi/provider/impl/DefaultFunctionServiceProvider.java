@@ -5,6 +5,11 @@ import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.provider.FunctionServiceProvider;
 import org.ssssssss.magicapi.provider.GroupServiceProvider;
 
+/**
+ * 默认函数存储实现
+ *
+ * @author mxd
+ */
 public class DefaultFunctionServiceProvider extends FunctionServiceProvider {
 
 

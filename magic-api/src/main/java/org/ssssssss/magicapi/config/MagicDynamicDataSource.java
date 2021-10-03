@@ -16,6 +16,11 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.*;
 
+/**
+ * 动态数据源对象
+ *
+ * @author mxd
+ */
 public class MagicDynamicDataSource {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicDynamicDataSource.class);
@@ -83,7 +88,7 @@ public class MagicDynamicDataSource {
 		return new ArrayList<>(this.dataSourceMap.keySet());
 	}
 
-	public boolean isEmpty(){
+	public boolean isEmpty() {
 		return this.dataSourceMap.isEmpty();
 	}
 

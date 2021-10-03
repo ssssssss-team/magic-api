@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.model;
 
+/**
+ * Json状态码信息
+ *
+ * @author mxd
+ */
 public class JsonCode {
 
 	private int code;

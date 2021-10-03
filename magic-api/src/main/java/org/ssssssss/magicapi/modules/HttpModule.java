@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 /**
  * http 模块
  *
+ * @author mxd
  * @since 1.1.0
  */
 public class HttpModule implements MagicModule {
@@ -154,13 +155,13 @@ public class HttpModule implements MagicModule {
 	@Comment("执行请求")
 	public ResponseEntity<Object> execute() {
 		if (!this.params.isEmpty()) {
-			String params = this.params.entrySet().stream()
+			String queryString = this.params.entrySet().stream()
 					.map(it -> it.getValue().stream()
 							.map(value -> it.getKey() + "=" + value)
 							.collect(Collectors.joining("&"))
 					).collect(Collectors.joining("&"));
-			if (StringUtils.isNotBlank(params)) {
-				this.url += (this.url.contains("?") ? "&" : "?") + params;
+			if (StringUtils.isNotBlank(queryString)) {
+				this.url += (this.url.contains("?") ? "&" : "?") + queryString;
 			}
 		}
 		if (!this.data.isEmpty()) {

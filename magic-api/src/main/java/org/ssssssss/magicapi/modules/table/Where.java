@@ -7,6 +7,11 @@ import org.ssssssss.script.functions.StreamExtension;
 import java.util.*;
 import java.util.function.Function;
 
+/**
+ * 单表API的Where
+ *
+ * @author mxd
+ */
 public class Where {
 
 	private final List<String> tokens = new ArrayList<>();
@@ -30,8 +35,9 @@ public class Where {
 		this.needWhere = needWhere;
 	}
 
+	@Override
 	@Comment("克隆")
-	public Where clone(){
+	public Where clone() {
 		Where where = new Where(this.namedTable, this.needWhere);
 		where.tokens.addAll(this.tokens);
 		where.params.addAll(this.params);
@@ -89,7 +95,7 @@ public class Where {
 		if (isEmpty()) {
 			return "";
 		}
-		return (needWhere ? " where " : "") + String.join(" ",tokens);
+		return (needWhere ? " where " : "") + String.join(" ", tokens);
 	}
 
 	@Comment("过滤`null`的参数")
@@ -401,9 +407,10 @@ public class Where {
 	}
 
 	@Comment("执行update语句")
-	public int update(@Comment("各项列和值") Map<String, Object> data,@Comment("是否更新空值字段") boolean isUpdateBlank) {
-		return namedTable.update(data,isUpdateBlank);
+	public int update(@Comment("各项列和值") Map<String, Object> data, @Comment("是否更新空值字段") boolean isUpdateBlank) {
+		return namedTable.update(data, isUpdateBlank);
 	}
+
 	@Comment("执行分页查询")
 	public Object page() {
 		return namedTable.page();
@@ -425,12 +432,12 @@ public class Where {
 	}
 
 	@Comment("查询条数")
-	public int count(){
+	public int count() {
 		return namedTable.count();
 	}
 
 	@Comment("查询是否存在")
-	public boolean exists(){
+	public boolean exists() {
 		return namedTable.exists();
 	}
 }

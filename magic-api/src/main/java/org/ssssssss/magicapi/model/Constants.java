@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.model;
 
+/**
+ * magic-api中使用的常量信息
+ *
+ * @author mxd
+ */
 public class Constants {
 
 	/**
@@ -42,6 +47,11 @@ public class Constants {
 	 * 空值
 	 */
 	public static final String EMPTY = "";
+
+	/**
+	 * 根节点ID
+	 */
+	public static final String ROOT_ID = "0";
 
 	/**
 	 * 表达式验证
@@ -105,86 +115,72 @@ public class Constants {
 
 	public static final String GROUP_METABASE = "group.json";
 
+	public static final String JSON_SUFFIX = ".json";
+
 	public static final String UPLOAD_MODE_FULL = "full";
 
 	public static final String LOCK = "1";
 
 	public static final String UNLOCK = "0";
-
-	/**
-	 * 执行成功的code值
-	 */
-	public static int RESPONSE_CODE_SUCCESS = 1;
-
 	/**
 	 * 执行成功的message值
 	 */
 	public static final String RESPONSE_MESSAGE_SUCCESS = "success";
-
-	/**
-	 * 执行出现异常的code值
-	 */
-	public static int RESPONSE_CODE_EXCEPTION = -1;
-
-	/**
-	 * 参数验证未通过的code值
-	 */
-	public static int RESPONSE_CODE_INVALID = 0;
-
 	/**
 	 * 通知新增
 	 */
 	public static final int NOTIFY_ACTION_ADD = 1;
-
 	/**
 	 * 通知修改
 	 */
 	public static final int NOTIFY_ACTION_UPDATE = 2;
-
 	/**
 	 * 通知删除
 	 */
 	public static final int NOTIFY_ACTION_DELETE = 3;
-
 	/**
 	 * 通知更新全部
 	 */
 	public static final int NOTIFY_ACTION_ALL = 0;
-
 	/**
 	 * 通知接口刷新
 	 */
 	public static final int NOTIFY_ACTION_API = 1;
-
 	/**
 	 * 通知分组刷新
 	 */
 	public static final int NOTIFY_ACTION_GROUP = 2;
-
 	/**
 	 * 通知函数刷新
 	 */
 	public static final int NOTIFY_ACTION_FUNCTION = 3;
-
 	/**
 	 * 通知数据源刷新
 	 */
 	public static final int NOTIFY_ACTION_DATASOURCE = 4;
-
-
 	/**
 	 * 通知 C -> S 的WebSocket消息
 	 */
 	public static final int NOTIFY_WS_C_S = 100;
-
 	/**
 	 * 通知 S -> C 的WebSocket消息
 	 */
 	public static final int NOTIFY_WS_S_C = 200;
-
 	/**
 	 * 空数组
 	 */
 	public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+	/**
+	 * 执行成功的code值
+	 */
+	public static int RESPONSE_CODE_SUCCESS = 1;
+	/**
+	 * 执行出现异常的code值
+	 */
+	public static int RESPONSE_CODE_EXCEPTION = -1;
+	/**
+	 * 参数验证未通过的code值
+	 */
+	public static int RESPONSE_CODE_INVALID = 0;
 
 }

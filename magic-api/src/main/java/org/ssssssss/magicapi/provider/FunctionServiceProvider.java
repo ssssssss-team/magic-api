@@ -3,6 +3,11 @@ package org.ssssssss.magicapi.provider;
 import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.model.FunctionInfo;
 
+/**
+ * 函数存储抽象类
+ *
+ * @author mxd
+ */
 public abstract class FunctionServiceProvider extends StoreServiceProvider<FunctionInfo> {
 
 	public FunctionServiceProvider(Resource workspace, GroupServiceProvider groupServiceProvider) {

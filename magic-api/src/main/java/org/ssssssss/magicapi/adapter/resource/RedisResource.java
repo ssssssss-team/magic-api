@@ -14,6 +14,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+/**
+ * Redis 资源存储实现
+ *
+ * @author mxd
+ */
 public class RedisResource extends KeyValueResource {
 
 	private static final Logger logger = LoggerFactory.getLogger(RedisResource.class);

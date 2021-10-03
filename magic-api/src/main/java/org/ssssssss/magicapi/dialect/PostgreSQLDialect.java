@@ -3,6 +3,11 @@ package org.ssssssss.magicapi.dialect;
 
 import org.ssssssss.magicapi.modules.BoundSql;
 
+/**
+ * PostgreSQL 方言
+ *
+ * @author mxd
+ */
 public class PostgreSQLDialect implements Dialect {
 	@Override
 	public boolean match(String jdbcUrl) {

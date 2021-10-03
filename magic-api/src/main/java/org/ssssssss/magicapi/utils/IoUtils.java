@@ -11,6 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * IO工具包
+ *
+ * @author mxd
+ */
 public class IoUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(IoUtils.class);

@@ -1,5 +1,10 @@
 package org.ssssssss.magicapi.utils;
 
+/**
+ * 签名工具类
+ *
+ * @author mxd
+ */
 public class SignUtils {
 
 	public static String sign(Long timestamp, String secretKey, String mode, byte[] bytes) {

@@ -3,6 +3,11 @@ package org.ssssssss.magicapi.model;
 import java.util.ArrayList;
 import java.util.Objects;
 
+/**
+ * 参数、header、path的基础信息
+ *
+ * @author mxd
+ */
 public class BaseDefinition {
 	/**
 	 * 名
@@ -157,8 +162,12 @@ public class BaseDefinition {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof BaseDefinition)) return false;
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof BaseDefinition)) {
+			return false;
+		}
 		BaseDefinition that = (BaseDefinition) o;
 		return required == that.required && Objects.equals(name, that.name) && Objects.equals(value, that.value) && Objects.equals(description, that.description) && dataType == that.dataType && Objects.equals(defaultValue, that.defaultValue) && Objects.equals(validateType, that.validateType) && Objects.equals(error, that.error) && Objects.equals(expression, that.expression) && Objects.equals(children, that.children);
 	}

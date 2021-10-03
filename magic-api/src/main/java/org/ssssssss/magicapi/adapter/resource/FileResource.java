@@ -12,6 +12,11 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * 文件存储实现
+ *
+ * @author mxd
+ */
 public class FileResource implements Resource {
 
 	private final boolean readonly;
@@ -138,13 +143,13 @@ public class FileResource implements Resource {
 	@Override
 	public String getFilePath() {
 		Resource parent = parent();
-		while (parent.parent() != null){
+		while (parent.parent() != null) {
 			parent = parent.parent();
 		}
 		String path = this.getAbsolutePath()
 				.replace(parent.getAbsolutePath(), "")
-				.replace("\\","/");
-		if(isDirectory() && !path.endsWith("/")){
+				.replace("\\", "/");
+		if (isDirectory() && !path.endsWith("/")) {
 			path += "/";
 		}
 		return path.startsWith("/") ? path.substring(1) : path;

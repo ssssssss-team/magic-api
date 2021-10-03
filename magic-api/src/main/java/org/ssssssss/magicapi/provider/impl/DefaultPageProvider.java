@@ -7,6 +7,8 @@ import org.ssssssss.script.MagicScriptContext;
 
 /**
  * 分页对象默认提取接口
+ *
+ * @author mxd
  */
 public class DefaultPageProvider implements PageProvider {
 

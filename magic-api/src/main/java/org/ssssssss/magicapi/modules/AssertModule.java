@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 
 /**
  * 断言模块
+ *
+ * @author mxd
  */
 public class AssertModule implements MagicModule {
 
