@@ -2,6 +2,8 @@ package org.ssssssss.magicapi.spring.boot.starter;
 
 /**
  * Debug配置
+ *
+ * @author mxd
  */
 public class DebugConfig {
 

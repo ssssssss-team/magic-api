@@ -4,6 +4,8 @@ import java.util.UUID;
 
 /**
  * 集群配置
+ *
+ * @author mxd
  * @since 1.2.0
  */
 public class ClusterConfig {

@@ -26,6 +26,8 @@ import java.util.Map;
 
 /**
  * Swagger配置类
+ *
+ * @author mxd
  */
 @Configuration
 @AutoConfigureAfter({MagicAPIAutoConfiguration.class})
@@ -33,15 +35,13 @@ import java.util.Map;
 @ConditionalOnClass(name = "springfox.documentation.swagger.web.SwaggerResourcesProvider")
 public class MagicSwaggerConfiguration {
 
+	private final MagicAPIProperties properties;
+	private final ApplicationContext applicationContext;
 	@Autowired
 	@Lazy
 	private RequestMappingHandlerMapping requestMappingHandlerMapping;
 
-	private final MagicAPIProperties properties;
-
-	private final ApplicationContext applicationContext;
-
-	public MagicSwaggerConfiguration(MagicAPIProperties properties,ApplicationContext applicationContext) {
+	public MagicSwaggerConfiguration(MagicAPIProperties properties, ApplicationContext applicationContext) {
 		this.properties = properties;
 		this.applicationContext = applicationContext;
 	}

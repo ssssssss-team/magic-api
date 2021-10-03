@@ -9,6 +9,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * magic-api配置信息
+ *
+ * @author mxd
+ */
 @ConfigurationProperties(prefix = "magic-api")
 public class MagicAPIProperties {
 
@@ -104,6 +109,7 @@ public class MagicAPIProperties {
 
 	/**
 	 * 是否要打印SQL
+	 *
 	 * @since 1.5.0
 	 */
 	private boolean showSql = true;

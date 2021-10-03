@@ -5,6 +5,8 @@ import org.ssssssss.magicapi.swagger.SwaggerEntity;
 
 /**
  * Swagger 配置
+ *
+ * @author mxd
  */
 public class SwaggerConfig {
 

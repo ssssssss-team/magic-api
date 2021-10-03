@@ -2,6 +2,8 @@ package org.ssssssss.magicapi.spring.boot.starter;
 
 /**
  * 安全配置
+ *
+ * @author mxd
  * @since 0.4.0
  */
 public class SecurityConfig {

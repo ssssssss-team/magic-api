@@ -2,6 +2,8 @@ package org.ssssssss.magicapi.spring.boot.starter;
 
 /**
  * json结果code配置
+ *
+ * @author mxd
  * @since 1.1.2
  */
 public class ResponseCodeConfig {

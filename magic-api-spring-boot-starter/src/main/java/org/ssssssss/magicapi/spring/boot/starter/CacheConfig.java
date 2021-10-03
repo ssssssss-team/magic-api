@@ -2,6 +2,8 @@ package org.ssssssss.magicapi.spring.boot.starter;
 
 /**
  * 缓存配置
+ *
+ * @author mxd
  */
 public class CacheConfig {
 

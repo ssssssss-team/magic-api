@@ -3,9 +3,10 @@ package org.ssssssss.magicapi.spring.boot.starter;
 /**
  * 备份配置
  *
+ * @author mxd
  * @since 1.3.5
  */
-public class BackupConfig{
+public class BackupConfig {
 
 	/**
 	 * 存储类型，可选 file， database

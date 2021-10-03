@@ -16,6 +16,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Function;
 
+/**
+ * JSON自动配置
+ *
+ * @author mxd
+ */
 @Configuration
 @AutoConfigureBefore(MagicAPIAutoConfiguration.class)
 public class MagicJsonAutoConfiguration {

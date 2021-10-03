@@ -14,6 +14,8 @@ import org.ssssssss.script.reflection.JavaReflection;
 
 /**
  * mongo配置
+ *
+ * @author mxd
  */
 @Configuration
 @ConditionalOnBean(MongoTemplate.class)

@@ -2,6 +2,8 @@ package org.ssssssss.magicapi.spring.boot.starter;
 
 /**
  * 分页配置
+ *
+ * @author mxd
  */
 public class PageConfig {
 

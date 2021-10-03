@@ -2,6 +2,8 @@ package org.ssssssss.magicapi.spring.boot.starter;
 
 /**
  * 接口存储配置
+ *
+ * @author mxd
  */
 public class ResourceConfig {
 

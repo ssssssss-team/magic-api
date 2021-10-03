@@ -25,6 +25,8 @@ import java.util.Objects;
 
 /**
  * redis配置
+ *
+ * @author mxd
  */
 @ConditionalOnClass(RedisConnectionFactory.class)
 @Configuration

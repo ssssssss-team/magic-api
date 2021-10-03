@@ -70,10 +70,15 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
 
+/**
+ * magic-api自动配置类
+ *
+ * @author mxd
+ */
 @Configuration
 @ConditionalOnClass({RequestMappingHandlerMapping.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
@@ -144,7 +149,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	@Autowired(required = false)
 	private MultipartResolver multipartResolver;
 
-	private String ALL_CLASS_TXT;
+	private String allClassTxt;
+	private DefaultAuthorizationInterceptor defaultAuthorizationInterceptor;
 
 	public MagicAPIAutoConfiguration(MagicAPIProperties properties,
 									 ObjectProvider<List<Dialect>> dialectsProvider,
@@ -187,15 +193,15 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 
 	@ResponseBody
 	private String readClass() {
-		if (ALL_CLASS_TXT == null) {
+		if (allClassTxt == null) {
 			try {
-				ALL_CLASS_TXT = StringUtils.join(ClassScanner.scan(), "\r\n");
+				allClassTxt = StringUtils.join(ClassScanner.scan(), "\r\n");
 			} catch (Throwable t) {
 				logger.warn("扫描Class失败", t);
-				ALL_CLASS_TXT = "";
+				allClassTxt = "";
 			}
 		}
-		return ALL_CLASS_TXT;
+		return allClassTxt;
 	}
 
 	@Bean
@@ -248,7 +254,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		return new MagicDatabaseBackupService(new JdbcTemplate(dataSourceNode.getDataSource()), backupConfig.getTableName());
 	}
 
-
 	@Override
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		String web = properties.getWeb();
@@ -279,7 +284,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 					.addPathPatterns("/**");
 		}
 	}
-
 
 	@Bean
 	@ConditionalOnProperty(prefix = "magic-api", value = "support-cross-domain", havingValue = "true", matchIfMissing = true)
@@ -328,7 +332,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		return new MappingHandlerMapping(prefix, properties.isAllowOverride());
 	}
 
-
 	@Bean
 	@ConditionalOnMissingBean(FunctionServiceProvider.class)
 	public FunctionServiceProvider functionServiceProvider(GroupServiceProvider groupServiceProvider, Resource magicResource) {
@@ -373,7 +376,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		return new MagicFunctionManager(groupServiceProvider, functionServiceProvider);
 	}
 
-
 	/**
 	 * 注入API调用Service
 	 */
@@ -406,7 +408,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		sqlModule.setResultProvider(resultProvider);
 		sqlModule.setPageProvider(pageProvider);
 		List<SQLInterceptor> sqlInterceptors = sqlInterceptorsProvider.getIfAvailable(ArrayList::new);
-		if(properties.isShowSql()){
+		if (properties.isShowSql()) {
 			sqlInterceptors.add(new DefaultSqlInterceptor());
 		}
 		sqlModule.setSqlInterceptors(sqlInterceptors);
@@ -585,7 +587,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		if (properties.getBackupConfig().getMaxHistory() > 0) {
 			long interval = properties.getBackupConfig().getMaxHistory() * 86400000L;
 			// 1小时执行1次
-			Executors.newScheduledThreadPool(1).scheduleAtFixedRate(() -> {
+			new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-clean-task")).scheduleAtFixedRate(() -> {
 				try {
 					long count = magicBackupService.removeBackupByTimestamp(System.currentTimeMillis() - interval);
 					if (count > 0) {
@@ -598,8 +600,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		}
 		return configuration;
 	}
-
-	private DefaultAuthorizationInterceptor defaultAuthorizationInterceptor;
 
 	public AuthorizationInterceptor createAuthorizationInterceptor() {
 		if (defaultAuthorizationInterceptor != null) {
