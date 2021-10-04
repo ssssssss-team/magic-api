@@ -45,15 +45,17 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * UI上其它相关操作
+ *
+ * @author mxd
+ */
 public class MagicWorkbenchController extends MagicController implements MagicExceptionHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicWorkbenchController.class);
-
-	private final String secretKey;
-
 	private static final Pattern SINGLE_LINE_COMMENT_TODO = Pattern.compile("((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n]+");
-
 	private static final Pattern MULTI_LINE_COMMENT_TODO = Pattern.compile("((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n(?!*/)]+");
+	private final String secretKey;
 
 	public MagicWorkbenchController(MagicConfiguration configuration, String secretKey) {
 		super(configuration);
@@ -141,7 +143,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		// 重新注册接口
 		configuration.getMappingHandlerMapping().registerAllMapping();
 		// 重新注册函数
-		configuration.getMagicFunctionManager().registerAllFunction();;
+		configuration.getMagicFunctionManager().registerAllFunction();
 		// 重新注册数据源
 		magicAPIService.registerAllDataSource();
 		// 发送更新通知
@@ -208,8 +210,8 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 					String text = comment.getText();
 					Pattern pattern = text.startsWith("//") ? SINGLE_LINE_COMMENT_TODO : MULTI_LINE_COMMENT_TODO;
 					Matcher matcher = pattern.matcher(text);
-					while(matcher.find()){
-						result.add(new HashMap<String, Object>(){
+					while (matcher.find()) {
+						result.add(new HashMap<String, Object>() {
 							{
 								put("id", entity.getId());
 								put("text", matcher.group(0).trim());
@@ -272,8 +274,8 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@RequestMapping("/push")
 	@ResponseBody
 	@Valid(authorization = Authorization.PUSH)
-	public JsonBean<?> push(@RequestHeader("magic-push-target") String target, @RequestHeader("magic-push-secret-key")String secretKey,
-							@RequestHeader("magic-push-mode")String mode, @RequestBody List<SelectedResource> resources) {
+	public JsonBean<?> push(@RequestHeader("magic-push-target") String target, @RequestHeader("magic-push-secret-key") String secretKey,
+							@RequestHeader("magic-push-mode") String mode, @RequestBody List<SelectedResource> resources) {
 		return magicAPIService.push(target, secretKey, mode, resources);
 	}
 

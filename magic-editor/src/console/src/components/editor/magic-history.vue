@@ -3,11 +3,11 @@
     <ul class="not-select">
       <li v-for="(item, key) in timestampes" :key="'history_' + key" :class="{ selected: currentItem === item }"
           @click.stop="open(item)">
-        {{ item.dateTime }}
+        {{ item.dateTime }} ({{item.createBy || 'guest'}})
       </li>
     </ul>
     <div class="version">
-      <span class="version-time">{{ currentItem.dateTime }}</span>
+      <span class="version-time">{{ currentItem.dateTime }} ({{ currentItem.createBy || 'guest'}})</span>
       <span class="current">当前版本</span>
     </div>
     <div ref="diffEditor" class="diff-editor"></div>
@@ -106,7 +106,7 @@ export default {
 .ma-history ul {
   position: absolute;
   left: 0px;
-  width: 160px;
+  width: 210px;
   bottom: 5px;
   top: 0px;
   color: var(--color);
@@ -119,6 +119,7 @@ export default {
   height: 20px;
   line-height: 20px;
   padding-left: 5px;
+  white-space: nowrap;
 }
 
 .ma-history ul li:hover,
@@ -129,7 +130,7 @@ export default {
 
 .ma-history .version {
   position: absolute;
-  left: 160px;
+  left: 210px;
   right: 0px;
   line-height: 24px;
   height: 24px;
@@ -147,7 +148,7 @@ export default {
 
 .ma-history .diff-editor {
   position: absolute;
-  left: 160px;
+  left: 210px;
   right: 0px;
   top: 24px;
   bottom: 5px;

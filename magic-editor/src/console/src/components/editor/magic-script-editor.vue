@@ -4,7 +4,7 @@
       <ul ref="scrollbar" class="ma-tab not-select">
         <li
             v-for="(item, index) in scripts"
-            :key="'api_' + item.tmp_id || item.id"
+            :key="'opened_script_' + index"
             :class="{ selected: selected === item, draggableTargetItem: item.ext.tabDraggable }"
             :title="item.displayName || item.name"
             :id="'ma-tab-item-' + item.tmp_id"
