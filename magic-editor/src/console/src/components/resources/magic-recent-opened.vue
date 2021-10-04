@@ -35,7 +35,7 @@ export default {
   mounted() {
     bus.$on('close', item => {
       if (item.id) {
-        let index = this.scripts.findIndex(it => it.id === item.id)
+        let index = this.scripts.findIndex(it => it[1] === item.id)
         if (index > -1) {
           this.scripts.splice(index, 1)
         }
