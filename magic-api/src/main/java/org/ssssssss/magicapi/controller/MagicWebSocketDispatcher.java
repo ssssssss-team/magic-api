@@ -12,7 +12,6 @@ import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.MagicConsoleSession;
 import org.ssssssss.magicapi.model.MagicNotify;
 import org.ssssssss.magicapi.provider.MagicNotifyService;
-import org.ssssssss.magicapi.utils.Invoker;
 import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.script.reflection.MethodInvoker;
 
@@ -32,7 +31,7 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicWebSocketDispatcher.class);
 
-	private static final Map<String, Invoker> HANDLERS = new HashMap<>();
+	private static final Map<String, MethodInvoker> HANDLERS = new HashMap<>();
 
 	private final String instanceId;
 
@@ -45,7 +44,7 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 		WebSocketSessionManager.setInstanceId(instanceId);
 		websocketMessageHandlers.forEach(websocketMessageHandler ->
 				Stream.of(websocketMessageHandler.getClass().getDeclaredMethods())
-						.forEach(method -> HANDLERS.put(method.getAnnotation(Message.class).value().name().toLowerCase(), Invoker.from(new MethodInvoker(method, websocketMessageHandler))))
+						.forEach(method -> HANDLERS.put(method.getAnnotation(Message.class).value().name().toLowerCase(), new MethodInvoker(method, websocketMessageHandler)))
 		);
 	}
 
@@ -53,14 +52,14 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 		// messageType[, data][,data]
 		int index = payload.indexOf(",");
 		String msgType = index == -1 ? payload : payload.substring(0, index);
-		Invoker invoker = HANDLERS.get(msgType);
+		MethodInvoker invoker = HANDLERS.get(msgType);
 		if (invoker != null) {
 			Object returnValue;
 			try {
 				Class<?>[] pTypes = invoker.getParameterTypes();
 				int pCount = pTypes.length;
 				if (pCount == 0) {
-					returnValue = invoker.invoke(null, null, EMPTY_OBJECT_ARRAY);
+					returnValue = invoker.invoke0(invoker.getDefaultTarget(), null, EMPTY_OBJECT_ARRAY);
 				} else {
 					Object[] pValues = new Object[pCount];
 					for (int i = 0; i < pCount; i++) {
@@ -78,7 +77,7 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 							pValues[i] = JsonUtils.readValue(payload, pType);
 						}
 					}
-					returnValue = invoker.invoke(null, null, pValues);
+					returnValue = invoker.invoke0(invoker.getDefaultTarget(), null, pValues);
 				}
 				return returnValue;
 			} catch (Throwable e) {

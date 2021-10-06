@@ -27,7 +27,6 @@ import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
-import org.ssssssss.magicapi.utils.Invoker;
 import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.magicapi.utils.PatternUtils;
 import org.ssssssss.script.MagicScriptContext;
@@ -37,10 +36,12 @@ import org.ssssssss.script.exception.MagicScriptException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
+import org.ssssssss.script.reflection.JavaInvoker;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -248,9 +249,9 @@ public class RequestHandler extends MagicController {
 				if (decimal == null) {
 					throw new IllegalArgumentException();
 				}
-				return dataType.getInvoker().invoke(decimal, null, EMPTY_OBJECT_ARRAY);
+				return dataType.getInvoker().invoke0(decimal, null, EMPTY_OBJECT_ARRAY);
 			} else {
-				Invoker invoker = dataType.getInvoker();
+				JavaInvoker<Method> invoker = dataType.getInvoker();
 				if (invoker != null) {
 					List<Object> params = new ArrayList<>();
 					if (dataType.isNeedName()) {
@@ -259,7 +260,7 @@ public class RequestHandler extends MagicController {
 					if (dataType.isNeedValue()) {
 						params.add(value);
 					}
-					return invoker.invoke(null, null, params.toArray());
+					return invoker.invoke0(null, null, params.toArray());
 				}
 			}
 			return value;
