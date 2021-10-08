@@ -78,10 +78,7 @@ public class MagicAPIController extends MagicController implements MagicExceptio
 	@ResponseBody
 	public JsonBean<List<Backup>> backupList(HttpServletRequest request, String id) {
 		isTrue(allowVisit(request, Authorization.VIEW, getApiInfo(id)), PERMISSION_INVALID);
-		return new JsonBean<>(magicBackupService.backupById(id)
-				.stream()
-				.sorted(Comparator.comparing(Backup::getCreateDate).reversed())
-				.collect(Collectors.toList()));
+		return new JsonBean<>(magicBackupService.backupById(id));
 	}
 
 	/**

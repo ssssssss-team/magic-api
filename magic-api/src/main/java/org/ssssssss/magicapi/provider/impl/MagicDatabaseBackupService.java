@@ -40,9 +40,9 @@ public class MagicDatabaseBackupService implements MagicBackupService {
 	public MagicDatabaseBackupService(JdbcTemplate template, String tableName) {
 		this.template = template;
 		this.INSERT_SQL = String.format("insert into %s(%s,content) values(?,?,?,?,?,?,?)", tableName, DEFAULT_COLUMNS);
-		this.FIND_BY_ID = String.format("select %s from %s where id = ?", DEFAULT_COLUMNS, tableName);
+		this.FIND_BY_ID = String.format("select %s from %s where id = ? order by create_date desc", DEFAULT_COLUMNS, tableName);
 		this.DELETE_BY_ID = String.format("delete from %s where id = ?", tableName);
-		this.FIND_BY_TAG = String.format("select %s from %s where tag = ?", DEFAULT_COLUMNS, tableName);
+		this.FIND_BY_TAG = String.format("select %s from %s where tag = ? order by create_date desc", DEFAULT_COLUMNS, tableName);
 		this.FIND_BY_TIMESTAMP = String.format("select %s from %s where create_date < ? order by create_date desc", DEFAULT_COLUMNS, tableName);
 		this.DELETE_BY_TIMESTAMP = String.format("delete from %s where create_date < ? order by create_date desc", tableName);
 		this.FIND_BY_ID_AND_TIMESTAMP = String.format("select * from %s where id = ? and create_date = ?", tableName);
