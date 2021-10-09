@@ -74,7 +74,7 @@ export default {
       this.scriptModel = monaco.editor.createModel(this.scriptEditor.getValue(), 'magicscript')
       this.originalModel = this.scriptModel;
       this.timestampes = timestampes.map((t) => {
-        return {id: item.id, timestamp: t.createDate, dateTime: formatDate(t.createDate)}
+        return {id: item.id, timestamp: t.createDate, dateTime: formatDate(t.createDate), createBy: t.createBy}
       })
       if (this.timestampes.length > 0) {
         this.open(this.timestampes[0])
