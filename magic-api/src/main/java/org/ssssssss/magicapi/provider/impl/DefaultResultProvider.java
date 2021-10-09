@@ -24,6 +24,7 @@ public class DefaultResultProvider implements ResultProvider {
 		long timestamp = System.currentTimeMillis();
 		if (this.responseScript != null) {
 			MagicScriptContext context = new MagicScriptContext();
+			context.setScriptName(requestEntity.getMagicScriptContext().getScriptName());
 			context.set("code", code);
 			context.set("message", message);
 			context.set("data", data);

@@ -84,7 +84,8 @@ public class RequestHandler extends MagicController {
 		String sessionId = null;
 		boolean requestedFromTest = configuration.isEnableWeb() && (sessionId = request.getHeader(HEADER_REQUEST_SESSION)) != null;
 		RequestEntity requestEntity = new RequestEntity(request, response, requestedFromTest, parameters, pathVariables);
-		if (requestEntity.getApiInfo() == null) {
+		ApiInfo info = requestEntity.getApiInfo();
+		if (info == null) {
 			logger.error("{}找不到对应接口", request.getRequestURI());
 			return afterCompletion(requestEntity, buildResult(requestEntity, API_NOT_FOUND, "接口不存在"));
 		}
@@ -95,24 +96,25 @@ public class RequestHandler extends MagicController {
 			}
 		};
 		requestEntity.setHeaders(headers);
-		List<Path> paths = new ArrayList<>(requestEntity.getApiInfo().getPaths());
-		MappingHandlerMapping.findGroups(requestEntity.getApiInfo().getGroupId())
+		List<Path> paths = new ArrayList<>(info.getPaths());
+		MappingHandlerMapping.findGroups(info.getGroupId())
 				.stream()
 				.flatMap(it -> it.getPaths().stream())
 				.filter(it -> !paths.contains(it))
 				.forEach(paths::add);
 		Object bodyValue = readRequestBody(requestEntity.getRequest());
+		String scriptName = configuration.getGroupServiceProvider().getScriptName(info.getGroupId(), info.getName(), info.getPath());
 		try {
 			// 验证参数
-			doValidate("参数", requestEntity.getApiInfo().getParameters(), parameters, PARAMETER_INVALID);
+			doValidate(scriptName, "参数", info.getParameters(), parameters, PARAMETER_INVALID);
 			// 验证 header
-			doValidate("header", requestEntity.getApiInfo().getHeaders(), headers, HEADER_INVALID);
+			doValidate(scriptName, "header", info.getHeaders(), headers, HEADER_INVALID);
 			// 验证 path
-			doValidate("path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID);
-			BaseDefinition requestBody = requestEntity.getApiInfo().getRequestBodyDefinition();
+			doValidate(scriptName, "path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID);
+			BaseDefinition requestBody = info.getRequestBodyDefinition();
 			if (requestBody != null && !CollectionUtils.isEmpty(requestBody.getChildren())) {
 				requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
-				doValidate(VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
+				doValidate(scriptName, VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
 					put(requestBody.getName(), bodyValue);
 				}}, BODY_INVALID);
 			}
@@ -121,7 +123,7 @@ public class RequestHandler extends MagicController {
 		} catch (Throwable root) {
 			return afterCompletion(requestEntity, processException(requestEntity, root), root);
 		}
-		MagicScriptContext context = createMagicScriptContext(requestEntity, bodyValue);
+		MagicScriptContext context = createMagicScriptContext(scriptName, requestEntity, bodyValue);
 		requestEntity.setMagicScriptContext(context);
 		RequestContext.setRequestEntity(requestEntity);
 		Object value;
@@ -161,7 +163,7 @@ public class RequestHandler extends MagicController {
 		return false;
 	}
 
-	private <T extends BaseDefinition> Map<String, Object> doValidate(String comment, List<T> validateParameters, Map<String, Object> parameters, JsonCode jsonCode) {
+	private <T extends BaseDefinition> Map<String, Object> doValidate(String scriptName, String comment, List<T> validateParameters, Map<String, Object> parameters, JsonCode jsonCode) {
 		parameters = parameters != null ? parameters : EMPTY_MAP;
 		if (CollectionUtils.isEmpty(validateParameters)) {
 			return parameters;
@@ -172,14 +174,14 @@ public class RequestHandler extends MagicController {
 				if (doValidateBody(comment, parameter, parameters, jsonCode, Map.class)) {
 					continue;
 				}
-				doValidate(VAR_NAME_REQUEST_BODY, parameter.getChildren(), (Map) parameters.get(parameter.getName()), jsonCode);
+				doValidate(scriptName, VAR_NAME_REQUEST_BODY, parameter.getChildren(), (Map) parameters.get(parameter.getName()), jsonCode);
 			} else if (DataType.Array == parameter.getDataType()) {
 				if (doValidateBody(comment, parameter, parameters, jsonCode, List.class)) {
 					continue;
 				}
 				List<Object> list = (List) parameters.get(parameter.getName());
 				if (list != null) {
-					List<Map<String, Object>> newList = list.stream().map(it -> doValidate(VAR_NAME_REQUEST_BODY, parameter.getChildren(), new HashMap<String, Object>() {{
+					List<Map<String, Object>> newList = list.stream().map(it -> doValidate(scriptName, VAR_NAME_REQUEST_BODY, parameter.getChildren(), new HashMap<String, Object>() {{
 						put(EMPTY, it);
 					}}, jsonCode)).collect(Collectors.toList());
 					for (int i = 0, size = newList.size(); i < size; i++) {
@@ -226,6 +228,7 @@ public class RequestHandler extends MagicController {
 			context.putMapIntoContext(parameters);
 			Object value = parameters.get(parameter.getName());
 			if (value != null) {
+				context.setScriptName(scriptName);
 				// 设置自身变量
 				context.set(EXPRESSION_DEFAULT_VAR_NAME, value);
 				if (!BooleanLiteral.isTrue(ScriptManager.executeExpression(parameter.getExpression(), context))) {
@@ -339,7 +342,7 @@ public class RequestHandler extends MagicController {
 	/**
 	 * 构建 MagicScriptContext
 	 */
-	private MagicScriptContext createMagicScriptContext(RequestEntity requestEntity, Object requestBody) {
+	private MagicScriptContext createMagicScriptContext(String scriptName, RequestEntity requestEntity, Object requestBody) {
 		List<Integer> breakpoints = requestEntity.getRequestedBreakpoints();
 		// 构建脚本上下文
 		MagicScriptContext context;
@@ -365,8 +368,7 @@ public class RequestHandler extends MagicController {
 		if (wrap != null && StringUtils.isNotBlank(wrap.toString())) {
 			context.set(wrap.toString(), requestEntity.getParameters());
 		}
-		ApiInfo info = requestEntity.getApiInfo();
-		context.setScriptName(configuration.getGroupServiceProvider().getScriptName(info.getGroupId(), info.getName(), info.getPath()));
+		context.setScriptName(scriptName);
 		context.putMapIntoContext(requestEntity.getParameters());
 		context.putMapIntoContext(requestEntity.getPathVariables());
 		context.set(VAR_NAME_COOKIE, new CookieContext(requestEntity.getRequest()));
