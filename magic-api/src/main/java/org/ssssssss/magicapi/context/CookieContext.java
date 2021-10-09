@@ -19,9 +19,11 @@ public class CookieContext extends HashMap<String, String> {
 
 	@Override
 	public String get(Object key) {
-		for (Cookie cookie : cookies) {
-			if (cookie.getName().equalsIgnoreCase("" + key)) {
-				return cookie.getValue();
+		if(cookies != null){
+			for (Cookie cookie : cookies) {
+				if (cookie.getName().equalsIgnoreCase("" + key)) {
+					return cookie.getValue();
+				}
 			}
 		}
 		return null;
