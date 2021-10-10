@@ -45,7 +45,7 @@ import contants from '@/scripts/contants.js'
 import MagicWebSocket from '@/scripts/websocket.js'
 import store from '@/scripts/store.js'
 import Key from '@/scripts/hotkey.js'
-import {replaceURL,getQueryVariable} from '@/scripts/utils.js'
+import {getQueryVariable, replaceURL} from '@/scripts/utils.js'
 import {defineTheme} from '@/scripts/editor/theme.js'
 import defaultTheme from '@/scripts/editor/default-theme.js'
 import darkTheme from '@/scripts/editor/dark-theme.js'
@@ -344,6 +344,14 @@ export default {
      * 传入id来打开对应api或者function
      */
     open(openIds) {
+      try {
+        JSON.parse(store.get(contants.RECENT_OPENED_TAB)).forEach(id => {
+          this.$refs.apiList.openItemById(id)
+          this.$refs.functionList.openItemById(id)
+        })
+      } catch (e) {
+        // ignore
+      }
       openIds = openIds || getQueryVariable('openIds')
       if (openIds) {
         if (typeof openIds === 'string') {

@@ -22,6 +22,7 @@ import bus from '../../scripts/bus.js'
 import Key from '@/scripts/hotkey.js'
 import MagicDialog from '@/components/common/modal/magic-dialog.vue'
 import store from '@/scripts/store.js'
+import contants from "@/scripts/contants.js"
 
 export default {
   name: 'MagicRecentOpened',
@@ -43,7 +44,7 @@ export default {
         if(this.scripts.length > 30){
           this.scripts.splice(30, this.scripts.length)
         }
-        store.set('recent_opened', this.scripts)
+        store.set(contants.RECENT_OPENED, this.scripts)
       }
     })
     let element = document.getElementsByClassName('ma-container')[0]
@@ -64,7 +65,7 @@ export default {
       if (filtered.length !== this.scripts.length) {
         this.$nextTick(() => {
           this.scripts = filtered.map(it => [it._type, it.id]);
-          store.set('recent_opened', this.scripts)
+          store.set(contants.RECENT_OPENED, this.scripts)
         })
       }
       return list.filter(it => it);
@@ -72,7 +73,7 @@ export default {
   },
   methods: {
     show() {
-      let str = store.get('recent_opened')
+      let str = store.get(contants.RECENT_OPENED)
       if (str) {
         try {
           this.scripts = JSON.parse(str)

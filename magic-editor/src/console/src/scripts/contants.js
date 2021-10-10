@@ -18,6 +18,8 @@ const contants = {
   HEADER_MAGIC_TOKEN: 'magic-token',
   HEADER_MAGIC_TOKEN_VALUE: 'unauthorization',
   IGNORE_VERSION: 'ignore-version',
+  RECENT_OPENED_TAB: 'recent_opened_tab',
+  RECENT_OPENED: 'recent_opened',
   RESPONSE_CODE_DEBUG: 1000,
   RESPONSE_CODE_SCRIPT_ERROR: -1000,
   RESPONSE_NO_PERMISSION: -10,

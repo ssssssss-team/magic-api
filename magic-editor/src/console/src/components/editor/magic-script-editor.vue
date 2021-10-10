@@ -409,11 +409,15 @@ export default {
           this.editor.setValue(item.script)
           this.editor.setScrollTop(item.ext.scrollTop);
           bus.$emit('opened', item)
+          this.resetRecentOpenedTab()
         }).end(() => {
           item.ext.loading = false;
         })
       }
       // this.layout()
+    },
+    resetRecentOpenedTab(){
+      store.set(contants.RECENT_OPENED_TAB, this.scripts.filter(it => it.id).map(it => it.id))
     },
     deleteWrapperProperties(obj){
       delete obj.ext
@@ -751,6 +755,7 @@ export default {
           it.displayName = it.name
         }
       })
+      this.resetRecentOpenedTab()
     },
     closeAll() {
       let items = [...this.scripts]
