@@ -125,6 +125,6 @@ public interface GroupServiceProvider {
 	 * @return 完整名称
 	 */
 	default String getScriptName(String groupId, String name, String path) {
-		return PathUtils.replaceSlash("/" + getFullName(groupId) + "/" + name) + "(" + PathUtils.replaceSlash(getFullPath(groupId) + "/" + path) + ")";
+		return PathUtils.replaceSlash("/" + getFullName(groupId) + "/" + name) + "(" + PathUtils.replaceSlash("/" + getFullPath(groupId) + "/" + path) + ")";
 	}
 }
