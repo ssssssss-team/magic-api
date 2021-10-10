@@ -430,19 +430,37 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return this.dataSourceNode == null ? "unknown" : dataSourceNode.getName();
 	}
 
-	@UnableCall
-	public Object page(BoundSql boundSql, Page page) {
-		assertDatasourceNotNull();
-		Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
-		BoundSql countBoundSql = boundSql.copy(dialect.getCountSql(boundSql.getSql()));
-		int count = countBoundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(countBoundSql.getSql(), new SingleRowResultSetExtractor<>(Integer.class), countBoundSql.getParameters()));
+	/**
+	 * 分页查询（手动传入分页SQL语句）
+	 */
+	@Comment("执行分页查询，分页`SQL`语句手动传入")
+	public Object page(String countSql, String sql){
+		int count = selectInt(new BoundSql(countSql, this));
+		Page page = pageProvider.getPage(MagicScriptContext.get());
+		BoundSql boundSql = new BoundSql(sql, this);
+		return page(count, boundSql, page, null);
+	}
+
+	private Object page(int count, BoundSql boundSql, Page page, Dialect dialect) {
 		List<Map<String, Object>> list = null;
-		if (count > 0) {
+		if(count > 0){
+			if(dialect == null){
+				dialect = dataSourceNode.getDialect(dialectAdapter);
+			}
 			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, page.getOffset(), page.getLimit());
 			list = pageBoundSql.getCacheValue(this.sqlInterceptors, () -> queryForList(pageBoundSql));
 		}
 		RequestEntity requestEntity = RequestContext.getRequestEntity();
 		return resultProvider.buildPageResult(requestEntity, page, count, list);
+	}
+
+	@UnableCall
+	public Object page(BoundSql boundSql, Page page) {
+		assertDatasourceNotNull();
+		Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
+		BoundSql countBoundSql = boundSql.copy(dialect.getCountSql(boundSql.getSql()));
+		int count = countBoundSql.getCacheValue(this.sqlInterceptors, () -> selectInt(countBoundSql));
+		return page(count, boundSql, page, dialect);
 	}
 
 	/**
