@@ -49,6 +49,7 @@ import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.interceptor.*;
 import org.ssssssss.magicapi.logging.LoggerManager;
 import org.ssssssss.magicapi.model.Constants;
+import org.ssssssss.magicapi.model.DataType;
 import org.ssssssss.magicapi.modules.*;
 import org.ssssssss.magicapi.provider.*;
 import org.ssssssss.magicapi.provider.impl.*;
@@ -510,6 +511,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 												 MagicBackupService magicBackupService) throws NoSuchMethodException {
 		logger.info("magic-api工作目录:{}", magicResource);
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
+		DataType.DATE_PATTERNS = properties.getDatePattern();
 		// 设置响应结果的code值
 		ResponseCodeConfig responseCodeConfig = properties.getResponseCodeConfig();
 		Constants.RESPONSE_CODE_SUCCESS = responseCodeConfig.getSuccess();

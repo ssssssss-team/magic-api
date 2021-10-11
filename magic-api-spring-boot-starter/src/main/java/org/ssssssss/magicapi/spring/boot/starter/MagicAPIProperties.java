@@ -114,6 +114,13 @@ public class MagicAPIProperties {
 	 */
 	private boolean showSql = true;
 
+	/**
+	 * 请求参数日期格式
+	 *
+	 * @since 1.5.2
+	 */
+	private String[] datePattern = new String[]{"yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss", "yyyyMMddHHmmss", "yyyyMMdd"};
+
 	@NestedConfigurationProperty
 	private SecurityConfig securityConfig = new SecurityConfig();
 
@@ -380,4 +387,11 @@ public class MagicAPIProperties {
 		this.showSql = showSql;
 	}
 
+	public String[] getDatePattern() {
+		return datePattern;
+	}
+
+	public void setDatePattern(String[] datePattern) {
+		this.datePattern = datePattern;
+	}
 }
