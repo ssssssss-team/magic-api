@@ -268,7 +268,7 @@ public class RequestHandler extends MagicController {
 			}
 			return value;
 		} catch (Throwable throwable) {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(throwable);
 		}
 	}
 
