@@ -44,7 +44,7 @@ public class MagicFunctionManager {
 	public void registerFunctionLoader() {
 		MagicResourceLoader.addFunctionLoader((path) -> {
 			FunctionInfo info = MAPPINGS.get(path);
-			String scriptName = groupServiceProvider.getScriptName(info.getId(), info.getName(), info.getPath());
+			String scriptName = groupServiceProvider.getScriptName(info.getGroupId(), info.getName(), info.getPath());
 			if (info != null) {
 				List<Parameter> parameters = info.getParameters();
 				return (Function<Object[], Object>) objects -> {
