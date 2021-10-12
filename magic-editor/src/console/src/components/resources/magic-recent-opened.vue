@@ -92,10 +92,13 @@ export default {
   }
 }
 </script>
-<style>
+<style scoped>
 @import './magic-resource.css';
 .ma-dialog-content .no-data-tip {
   line-height: 380px;
   text-align: center;
+}
+.ma-tree-item{
+  white-space: nowrap;
 }
 </style>
