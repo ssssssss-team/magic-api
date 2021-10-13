@@ -334,13 +334,13 @@ export default {
       if (item.copy !== true && (info || isNew)) {
         if (isNew) {
           if (isApi) {
-            item.headers = item.headers || []
-            item.option = item.option || []
-            item.paths = item.paths || []
-            item.requestBody = item.requestBody || '';
-            item.method = contants.API_DEFAULT_METHOD
+            this.$set(item, 'headers', item.headers || [])
+            this.$set(item, 'option', item.option || [])
+            this.$set(item, 'paths', item.paths || [])
+            this.$set(item, 'requestBody', item.requestBody || '')
+            this.$set(item, 'method', contants.API_DEFAULT_METHOD)
           }
-          item.parameters = item.parameters || []
+          this.$set(item, 'parameters', item.parameters || [])
           item.ext.save = false
           this.scripts.push(item)
         } else if (info) {
@@ -377,23 +377,23 @@ export default {
           if (isApi) {
             if (!Array.isArray(item.parameters)) {
               // v0.5.0以下版本处理
-              item.option = process(JSON.parse(data.option || '[]'))
+              this.$set(item, 'option', process(JSON.parse(data.option || '[]')))
             } else {
-              item.option = JSON.parse(data.option || '[]')
+              this.$set(item, 'option', JSON.parse(data.option || '[]'))
             }
-            item.parameters = data.parameters;
-            item.headers = data.headers;
-            item.paths = data.paths;
-            item.responseHeader = JSON.parse(data.responseHeader || '[]')
-            item.responseBody = data.responseBody
-            item.responseBodyDefinition = data.responseBodyDefinition
-            item.requestBodyDefinition = data.requestBodyDefinition
-            item.requestBody = data.requestBody
-            item.method = data.method
+            this.$set(item, 'parameters', data.parameters)
+            this.$set(item, 'headers', data.headers)
+            this.$set(item, 'paths', data.paths)
+            this.$set(item, 'responseHeader', JSON.parse(data.responseHeader || '[]'))
+            this.$set(item, 'responseBody', data.responseBody)
+            this.$set(item, 'responseBodyDefinition', data.responseBodyDefinition)
+            this.$set(item, 'requestBodyDefinition', data.requestBodyDefinition)
+            this.$set(item, 'requestBody', data.requestBody)
+            this.$set(item, 'method', data.method)
           }
-          item.script = data.script
+          this.$set(item, 'script', data.script)
           item.ext.tmpScript = data.script
-          item.description = data.description
+          this.$set(item, 'description', data.description)
           if (item.copy === true) {
             item.id = ''
             item.copy = false
