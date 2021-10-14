@@ -121,6 +121,13 @@ public class MagicAPIProperties {
 	 */
 	private String[] datePattern = new String[]{"yyyy-MM-dd", "yyyy-MM-dd HH:mm:ss", "yyyyMMddHHmmss", "yyyyMMdd"};
 
+	/**
+	 * 编译缓存容量
+	 *
+	 * @since 1.5.3
+	 */
+	private int compileCacheSize = 500;
+
 	@NestedConfigurationProperty
 	private SecurityConfig securityConfig = new SecurityConfig();
 
@@ -393,5 +400,13 @@ public class MagicAPIProperties {
 
 	public void setDatePattern(String[] datePattern) {
 		this.datePattern = datePattern;
+	}
+
+	public int getCompileCacheSize() {
+		return compileCacheSize;
+	}
+
+	public void setCompileCacheSize(int compileCacheSize) {
+		this.compileCacheSize = compileCacheSize;
 	}
 }

@@ -57,6 +57,7 @@ import org.ssssssss.magicapi.utils.ClassScanner;
 import org.ssssssss.magicapi.utils.Mapping;
 import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.script.MagicResourceLoader;
+import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.exception.MagicScriptRuntimeException;
 import org.ssssssss.script.functions.DynamicModuleImport;
@@ -512,6 +513,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		logger.info("magic-api工作目录:{}", magicResource);
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 		DataType.DATE_PATTERNS = properties.getDatePattern();
+		MagicScript.setCompileCache(properties.getCompileCacheSize());
 		// 设置响应结果的code值
 		ResponseCodeConfig responseCodeConfig = properties.getResponseCodeConfig();
 		Constants.RESPONSE_CODE_SUCCESS = responseCodeConfig.getSuccess();
