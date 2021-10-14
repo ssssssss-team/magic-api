@@ -4,7 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -238,7 +237,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 				String path = configuration.getEditorConfig();
 				if (path.startsWith(ResourceUtils.CLASSPATH_URL_PREFIX)) {
 					path = path.substring(ResourceUtils.CLASSPATH_URL_PREFIX.length());
-					return responseBuilder.body(new InputStreamResource(new ClassPathResource(path).getInputStream()));
+					return responseBuilder.body(IoUtils.bytes(new ClassPathResource(path).getInputStream()));
 				}
 				File file = ResourceUtils.getFile(configuration.getEditorConfig());
 				return responseBuilder.body(Files.readAllBytes(Paths.get(file.toURI())));
