@@ -1,13 +1,8 @@
 package org.ssssssss.magicapi.script;
 
-import org.ssssssss.magicapi.cache.DefaultSqlCache;
-import org.ssssssss.magicapi.exception.MagicAPIException;
-import org.ssssssss.magicapi.utils.MD5Utils;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
-
-import javax.script.*;
 
 /**
  * 脚本管理
@@ -16,59 +11,14 @@ import javax.script.*;
  */
 public class ScriptManager {
 
-	private static final ScriptEngineManager SCRIPT_ENGINE_MANAGER = new ScriptEngineManager();
-
-
-	/**
-	 * 编译缓存
-	 */
-	private static final DefaultSqlCache COMPILE_CACHE = new DefaultSqlCache(500, -1);
-
-	private static final String DEBUG_MARK = MagicScript.DEBUG_MARK;
-
-	/**
-	 * 编译脚本
-	 *
-	 * @param script 脚本内容
-	 */
-	public static CompiledScript compile(String engine, String script) {
-		// 先对脚本MD5作为key
-		String key = MD5Utils.encrypt(script);
-		CompiledScript scriptObject = (CompiledScript) COMPILE_CACHE.get("default", key);
-		if (scriptObject == null) {
-			ScriptEngine scriptEngine = SCRIPT_ENGINE_MANAGER.getEngineByName(engine);
-			if (scriptEngine != null) {
-				// 判断是否支持编译
-				if (scriptEngine instanceof Compilable) {
-					Compilable compilable = (Compilable) scriptEngine;
-					try {
-						scriptObject = compilable.compile(script);
-					} catch (Exception e) {
-						throw new MagicAPIException(String.format("编译%s出错", engine), e);
-					}
-				} else {
-					scriptObject = new UnCompileScript(script, scriptEngine);
-				}
-				COMPILE_CACHE.put("default", key, scriptObject, -1);
-			}
-		}
-		return scriptObject;
-	}
-
 	/**
 	 * 执行脚本
 	 */
 	public static Object executeScript(String script, MagicScriptContext context) {
-		SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
-		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, context, ScriptContext.ENGINE_SCOPE);
+		script = (context instanceof MagicScriptDebugContext ? MagicScript.DEBUG_MARK : "") + script;
+		MagicScript magicScript = MagicScript.create(script, null);
 		// 执行脚本
-		try {
-			return compile("MagicScript", (context instanceof MagicScriptDebugContext ? DEBUG_MARK : "") + script).eval(simpleScriptContext);
-		} catch (ScriptException e) {
-			throw new MagicAPIException(e.getMessage(), e);
-		} finally {
-			MagicScriptContext.remove();
-		}
+		return magicScript.execute(context);
 	}
 
 	/**
