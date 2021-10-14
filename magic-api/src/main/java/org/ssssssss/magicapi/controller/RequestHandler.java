@@ -275,7 +275,6 @@ public class RequestHandler extends MagicController {
 	private Object invokeRequest(RequestEntity requestEntity) throws Throwable {
 		try {
 			MagicScriptContext context = requestEntity.getMagicScriptContext();
-			MagicScriptContext.set(context);
 			Object result = ScriptManager.executeScript(requestEntity.getApiInfo().getScript(), context);
 			Object value = result;
 			// 执行后置拦截器
@@ -288,7 +287,6 @@ public class RequestHandler extends MagicController {
 			return afterCompletion(requestEntity, processException(requestEntity, root), root);
 		} finally {
 			RequestContext.remove();
-			MagicScriptContext.remove();
 		}
 	}
 

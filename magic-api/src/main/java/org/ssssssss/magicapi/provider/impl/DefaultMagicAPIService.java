@@ -128,7 +128,6 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 						varMap.putAll(variables.getVariables());
 						newContext.setScriptName(groupServiceProvider.getScriptName(info.getId(), info.getName(), info.getPath()));
 						newContext.putMapIntoContext(varMap);
-						MagicScriptContext.set(newContext);
 						try {
 							Object value = ScriptManager.executeScript(info.getScript(), newContext);
 							if (value instanceof ExitValue) {
@@ -153,11 +152,9 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		MagicScriptContext scriptContext = new MagicScriptContext();
 		scriptContext.setScriptName(groupServiceProvider.getScriptName(info.getGroupId(), info.getName(), info.getPath()));
 		scriptContext.putMapIntoContext(context);
-		SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
-		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, scriptContext, ScriptContext.ENGINE_SCOPE);
 		final Object evalVal;
 		try {
-			evalVal = ((MagicScript) ScriptManager.compile("MagicScript", info.getScript())).eval(simpleScriptContext);
+			evalVal = ScriptManager.executeScript(info.getScript(), scriptContext);
 		} finally {
 			// 恢复原接口上下文，修复当前调完其它接口后原接口上下文丢失的问题
 			MagicScriptContext.set(magicScriptContext);
@@ -199,9 +196,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		MagicScriptContext scriptContext = new MagicScriptContext(context);
 		scriptContext.setScriptName(groupServiceProvider.getScriptName(functionInfo.getGroupId(), functionInfo.getName(), functionInfo.getPath()));
 		scriptContext.putMapIntoContext(context);
-		SimpleScriptContext simpleScriptContext = new SimpleScriptContext();
-		simpleScriptContext.setAttribute(MagicScript.CONTEXT_ROOT, scriptContext, ScriptContext.ENGINE_SCOPE);
-		return ((MagicScript) ScriptManager.compile("MagicScript", functionInfo.getScript())).eval(simpleScriptContext);
+		return ScriptManager.executeScript(functionInfo.getScript(), scriptContext);
 	}
 
 	@Override

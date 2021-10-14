@@ -52,7 +52,6 @@ public class MagicFunctionManager {
 					try {
 						MagicScriptContext functionContext = new MagicScriptContext(context.getRootVariables());
 						functionContext.setScriptName(scriptName);
-						MagicScriptContext.set(functionContext);
 						if (objects != null) {
 							for (int i = 0, len = objects.length, size = parameters.size(); i < len && i < size; i++) {
 								functionContext.set(parameters.get(i).getName(), objects[i]);
