@@ -101,6 +101,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	private final ObjectProvider<List<SQLInterceptor>> sqlInterceptorsProvider;
 
 	/**
+	 * 单表API拦截器
+	 */
+	private final ObjectProvider<List<NamedTableInterceptor>> namedTableInterceptorsProvider;
+
+	/**
 	 * 自定义的类型扩展
 	 */
 	private final ObjectProvider<List<ExtensionMethod>> extensionMethodsProvider;
@@ -164,6 +169,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 									 ObjectProvider<List<MagicFunction>> magicFunctionsProvider,
 									 ObjectProvider<MagicNotifyService> magicNotifyServiceProvider,
 									 ObjectProvider<AuthorizationInterceptor> authorizationInterceptorProvider,
+									 ObjectProvider<List<NamedTableInterceptor>> namedTableInterceptorsProvider,
 									 Environment environment,
 									 ApplicationContext applicationContext
 	) {
@@ -177,6 +183,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		this.magicFunctionsProvider = magicFunctionsProvider;
 		this.magicNotifyServiceProvider = magicNotifyServiceProvider;
 		this.authorizationInterceptorProvider = authorizationInterceptorProvider;
+		this.namedTableInterceptorsProvider = namedTableInterceptorsProvider;
 		this.environment = environment;
 		this.applicationContext = applicationContext;
 	}
@@ -414,6 +421,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			sqlInterceptors.add(new DefaultSqlInterceptor());
 		}
 		sqlModule.setSqlInterceptors(sqlInterceptors);
+		sqlModule.setNamedTableInterceptors(namedTableInterceptorsProvider.getIfAvailable(Collections::emptyList));
 		ColumnMapperAdapter columnMapperAdapter = new ColumnMapperAdapter();
 		this.columnMapperProvidersProvider.getIfAvailable(Collections::emptyList).stream().filter(mapperProvider -> !"default".equals(mapperProvider.name())).forEach(columnMapperAdapter::add);
 		columnMapperAdapter.setDefault(properties.getSqlColumnCase());

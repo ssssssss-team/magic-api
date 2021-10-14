@@ -1,11 +1,17 @@
 package org.ssssssss.magicapi.modules.table;
 
 import org.apache.commons.lang3.StringUtils;
+import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.exception.MagicAPIException;
+import org.ssssssss.magicapi.interceptor.NamedTableInterceptor;
+import org.ssssssss.magicapi.model.Attributes;
 import org.ssssssss.magicapi.model.Page;
+import org.ssssssss.magicapi.model.RequestEntity;
+import org.ssssssss.magicapi.model.SqlMode;
 import org.ssssssss.magicapi.modules.BoundSql;
 import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.script.annotation.Comment;
+import org.ssssssss.script.annotation.UnableCall;
 
 import java.io.Serializable;
 import java.util.*;
@@ -18,7 +24,7 @@ import java.util.stream.Collectors;
  *
  * @author mxd
  */
-public class NamedTable {
+public class NamedTable extends Attributes<Object> {
 
 	String tableName;
 
@@ -47,6 +53,8 @@ public class NamedTable {
 	boolean useLogic = false;
 
 	boolean withBlank = false;
+
+	List<NamedTableInterceptor> namedTableInterceptors;
 
 	Where where = new Where(this);
 
@@ -92,7 +100,8 @@ public class NamedTable {
 		namedTable.defaultPrimaryValue = this.defaultPrimaryValue;
 		namedTable.useLogic = this.useLogic;
 		namedTable.withBlank = this.withBlank;
-		namedTable.where = new Where(namedTable);
+		namedTable.where = this.where == null ? null : this.where.clone();
+		namedTable.namedTableInterceptors = this.namedTableInterceptors;
 		return namedTable;
 	}
 
@@ -211,20 +220,6 @@ public class NamedTable {
 		return this;
 	}
 
-	private Collection<Map.Entry<String, Object>> filterNotBlanks() {
-		if (this.withBlank) {
-			return this.columns.entrySet()
-					.stream()
-					.filter(it -> !excludeColumns.contains(it.getKey()))
-					.collect(Collectors.toList());
-		}
-		return this.columns.entrySet()
-				.stream()
-				.filter(it -> StringUtils.isNotBlank(Objects.toString(it.getValue(), "")))
-				.filter(it -> !excludeColumns.contains(it.getKey()))
-				.collect(Collectors.toList());
-	}
-
 	@Comment("执行插入,返回主键")
 	public Object insert() {
 		return insert(null);
@@ -242,6 +237,7 @@ public class NamedTable {
 				this.columns.put(this.primary, this.defaultPrimaryValue);
 			}
 		}
+		preHandle(SqlMode.INSERT);
 		Collection<Map.Entry<String, Object>> entries = filterNotBlanks();
 		if (entries.isEmpty()) {
 			throw new MagicAPIException("参数不能为空");
@@ -259,6 +255,7 @@ public class NamedTable {
 
 	@Comment("执行delete语句")
 	public int delete() {
+		preHandle(SqlMode.DELETE);
 		if (useLogic) {
 			Map<String, Object> dataMap = new HashMap<>();
 			dataMap.put(logicDeleteColumn, logicDeleteValue);
@@ -321,62 +318,25 @@ public class NamedTable {
 
 	@Comment("执行`select`查询")
 	public List<Map<String, Object>> select() {
+		preHandle(SqlMode.SELECT);
 		return sqlModule.select(buildSelect());
 	}
 
 	@Comment("执行`selectOne`查询")
 	public Map<String, Object> selectOne() {
+		preHandle(SqlMode.SELECT_ONE);
 		return sqlModule.selectOne(buildSelect());
-	}
-
-	private BoundSql buildSelect() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("select ");
-		List<String> fields = this.fields.stream()
-				.filter(it -> !excludeColumns.contains(it))
-				.collect(Collectors.toList());
-		if (fields.isEmpty()) {
-			builder.append("*");
-		} else {
-			builder.append(StringUtils.join(fields, ","));
-		}
-		builder.append(" from ").append(tableName);
-		List<Object> params = buildWhere(builder);
-		if (!orders.isEmpty()) {
-			builder.append(" order by ");
-			builder.append(String.join(",", orders));
-		}
-		if (!groups.isEmpty()) {
-			builder.append(" group by ");
-			builder.append(String.join(",", groups));
-		}
-		BoundSql boundSql = new BoundSql(builder.toString(), params, sqlModule);
-		boundSql.setExcludeColumns(excludeColumns);
-		return boundSql;
-	}
-
-	private List<Object> buildWhere(StringBuilder builder) {
-		List<Object> params = new ArrayList<>();
-		if (!where.isEmpty()) {
-			where.and();
-			where.ne(useLogic, logicDeleteColumn, logicDeleteValue);
-			builder.append(where.getSql());
-			params.addAll(where.getParams());
-		} else if (useLogic) {
-			where.ne(logicDeleteColumn, logicDeleteValue);
-			builder.append(where.getSql());
-			params.addAll(where.getParams());
-		}
-		return params;
 	}
 
 	@Comment("执行分页查询")
 	public Object page() {
+		preHandle(SqlMode.PAGE);
 		return sqlModule.page(buildSelect());
 	}
 
 	@Comment("执行分页查询，分页条件手动传入")
 	public Object page(@Comment("限制条数") long limit, @Comment("跳过条数") long offset) {
+		preHandle(SqlMode.PAGE);
 		return sqlModule.page(buildSelect(), new Page(limit, offset));
 	}
 
@@ -395,6 +355,7 @@ public class NamedTable {
 			primaryValue = this.columns.remove(this.primary);
 		}
 		this.withBlank = isUpdateBlank;
+		preHandle(SqlMode.UPDATE);
 		List<Map.Entry<String, Object>> entries = new ArrayList<>(filterNotBlanks());
 		if (entries.isEmpty()) {
 			throw new MagicAPIException("要修改的列不能为空");
@@ -431,6 +392,7 @@ public class NamedTable {
 
 	@Comment("查询条数")
 	public int count() {
+		preHandle(SqlMode.COUNT);
 		StringBuilder builder = new StringBuilder();
 		builder.append("select count(1) from ").append(tableName);
 		List<Object> params = buildWhere(builder);
@@ -442,4 +404,254 @@ public class NamedTable {
 		return count() > 0;
 	}
 
+	private Collection<Map.Entry<String, Object>> filterNotBlanks() {
+		if (this.withBlank) {
+			return this.columns.entrySet()
+					.stream()
+					.filter(it -> !excludeColumns.contains(it.getKey()))
+					.collect(Collectors.toList());
+		}
+		return this.columns.entrySet()
+				.stream()
+				.filter(it -> StringUtils.isNotBlank(Objects.toString(it.getValue(), "")))
+				.filter(it -> !excludeColumns.contains(it.getKey()))
+				.collect(Collectors.toList());
+	}
+
+	private void preHandle(SqlMode sqlMode){
+		if(this.namedTableInterceptors != null){
+			this.namedTableInterceptors.forEach(interceptor -> interceptor.preHandle(sqlMode, this));
+		}
+	}
+
+	private BoundSql buildSelect() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("select ");
+		List<String> fields = this.fields.stream()
+				.filter(it -> !excludeColumns.contains(it))
+				.collect(Collectors.toList());
+		if (fields.isEmpty()) {
+			builder.append("*");
+		} else {
+			builder.append(StringUtils.join(fields, ","));
+		}
+		builder.append(" from ").append(tableName);
+		List<Object> params = buildWhere(builder);
+		if (!orders.isEmpty()) {
+			builder.append(" order by ");
+			builder.append(String.join(",", orders));
+		}
+		if (!groups.isEmpty()) {
+			builder.append(" group by ");
+			builder.append(String.join(",", groups));
+		}
+		BoundSql boundSql = new BoundSql(builder.toString(), params, sqlModule);
+		boundSql.setExcludeColumns(excludeColumns);
+		return boundSql;
+	}
+
+
+	private List<Object> buildWhere(StringBuilder builder) {
+		List<Object> params = new ArrayList<>();
+		if (!where.isEmpty()) {
+			where.and();
+			where.ne(useLogic, logicDeleteColumn, logicDeleteValue);
+			builder.append(where.getSql());
+			params.addAll(where.getParams());
+		} else if (useLogic) {
+			where.ne(logicDeleteColumn, logicDeleteValue);
+			builder.append(where.getSql());
+			params.addAll(where.getParams());
+		}
+		return params;
+	}
+
+
+	/**
+	 * 获取查询的表名
+	 * @return 表名
+	 */
+	@UnableCall
+	public String getTableName() {
+		return tableName;
+	}
+
+	/**
+	 * 获取SQL模块
+	 *
+	 */
+	@UnableCall
+	public SQLModule getSqlModule() {
+		return sqlModule;
+	}
+
+	/**
+	 * 获取主键列
+	 */
+	@UnableCall
+	public String getPrimary() {
+		return primary;
+	}
+
+	/**
+	 * 获取逻辑删除列
+	 */
+	@UnableCall
+	public String getLogicDeleteColumn() {
+		return logicDeleteColumn;
+	}
+
+	/**
+	 * 获取逻辑删除值
+	 */
+	@UnableCall
+	public Object getLogicDeleteValue() {
+		return logicDeleteValue;
+	}
+
+	/**
+	 * 获取设置的columns
+	 */
+	@UnableCall
+	public Map<String, Object> getColumns() {
+		return columns;
+	}
+
+	/**
+	 * 获取设置的fields
+	 */
+	@UnableCall
+	public List<String> getFields() {
+		return fields;
+	}
+
+	/**
+	 * 获取设置的group
+	 */
+	@UnableCall
+	public List<String> getGroups() {
+		return groups;
+	}
+
+	/**
+	 * 获取设置的order
+	 */
+	@UnableCall
+	public List<String> getOrders() {
+		return orders;
+	}
+
+	/**
+	 * 获取设置的排除的列
+	 */
+	@UnableCall
+	public Set<String> getExcludeColumns() {
+		return excludeColumns;
+	}
+
+	/**
+	 * 主键默认值
+	 * @return
+	 */
+	@UnableCall
+	public Object getDefaultPrimaryValue() {
+		return defaultPrimaryValue;
+	}
+
+	/**
+	 * 是否设逻辑了逻辑删除
+	 */
+	@UnableCall
+	public boolean isUseLogic() {
+		return useLogic;
+	}
+
+	/**
+	 * 获取是否不过滤空参数
+	 */
+	@UnableCall
+	public boolean isWithBlank() {
+		return withBlank;
+	}
+
+	/**
+	 * 获取where
+	 */
+	@UnableCall
+	public Where getWhere() {
+		return where;
+	}
+
+	/**
+	 * 设置表名
+	 * @param tableName 表名
+	 */
+	@UnableCall
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	/**
+	 * 设置columns
+	 */
+	@UnableCall
+	public void setColumns(Map<String, Object> columns) {
+		this.columns = columns;
+	}
+
+	/**
+	 * 设置 fields
+	 */
+	@UnableCall
+	public void setFields(List<String> fields) {
+		this.fields = fields;
+	}
+
+	/**
+	 * 设置 group
+	 */
+	@UnableCall
+	public void setGroups(List<String> groups) {
+		this.groups = groups;
+	}
+
+	/**
+	 * 设置 order
+	 */
+	@UnableCall
+	public void setOrders(List<String> orders) {
+		this.orders = orders;
+	}
+
+	/**
+	 * 设置排除的列
+	 */
+	@UnableCall
+	public void setExcludeColumns(Set<String> excludeColumns) {
+		this.excludeColumns = excludeColumns;
+	}
+
+	/**
+	 * 设置是否使用逻辑删除
+	 */
+	@UnableCall
+	public void setUseLogic(boolean useLogic) {
+		this.useLogic = useLogic;
+	}
+
+	/**
+	 * 设置是否不过滤空参数
+	 */
+	@UnableCall
+	public void setWithBlank(boolean withBlank) {
+		this.withBlank = withBlank;
+	}
+
+	/**
+	 * 获取RequestEntity
+	 */
+	@UnableCall
+	public RequestEntity getRequestEntity() {
+		return RequestContext.getRequestEntity();
+	}
 }

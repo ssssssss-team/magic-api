@@ -15,6 +15,7 @@ import org.ssssssss.magicapi.config.MagicDynamicDataSource.DataSourceNode;
 import org.ssssssss.magicapi.config.MagicModule;
 import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.dialect.Dialect;
+import org.ssssssss.magicapi.interceptor.NamedTableInterceptor;
 import org.ssssssss.magicapi.interceptor.SQLInterceptor;
 import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.model.RequestEntity;
@@ -76,6 +77,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	private SqlCache sqlCache;
 	private String cacheName;
 	private List<SQLInterceptor> sqlInterceptors;
+	private List<NamedTableInterceptor> namedTableInterceptors;
 	private long ttl;
 	private String logicDeleteColumn;
 	private String logicDeleteValue;
@@ -125,6 +127,11 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@UnableCall
 	public void setSqlInterceptors(List<SQLInterceptor> sqlInterceptors) {
 		this.sqlInterceptors = sqlInterceptors;
+	}
+
+	@UnableCall
+	public void setNamedTableInterceptors(List<NamedTableInterceptor> namedTableInterceptors) {
+		this.namedTableInterceptors = namedTableInterceptors;
 	}
 
 	@UnableCall
@@ -194,6 +201,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		sqlModule.setSqlInterceptors(this.sqlInterceptors);
 		sqlModule.setLogicDeleteValue(this.logicDeleteValue);
 		sqlModule.setLogicDeleteColumn(this.logicDeleteColumn);
+		sqlModule.setNamedTableInterceptors(this.namedTableInterceptors);
 		return sqlModule;
 	}
 
