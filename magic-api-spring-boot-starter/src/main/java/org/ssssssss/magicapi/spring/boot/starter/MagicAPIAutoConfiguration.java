@@ -389,6 +389,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	 * 注入API调用Service
 	 */
 	@Bean
+	@ConditionalOnMissingBean
 	public MagicAPIService magicAPIService(MappingHandlerMapping mappingHandlerMapping,
 										   ApiServiceProvider apiServiceProvider,
 										   FunctionServiceProvider functionServiceProvider,

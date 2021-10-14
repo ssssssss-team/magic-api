@@ -58,10 +58,11 @@ public class NamedTable extends Attributes<Object> {
 
 	Where where = new Where(this);
 
-	public NamedTable(String tableName, SQLModule sqlModule, Function<String, String> rowMapColumnMapper) {
+	public NamedTable(String tableName, SQLModule sqlModule, Function<String, String> rowMapColumnMapper, List<NamedTableInterceptor> namedTableInterceptors) {
 		this.tableName = tableName;
 		this.sqlModule = sqlModule;
 		this.rowMapColumnMapper = rowMapColumnMapper;
+		this.namedTableInterceptors = namedTableInterceptors;
 		this.logicDeleteColumn = sqlModule.getLogicDeleteColumn();
 		String deleteValue = sqlModule.getLogicDeleteValue();
 		this.logicDeleteValue = deleteValue;
@@ -102,6 +103,7 @@ public class NamedTable extends Attributes<Object> {
 		namedTable.withBlank = this.withBlank;
 		namedTable.where = this.where == null ? null : this.where.clone();
 		namedTable.namedTableInterceptors = this.namedTableInterceptors;
+		namedTable.properties = this.properties;
 		return namedTable;
 	}
 

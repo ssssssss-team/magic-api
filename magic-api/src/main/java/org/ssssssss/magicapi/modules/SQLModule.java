@@ -523,7 +523,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	@Comment("指定table，进行单表操作")
 	public NamedTable table(String tableName) {
-		return new NamedTable(tableName, this, rowMapColumnMapper);
+		return new NamedTable(tableName, this, rowMapColumnMapper, namedTableInterceptors);
 	}
 
 	private BoundSql buildPageBoundSql(Dialect dialect, BoundSql boundSql, long offset, long limit) {
