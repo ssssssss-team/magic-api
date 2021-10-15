@@ -467,7 +467,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		assertDatasourceNotNull();
 		Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
 		BoundSql countBoundSql = boundSql.copy(dialect.getCountSql(boundSql.getSql()));
-		int count = countBoundSql.getCacheValue(this.sqlInterceptors, () -> selectInt(countBoundSql));
+		int count = selectInt(countBoundSql);
 		return page(count, boundSql, page, dialect);
 	}
 
