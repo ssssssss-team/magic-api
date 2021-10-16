@@ -448,6 +448,10 @@ export default {
       saveObj.headers = saveObj.headers.filter(it => it.name)
       saveObj.option = JSON.stringify(saveObj.option)
       // saveObj.requestHeader = JSON.stringify(saveObj.requestHeader.filter(it => it.name))
+      if (contants.config.persistenceResponseBody === false) {
+        delete saveObj.responseBody
+        delete saveObj.responseBodyDefinition
+      }
       return request.send('/save', JSON.stringify(saveObj), {
         method: 'post',
         headers: {

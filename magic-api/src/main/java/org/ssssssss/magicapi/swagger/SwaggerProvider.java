@@ -40,6 +40,7 @@ public class SwaggerProvider {
 	private String basePath;
 	private GroupServiceProvider groupServiceProvider;
 	private SwaggerEntity.Info info;
+	private boolean persistenceResponseBody;
 
 	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
@@ -55,6 +56,10 @@ public class SwaggerProvider {
 
 	public void setBasePath(String basePath) {
 		this.basePath = basePath;
+	}
+
+	public void setPersistenceResponseBody(boolean persistenceResponseBody) {
+		this.persistenceResponseBody = persistenceResponseBody;
 	}
 
 	@ResponseBody
@@ -78,16 +83,18 @@ public class SwaggerProvider {
 				if (hasBody && baseDefinition != null) {
 					doProcessDefinition(baseDefinition, info, "root_", "request", 0);
 				}
-				baseDefinition = info.getResponseBodyDefinition();
 				parameters.forEach(path::addParameter);
-				if (baseDefinition != null) {
-					Map responseMap = parseResponse(info);
-					if (!responseMap.isEmpty()) {
-						path.setResponses(responseMap);
-						doProcessDefinition(baseDefinition, info, "root_" + baseDefinition.getName(), "response", 0);
+				if (this.persistenceResponseBody) {
+					baseDefinition = info.getResponseBodyDefinition();
+					if (baseDefinition != null) {
+						Map responseMap = parseResponse(info);
+						if (!responseMap.isEmpty()) {
+							path.setResponses(responseMap);
+							doProcessDefinition(baseDefinition, info, "root_" + baseDefinition.getName(), "response", 0);
+						}
+					} else {
+						path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), BODY_EMPTY), Object.class));
 					}
-				} else {
-					path.addResponse("200", mapper.readValue(Objects.toString(info.getResponseBody(), BODY_EMPTY), Object.class));
 				}
 
 			} catch (Exception ignored) {

@@ -57,6 +57,7 @@ public class MagicSwaggerConfiguration {
 		SwaggerProvider swaggerProvider = new SwaggerProvider();
 		swaggerProvider.setGroupServiceProvider(groupServiceProvider);
 		swaggerProvider.setMappingHandlerMapping(handlerMapping);
+		swaggerProvider.setPersistenceResponseBody(properties.isPersistenceResponseBody());
 		SwaggerEntity.License license = new SwaggerEntity.License("MIT", "https://gitee.com/ssssssss-team/magic-api/blob/master/LICENSE");
 		swaggerProvider.setInfo(new SwaggerEntity.Info(config.getDescription(), config.getVersion(), config.getTitle(), license, config.getConcat()));
 		swaggerProvider.setBasePath(servletContext.getContextPath());

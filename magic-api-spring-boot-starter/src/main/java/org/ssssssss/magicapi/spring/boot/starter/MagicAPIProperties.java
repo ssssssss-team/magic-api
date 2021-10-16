@@ -128,6 +128,13 @@ public class MagicAPIProperties {
 	 */
 	private int compileCacheSize = 500;
 
+	/**
+	 * 是否持久化保存ResponseBody
+	 *
+	 * @since 1.5.3
+	 */
+	private boolean persistenceResponseBody = true;
+
 	@NestedConfigurationProperty
 	private SecurityConfig securityConfig = new SecurityConfig();
 
@@ -408,5 +415,13 @@ public class MagicAPIProperties {
 
 	public void setCompileCacheSize(int compileCacheSize) {
 		this.compileCacheSize = compileCacheSize;
+	}
+
+	public boolean isPersistenceResponseBody() {
+		return persistenceResponseBody;
+	}
+
+	public void setPersistenceResponseBody(boolean persistenceResponseBody) {
+		this.persistenceResponseBody = persistenceResponseBody;
 	}
 }
