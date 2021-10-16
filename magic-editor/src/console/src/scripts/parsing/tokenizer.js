@@ -61,7 +61,7 @@ const regexpToken = (stream, tokens) => {
         }
         let regexpSpan = stream.endSpan();
         regexpSpan = stream.getSpan(regexpSpan.getStart() - 1, regexpSpan.getEnd());
-        tokens.push(new Token(TokenType.RegexpLiteral, regexpSpan));
+        tokens.push(new LiteralToken(TokenType.RegexpLiteral, regexpSpan));
         return true;
     }
     return false;
@@ -144,8 +144,12 @@ const tokenizerNumber = (stream, tokens) => {
         while (stream.matchDigit(true) || stream.match('_', true)) {
         }
         if (stream.match(TokenType.Period.literal, true)) {
-            type = TokenType.DoubleLiteral;
-            while (stream.matchDigit(true) || stream.match('_',true)) {
+            if (stream.hasMore()) {
+                type = TokenType.DoubleLiteral;
+                while (stream.matchDigit(true) || stream.match('_',true)) {
+                }
+            } else {
+                stream.reset(stream.getPosition() - 1)
             }
         }
         if (stream.matchAny(['b', 'B'], true)) {

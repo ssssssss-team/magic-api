@@ -1,4 +1,4 @@
-import {ParseException, Span, TokenStream, TokenType} from './index.js'
+import {LiteralToken, ParseException, Span, TokenStream, TokenType} from './index.js'
 import tokenizer from './tokenizer.js'
 import JavaClass from '../editor/java-class.js'
 import {
@@ -758,6 +758,9 @@ export class Parser {
     }
 
     async preprocessComplection(returnJavaType, defineEnvironment) {
+        if(returnJavaType && this.stream.getEnd() instanceof LiteralToken){
+            return this.stream.getEnd().getJavaType();
+        }
         let env = {
             ...defineEnvironment,
             ...JavaClass.getAutoImportClass(),

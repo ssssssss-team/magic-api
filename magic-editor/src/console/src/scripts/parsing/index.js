@@ -245,6 +245,38 @@ class LiteralToken extends Token {
     constructor(tokenType, span, valueOrTokenStream) {
         super(tokenType, span, valueOrTokenStream)
     }
+
+    getJavaType() {
+        if (this.type === TokenType.StringLiteral) {
+            return 'java.lang.String'
+        }
+        if (this.type === TokenType.DoubleLiteral) {
+            return 'java.lang.Double'
+        }
+        if (this.type === TokenType.ByteLiteral) {
+            return 'java.lang.Byte'
+        }
+        if (this.type === TokenType.FloatLiteral) {
+            return 'java.lang.Float'
+        }
+        if (this.type === TokenType.DecimalLiteral) {
+            return 'java.math.BigDecimal'
+        }
+        if (this.type === TokenType.IntegerLiteral) {
+            return 'java.lang.Integer'
+        }
+        if (this.type === TokenType.LongLiteral) {
+            return 'java.lang.Long'
+        }
+        if (this.type === TokenType.BooleanLiteral) {
+            return 'java.lang.Boolean'
+        }
+        if (this.type === TokenType.RegexpLiteral) {
+            return 'java.util.regex.Pattern'
+        }
+        return 'java.lang.Object'
+
+    }
 }
 
 class CharacterStream {
@@ -380,6 +412,10 @@ class TokenStream {
         this.tokens = tokens;
         this.index = 0;
         this.end = tokens.length;
+    }
+
+    getEnd() {
+        return this.end > 0 && this.tokens[this.end -1]
     }
 
     hasMore() {
