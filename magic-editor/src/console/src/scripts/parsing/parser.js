@@ -143,25 +143,6 @@ export class Parser {
         return result;
     }
 
-    parseConverterOrAccessOrCall(expression) {
-        while (this.stream.match([TokenType.Period, TokenType.QuestionPeriod, TokenType.ColonColon], false)) {
-            if (this.stream.match(TokenType.ColonColon, false)) {
-                let open = this.stream.consume().getSpan();
-                let args = [];
-                let identifier = this.stream.expect(TokenType.Identifier);
-                let closing = identifier.getSpan();
-                if (this.stream.match(TokenType.LeftParantheses, false)) {
-                    args = this.parseArguments();
-                    closing = this.stream.expect(TokenType.RightParantheses).getSpan();
-                }
-                expression = new ClassConverter(new Span(open, closing), identifier.getText(), expression, args);
-            } else {
-                expression = this.parseAccessOrCall(expression);
-            }
-        }
-        return expression;
-    }
-
     checkKeyword(span) {
         if (keywords.indexOf(span.getText()) > -1) {
             throw new ParseException('变量名不能定义为关键字', span);
@@ -264,10 +245,10 @@ export class Parser {
         let expression = this.parseAccessOrCall(TokenType.Identifier, true);
         if (expression instanceof MethodCall) {
             let span = new Span(opening.getSource(), opening.getStart(), this.stream.getPrev().getSpan().getEnd());
-            return this.parseConverterOrAccessOrCall(new NewStatement(span, expression.getMethod(), expression.getArguments()));
+            return this.parseAccessOrCall(new NewStatement(span, expression.getMethod(), expression.getArguments()));
         } else if (expression instanceof FunctionCall) {
             let span = new Span(opening.getSource(), opening.getStart(), this.stream.getPrev().getSpan().getEnd());
-            return this.parseConverterOrAccessOrCall(new NewStatement(span, expression.getFunction(), expression.getArguments()));
+            return this.parseAccessOrCall(new NewStatement(span, expression.getFunction(), expression.getArguments()));
         }
         throw new ParseException("Expected MethodCall or FunctionCall or LambdaFunction", this.stream.getPrev().getSpan());
     }
@@ -421,11 +402,8 @@ export class Parser {
                 }
                 this.stream.resetIndex(index);
                 let expression = this.parseExpression();
-                if (this.stream.match([TokenType.Period, TokenType.QuestionPeriod], false)) {
-                    expression = this.parseAccessOrCall(expression);
-                }
                 this.stream.expect(TokenType.RightParantheses);
-                return this.parseConverterOrAccessOrCall(expression);
+                return this.parseAccessOrCall(expression);
             } else {
                 let expression = this.parseAccessOrCallOrLiteral(expectRightCurly);
                 if (expression instanceof MemberAccess || expression instanceof VariableAccess || expression instanceof MapOrArrayAccess) {
@@ -483,9 +461,20 @@ export class Parser {
             let result = target === TokenType.StringLiteral ? new Literal(identifier, 'java.lang.String') : new VariableAccess(identifier, identifier.getText());
             return this.parseAccessOrCall(result, isNew);
         } else {
-            while (this.stream.hasMore() && this.stream.match([TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period, TokenType.QuestionPeriod], false)) {
+            while (this.stream.hasMore() && this.stream.match([TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period, TokenType.QuestionPeriod, TokenType.ColonColon], false)) {
+                if (this.stream.match(TokenType.ColonColon, false)) {
+                    let open = this.stream.consume().getSpan();
+                    let args = [];
+                    let identifier = this.stream.expect(TokenType.Identifier);
+                    let closing = identifier.getSpan();
+                    if (this.stream.match(TokenType.LeftParantheses, false)) {
+                        args = this.parseArguments();
+                        closing = this.stream.expect(TokenType.RightParantheses).getSpan();
+                    }
+                    target = new ClassConverter(new Span(open, closing), identifier.getText(), target, args);
+                }
                 // function or method call
-                if (this.stream.match(TokenType.LeftParantheses, false)) {
+                else if (this.stream.match(TokenType.LeftParantheses, false)) {
                     let args = this.parseArguments();
                     let closingSpan = this.stream.expect(TokenType.RightParantheses).getSpan();
                     if (target instanceof VariableAccess || target instanceof MapOrArrayAccess)
@@ -588,7 +577,7 @@ export class Parser {
         }
 
         let closeBracket = this.stream.expect(TokenType.RightBracket).getSpan();
-        return this.parseConverterOrAccessOrCall(new ListLiteral(new Span(openBracket, closeBracket), values));
+        return new ListLiteral(new Span(openBracket, closeBracket), values);
     }
 
     parseSelect() {
@@ -738,8 +727,7 @@ export class Parser {
             expression = new Literal(this.stream.expect(TokenType.DecimalLiteral).getSpan(), 'java.math.BigDecimal');
         } else if (this.stream.match(TokenType.RegexpLiteral, false)) {
             let token = this.stream.expect(TokenType.RegexpLiteral);
-            let target = new Literal(token.getSpan(), 'java.util.regex.Pattern');
-            expression = this.parseAccessOrCall(target);
+            expression = new Literal(token.getSpan(), 'java.util.regex.Pattern');
         } else if (this.stream.match(TokenType.NullLiteral, false)) {
             expression = new Literal(this.stream.expect(TokenType.NullLiteral).getSpan(), 'null');
         } else if (this.linqLevel > 0 && this.stream.match(TokenType.Asterisk, false)) {
@@ -750,11 +738,7 @@ export class Parser {
         if (expression == null) {
             throw new ParseException("Expected a variable, field, map, array, function or method call, or literal.", this.stream.hasMore() ? this.stream.consume().getSpan() : this.stream.getPrev().getSpan());
         }
-        if (expression && isString && this.stream.match([TokenType.Period, TokenType.QuestionPeriod], false)) {
-            this.stream.prev();
-            expression = this.parseAccessOrCall(TokenType.StringLiteral);
-        }
-        return this.parseConverterOrAccessOrCall(expression);
+        return this.parseAccessOrCall(expression);
     }
 
     async preprocessComplection(returnJavaType, defineEnvironment) {
