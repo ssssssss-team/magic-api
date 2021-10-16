@@ -14,6 +14,7 @@
 <script>
 import bus from "@/scripts/bus";
 import * as utils from "@/scripts/utils";
+import contants from "@/scripts/contants";
 
 export default {
   name: "MagicLog",
@@ -43,6 +44,9 @@ export default {
         row.throwable = true
       }
       row.newline = row.message.indexOf('<br>') > -1
+      if(this.logs.length >= contants.LOG_MAX_ROWS){
+        this.logs.shift()
+      }
       this.logs.push(row)
       let container = this.$refs.container;
       this.$nextTick(() => container.scrollTop = container.scrollHeight)

@@ -127,6 +127,9 @@ export default {
     if(this.config.editorFontSize !== undefined){
       contants.EDITOR_FONT_SIZE = this.config.editorFontSize
     }
+    if(this.config.logMaxRows !== undefined){
+      contants.LOG_MAX_ROWS = Math.max(this.config.logMaxRows, 10)
+    }
     this.config.version = contants.MAGIC_API_VERSION_TEXT
     this.config.title = this.config.title || 'magic-api'
     this.config.themes = this.config.themes || {}
