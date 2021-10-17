@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.ssssssss</groupId>
         <artifactId>magic-api-parent</artifactId>
-        <version>1.5.2</version>
+        <version>1.5.3</version>
     </parent>
     <artifactId>magic-api-spring-boot-starter</artifactId>
     <packaging>jar</packaging>
