@@ -104,6 +104,8 @@ public class RequestHandler extends MagicController {
 				.forEach(paths::add);
 		Object bodyValue = readRequestBody(requestEntity.getRequest());
 		String scriptName = configuration.getGroupServiceProvider().getScriptName(info.getGroupId(), info.getName(), info.getPath());
+		MagicScriptContext context = createMagicScriptContext(scriptName, requestEntity, bodyValue);
+		requestEntity.setMagicScriptContext(context);
 		try {
 			// 验证参数
 			doValidate(scriptName, "参数", info.getParameters(), parameters, PARAMETER_INVALID);
@@ -123,8 +125,6 @@ public class RequestHandler extends MagicController {
 		} catch (Throwable root) {
 			return afterCompletion(requestEntity, processException(requestEntity, root), root);
 		}
-		MagicScriptContext context = createMagicScriptContext(scriptName, requestEntity, bodyValue);
-		requestEntity.setMagicScriptContext(context);
 		RequestContext.setRequestEntity(requestEntity);
 		Object value;
 		// 执行前置拦截器
