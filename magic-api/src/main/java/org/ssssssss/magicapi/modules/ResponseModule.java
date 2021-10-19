@@ -196,7 +196,7 @@ public class ResponseModule {
 		if (requestAttributes instanceof ServletRequestAttributes) {
 			return ((ServletRequestAttributes) requestAttributes).getResponse();
 		}
-		return null;
+		return RequestContext.getHttpServletResponse();
 	}
 
 	/**

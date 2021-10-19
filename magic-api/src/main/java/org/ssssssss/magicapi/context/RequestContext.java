@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.context;
 import org.ssssssss.magicapi.model.RequestEntity;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * 请求上下文
@@ -16,6 +17,11 @@ public class RequestContext {
 	public static HttpServletRequest getHttpServletRequest() {
 		RequestEntity requestEntity = REQUEST_ENTITY_THREAD_LOCAL.get();
 		return requestEntity == null ? null : requestEntity.getRequest();
+	}
+
+	public static HttpServletResponse getHttpServletResponse() {
+		RequestEntity requestEntity = REQUEST_ENTITY_THREAD_LOCAL.get();
+		return requestEntity == null ? null : requestEntity.getResponse();
 	}
 
 	public static RequestEntity getRequestEntity() {

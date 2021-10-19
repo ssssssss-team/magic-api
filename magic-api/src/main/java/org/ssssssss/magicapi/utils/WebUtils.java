@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.utils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.interceptor.MagicUser;
 import org.ssssssss.magicapi.model.Constants;
 
@@ -22,7 +23,7 @@ public class WebUtils {
 		if (requestAttributes instanceof ServletRequestAttributes) {
 			return Optional.of(((ServletRequestAttributes) requestAttributes).getRequest());
 		}
-		return Optional.empty();
+		return Optional.ofNullable(RequestContext.getHttpServletRequest());
 	}
 
 	public static String currentUserName() {
