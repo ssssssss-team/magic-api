@@ -4,7 +4,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ssssssss.magicapi.model.RequestEntity;
 import org.ssssssss.magicapi.modules.BoundSql;
-import org.ssssssss.script.MagicScriptContext;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -18,7 +17,7 @@ public class DefaultSqlInterceptor implements SQLInterceptor {
 
 	@Override
 	public void preHandle(BoundSql boundSql, RequestEntity requestEntity) {
-		Logger logger = LoggerFactory.getLogger(MagicScriptContext.get().getScriptName());
+		Logger logger = LoggerFactory.getLogger(requestEntity == null ? "Unknown" : requestEntity.getMagicScriptContext().getScriptName());
 		String parameters = Arrays.stream(boundSql.getParameters()).map(it -> {
 			if (it == null) {
 				return "null";
