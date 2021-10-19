@@ -42,13 +42,12 @@ public class MagicFunctionManager {
 	}
 
 	public void registerFunctionLoader() {
-		MagicResourceLoader.addFunctionLoader((path) -> {
+		MagicResourceLoader.addFunctionLoader((context, path) -> {
 			FunctionInfo info = MAPPINGS.get(path);
-			String scriptName = groupServiceProvider.getScriptName(info.getGroupId(), info.getName(), info.getPath());
 			if (info != null) {
+				String scriptName = groupServiceProvider.getScriptName(info.getGroupId(), info.getName(), info.getPath());
 				List<Parameter> parameters = info.getParameters();
 				return (Function<Object[], Object>) objects -> {
-					MagicScriptContext context = MagicScriptContext.get();
 					try {
 						MagicScriptContext functionContext = new MagicScriptContext(context.getRootVariables());
 						functionContext.setScriptName(scriptName);

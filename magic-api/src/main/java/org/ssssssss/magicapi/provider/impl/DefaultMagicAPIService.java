@@ -114,7 +114,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		if (!this.datasourceResource.exists()) {
 			this.datasourceResource.mkdir();
 		}
-		MagicResourceLoader.addFunctionLoader((name) -> {
+		MagicResourceLoader.addFunctionLoader((context, name) -> {
 			int index = name.indexOf(":");
 			if (index > -1) {
 				String method = name.substring(0, index);
@@ -122,11 +122,10 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				ApiInfo info = this.mappingHandlerMapping.getApiInfo(method, path);
 				if (info != null) {
 					return (MagicScriptLambdaFunction) (variables, args) -> {
-						MagicScriptContext context = MagicScriptContext.get();
 						MagicScriptContext newContext = new MagicScriptContext();
 						Map<String, Object> varMap = new LinkedHashMap<>(context.getRootVariables());
 						varMap.putAll(variables.getVariables());
-						newContext.setScriptName(groupServiceProvider.getScriptName(info.getId(), info.getName(), info.getPath()));
+						newContext.setScriptName(groupServiceProvider.getScriptName(info.getGroupId(), info.getName(), info.getPath()));
 						newContext.putMapIntoContext(varMap);
 						try {
 							Object value = ScriptManager.executeScript(info.getScript(), newContext);
