@@ -124,7 +124,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 					return (MagicScriptLambdaFunction) (variables, args) -> {
 						MagicScriptContext newContext = new MagicScriptContext();
 						Map<String, Object> varMap = new LinkedHashMap<>(context.getRootVariables());
-						varMap.putAll(variables.getVariables());
+						varMap.putAll(variables.getVariables(context));
 						newContext.setScriptName(groupServiceProvider.getScriptName(info.getGroupId(), info.getName(), info.getPath()));
 						newContext.putMapIntoContext(varMap);
 						try {
