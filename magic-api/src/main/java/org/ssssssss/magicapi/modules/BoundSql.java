@@ -1,15 +1,25 @@
 package org.ssssssss.magicapi.modules;
 
 import org.ssssssss.magicapi.context.RequestContext;
+import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.interceptor.SQLInterceptor;
+import org.ssssssss.magicapi.modules.mybatis.MybatisParser;
+import org.ssssssss.magicapi.modules.mybatis.SqlNode;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.functions.StreamExtension;
 import org.ssssssss.script.parsing.GenericTokenParser;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
+import org.ssssssss.script.runtime.Variables;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -33,7 +43,9 @@ public class BoundSql {
 
 	private static final Pattern REPLACE_MULTI_WHITE_LINE = Pattern.compile("(\r?\n(\\s*\r?\n)+)");
 
-	private String sql;
+	private static final List<String> MYBATIS_TAGS = Arrays.asList("</where>","</if>", "</trim>", "</set>" ,"</foreach>");
+
+	private String sqlOrXml;
 
 	private List<Object> parameters = new ArrayList<>();
 
@@ -41,28 +53,61 @@ public class BoundSql {
 
 	private SQLModule sqlModule;
 
-	public BoundSql(String sql, List<Object> parameters, SQLModule sqlModule) {
-		this.sql = sql;
+	private Map<String, Object> bindParameters;
+
+	public BoundSql(String sqlOrXml, List<Object> parameters, SQLModule sqlModule) {
+		this.sqlOrXml = sqlOrXml;
 		this.parameters = parameters;
 		this.sqlModule = sqlModule;
 	}
 
-	private BoundSql(String sql) {
+	public BoundSql(String sqlOrXml, Map<String,Object> parameters, SQLModule sqlModule) {
+		this.sqlOrXml = sqlOrXml;
+		this.bindParameters = parameters;
+		this.sqlModule = sqlModule;
+		this.init();
+	}
+
+	private BoundSql(String sqlOrXml) {
+		this.sqlOrXml = sqlOrXml;
+		this.init();
+	}
+
+	private void init(){
+		Map<String, Object> varMap = new HashMap<>();
 		MagicScriptContext context = MagicScriptContext.get();
+		if(this.bindParameters != null){
+			varMap.putAll(this.bindParameters);
+		}else{
+			Variables variables = Variables.get();
+			if(variables != null){
+				varMap.putAll(variables.getVariables(context));
+			}
+		}
+		if(MYBATIS_TAGS.stream().anyMatch(it -> this.sqlOrXml.contains(it))){
+			SqlNode sqlNode = MybatisParser.parse(this.sqlOrXml);
+			this.sqlOrXml = sqlNode.getSql(varMap);
+			this.parameters = sqlNode.getParameters();
+		}else{
+			normal(context, varMap);
+		}
+	}
+
+	private void normal(MagicScriptContext context, Map<String, Object> varMap){
 		// 处理?{}参数
-		this.sql = IF_TOKEN_PARSER.parse(sql.trim(), text -> {
+		this.sqlOrXml = IF_TOKEN_PARSER.parse(this.sqlOrXml.trim(), text -> {
 			AtomicBoolean ifTrue = new AtomicBoolean(false);
 			String val = IF_PARAM_TOKEN_PARSER.parse("?{" + text, param -> {
-				ifTrue.set(BooleanLiteral.isTrue(context.eval(param)));
+				ifTrue.set(BooleanLiteral.isTrue(context.eval(param, varMap)));
 				return null;
 			});
 			return ifTrue.get() ? val : "";
 		});
 		// 处理${}参数
-		this.sql = CONCAT_TOKEN_PARSER.parse(this.sql, text -> String.valueOf(context.eval(text)));
+		this.sqlOrXml = CONCAT_TOKEN_PARSER.parse(this.sqlOrXml, text -> String.valueOf(context.eval(text, varMap)));
 		// 处理#{}参数
-		this.sql = REPLACE_TOKEN_PARSER.parse(this.sql, text -> {
-			Object value = context.eval(text);
+		this.sqlOrXml = REPLACE_TOKEN_PARSER.parse(this.sqlOrXml, text -> {
+			Object value = context.eval(text, varMap);
 			if (value == null) {
 				parameters.add(null);
 				return "?";
@@ -77,7 +122,7 @@ public class BoundSql {
 				return "?";
 			}
 		});
-		this.sql = this.sql == null ? null : REPLACE_MULTI_WHITE_LINE.matcher(this.sql.trim()).replaceAll("\r\n");
+		this.sqlOrXml = this.sqlOrXml == null ? null : REPLACE_MULTI_WHITE_LINE.matcher(this.sqlOrXml.trim()).replaceAll("\r\n");
 	}
 
 	BoundSql(String sql, SQLModule sqlModule) {
@@ -93,11 +138,11 @@ public class BoundSql {
 		return sqlModule;
 	}
 
-	BoundSql copy(String newSql) {
+	BoundSql copy(String newSqlOrXml) {
 		BoundSql boundSql = new BoundSql();
 		boundSql.setParameters(new ArrayList<>(this.parameters));
-		boundSql.setSql(this.sql);
-		boundSql.sql = newSql;
+		boundSql.bindParameters = this.bindParameters;
+		boundSql.sqlOrXml = newSqlOrXml;
 		boundSql.excludeColumns = this.excludeColumns;
 		boundSql.sqlModule = this.sqlModule;
 		return boundSql;
@@ -122,14 +167,14 @@ public class BoundSql {
 	 * 获取要执行的SQL
 	 */
 	public String getSql() {
-		return sql;
+		return sqlOrXml;
 	}
 
 	/**
 	 * 设置要执行的SQL
 	 */
 	public void setSql(String sql) {
-		this.sql = sql;
+		this.sqlOrXml = sql;
 	}
 
 	/**
