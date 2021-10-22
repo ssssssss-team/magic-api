@@ -170,8 +170,8 @@ const TokenType = {
     RShift2Equal: {literal:'>>>=', error: '>>>=', modifiable: true},
 
 
-    SqlAnd: {literal: 'and', error: 'and', inLinq: true},
-    SqlOr: {literal: 'or', error: 'or', inLinq: true},
+    SqlAnd: {literal: 'and', error: 'and'},
+    SqlOr: {literal: 'or', error: 'or'},
     SqlNotEqual: {literal: '<>', error: '<>', inLinq: true},
     Questionmark: {literal: '?', error: '?'},
     DoubleQuote: {literal: '"', error: '"'},
