@@ -6,6 +6,7 @@ import org.ssssssss.magicapi.config.MessageType;
 import org.ssssssss.magicapi.model.MagicConsoleSession;
 import org.ssssssss.script.MagicScriptDebugContext;
 
+import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,6 +52,8 @@ public class MagicDebugHandler {
 			context.setStepInto("1".equals(stepInto));
 			if (StringUtils.isNotBlank(breakpoints)) {
 				context.setBreakpoints(Stream.of(breakpoints.split("\\|")).map(Integer::valueOf).collect(Collectors.toList()));
+			}else {
+				context.setBreakpoints(Collections.emptyList());
 			}
 			try {
 				context.singal();
