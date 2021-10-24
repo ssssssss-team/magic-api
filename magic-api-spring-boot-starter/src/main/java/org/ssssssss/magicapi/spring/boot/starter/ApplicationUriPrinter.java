@@ -28,7 +28,7 @@ public class ApplicationUriPrinter implements CommandLineRunner {
 	@Value("${server.port:9999}")
 	private int port;
 
-	@Value("${server.servlet.context-path:''}")
+	@Value("${server.servlet.context-path:}")
 	private String contextPath;
 
 	@Autowired
