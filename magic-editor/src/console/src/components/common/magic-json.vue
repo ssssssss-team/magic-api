@@ -179,7 +179,7 @@
     }
   }
 </script>
-<style>
+<style scoped>
   .ma-json-container {
     display: flex;
     flex-direction: row;
