@@ -109,16 +109,34 @@ public class RequestHandler extends MagicController {
 		try {
 			// 验证参数
 			doValidate(scriptName, "参数", info.getParameters(), parameters, PARAMETER_INVALID);
-			// 验证 header
-			doValidate(scriptName, "header", info.getHeaders(), headers, HEADER_INVALID);
+
+			Object wrap = requestEntity.getApiInfo().getOptionValue(Options.WRAP_REQUEST_PARAMETERS.getValue());
+			if (wrap != null && StringUtils.isNotBlank(wrap.toString())) {
+				context.set(wrap.toString(), requestEntity.getParameters());
+			}
+			context.putMapIntoContext(requestEntity.getParameters());
 			// 验证 path
 			doValidate(scriptName, "path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID);
+			context.putMapIntoContext(requestEntity.getPathVariables());
+			// 设置 cookie 变量
+			context.set(VAR_NAME_COOKIE, new CookieContext(requestEntity.getRequest()));
+			// 验证 header
+			doValidate(scriptName, "header", info.getHeaders(), headers, HEADER_INVALID);
+			// 设置 header 变量
+			context.set(VAR_NAME_HEADER, requestEntity.getHeaders());
+			// 设置 session 变量
+			context.set(VAR_NAME_SESSION, new SessionContext(requestEntity.getRequest().getSession()));
+			// 设置 path 变量
+			context.set(VAR_NAME_PATH_VARIABLE, requestEntity.getPathVariables());
 			BaseDefinition requestBody = info.getRequestBodyDefinition();
-			if (requestBody != null && !CollectionUtils.isEmpty(requestBody.getChildren())) {
-				requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
-				doValidate(scriptName, VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
-					put(requestBody.getName(), bodyValue);
-				}}, BODY_INVALID);
+			if (requestBody != null) {
+				if(!CollectionUtils.isEmpty(requestBody.getChildren())){
+					requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
+					doValidate(scriptName, VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
+						put(requestBody.getName(), bodyValue);
+					}}, BODY_INVALID);
+				}
+				context.set(VAR_NAME_REQUEST_BODY, bodyValue);
 			}
 		} catch (ValidateException e) {
 			return afterCompletion(requestEntity, resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, e.getMessage()));
@@ -362,22 +380,10 @@ public class RequestHandler extends MagicController {
 		} else {
 			context = new MagicScriptContext();
 		}
-		Object wrap = requestEntity.getApiInfo().getOptionValue(Options.WRAP_REQUEST_PARAMETERS.getValue());
-		if (wrap != null && StringUtils.isNotBlank(wrap.toString())) {
-			context.set(wrap.toString(), requestEntity.getParameters());
-		}
 		context.setScriptName(scriptName);
-		context.putMapIntoContext(requestEntity.getParameters());
-		context.putMapIntoContext(requestEntity.getPathVariables());
-		context.set(VAR_NAME_COOKIE, new CookieContext(requestEntity.getRequest()));
-		context.set(VAR_NAME_HEADER, requestEntity.getHeaders());
-		context.set(VAR_NAME_SESSION, new SessionContext(requestEntity.getRequest().getSession()));
-		context.set(VAR_NAME_PATH_VARIABLE, requestEntity.getPathVariables());
-		if (requestBody != null) {
-			context.set(VAR_NAME_REQUEST_BODY, requestBody);
-		}
 		return context;
 	}
+
 
 	/**
 	 * 包装返回结果
