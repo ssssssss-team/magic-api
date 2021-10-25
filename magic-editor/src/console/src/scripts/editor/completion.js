@@ -173,7 +173,7 @@ async function completionScript(suggestions, input) {
         }
         return suggestions;
     } catch (e) {
-          console.error(e);
+        // console.error(e);
     }
 }
 
