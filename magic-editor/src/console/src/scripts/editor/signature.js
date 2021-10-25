@@ -2,7 +2,6 @@ import JavaClass from './java-class.js'
 import tokenizer from '@/scripts/parsing/tokenizer.js'
 import {TokenStream, TokenType} from '../parsing/index.js'
 import {Parser} from '@/scripts/parsing/parser.js'
-import RequestParameter from './request-parameter.js'
 
 const SignatureHelpProvider = {
     signatureHelpRetriggerCharacters: ['(', ','],
@@ -26,47 +25,35 @@ const SignatureHelpProvider = {
             endLineNumber: position.lineNumber,
             endColumn: position.column
         });
-        let char = value.charAt(value.length - 1);
-        if (char !== '(') {
-            return;
-        }
-        let input = value.substring(0, value.lastIndexOf('('));
         try {
-            let tokens = tokenizer(input);
-            let tokenLen = tokens.length;
-            if (tokenLen === 0 || tokens[tokenLen - 1].getTokenType() !== TokenType.Identifier) {
-                return;
-            }
-            let token = tokens.pop();
-            tokens.pop();
+            let tokens = tokenizer(value);
             let parser = new Parser(new TokenStream(tokens));
-            var clazz = await parser.completion(RequestParameter.environmentFunction());
-            let methods = JavaClass.findMethods(clazz);
-            if (methods) {
-                var name = token.getText();
-                var signatures = [];
-                for (var i = 0, len = methods.length; i < len; i++) {
-                    var method = methods[i];
-                    if (method.name === name) {
-                        var document = [];
-                        for (var j = (method.extension ? 1 : 0); j < method.parameters.length; j++) {
-                            var param = method.parameters[j];
-                            document.push('- ' + param.name + '：' + (param.comment || param.type));
-                        }
-                        signatures.push({
-                            label: method.fullName,
-                            documentation: {
-                                value: method.comment
-                            },
-                            parameters: [{
-                                label: 'param1',
-                                documentation: {
-                                    value: document.join('\r\n')
-                                }
-                            }]
-                        });
+            const { best, env} = await parser.parseBest(value.length - 1);
+            if(best && best.constructor.name === 'MethodCall'){
+                let target = best.target
+                let className = await target.getTarget().getJavaType(env);
+                let methodName = target.member.getText()
+                let methods = JavaClass.findMethods(await JavaClass.loadClass(className));
+                let signatures = []
+                methods.filter(it => it.name === methodName).forEach(method => {
+                    let document = [];
+                    for (let j = (method.extension ? 1 : 0); j < method.parameters.length; j++) {
+                        let param = method.parameters[j];
+                        document.push('- ' + param.name + '：' + (param.comment || param.type));
                     }
-                }
+                    signatures.push({
+                        label: method.fullName,
+                        documentation: {
+                            value: method.comment
+                        },
+                        parameters: [{
+                            label: 'param1',
+                            documentation: {
+                                value: document.join('\r\n')
+                            }
+                        }]
+                    });
+                })
                 if (signatures.length > 0) {
                     return {
                         dispose: function () {
@@ -80,7 +67,7 @@ const SignatureHelpProvider = {
                 }
             }
         } catch (e) {
-            //console.log(e);
+            // console.log(e);
         }
     }
 }

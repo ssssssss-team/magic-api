@@ -271,5 +271,6 @@ const exportValue = {
     getOnlineFunction,
     setupOnlineFunction,
     setExtensionAttribute,
+    getSimpleClass
 }
 export default exportValue;

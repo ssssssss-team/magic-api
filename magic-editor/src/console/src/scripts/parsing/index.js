@@ -53,9 +53,8 @@ class Span {
         return "Span [text=" + this.getText() + ", start=" + this.start + ", end=" + this.end + "]";
     }
 
-    inPosition(row, col) {
-        let line = this.getLine();
-        return line.endLineNumber >= row && line.lineNumber <= row && line.endCol >= col && line.startCol <= col;
+    inPosition(position) {
+        return this.start <= position && this.end >= position;
     }
 
     getLine() {
@@ -191,7 +190,8 @@ const TokenType = {
     StringLiteral: {error: '一个 字符串'},
     NullLiteral: {error: 'null'},
     Language: {error: 'language'},
-    Identifier: {error: '标识符'}
+    Identifier: {error: '标识符'},
+    Unknown: {error: 'unknown'}
 };
 let tokenTypeValues = Object.getOwnPropertyNames(TokenType).map(e => TokenType[e]);
 TokenType.getSortedValues = function () {
@@ -394,8 +394,11 @@ class CharacterStream {
         this.spanStart = this.index;
     }
 
-    endSpan(offset) {
-        return new Span(this.source, this.spanStart, this.index + (offset || 0));
+    endSpan(offsetOrStart, end) {
+        if(end !== undefined) {
+            return new Span(this.source, offsetOrStart, end)
+        }
+        return new Span(this.source, this.spanStart, this.index + (offsetOrStart || 0));
     }
 
     getPosition() {
@@ -514,15 +517,15 @@ class TokenStream {
         if (this.match(text, true, ignoreCase)) {
             return this.tokens[this.index - 1];
         } else {
-            let token = this.index < this.tokens.length ? this.tokens[this.index] : null;
-            let span = token != null ? token.getSpan() : null;
-            if (span == null) {
-                throw new ParseException("Expected '" + this.textToString(text) + "', but reached the end of the source.", this.hasMore() ? this.consume().getSpan() : this.getPrev().getSpan());
+            if (!this.hasMore()) {
+                let span = this.tokens[this.index - 1].getSpan();
+                return new Token(TokenType.Unknown, span);
             } else {
+                let token = this.tokens[this.index];
                 if (text instanceof Token) {
                     text = text.type.error;
                 }
-                throw new ParseException("Expected '" + this.textToString(text) + "', but got '" + token.getText() + "'", span);
+                throw new ParseException("Expected '" + this.textToString(text) + "', but got '" + token.getText() + "'", token.getSpan());
             }
         }
     }

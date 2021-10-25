@@ -37,6 +37,7 @@ import {
     WholeLiteral,
     Throw
 } from './ast.js'
+import RequestParameter from "@/scripts/editor/request-parameter";
 
 export const keywords = ["import", "as", "var", "let", "const", "return", "break", "continue", "if", "for", "in", "new", "true", "false", "null", "else", "try", "catch", "finally", "async", "while", "exit", "and", "or", "throw"/*"assert"*/];
 export const linqKeywords = ["from", "join", "left", "group", "by", "as", "having", "and", "or", "in", "where", "on", "limit", "offset"];
@@ -90,6 +91,32 @@ export class Parser {
             }
         }
         return nodes;
+    }
+
+    async parseBest(position){
+        let nodes = this.parse()
+        let env = await this.processEnv(nodes)
+        return {
+            best: this.findBestMatch(nodes[nodes.length - 1], position),
+            env
+        }
+    }
+
+    async processEnv(nodes){
+        let nodeLen = nodes.length
+        let env = {
+            ...RequestParameter.environmentFunction(),
+            ...JavaClass.getAutoImportClass(),
+            ...JavaClass.getAutoImportModule(),
+            '@import': []
+        }
+        // todo 赋值、async、import 未处理
+        if(nodeLen > 1){
+            for (let i = 0; i < nodeLen - 1; i++) {
+                await nodes[i].getJavaType(env)
+            }
+        }
+        return env
     }
 
     validateNode(node) {
@@ -186,6 +213,7 @@ export class Parser {
         if (this.stream.hasMore()) {
             let expected = this.stream.consume();
             let varName;
+            let packageName;
             let module = expected.getTokenType() === TokenType.Identifier
             if (expected.getTokenType() === TokenType.StringLiteral || module) {
                 if (expected.getTokenType() === TokenType.StringLiteral) {
@@ -194,7 +222,7 @@ export class Parser {
                         this.checkKeyword(varName.getSpan());
                     }
                 }
-                return new Import(new Span(opening, expected.getSpan()), expected.getSpan(), module);
+                return new Import(new Span(opening, expected.getSpan()), expected.getText(), varName, module);
             } else {
                 throw new ParseException("Expected identifier or string, but got stream is " + expected.getTokenType().error, this.stream.getPrev().getSpan());
             }
@@ -335,7 +363,7 @@ export class Parser {
 
     expectCloseing() {
         if (!this.stream.hasMore()) {
-            throw new ParseException("Did not find closing }.", this.stream.prev().getSpan());
+            // throw new ParseException("Did not find closing }.", this.stream.prev().getSpan());
         }
         return this.stream.expect("}").getSpan();
     }
@@ -741,90 +769,21 @@ export class Parser {
         return this.parseAccessOrCall(expression);
     }
 
-    async preprocessComplection(returnJavaType, defineEnvironment) {
-        if(returnJavaType && this.stream.getEnd() instanceof LiteralToken){
-            return this.stream.getEnd().getJavaType();
-        }
-        let env = {
-            ...defineEnvironment,
-            ...JavaClass.getAutoImportClass(),
-            ...JavaClass.getAutoImportModule(),
-            '@import': []
-        }
-        let expression;
-        while (this.stream.hasMore()) {
-            let token = this.stream.consume();
-            let index = this.stream.makeIndex();
-            try {
-                if (token.type === TokenType.Identifier && token.getText() === 'import') {
-                    let varName;
-                    let value;
-                    if (this.stream.match(TokenType.Identifier, false)) {
-                        varName = this.stream.consume().getText();
-                        value = varName;
-                    } else if (this.stream.match(TokenType.StringLiteral, false)) {
-                        value = this.stream.consume().getText();
-                    }
-                    let index = -1;
-                    if (this.stream.match('as', true)) {
-                        varName = this.stream.consume().getText();
-                    } else {
-                        index = value.lastIndexOf('.');
-                        if (index > -1) {
-                            varName = value.substring(index + 1)
-                        }
-                    }
-                    if (value.endsWith(".*")) {
-                        env['@import'].push(value.substring(0, value.length - 1))
-                    } else if (varName) {
-                        env[varName] = value;
-                    }
-                } else if (token.getTokenType() === TokenType.Assignment) {
-                    let varName = this.stream.getPrev().getText()
-                    let value = this.parseStatement();
-                    env[varName] = await value.getJavaType(env);
-                    if (!this.stream.hasMore()) {
-                        expression = value;
-                    }
-                } else if (token.getTokenType() === TokenType.Identifier) {
-                    let defineName = token.getText()
-                    let define = ['var','let','const'].indexOf(token.getText()) > -1;
-                    if (define || (this.stream.hasMore() && this.stream.getToken().type === TokenType.Identifier && keywords.indexOf(defineName) === -1)) {
-                        let varName = this.stream.consume().getText();
-                        if (this.stream.match(TokenType.Assignment, true)) {
-                            let isAsync = this.stream.match("async", true);
-                            let value = this.parseExpression();
-                            if(!define){
-                                env[varName] = env[defineName]
-                            }else{
-                                env[varName] = isAsync ? "java.util.concurrent.Future" : await value.getJavaType(env);
-                            }
-                            if (!this.stream.hasMore()) {
-                                expression = value;
-                            }
-                        }
-                    } else {
-                        this.stream.prev();
-                        expression = this.parseAccessOrCall(token.getTokenType());
-                    }
-                }
-            } catch (e) {
-                this.stream.resetIndex(index);
-                expression = null;
+    findBestMatch(node, position){
+        let expressions = node.expressions().filter(it => it);
+        for (let index in expressions) {
+            let best = this.findBestMatch(expressions[index], position)
+            if (best) {
+                return best;
             }
-
         }
-        if (returnJavaType) {
-            return expression && await expression.getJavaType(env);
+        if (node.getSpan().inPosition(position)) {
+            return node;
         }
-        return env;
+        return null;
     }
 
-    async completion(env) {
-        let type = await this.preprocessComplection(true, env || {});
-        return await JavaClass.loadClass(type);
 
-    }
 }
 
 function processBody(body, level) {

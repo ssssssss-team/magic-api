@@ -323,7 +323,7 @@ class UnaryOperation extends Node {
     }
 
     async getJavaType() {
-        return this.operand.getJavaType();
+        return await this.operand.getJavaType();
     }
 
 }
@@ -378,6 +378,20 @@ class Import extends Node {
         this.module = module;
     }
 
+    async getJavaType(env){
+        if(this.packageName.endsWith('.*')) {
+            env['@import'].push(this.packageName.substring(0, this.packageName.length - 1))
+        }else if(this.module){
+            env[this.packageName] = this.packageName
+        }else if(this.varName){
+            env[this.varName.getText()] = this.packageName
+        }else {
+            let index = this.packageName.lastIndexOf('.');
+            if (index > -1) {
+                env[this.packageName.substring(index + 1)] = this.packageName
+            }
+        }
+    }
 
 }
 
@@ -397,7 +411,9 @@ class VarDefine extends Node {
     }
 
     async getJavaType(env) {
-        return this.expression.getJavaType(env);
+        let type = await this.expression.getJavaType(env);
+        env[this.varName] = type
+        return type
     }
 }
 
