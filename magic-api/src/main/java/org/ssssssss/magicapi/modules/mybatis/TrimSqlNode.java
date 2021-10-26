@@ -29,11 +29,11 @@ public class TrimSqlNode extends SqlNode {
     }
 
     public void setSuffixOverrides(String suffixOverrides) {
-        this.suffixOverrides = suffixOverrides.toUpperCase();
+        this.suffixOverrides = suffixOverrides == null ? null : suffixOverrides.toUpperCase();
     }
 
     public void setPrefixOverrides(String prefixOverrides) {
-        this.prefixOverrides = prefixOverrides.toUpperCase();
+        this.prefixOverrides = prefixOverrides == null ? null : prefixOverrides.toUpperCase();
     }
 
     @Override

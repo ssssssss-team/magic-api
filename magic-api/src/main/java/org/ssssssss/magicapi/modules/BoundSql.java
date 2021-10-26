@@ -140,7 +140,7 @@ public class BoundSql {
 
 	BoundSql copy(String newSqlOrXml) {
 		BoundSql boundSql = new BoundSql();
-		boundSql.setParameters(new ArrayList<>(this.parameters));
+		boundSql.parameters = this.parameters;
 		boundSql.bindParameters = this.bindParameters;
 		boundSql.sqlOrXml = newSqlOrXml;
 		boundSql.excludeColumns = this.excludeColumns;
