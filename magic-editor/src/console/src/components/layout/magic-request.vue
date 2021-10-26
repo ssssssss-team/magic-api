@@ -398,6 +398,7 @@
               item.expression = oldItemArr[0].expression
               item.error = oldItemArr[0].error
               item.defaultValue = oldItemArr[0].defaultValue
+              item.dataType = oldItemArr[0].dataType
             }
             item.name = oldItemArr[0].name
             item.description = oldItemArr[0].description

@@ -145,6 +145,7 @@ export default {
             item.children = that.valueCopy(item.children, oldItemArr[0].children, item.dataType === 'Array')
           } else {
             item.expression = oldItemArr[0].expression
+            item.dataType = oldItemArr[0].dataType
           }
           item.name = oldItemArr[0].name
           item.description = oldItemArr[0].description
