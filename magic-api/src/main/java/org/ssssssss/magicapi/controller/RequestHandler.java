@@ -103,6 +103,7 @@ public class RequestHandler extends MagicController {
 				.filter(it -> !paths.contains(it))
 				.forEach(paths::add);
 		Object bodyValue = readRequestBody(requestEntity.getRequest());
+		requestEntity.setRequestBody(bodyValue);
 		String scriptName = configuration.getGroupServiceProvider().getScriptName(info.getGroupId(), info.getName(), info.getPath());
 		MagicScriptContext context = createMagicScriptContext(scriptName, requestEntity, bodyValue);
 		requestEntity.setMagicScriptContext(context);
@@ -123,11 +124,15 @@ public class RequestHandler extends MagicController {
 			// 验证 header
 			doValidate(scriptName, "header", info.getHeaders(), headers, HEADER_INVALID);
 			// 设置 header 变量
-			context.set(VAR_NAME_HEADER, requestEntity.getHeaders());
+			context.set(VAR_NAME_HEADER, headers);
 			// 设置 session 变量
 			context.set(VAR_NAME_SESSION, new SessionContext(requestEntity.getRequest().getSession()));
 			// 设置 path 变量
 			context.set(VAR_NAME_PATH_VARIABLE, requestEntity.getPathVariables());
+			// 设置 body 变量
+			if(bodyValue != null){
+				context.set(VAR_NAME_REQUEST_BODY, bodyValue);
+			}
 			BaseDefinition requestBody = info.getRequestBodyDefinition();
 			if (requestBody != null) {
 				if(!CollectionUtils.isEmpty(requestBody.getChildren())){
@@ -136,7 +141,6 @@ public class RequestHandler extends MagicController {
 						put(requestBody.getName(), bodyValue);
 					}}, BODY_INVALID);
 				}
-				context.set(VAR_NAME_REQUEST_BODY, bodyValue);
 			}
 		} catch (ValidateException e) {
 			return afterCompletion(requestEntity, resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, e.getMessage()));

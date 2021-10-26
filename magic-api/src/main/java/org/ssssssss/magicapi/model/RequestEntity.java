@@ -27,6 +27,7 @@ public class RequestEntity {
 	private Map<String, Object> parameters;
 	private Map<String, Object> pathVariables;
 	private MagicScriptContext magicScriptContext;
+	private Object requestBody;
 
 	private Map<String, Object> headers;
 
@@ -149,7 +150,11 @@ public class RequestEntity {
 	 * 获取 RequestBody
 	 */
 	public Object getRequestBody() {
-		return magicScriptContext == null ? null : this.magicScriptContext.get(VAR_NAME_REQUEST_BODY);
+		return this.requestBody;
+	}
+
+	public void setRequestBody(Object requestBody) {
+		this.requestBody = requestBody;
 	}
 
 	/**
