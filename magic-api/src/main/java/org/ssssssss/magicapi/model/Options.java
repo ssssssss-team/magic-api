@@ -13,6 +13,11 @@ public enum Options {
 	WRAP_REQUEST_PARAMETERS("包装请求参数到一个变量中", "wrap_request_parameter"),
 
 	/**
+	 * 配置默认数据源的key
+	 */
+	DEFAULT_DATA_SOURCE("配置默认数据源的key", "default_data_source"),
+
+	/**
 	 * 允许拥有该权限的访问
 	 */
 	PERMISSION("允许拥有该权限的访问", "permission"),
