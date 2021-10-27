@@ -3,13 +3,24 @@ import tokenizer from '../parsing/tokenizer.js'
 import {TokenStream, TokenType} from '../parsing/index.js'
 import {Parser} from '../parsing/parser.js'
 import * as monaco from 'monaco-editor'
-import RequestParameter from './request-parameter.js'
+import RequestParameter from "@/scripts/editor/request-parameter";
 
 const completionImport = (suggestions, position, line, importIndex) => {
     let len = 0;
     let start = line.indexOf('"') + 1;
     if (start === 0) {
         start = line.indexOf("'") + 1;
+    }
+    if(start === 0){
+        JavaClass.getDefineModules().forEach(module => suggestions.push({
+            label: module,
+            filterText: module,
+            kind: monaco.languages.CompletionItemKind.Module,
+            detail: module,
+            insertText: module,
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+        }))
+        return;
     }
     let keyword = line.trim().substring(importIndex + 6).trim().replace(/['|"]/g, '').toLowerCase();
     let importClass = JavaClass.getImportClass();
@@ -53,7 +64,8 @@ const completionImport = (suggestions, position, line, importIndex) => {
         }
     }
 }
-const completionFunction = (suggestions, input) => {
+const completionFunction = (suggestions, input, env) => {
+    env = env || {}
     JavaClass.findFunction().forEach(it => {
         suggestions.push({
             sortText: it.sortText || it.fullName,
@@ -65,22 +77,22 @@ const completionFunction = (suggestions, input) => {
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
         })
     })
-    Object.keys(RequestParameter.environmentFunction()).forEach(it => {
+    let known = suggestions.map(it => it.detail);
+    let matches = input.match(/[a-zA-Z_$]+/ig) || [];
+    let count = matches.length;
+    let vars = Object.keys(env);
+    vars.forEach(key => {
         suggestions.push({
-            sortText: '00000000' + it,
-            label: it,
-            filterText: it,
+            label: key,
+            filterText: key,
             kind: monaco.languages.CompletionItemKind.Variable,
-            detail: it,
-            insertText: it,
+            detail: env[key],
+            insertText: key,
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
         })
     })
-    let known = suggestions.map(it => it.detail);
-    let matches = input.match(/[a-zA-Z_$]+/ig);
-    let count = matches.length;
     if(count > 2){
-        matches.filter((it,index) => index + 2 < count && known.indexOf(it) === -1).map(it => {
+        Array.from(new Set(matches)).filter((it,index) => index + 2 < count && known.indexOf(it) === -1 && vars.indexOf(it) === -1).map(it => {
             suggestions.push({
                 label: it,
                 filterText: it,
@@ -159,21 +171,26 @@ async function completionScript(suggestions, input) {
         let tokens = tokenizer(input);
         let tokenLen = tokens.length;
         if (tokenLen === 0) {
+            completionFunction(suggestions, input)
             return;
         }
         let parser = new Parser(new TokenStream(tokens));
         const { best, env } = await parser.parseBest(input.length - 1, env);
         if(input.endsWith(".")){
             await completionMethod(await best.getJavaType(env), suggestions)
-        } else {
+        } else if(best) {
             let astName = best.constructor.name;
             if (astName === 'MemberAccess' || astName === 'MethodCall') {
                 await completionMethod(await best.target.getJavaType(env), suggestions)
+            } else {
+                completionFunction(suggestions, input, env)
             }
+        } else {
+            completionFunction(suggestions, input, env)
         }
         return suggestions;
     } catch (e) {
-        // console.error(e);
+        // console.log("error")
     }
 }
 
@@ -207,6 +224,12 @@ const CompletionItemProvider = {
             })
         } else if (value.length > 1) {
             await completionScript(suggestions, value)
+        } else {
+            completionFunction(suggestions, value, {
+                ...RequestParameter.environmentFunction(),
+                ...JavaClass.getAutoImportClass(),
+                ...JavaClass.getAutoImportModule()
+            })
         }
         return {suggestions}
     },

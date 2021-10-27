@@ -120,7 +120,7 @@ export class Parser {
     }
 
     validateNode(node) {
-        if (node instanceof Literal || node instanceof VariableAccess || node instanceof MapOrArrayAccess) {
+        if (node instanceof Literal) {
             throw new ParseException('literal cannot be used alone', node.getSpan());
         }
     }
@@ -313,10 +313,14 @@ export class Parser {
         let opening = this.stream.consume().getSpan();
         let token = this.stream.expect(TokenType.Identifier);
         this.checkKeyword(token.getSpan());
+        let varDefine;
         if (this.stream.match(TokenType.Assignment, true)) {
-            return new VarDefine(new Span(opening, this.stream.getPrev().getSpan()), token.getText(), this.parseExpression());
+            varDefine = new VarDefine(new Span(opening, this.stream.getPrev().getSpan()), token.getText(), this.parseExpression());
+        } else {
+            varDefine = new VarDefine(new Span(opening, this.stream.getPrev().getSpan()), token.getText(), null);
         }
-        return new VarDefine(new Span(opening, this.stream.getPrev().getSpan()), token.getText(), null);
+        this.defines.push(varDefine);
+        return varDefine;
     }
 
     parseTryStatement() {

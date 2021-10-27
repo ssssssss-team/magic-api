@@ -253,6 +253,7 @@ const setupOnlineFunction = (loader) => {
 const getOnlineFunction = (path) => {
     return onlineFunctionFinder && onlineFunctionFinder(path);
 }
+const getDefineModules = () => Object.keys(scriptClass).filter(it => scriptClass[it].module)
 const exportValue = {
     findEnums,
     findAttributes,
@@ -271,6 +272,7 @@ const exportValue = {
     getOnlineFunction,
     setupOnlineFunction,
     setExtensionAttribute,
-    getSimpleClass
+    getSimpleClass,
+    getDefineModules
 }
 export default exportValue;
