@@ -50,6 +50,7 @@ import org.ssssssss.magicapi.interceptor.*;
 import org.ssssssss.magicapi.logging.LoggerManager;
 import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.DataType;
+import org.ssssssss.magicapi.model.Options;
 import org.ssssssss.magicapi.modules.*;
 import org.ssssssss.magicapi.provider.*;
 import org.ssssssss.magicapi.provider.impl.*;
@@ -441,7 +442,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	/**
 	 * 注册模块、类型扩展
 	 */
-	private void setupMagicModules(ResultProvider resultProvider,
+	private void setupMagicModules(MagicDynamicDataSource dynamicDataSource,
+                                   SQLModule sqlModule,
+                                   ResultProvider resultProvider,
 								   List<MagicModule> magicModules,
 								   List<ExtensionMethod> extensionMethods,
 								   List<LanguageProvider> languageProviders) {
@@ -487,6 +490,10 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
 			MagicResourceLoader.addModule(module.getModuleName(), module);
 		});
+        MagicResourceLoader.addModule("db", new DynamicModuleImport(SQLModule.class, context -> {
+            sqlModule.setDataSourceNode(dynamicDataSource.getDataSource(context.getString(Options.DEFAULT_DATA_SOURCE.getValue())));
+            return sqlModule;
+        }));
 		MagicResourceLoader.getModuleNames().stream().filter(importModules::contains).forEach(moduleName -> {
 			logger.info("自动导入模块：{}", moduleName);
 			MagicScriptEngine.addDefaultImport(moduleName, MagicResourceLoader.loadModule(moduleName));
@@ -507,7 +514,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	}
 
 	@Bean
-	public MagicConfiguration magicConfiguration(List<MagicModule> magicModules,
+	public MagicConfiguration magicConfiguration(MagicDynamicDataSource dynamicDataSource,
+                                                 SQLModule sqlModule,
+                                                 List<MagicModule> magicModules,
 												 List<LanguageProvider> languageProviders,
 												 Resource magicResource,
 												 ResultProvider resultProvider,
@@ -529,7 +538,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		Constants.RESPONSE_CODE_INVALID = responseCodeConfig.getInvalid();
 		Constants.RESPONSE_CODE_EXCEPTION = responseCodeConfig.getException();
 		// 设置模块和扩展方法
-		setupMagicModules(resultProvider, magicModules, extensionMethodsProvider.getIfAvailable(Collections::emptyList), languageProviders);
+		setupMagicModules(dynamicDataSource, sqlModule, resultProvider, magicModules, extensionMethodsProvider.getIfAvailable(Collections::emptyList), languageProviders);
 		MagicConfiguration configuration = new MagicConfiguration();
 		configuration.setMagicAPIService(magicAPIService);
 		configuration.setMagicNotifyService(magicNotifyService);

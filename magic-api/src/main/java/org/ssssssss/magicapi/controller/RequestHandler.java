@@ -115,6 +115,10 @@ public class RequestHandler extends MagicController {
 			if (wrap != null && StringUtils.isNotBlank(wrap.toString())) {
 				context.set(wrap.toString(), requestEntity.getParameters());
 			}
+			String defaultDataSourceValue = requestEntity.getApiInfo().getOptionValue(Options.DEFAULT_DATA_SOURCE.getValue());
+			if (defaultDataSourceValue != null) {
+				context.set(Options.DEFAULT_DATA_SOURCE.getValue(), defaultDataSourceValue);
+			}
 			context.putMapIntoContext(requestEntity.getParameters());
 			// 验证 path
 			doValidate(scriptName, "path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID);
