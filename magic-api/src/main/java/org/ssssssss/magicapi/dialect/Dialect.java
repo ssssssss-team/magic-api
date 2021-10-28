@@ -5,6 +5,7 @@ import org.ssssssss.magicapi.modules.BoundSql;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.regex.Pattern;
 
 /**
  * 数据库方言接口
@@ -12,6 +13,8 @@ import java.sql.SQLException;
  * @author mxd
  */
 public interface Dialect {
+
+	Pattern REPLACE_ORDER_BY = Pattern.compile("(order\\s+by\\s*?[^)(]*?$)", Pattern.CASE_INSENSITIVE);
 
 	/**
 	 * 根据jdbcUrl匹配
@@ -41,7 +44,7 @@ public interface Dialect {
 	 * @return 分页 count SQL
 	 */
 	default String getCountSql(String sql) {
-		return "select count(1) from (" + sql + ") count_";
+		return "select count(1) from (" + REPLACE_ORDER_BY.matcher(sql).replaceAll("") + ") count_";
 	}
 
 	/**
