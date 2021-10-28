@@ -105,6 +105,7 @@ import MagicGroupChoose from '@/components/resources/magic-group-choose.vue'
 import { replaceURL, download as downloadFile, requestGroup, goToAnchor, deepClone } from '@/scripts/utils.js'
 import contants from '@/scripts/contants.js'
 import Key from '@/scripts/hotkey.js'
+import JavaClass from "@/scripts/editor/java-class.js"
 
 export default {
   name: 'MagicApiList',
@@ -882,6 +883,15 @@ export default {
     }
   },
   mounted() {
+    JavaClass.setApiFinder(()=> {
+      return this.listChildrenData.filter(it => !it.folder).map(it => {
+        return {
+          path: replaceURL(it.groupPath + '/' + it.path),
+          name: replaceURL(it.groupName + '/' + it.name),
+          method: it.method
+        }
+      })
+    })
     this.bus.$on('logout', () => this.tree = [])
     this.bus.$on('opened', item => {
       this.currentFileItem = item

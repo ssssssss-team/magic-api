@@ -35,7 +35,7 @@ export const HighLightOptions = {
                 {token: 'regexp', bracket: '@open', next: '@regexp'}
             ],
             [/[;,.]/, 'delimiter'],
-            [/"""/, {token: 'string', next: '@string_multi_embedded', nextEmbedded: 'sql'}],
+            [/"""/, {token: 'string', next: '@string_multi_embedded', nextEmbedded: 'mybatis'}],
             [/"([^"\\]|\\.)*$/, 'string.invalid'],
             [/'([^'\\]|\\.)*$/, 'string.invalid'],
             [/"/, 'string', '@string_double'],

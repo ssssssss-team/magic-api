@@ -254,6 +254,16 @@ const getOnlineFunction = (path) => {
     return onlineFunctionFinder && onlineFunctionFinder(path);
 }
 const getDefineModules = () => Object.keys(scriptClass).filter(it => scriptClass[it].module)
+let apiFinder;
+const setApiFinder = (finder) => {
+    apiFinder = finder;
+}
+let functionFinder;
+const setFunctionFinder = (finder) => {
+    functionFinder = finder;
+}
+const getApiFinder = () => apiFinder
+const getFunctionFinder = () => functionFinder
 const exportValue = {
     findEnums,
     findAttributes,
@@ -273,6 +283,12 @@ const exportValue = {
     setupOnlineFunction,
     setExtensionAttribute,
     getSimpleClass,
-    getDefineModules
+    getDefineModules,
+    setApiFinder,
+    setFunctionFinder,
+    getApiFinder,
+    getFunctionFinder,
+
+
 }
 export default exportValue;

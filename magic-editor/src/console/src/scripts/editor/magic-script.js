@@ -4,9 +4,11 @@ import CompletionItemProvider from './completion.js';
 import FoldingRangeProvider from './folding.js';
 import SignatureHelpProvider from './signature.js';
 import HoverProvider from './hover.js';
+import {initMybatis} from './mybatis.js'
 const Beautifier = require('../beautifier/javascript/beautifier').Beautifier
 
 export const initializeMagicScript = () => {
+    initMybatis();
     const language = 'magicscript';
     // 注册语言
     monaco.languages.register({id: language});
@@ -63,6 +65,10 @@ export const initializeMagicScript = () => {
             {open: '[', close: ']'},
             {open: '(', close: ')'},
             {open: '"""', close: '"""', notIn: ['string.multi']},
+            {open: '<where>', close: '</where>'},
+            {open: '<if', close: ' test=""></if>'},
+            {open: '<set>', close: '</set>'},
+            {open: '<foreach', close: ' collection=""></foreach>'},
             {open: '"', close: '"', notIn: ['string']},
             {open: '\'', close: '\'', notIn: ['string']},
             {open: '/**', close: ' */', notIn: ['string'] }

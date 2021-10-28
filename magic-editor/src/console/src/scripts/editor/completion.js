@@ -1,6 +1,6 @@
 import JavaClass from './java-class.js'
 import tokenizer from '../parsing/tokenizer.js'
-import {TokenStream, TokenType} from '../parsing/index.js'
+import {TokenStream} from '../parsing/index.js'
 import {Parser} from '../parsing/parser.js'
 import * as monaco from 'monaco-editor'
 import RequestParameter from "@/scripts/editor/request-parameter";
@@ -22,7 +22,40 @@ const completionImport = (suggestions, position, line, importIndex) => {
         }))
         return;
     }
-    let keyword = line.trim().substring(importIndex + 6).trim().replace(/['|"]/g, '').toLowerCase();
+    let text = line.trim().substring(importIndex + 6).trim().replace(/['|"]/g, '');
+    if(text.startsWith('@')){
+        if(text.indexOf(' ')> -1){
+            return;
+        }
+        let finder = JavaClass.getApiFinder();
+        (finder && finder() || []).forEach(it => {
+            let label = '@' + it.method + ':' + it.path
+            suggestions.push({
+                sortText: label,
+                label: label,
+                kind: monaco.languages.CompletionItemKind.Reference,
+                filterText: label,
+                detail: it.name,
+                insertText: label,
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+            })
+        })
+        finder = JavaClass.getFunctionFinder();
+        (finder && finder() || []).forEach(it => {
+            let label = '@' + it.path
+            suggestions.push({
+                sortText: label,
+                label: label,
+                kind: monaco.languages.CompletionItemKind.Reference,
+                filterText: label,
+                detail: it.name,
+                insertText: label,
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+            })
+        })
+        return;
+    }
+    let keyword = text.toLowerCase();
     let importClass = JavaClass.getImportClass();
     if (start !== 0 && keyword && (len = importClass.length) > 0) {
         let set = new Set();

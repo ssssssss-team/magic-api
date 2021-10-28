@@ -836,6 +836,14 @@ export default {
   },
   mounted() {
     JavaClass.setupOnlineFunction(this.doFindFunction);
+    JavaClass.setFunctionFinder(()=> {
+      return this.listChildrenData.filter(it => !it.folder).map(it => {
+        return {
+          path: replaceURL(it.groupPath + '/' + it.path),
+          name: replaceURL(it.groupName + '/' + it.name),
+        }
+      })
+    })
     this.bus.$on('logout', () => this.tree = []);
     this.bus.$on('opened', item => {
       this.currentFileItem = item

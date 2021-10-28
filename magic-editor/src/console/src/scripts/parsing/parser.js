@@ -110,11 +110,8 @@ export class Parser {
             ...JavaClass.getAutoImportModule(),
             '@import': []
         }
-        // todo 赋值、async、import 未处理
-        if(nodeLen > 1){
-            for (let i = 0; i < nodeLen - 1; i++) {
-                await nodes[i].getJavaType(env)
-            }
+        for (let i = 0; i < nodeLen; i++) {
+            await nodes[i].getJavaType(env)
         }
         return env
     }
@@ -319,7 +316,6 @@ export class Parser {
         } else {
             varDefine = new VarDefine(new Span(opening, this.stream.getPrev().getSpan()), token.getText(), null);
         }
-        this.defines.push(varDefine);
         return varDefine;
     }
 
