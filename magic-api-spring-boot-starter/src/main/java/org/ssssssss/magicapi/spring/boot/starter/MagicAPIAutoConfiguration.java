@@ -490,9 +490,10 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
 			MagicResourceLoader.addModule(module.getModuleName(), module);
 		});
-        MagicResourceLoader.addModule("db", new DynamicModuleImport(SQLModule.class, context -> {
-            sqlModule.setDataSourceNode(dynamicDataSource.getDataSource(context.getString(Options.DEFAULT_DATA_SOURCE.getValue())));
-            return sqlModule;
+        MagicResourceLoader.addModule(sqlModule.getModuleName(), new DynamicModuleImport(SQLModule.class, context -> {
+			SQLModule newSqlModule = sqlModule.cloneSQLModule();
+			newSqlModule.setDataSourceNode(dynamicDataSource.getDataSource(context.getString(Options.DEFAULT_DATA_SOURCE.getValue())));
+            return newSqlModule;
         }));
 		MagicResourceLoader.getModuleNames().stream().filter(importModules::contains).forEach(moduleName -> {
 			logger.info("自动导入模块：{}", moduleName);

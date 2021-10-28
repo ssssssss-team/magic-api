@@ -185,7 +185,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	}
 
 	@UnableCall
-	private SQLModule cloneSQLModule() {
+	public SQLModule cloneSQLModule() {
 		SQLModule sqlModule = new SQLModule();
 		sqlModule.setDynamicDataSource(this.dynamicDataSource);
 		sqlModule.setDataSourceNode(this.dataSourceNode);
