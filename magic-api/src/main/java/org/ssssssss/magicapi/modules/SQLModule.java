@@ -594,11 +594,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	public Object selectValue(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("变量信息")Map<String, Object> params) {
 		assertDatasourceNotNull();
 		BoundSql boundSql = new BoundSql(sqlOrXml, params, this);
-		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
-			Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
-			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, 0, 1);
-			return dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), new SingleRowResultSetExtractor<>(Object.class), pageBoundSql.getParameters());
-		});
+		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), new SingleRowResultSetExtractor<>(Object.class), boundSql.getParameters()));
 	}
 
 	@Comment("指定table，进行单表操作")
