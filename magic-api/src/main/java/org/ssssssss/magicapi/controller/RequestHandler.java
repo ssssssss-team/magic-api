@@ -105,7 +105,7 @@ public class RequestHandler extends MagicController {
 		Object bodyValue = readRequestBody(requestEntity.getRequest());
 		requestEntity.setRequestBody(bodyValue);
 		String scriptName = configuration.getGroupServiceProvider().getScriptName(info.getGroupId(), info.getName(), info.getPath());
-		MagicScriptContext context = createMagicScriptContext(scriptName, requestEntity, bodyValue);
+		MagicScriptContext context = createMagicScriptContext(scriptName, requestEntity);
 		requestEntity.setMagicScriptContext(context);
 		try {
 			// 验证参数
@@ -366,7 +366,7 @@ public class RequestHandler extends MagicController {
 	/**
 	 * 构建 MagicScriptContext
 	 */
-	private MagicScriptContext createMagicScriptContext(String scriptName, RequestEntity requestEntity, Object requestBody) {
+	private MagicScriptContext createMagicScriptContext(String scriptName, RequestEntity requestEntity) {
 		List<Integer> breakpoints = requestEntity.getRequestedBreakpoints();
 		// 构建脚本上下文
 		MagicScriptContext context;
