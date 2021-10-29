@@ -682,8 +682,11 @@ export default {
           .join(',')
       requestConfig.responseType = 'blob'
       requestConfig.validateStatus = () => true
-      requestConfig.transformResponse = [function(data){
-        return new Promise(function(resolve, reject){
+      requestConfig.transformResponse = [function(data, headers){
+        if(headers['content-disposition']){
+          return new Promise(function(resolve){resolve(data)});
+        }
+        return new Promise(function(resolve){
           let reader = new FileReader()
           reader.readAsText(data)
           reader.onload = function() {
