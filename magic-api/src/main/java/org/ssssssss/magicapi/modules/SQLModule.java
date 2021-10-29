@@ -569,9 +569,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	public Map<String, Object> selectOne(BoundSql boundSql) {
 		assertDatasourceNotNull();
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
-			Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
-			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, 0, 1);
-			Map<String, Object> row = dataSourceNode.getJdbcTemplate().query(pageBoundSql.getSql(), new SingleRowResultSetExtractor<>(this.columnMapRowMapper), pageBoundSql.getParameters());
+			Map<String, Object> row = dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), new SingleRowResultSetExtractor<>(this.columnMapRowMapper), boundSql.getParameters());
 			if (row != null && boundSql.getExcludeColumns() != null) {
 				boundSql.getExcludeColumns().forEach(row::remove);
 			}
