@@ -115,6 +115,8 @@
     --text-boolean-color: #000080;
     --text-default-color: #000000;
     --text-key-color: #660e7a;
+    --suggest-hover-background: #D6EBFF;
+    --suggest-hover-color: #000;
     scrollbar-color: var(--scollbar-color) var(--scollbar-color);
     scrollbar-width: thin;
     outline: 0;
@@ -306,6 +308,14 @@
 
 .ma-table-request-row {
     display: flex;
+}
+
+.ma-container .monaco-list .monaco-list-row.focused{
+    background-color: var(--suggest-hover-background) !important;
+    color: var(--suggest-hover-color) !important;
+}
+.ma-container .monaco-list-row.focused .monaco-highlighted-label .highlight{
+    color: #0097fb !important
 }
 
 /** 旋转特效 **/

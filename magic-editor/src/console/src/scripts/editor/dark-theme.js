@@ -97,6 +97,8 @@ export default {
         'text-number-color': '#6897BB',
         'text-boolean-color': '#CC7832',
         'text-property-color': '#9876aa',
-        'text-key-color': '#9876aa'
+        'text-key-color': '#9876aa',
+        'suggest-hover-background': '#113A5C',
+        'suggest-hover-color': '#fff'
     }
 };

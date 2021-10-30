@@ -24,10 +24,14 @@ module.exports = {
         "input",
         "Preserve Case"
     ],
+    "vs/base/browser/ui/iconLabel/iconLabelHover": [
+        "Loading..."
+    ],
     "vs/base/browser/ui/inputbox/inputBox": [
         "Error: {0}",
         "Warning: {0}",
-        "Info: {0}"
+        "Info: {0}",
+        "for history"
     ],
     "vs/base/browser/ui/keybindingLabel/keybindingLabel": [
         "Unbound"
@@ -41,6 +45,9 @@ module.exports = {
         "Enable Filter on Type",
         "No elements found",
         "Matched {0} out of {1} elements"
+    ],
+    "vs/base/common/actions": [
+        "(empty)"
     ],
     "vs/base/common/errorMessage": [
         "{0}: {1}",
@@ -74,6 +81,7 @@ module.exports = {
     ],
     "vs/base/parts/quickinput/browser/quickInput": [
         "Back",
+        "Press 'Enter' to confirm your input or 'Escape' to cancel",
         "{0}/{1}",
         "Type to narrow down results.",
         "{0} Results",
@@ -88,11 +96,15 @@ module.exports = {
     ],
     "vs/editor/browser/controller/coreCommands": [
         "Stick to the end even when going to longer lines",
-        "Stick to the end even when going to longer lines"
+        "Stick to the end even when going to longer lines",
+        "Removed secondary cursors"
     ],
     "vs/editor/browser/controller/textAreaHandler": [
         "editor",
         "The editor is not accessible at this time. Press {0} for options."
+    ],
+    "vs/editor/browser/core/keybindingCancellation": [
+        "Whether the editor runs a cancellable operation, e.g. like 'Peek References'"
     ],
     "vs/editor/browser/editorExtensions": [
         "&&Undo",
@@ -106,9 +118,14 @@ module.exports = {
         "The number of cursors has been limited to {0}."
     ],
     "vs/editor/browser/widget/diffEditorWidget": [
+        "Line decoration for inserts in the diff editor.",
+        "Line decoration for removals in the diff editor.",
         "Cannot compare files because one file is too large."
     ],
     "vs/editor/browser/widget/diffReview": [
+        "Icon for 'Insert' in diff review.",
+        "Icon for 'Remove' in diff review.",
+        "Icon for 'Close' in diff review.",
         "Close",
         "no lines changed",
         "1 line changed",
@@ -137,6 +154,10 @@ module.exports = {
         "Remove trailing auto inserted whitespace.",
         "Special handling for large files to disable certain memory intensive features.",
         "Controls whether completions should be computed based on words in the document.",
+        "Only suggest words from the active document.",
+        "Suggest words from all open documents of the same language.",
+        "Suggest words from all open documents.",
+        "Controls from which documents word based completions are computed.",
         "Semantic highlighting enabled for all color themes.",
         "Semantic highlighting disabled for all color themes.",
         "Semantic highlighting is configured by the current color theme's `semanticHighlighting` setting.",
@@ -144,31 +165,38 @@ module.exports = {
         "Keep peek editors open even when double clicking their content or when hitting `Escape`.",
         "Lines above this length will not be tokenized for performance reasons",
         "Timeout in milliseconds after which diff computation is cancelled. Use 0 for no timeout.",
+        "Maximum file size in MB for which to compute diffs. Use 0 for no limit.",
         "Controls whether the diff editor shows the diff side by side or inline.",
         "When enabled, the diff editor ignores changes in leading or trailing whitespace.",
         "Controls whether the diff editor shows +/- indicators for added/removed changes.",
-        "Controls whether the editor shows CodeLens."
+        "Controls whether the editor shows CodeLens.",
+        "Lines will never wrap.",
+        "Lines will wrap at the viewport width.",
+        "Lines will wrap according to the `#editor.wordWrap#` setting."
     ],
     "vs/editor/common/config/editorOptions": [
         "The editor will use platform APIs to detect when a Screen Reader is attached.",
-        "The editor will be permanently optimized for usage with a Screen Reader.",
+        "The editor will be permanently optimized for usage with a Screen Reader. Word wrapping will be disabled.",
         "The editor will never be optimized for usage with a Screen Reader.",
-        "Controls whether the editor should run in a mode where it is optimized for screen readers.",
+        "Controls whether the editor should run in a mode where it is optimized for screen readers. Setting to on will disable word wrapping.",
         "Controls whether a space character is inserted when commenting.",
         "Controls if empty lines should be ignored with toggle, add or remove actions for line comments.",
         "Controls whether copying without a selection copies the current line.",
         "Controls whether the cursor should jump to find matches while typing.",
+        "Never seed search string from the editor selection.",
+        "Always seed search string from the editor selection, including word at cursor position.",
+        "Only seed search string from the editor selection.",
         "Controls whether the search string in the Find Widget is seeded from the editor selection.",
-        "Never turn on Find in selection automatically (default)",
-        "Always turn on Find in selection automatically",
-        "Turn on Find in selection automatically when multiple lines of content are selected.",
-        "Controls the condition for turning on find in selection automatically.",
+        "Never turn on Find in Selection automatically (default).",
+        "Always turn on Find in Selection automatically.",
+        "Turn on Find in Selection automatically when multiple lines of content are selected.",
+        "Controls the condition for turning on Find in Selection automatically.",
         "Controls whether the Find Widget should read or modify the shared find clipboard on macOS.",
         "Controls whether the Find Widget should add extra lines on top of the editor. When true, you can scroll beyond the first line when the Find Widget is visible.",
         "Controls whether the search automatically restarts from the beginning (or the end) when no further matches can be found.",
-        "Enables/Disables font ligatures.",
-        "Explicit font-feature-settings.",
-        "Configures font ligatures or font features.",
+        "Enables/Disables font ligatures ('calt' and 'liga' font features). Change this to a string for fine-grained control of the 'font-feature-settings' CSS property.",
+        "Explicit 'font-feature-settings' CSS property. A boolean can be passed instead if one only needs to turn on/off ligatures.",
+        "Configures font ligatures or font features. Can be either a boolean to enable/disable ligatures or a string for the value of the CSS 'font-feature-settings' property.",
         "Controls the font size in pixels.",
         "Only \"normal\" and \"bold\" keywords or numbers between 1 and 1000 are allowed.",
         "Controls the font weight. Accepts \"normal\" and \"bold\" keywords or numbers between 1 and 1000.",
@@ -190,7 +218,10 @@ module.exports = {
         "Controls the delay in milliseconds after which the hover is shown.",
         "Controls whether the hover should remain visible when mouse is moved over it.",
         "Enables the code action lightbulb in the editor.",
-        "Controls the line height. Use 0 to compute the line height from the font size.",
+        "Enables the inlay hints in the editor.",
+        "Controls font size of inlay hints in the editor. A default of 90% of `#editor.fontSize#` is used when the configured value is less than `5` or greater than the editor font size.",
+        "Controls font family of inlay hints in the editor. When set to empty, the `#editor.fontFamily#` is used.",
+        "Controls the line height. \n - Use 0 to automatically compute the line height from the font size.\n - Values between 0 and 8 will be used as a multiplier with the font size.\n - Values greater than or equal to 8 will be used as effective values.",
         "Controls whether the minimap is shown.",
         "The minimap has the same size as the editor contents (and might scroll).",
         "The minimap will stretch or shrink as necessary to fill the height of the editor (no scrolling).",
@@ -217,19 +248,39 @@ module.exports = {
         "Number of monospace characters at which this editor ruler will render.",
         "Color of this editor ruler.",
         "Render vertical rulers after a certain number of monospace characters. Use multiple values for multiple rulers. No rulers are drawn if array is empty.",
+        "The vertical scrollbar will be visible only when necessary.",
+        "The vertical scrollbar will always be visible.",
+        "The vertical scrollbar will always be hidden.",
+        "Controls the visibility of the vertical scrollbar.",
+        "The horizontal scrollbar will be visible only when necessary.",
+        "The horizontal scrollbar will always be visible.",
+        "The horizontal scrollbar will always be hidden.",
+        "Controls the visibility of the horizontal scrollbar.",
+        "The width of the vertical scrollbar.",
+        "The height of the horizontal scrollbar.",
+        "Controls whether clicks scroll by page or jump to click position.",
+        "Controls whether to automatically show inline suggestions in the editor.",
+        "Controls whether bracket pair colorization is enabled or not. Use 'workbench.colorCustomizations' to override the bracket highlight colors.",
+        "Controls whether bracket pair guides are enabled or not.",
+        "Controls whether the editor should render indent guides.",
+        "Controls whether the editor should highlight the active indent guide.",
         "Insert suggestion without overwriting text right of the cursor.",
         "Insert suggestion and overwrite text right of the cursor.",
         "Controls whether words are overwritten when accepting completions. Note that this depends on extensions opting into this feature.",
         "Controls whether filtering and sorting suggestions accounts for small typos.",
-        "Controls whether sorting favours words that appear close to the cursor.",
+        "Controls whether sorting favors words that appear close to the cursor.",
         "Controls whether remembered suggestion selections are shared between multiple workspaces and windows (needs `#editor.suggestSelection#`).",
         "Controls whether an active snippet prevents quick suggestions.",
         "Controls whether to show or hide icons in suggestions.",
-        "Controls how many suggestions IntelliSense will show before showing a scrollbar (maximum 15).",
+        "Controls the visibility of the status bar at the bottom of the suggest widget.",
+        "Controls whether to preview the suggestion outcome in the editor.",
+        "Controls whether suggest details show inline with the label or only in the details widget",
+        "This setting is deprecated. The suggest widget can now be resized.",
         "This setting is deprecated, please use separate settings like 'editor.suggest.showKeywords' or 'editor.suggest.showSnippets' instead.",
         "When enabled IntelliSense shows `method`-suggestions.",
         "When enabled IntelliSense shows `function`-suggestions.",
         "When enabled IntelliSense shows `constructor`-suggestions.",
+        "When enabled IntelliSense shows `deprecated`-suggestions.",
         "When enabled IntelliSense shows `field`-suggestions.",
         "When enabled IntelliSense shows `variable`-suggestions.",
         "When enabled IntelliSense shows `class`-suggestions.",
@@ -255,15 +306,17 @@ module.exports = {
         "When enabled IntelliSense shows `snippet`-suggestions.",
         "When enabled IntelliSense shows `user`-suggestions.",
         "When enabled IntelliSense shows `issues`-suggestions.",
-        "Controls the visibility of the status bar at the bottom of the suggest widget.",
+        "Whether leading and trailing whitespace should always be selected.",
         "Controls whether suggestions should be accepted on commit characters. For example, in JavaScript, the semi-colon (`;`) can be a commit character that accepts a suggestion and types that character.",
         "Only accept a suggestion with `Enter` when it makes a textual change.",
         "Controls whether suggestions should be accepted on `Enter`, in addition to `Tab`. Helps to avoid ambiguity between inserting new lines or accepting suggestions.",
-        "Controls the number of lines in the editor that can be read out by a screen reader. Warning: this has a performance implication for numbers larger than the default.",
+        "Controls the number of lines in the editor that can be read out by a screen reader at once. When we detect a screen reader we automatically set the default to be 500. Warning: this has a performance implication for numbers larger than the default.",
         "Editor content",
         "Use language configurations to determine when to autoclose brackets.",
         "Autoclose brackets only when the cursor is to the left of whitespace.",
         "Controls whether the editor should automatically close brackets after the user adds an opening bracket.",
+        "Remove adjacent closing quotes or brackets only if they were automatically inserted.",
+        "Controls whether the editor should remove adjacent closing quotes or brackets when deleting.",
         "Type over closing quotes or brackets only if they were automatically inserted.",
         "Controls whether the editor should type over closing quotes or brackets.",
         "Use language configurations to determine when to autoclose quotes.",
@@ -278,15 +331,18 @@ module.exports = {
         "Use language configurations to determine when to automatically surround selections.",
         "Surround with quotes but not brackets.",
         "Surround with brackets but not quotes.",
-        "Controls whether the editor should automatically surround selections.",
+        "Controls whether the editor should automatically surround selections when typing quotes or brackets.",
+        "Emulate selection behavior of tab characters when using spaces for indentation. Selection will stick to tab stops.",
         "Controls whether the editor shows CodeLens.",
+        "Controls the font family for CodeLens.",
+        "Controls the font size in pixels for CodeLens. When set to `0`, the 90% of `#editor.fontSize#` is used.",
         "Controls whether the editor should render the inline color decorators and color picker.",
         "Enable that the selection with the mouse and keys is doing column selection.",
         "Controls whether syntax highlighting should be copied into the clipboard.",
         "Control the cursor animation style.",
         "Controls whether the smooth caret animation should be enabled.",
         "Controls the cursor style.",
-        "Controls the minimal number of visible leading and trailing lines surrounding the cursor. Known as 'scrollOff' or `scrollOffset` in some other editors.",
+        "Controls the minimal number of visible leading and trailing lines surrounding the cursor. Known as 'scrollOff' or 'scrollOffset' in some other editors.",
         "`cursorSurroundingLines` is enforced only when triggered via the keyboard or API.",
         "`cursorSurroundingLines` is enforced always.",
         "Controls when `cursorSurroundingLines` should be enforced.",
@@ -298,14 +354,15 @@ module.exports = {
         "Use the indentation-based folding strategy.",
         "Controls the strategy for computing folding ranges.",
         "Controls whether the editor should highlight folded ranges.",
+        "Controls whether the editor automatically collapses import ranges.",
         "Controls whether clicking on the empty content after a folded line will unfold the line.",
         "Controls the font family.",
         "Controls whether the editor should automatically format the pasted content. A formatter must be available and the formatter should be able to format a range in a document.",
         "Controls whether the editor should automatically format the line after typing.",
         "Controls whether the editor should render the vertical glyph margin. Glyph margin is mostly used for debugging.",
         "Controls whether the cursor should be hidden in the overview ruler.",
-        "Controls whether the editor should highlight the active indent guide.",
         "Controls the letter spacing in pixels.",
+        "Controls whether the editor has linked editing enabled. Depending on the language, related symbols, e.g. HTML tags, are updated while editing.",
         "Controls whether the editor should detect links and make them clickable.",
         "Highlight matching brackets.",
         "A multiplier to be used on the `deltaX` and `deltaY` of mouse wheel scroll events.",
@@ -325,15 +382,15 @@ module.exports = {
         "Controls whether the Go to Definition mouse gesture always opens the peek widget.",
         "Controls the delay in milliseconds after which quick suggestions will show up.",
         "Controls whether the editor auto renames on type.",
+        "Deprecated, use `editor.linkedEditing` instead.",
         "Controls whether the editor should render control characters.",
-        "Controls whether the editor should render indent guides.",
         "Render last line number when the file ends with a newline.",
         "Highlights both the gutter and the current line.",
         "Controls how the editor should render the current line highlight.",
-        "Controls if the editor should render the current line highlight only when the editor is focused",
+        "Controls if the editor should render the current line highlight only when the editor is focused.",
         "Render whitespace characters except for single spaces between words.",
         "Render whitespace characters only on selected text.",
-        "Render only trailing whitespace characters",
+        "Render only trailing whitespace characters.",
         "Controls how the editor should render whitespace characters.",
         "Controls whether selections should have rounded corners.",
         "Controls the number of extra characters beyond which the editor will scroll horizontally.",
@@ -353,7 +410,7 @@ module.exports = {
         "Controls whether snippets are shown with other suggestions and how they are sorted.",
         "Controls whether the editor will scroll using an animation.",
         "Font size for the suggest widget. When set to `0`, the value of `#editor.fontSize#` is used.",
-        "Line height for the suggest widget. When set to `0`, the value of `#editor.lineHeight#` is used.",
+        "Line height for the suggest widget. When set to `0`, the value of `#editor.lineHeight#` is used. The minimum value is 8.",
         "Controls whether suggestions should automatically show up when typing trigger characters.",
         "Always select the first suggestion.",
         "Select recent suggestions unless further typing selects one, e.g. `console.| -> console.log` because `log` has been completed recently.",
@@ -363,9 +420,9 @@ module.exports = {
         "Disable tab completions.",
         "Tab complete snippets when their prefix match. Works best when 'quickSuggestions' aren't enabled.",
         "Enables tab completions.",
+        "Unusual line terminators are automatically removed.",
         "Unusual line terminators are ignored.",
         "Unusual line terminators prompt to be removed.",
-        "Unusual line terminators are automatically removed.",
         "Remove unusual line terminators that might cause problems.",
         "Inserting and deleting whitespace follows tab stops.",
         "Characters that will be used as word separators when doing word related navigations or operations.",
@@ -383,6 +440,38 @@ module.exports = {
         "Assumes that all characters are of the same width. This is a fast algorithm that works correctly for monospace fonts and certain scripts (like Latin characters) where glyphs are of equal width.",
         "Delegates wrapping points computation to the browser. This is a slow algorithm, that might cause freezes for large files, but it works correctly in all cases.",
         "Controls the algorithm that computes wrapping points."
+    ],
+    "vs/editor/common/editorContextKeys": [
+        "Whether the editor text has focus (cursor is blinking)",
+        "Whether the editor or an editor widget has focus (e.g. focus is in the find widget)",
+        "Whether an editor or a rich text input has focus (cursor is blinking)",
+        "Whether the editor is read only",
+        "Whether the context is a diff editor",
+        "Whether `editor.columnSelection` is enabled",
+        "Whether the editor has text selected",
+        "Whether the editor has multiple selections",
+        "Whether `Tab` will move focus out of the editor",
+        "Whether the editor hover is visible",
+        "Whether the editor is part of a larger editor (e.g. notebooks)",
+        "The language identifier of the editor",
+        "Whether the editor has a completion item provider",
+        "Whether the editor has a code actions provider",
+        "Whether the editor has a code lens provider",
+        "Whether the editor has a definition provider",
+        "Whether the editor has a declaration provider",
+        "Whether the editor has an implementation provider",
+        "Whether the editor has a type definition provider",
+        "Whether the editor has a hover provider",
+        "Whether the editor has a document highlight provider",
+        "Whether the editor has a document symbol provider",
+        "Whether the editor has a reference provider",
+        "Whether the editor has a rename provider",
+        "Whether the editor has a signature help provider",
+        "Whether the editor has an inline hints provider",
+        "Whether the editor has a document formatting provider",
+        "Whether the editor has a document selection formatting provider",
+        "Whether the editor has multiple document formatting providers",
+        "Whether the editor has multiple document selection formatting providers"
     ],
     "vs/editor/common/model/editStack": [
         "Typing"
@@ -451,10 +540,19 @@ module.exports = {
         "Background color of the editor gutter. The gutter contains the glyph margins and the line numbers.",
         "Border color of unnecessary (unused) source code in the editor.",
         "Opacity of unnecessary (unused) source code in the editor. For example, \"#000000c0\" will render the code with 75% opacity. For high contrast themes, use the  'editorUnnecessaryCode.border' theme color to underline unnecessary code instead of fading it out.",
+        "Border color of ghost text in the editor.",
+        "Foreground color of the ghost text in the editor.",
         "Overview ruler marker color for range highlights. The color must not be opaque so as not to hide underlying decorations.",
         "Overview ruler marker color for errors.",
         "Overview ruler marker color for warnings.",
-        "Overview ruler marker color for infos."
+        "Overview ruler marker color for infos.",
+        "Foreground color of brackets (1). Requires enabling bracket pair colorization.",
+        "Foreground color of brackets (2). Requires enabling bracket pair colorization.",
+        "Foreground color of brackets (3). Requires enabling bracket pair colorization.",
+        "Foreground color of brackets (4). Requires enabling bracket pair colorization.",
+        "Foreground color of brackets (5). Requires enabling bracket pair colorization.",
+        "Foreground color of brackets (6). Requires enabling bracket pair colorization.",
+        "Foreground color of unexpected brackets."
     ],
     "vs/editor/contrib/anchorSelect/anchorSelect": [
         "Selection Anchor",
@@ -481,10 +579,15 @@ module.exports = {
         "Cu&&t",
         "Cut",
         "Cut",
+        "Cut",
         "&&Copy",
         "Copy",
         "Copy",
+        "Copy",
+        "Copy As",
+        "Copy As",
         "&&Paste",
+        "Paste",
         "Paste",
         "Paste",
         "Copy With Syntax Highlighting"
@@ -521,9 +624,9 @@ module.exports = {
         "No auto fixes available"
     ],
     "vs/editor/contrib/codeAction/lightBulbWidget": [
-        "Show Fixes. Preferred Fix Available ({0})",
-        "Show Fixes ({0})",
-        "Show Fixes"
+        "Show Code Actions. Preferred Quick Fix Available ({0})",
+        "Show Code Actions ({0})",
+        "Show Code Actions"
     ],
     "vs/editor/contrib/codelens/codelensController": [
         "Show CodeLens Commands For Current Line"
@@ -543,48 +646,11 @@ module.exports = {
         "Cursor Undo",
         "Cursor Redo"
     ],
-    "vs/editor/contrib/documentSymbols/outlineTree": [
-        "The foreground color for array symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for boolean symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for class symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for color symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for constant symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for constructor symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for enumerator symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for enumerator member symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for event symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for field symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for file symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for folder symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for function symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for interface symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for key symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for keyword symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for method symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for module symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for namespace symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for null symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for number symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for object symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for operator symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for package symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for property symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for reference symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for snippet symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for string symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for struct symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for text symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for type parameter symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for unit symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
-        "The foreground color for variable symbols. These symbols appear in the outline, breadcrumb, and suggest widget."
-    ],
     "vs/editor/contrib/find/findController": [
         "Find",
         "&&Find",
         "Find With Selection",
         "Find Next",
-        "Find Next",
-        "Find Previous",
         "Find Previous",
         "Find Next Selection",
         "Find Previous Selection",
@@ -592,17 +658,24 @@ module.exports = {
         "&&Replace"
     ],
     "vs/editor/contrib/find/findWidget": [
+        "Icon for 'Find in Selection' in the editor find widget.",
+        "Icon to indicate that the editor find widget is collapsed.",
+        "Icon to indicate that the editor find widget is expanded.",
+        "Icon for 'Replace' in the editor find widget.",
+        "Icon for 'Replace All' in the editor find widget.",
+        "Icon for 'Find Previous' in the editor find widget.",
+        "Icon for 'Find Next' in the editor find widget.",
         "Find",
         "Find",
-        "Previous match",
-        "Next match",
-        "Find in selection",
+        "Previous Match",
+        "Next Match",
+        "Find in Selection",
         "Close",
         "Replace",
         "Replace",
         "Replace",
         "Replace All",
-        "Toggle Replace mode",
+        "Toggle Replace",
         "Only the first {0} results are highlighted, but all find operations work on the entire text.",
         "{0} of {1}",
         "No results",
@@ -621,11 +694,20 @@ module.exports = {
         "Fold All Block Comments",
         "Fold All Regions",
         "Unfold All Regions",
+        "Fold All Regions Except Selected",
+        "Unfold All Regions Except Selected",
         "Fold All",
         "Unfold All",
+        "Go to Parent Fold",
+        "Go to Previous Folding Range",
+        "Go to Next Folding Range",
         "Fold Level {0}",
         "Background color behind folded ranges. The color must not be opaque so as not to hide underlying decorations.",
         "Color of the folding control in the editor gutter."
+    ],
+    "vs/editor/contrib/folding/foldingDecorations": [
+        "Icon for expanded ranges in the editor glyph margin.",
+        "Icon for collapsed ranges in the editor glyph margin."
     ],
     "vs/editor/contrib/fontZoom/fontZoom": [
         "Editor Font Zoom In",
@@ -644,7 +726,9 @@ module.exports = {
     ],
     "vs/editor/contrib/gotoError/gotoError": [
         "Go to Next Problem (Error, Warning, Info)",
+        "Icon for goto next marker.",
         "Go to Previous Problem (Error, Warning, Info)",
+        "Icon for goto previous marker.",
         "Go to Next Problem in Files (Error, Warning, Info)",
         "Next &&Problem",
         "Go to Previous Problem in Files (Error, Warning, Info)",
@@ -659,8 +743,11 @@ module.exports = {
         "{0} of {1} problems",
         "{0} of {1} problem",
         "Editor marker navigation widget error color.",
+        "Editor marker navigation widget error heading background.",
         "Editor marker navigation widget warning color.",
+        "Editor marker navigation widget warning heading background.",
         "Editor marker navigation widget info color.",
+        "Editor marker navigation widget info heading background.",
         "Editor marker navigation widget background."
     ],
     "vs/editor/contrib/gotoSymbol/goToCommands": [
@@ -669,14 +756,12 @@ module.exports = {
         "No definition found for '{0}'",
         "No definition found",
         "Go to Definition",
-        "Go to &&Definition",
         "Open Definition to the Side",
         "Peek Definition",
         "Declarations",
         "No declaration found for '{0}'",
         "No declaration found",
         "Go to Declaration",
-        "Go to &&Declaration",
         "No declaration found for '{0}'",
         "No declaration found",
         "Peek Declaration",
@@ -684,30 +769,33 @@ module.exports = {
         "No type definition found for '{0}'",
         "No type definition found",
         "Go to Type Definition",
-        "Go to &&Type Definition",
         "Peek Type Definition",
         "Implementations",
         "No implementation found for '{0}'",
         "No implementation found",
         "Go to Implementations",
-        "Go to &&Implementations",
         "Peek Implementations",
         "No references found for '{0}'",
         "No references found",
         "Go to References",
-        "Go to &&References",
         "References",
         "Peek References",
         "References",
         "Go To Any Symbol",
         "Locations",
         "No results for '{0}'",
-        "References"
+        "References",
+        "Go to &&Definition",
+        "Go to &&Declaration",
+        "Go to &&Type Definition",
+        "Go to &&Implementations",
+        "Go to &&References"
     ],
     "vs/editor/contrib/gotoSymbol/link/goToDefinitionAtPosition": [
         "Click to show {0} definitions."
     ],
     "vs/editor/contrib/gotoSymbol/peek/referencesController": [
+        "Whether reference peek is visible, like 'Peek References' or 'Peek Definition'",
         "Loading...",
         "{0} ({1})"
     ],
@@ -723,6 +811,7 @@ module.exports = {
     ],
     "vs/editor/contrib/gotoSymbol/referencesModel": [
         "symbol in {0} on line {1} at column {2}",
+        "symbol in {0} on line {1} at column {2}, {3}",
         "1 symbol in {0}, full path {1}",
         "{0} symbols in {1}, full path {2}",
         "No results found",
@@ -731,6 +820,7 @@ module.exports = {
         "Found {0} symbols in {1} files"
     ],
     "vs/editor/contrib/gotoSymbol/symbolNavigation": [
+        "Whether there are symbol locations that can be navigated via keyboard-only.",
         "Symbol {0} of {1}, {2} for next",
         "Symbol {0} of {1}"
     ],
@@ -738,9 +828,13 @@ module.exports = {
         "Show Hover",
         "Show Definition Preview Hover"
     ],
-    "vs/editor/contrib/hover/modesContentHover": [
+    "vs/editor/contrib/hover/markdownHoverParticipant": [
         "Loading...",
-        "Peek Problem",
+        "Tokenization is skipped for long lines for performance reasons. This can be configured via `editor.maxTokenizationLineLength`."
+    ],
+    "vs/editor/contrib/hover/markerHoverParticipant": [
+        "View Problem",
+        "No quick fixes available",
         "Checking for quick fixes...",
         "No quick fixes available",
         "Quick Fix..."
@@ -759,6 +853,19 @@ module.exports = {
         "Detect Indentation from Content",
         "Reindent Lines",
         "Reindent Selected Lines"
+    ],
+    "vs/editor/contrib/inlineCompletions/ghostTextController": [
+        "Whether an inline suggestion is visible",
+        "Whether the inline suggestion starts with whitespace",
+        "Show Next Inline Suggestion",
+        "Show Previous Inline Suggestion",
+        "Trigger Inline Suggestion"
+    ],
+    "vs/editor/contrib/inlineCompletions/inlineCompletionsHoverParticipant": [
+        "Next",
+        "Previous",
+        "Accept",
+        "Suggestion:"
     ],
     "vs/editor/contrib/linesOperations/linesOperations": [
         "Copy Line Up",
@@ -785,7 +892,12 @@ module.exports = {
         "Transpose characters around the cursor",
         "Transform to Uppercase",
         "Transform to Lowercase",
-        "Transform to Title Case"
+        "Transform to Title Case",
+        "Transform to Snake Case"
+    ],
+    "vs/editor/contrib/linkedEditing/linkedEditing": [
+        "Start Linked Editing",
+        "Background color when the editor auto renames on type."
     ],
     "vs/editor/contrib/links/links": [
         "Execute command",
@@ -794,14 +906,18 @@ module.exports = {
         "ctrl + click",
         "option + click",
         "alt + click",
+        "Execute command {0}",
         "Failed to open this link because it is not well-formed: {0}",
         "Failed to open this link because its target is missing.",
         "Open Link"
     ],
     "vs/editor/contrib/message/messageController": [
+        "Whether the editor is currently showing an inline message",
         "Cannot edit in read-only editor"
     ],
     "vs/editor/contrib/multicursor/multicursor": [
+        "Cursor added: {0}",
+        "Cursors added: {0}",
         "Add Cursor Above",
         "&&Add Cursor Above",
         "Add Cursor Below",
@@ -824,9 +940,12 @@ module.exports = {
         "Trigger Parameter Hints"
     ],
     "vs/editor/contrib/parameterHints/parameterHintsWidget": [
+        "Icon for show next parameter hint.",
+        "Icon for show previous parameter hint.",
         "{0}, hint"
     ],
     "vs/editor/contrib/peekView/peekView": [
+        "Whether the current code editor is embedded inside peek",
         "Close",
         "Background color of the peek view title area.",
         "Color of the peek view title.",
@@ -845,7 +964,7 @@ module.exports = {
     ],
     "vs/editor/contrib/quickAccess/gotoLineQuickAccess": [
         "Open a text editor first to go to a line.",
-        "Go to line {0} and column {1}.",
+        "Go to line {0} and character {1}.",
         "Go to line {0}.",
         "Current Line: {0}, Character: {1}. Type a line number between 1 and {2} to navigate to.",
         "Current Line: {0}, Character: {1}. Type a line number to navigate to."
@@ -885,10 +1004,6 @@ module.exports = {
         "fields ({0})",
         "constants ({0})"
     ],
-    "vs/editor/contrib/rename/onTypeRename": [
-        "On Type Rename Symbol",
-        "Background color when the editor auto renames on type."
-    ],
     "vs/editor/contrib/rename/rename": [
         "No result.",
         "An unknown error occurred while resolving rename location",
@@ -901,6 +1016,7 @@ module.exports = {
         "Enable/disable the ability to preview changes before renaming"
     ],
     "vs/editor/contrib/rename/renameInputField": [
+        "Whether the rename input widget is visible",
         "Rename input. Type new name and press Enter to commit.",
         "{0} to Rename, {1} to Preview"
     ],
@@ -909,6 +1025,11 @@ module.exports = {
         "&&Expand Selection",
         "Shrink Selection",
         "&&Shrink Selection"
+    ],
+    "vs/editor/contrib/snippet/snippetController2": [
+        "Whether the editor in current in snippet mode",
+        "Whether there is a next tab stop when in snippet mode",
+        "Whether there is a previous tab stop when in snippet mode"
     ],
     "vs/editor/contrib/snippet/snippetVariables": [
         "Sunday",
@@ -950,30 +1071,87 @@ module.exports = {
         "Nov",
         "Dec"
     ],
+    "vs/editor/contrib/suggest/suggest": [
+        "Whether suggestion are visible",
+        "Whether suggestion details are visible",
+        "Whether there are multiple suggestions to pick from",
+        "Whether inserting the current suggestion yields in a change or has everything already been typed",
+        "Whether suggestions are inserted when pressing Enter",
+        "Whether the current suggestion has insert and replace behaviour",
+        "Whether the default behaviour is to insert or replace",
+        "Whether the current suggestion supports to resolve further details"
+    ],
     "vs/editor/contrib/suggest/suggestController": [
         "Accepting '{0}' made {1} additional edits",
         "Trigger Suggest",
-        "{0} to insert",
-        "{0} to insert",
-        "{0} to replace",
-        "{0} to replace",
-        "{0} to insert",
+        "Insert",
+        "Insert",
+        "Replace",
+        "Replace",
+        "Insert",
         "show less",
-        "show more"
+        "show more",
+        "Reset Suggest Widget Size"
     ],
     "vs/editor/contrib/suggest/suggestWidget": [
         "Background color of the suggest widget.",
         "Border color of the suggest widget.",
         "Foreground color of the suggest widget.",
+        "Foreground color of the selected entry in the suggest widget.",
+        "Icon foreground color of the selected entry in the suggest widget.",
         "Background color of the selected entry in the suggest widget.",
         "Color of the match highlights in the suggest widget.",
-        "Read More ({0})",
-        "Read Less ({0})",
-        "Loading...",
+        "Color of the match highlights in the suggest widget when an item is focused.",
         "Loading...",
         "No suggestions.",
         "{0}, docs: {1}",
         "Suggest"
+    ],
+    "vs/editor/contrib/suggest/suggestWidgetDetails": [
+        "Close",
+        "Loading..."
+    ],
+    "vs/editor/contrib/suggest/suggestWidgetRenderer": [
+        "Icon for more information in the suggest widget.",
+        "Read More"
+    ],
+    "vs/editor/contrib/suggest/suggestWidgetStatus": [
+        "{0} ({1})"
+    ],
+    "vs/editor/contrib/symbolIcons/symbolIcons": [
+        "The foreground color for array symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for boolean symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for class symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for color symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for constant symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for constructor symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for enumerator symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for enumerator member symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for event symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for field symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for file symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for folder symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for function symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for interface symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for key symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for keyword symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for method symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for module symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for namespace symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for null symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for number symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for object symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for operator symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for package symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for property symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for reference symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for snippet symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for string symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for struct symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for text symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for type parameter symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for unit symbols. These symbols appear in the outline, breadcrumb, and suggest widget.",
+        "The foreground color for variable symbols. These symbols appear in the outline, breadcrumb, and suggest widget."
     ],
     "vs/editor/contrib/toggleTabFocusMode/toggleTabFocusMode": [
         "Toggle Tab Key Moves Focus",
@@ -986,9 +1164,9 @@ module.exports = {
     "vs/editor/contrib/unusualLineTerminators/unusualLineTerminators": [
         "Unusual Line Terminators",
         "Detected unusual line terminators",
-        "This file contains one or more unusual line terminator characters, like Line Separator (LS) or Paragraph Separator (PS).\n\nIt is recommended to remove them from the file. This can be configured via `editor.unusualLineTerminators`.",
-        "Fix this file",
-        "Ignore problem for this file"
+        "The file '{0}' contains one or more unusual line terminator characters, like Line Separator (LS) or Paragraph Separator (PS).\n\nIt is recommended to remove them from the file. This can be configured via `editor.unusualLineTerminators`.",
+        "Remove Unusual Line Terminators",
+        "Ignore"
     ],
     "vs/editor/contrib/wordHighlighter/wordHighlighter": [
         "Background color of a symbol during read-access, like reading a variable. The color must not be opaque so as not to hide underlying decorations.",
@@ -1001,15 +1179,26 @@ module.exports = {
         "Go to Previous Symbol Highlight",
         "Trigger Symbol Highlight"
     ],
+    "vs/editor/contrib/wordOperations/wordOperations": [
+        "Delete Word"
+    ],
     "vs/platform/actions/browser/menuEntryActionViewItem": [
+        "{0} ({1})",
         "{0} ({1})"
     ],
     "vs/platform/configuration/common/configurationRegistry": [
         "Default Language Configuration Overrides",
         "Configure editor settings to be overridden for a language.",
         "This setting does not support per-language configuration.",
+        "Cannot register an empty property",
         "Cannot register '{0}'. This matches property pattern '\\\\[.*\\\\]$' for describing language specific editor settings. Use 'configurationDefaults' contribution.",
         "Cannot register '{0}'. This property is already registered."
+    ],
+    "vs/platform/contextkey/browser/contextKeyService": [
+        "A command that returns information about context keys"
+    ],
+    "vs/platform/contextkey/common/contextkeys": [
+        "Whether the operating system is Windows"
     ],
     "vs/platform/keybinding/common/abstractKeybindingService": [
         "({0}) was pressed. Waiting for second key of chord...",
@@ -1020,16 +1209,19 @@ module.exports = {
         "Maps to `Control` on Windows and Linux and to `Command` on macOS.",
         "Maps to `Alt` on Windows and Linux and to `Option` on macOS.",
         "The modifier to be used to add an item in trees and lists to a multi-selection with the mouse (for example in the explorer, open editors and scm view). The 'Open to Side' mouse gestures - if supported - will adapt such that they do not conflict with the multiselect modifier.",
-        "Controls how to open items in trees and lists using the mouse (if supported). For parents with children in trees, this setting will control if a single click expands the parent or a double click. Note that some trees and lists might choose to ignore this setting if it is not applicable. ",
+        "Controls how to open items in trees and lists using the mouse (if supported). Note that some trees and lists might choose to ignore this setting if it is not applicable.",
         "Controls whether lists and trees support horizontal scrolling in the workbench. Warning: turning on this setting has a performance implication.",
         "Controls tree indentation in pixels.",
         "Controls whether the tree should render indent guides.",
         "Controls whether lists and trees have smooth scrolling.",
+        "A multiplier to be used on the `deltaX` and `deltaY` of mouse wheel scroll events.",
+        "Scrolling speed multiplier when pressing `Alt`.",
         "Simple keyboard navigation focuses elements which match the keyboard input. Matching is done only on prefixes.",
         "Highlight keyboard navigation highlights elements which match the keyboard input. Further up and down navigation will traverse only the highlighted elements.",
         "Filter keyboard navigation will filter out and hide all the elements which do not match the keyboard input.",
         "Controls the keyboard navigation style for lists and trees in the workbench. Can be simple, highlight and filter.",
-        "Controls whether keyboard navigation in lists and trees is automatically triggered simply by typing. If set to `false`, keyboard navigation is only triggered when executing the `list.toggleKeyboardNavigation` command, for which you can assign a keyboard shortcut."
+        "Controls whether keyboard navigation in lists and trees is automatically triggered simply by typing. If set to `false`, keyboard navigation is only triggered when executing the `list.toggleKeyboardNavigation` command, for which you can assign a keyboard shortcut.",
+        "Controls how tree folders are expanded when clicking the folder names. Note that some trees and lists might choose to ignore this setting if it is not applicable."
     ],
     "vs/platform/markers/common/markers": [
         "Error",
@@ -1055,6 +1247,7 @@ module.exports = {
         "An extra border around elements to separate them from others for greater contrast.",
         "An extra border around active elements to separate them from others for greater contrast.",
         "Foreground color for links in text.",
+        "Foreground color for links in text when clicked on and on mouse hover.",
         "Background color for code blocks in text.",
         "Shadow color of widgets such as find/replace inside the editor.",
         "Input box background.",
@@ -1084,10 +1277,13 @@ module.exports = {
         "Scrollbar slider background color when hovering.",
         "Scrollbar slider background color when clicked on.",
         "Background color of the progress bar that can show for long running operations.",
+        "Background color of error text in the editor. The color must not be opaque so as not to hide underlying decorations.",
         "Foreground color of error squigglies in the editor.",
         "Border color of error boxes in the editor.",
+        "Background color of warning text in the editor. The color must not be opaque so as not to hide underlying decorations.",
         "Foreground color of warning squigglies in the editor.",
         "Border color of warning boxes in the editor.",
+        "Background color of info text in the editor. The color must not be opaque so as not to hide underlying decorations.",
         "Foreground color of info squigglies in the editor.",
         "Border color of info boxes in the editor.",
         "Foreground color of hint squigglies in the editor.",
@@ -1103,6 +1299,10 @@ module.exports = {
         "Quick picker title background color. The quick picker widget is the container for pickers like the command palette.",
         "Quick picker color for grouping labels.",
         "Quick picker color for grouping borders.",
+        "Keybinding label background color. The keybinding label is used to represent a keyboard shortcut.",
+        "Keybinding label foreground color. The keybinding label is used to represent a keyboard shortcut.",
+        "Keybinding label border color. The keybinding label is used to represent a keyboard shortcut.",
+        "Keybinding label border bottom color. The keybinding label is used to represent a keyboard shortcut.",
         "Color of the editor selection.",
         "Color of the selected text for high contrast.",
         "Color of the selection in an inactive editor. The color must not be opaque so as not to hide underlying decorations.",
@@ -1120,6 +1320,12 @@ module.exports = {
         "Border color of the editor hover.",
         "Background color of the editor hover status bar.",
         "Color of active links.",
+        "Foreground color of inline hints",
+        "Background color of inline hints",
+        "Foreground color of inline hints for types",
+        "Background color of inline hints for types",
+        "Foreground color of inline hints for parameters",
+        "Background color of inline hints for parameters",
         "The color used for the lightbulb actions icon.",
         "The color used for the lightbulb auto fix actions icon.",
         "Background color for text that got inserted. The color must not be opaque so as not to hide underlying decorations.",
@@ -1130,19 +1336,29 @@ module.exports = {
         "Color of the diff editor's diagonal fill. The diagonal fill is used in side-by-side diff views.",
         "List/Tree background color for the focused item when the list/tree is active. An active list/tree has keyboard focus, an inactive does not.",
         "List/Tree foreground color for the focused item when the list/tree is active. An active list/tree has keyboard focus, an inactive does not.",
+        "List/Tree outline color for the focused item when the list/tree is active. An active list/tree has keyboard focus, an inactive does not.",
         "List/Tree background color for the selected item when the list/tree is active. An active list/tree has keyboard focus, an inactive does not.",
         "List/Tree foreground color for the selected item when the list/tree is active. An active list/tree has keyboard focus, an inactive does not.",
+        "List/Tree icon foreground color for the selected item when the list/tree is active. An active list/tree has keyboard focus, an inactive does not.",
         "List/Tree background color for the selected item when the list/tree is inactive. An active list/tree has keyboard focus, an inactive does not.",
         "List/Tree foreground color for the selected item when the list/tree is inactive. An active list/tree has keyboard focus, an inactive does not.",
+        "List/Tree icon foreground color for the selected item when the list/tree is inactive. An active list/tree has keyboard focus, an inactive does not.",
         "List/Tree background color for the focused item when the list/tree is inactive. An active list/tree has keyboard focus, an inactive does not.",
+        "List/Tree outline color for the focused item when the list/tree is inactive. An active list/tree has keyboard focus, an inactive does not.",
         "List/Tree background when hovering over items using the mouse.",
         "List/Tree foreground when hovering over items using the mouse.",
         "List/Tree drag and drop background when moving items around using the mouse.",
         "List/Tree foreground color of the match highlights when searching inside the list/tree.",
+        "List/Tree foreground color of the match highlights on actively focused items when searching inside the list/tree.",
         "Background color of the type filter widget in lists and trees.",
         "Outline color of the type filter widget in lists and trees.",
         "Outline color of the type filter widget in lists and trees, when there are no matches.",
         "Tree stroke color for the indentation guides.",
+        "Tree stroke color for the indentation guides.",
+        "Please use quickInputList.focusBackground instead",
+        "Quick picker foreground color for the focused item.",
+        "Quick picker icon foreground color for the focused item.",
+        "Quick picker background color for the focused item.",
         "Border color of menus.",
         "Foreground color of menu items.",
         "Background color of menu items.",
@@ -1150,6 +1366,7 @@ module.exports = {
         "Background color of the selected menu item in menus.",
         "Border color of the selected menu item in menus.",
         "Color of a separator menu item in menus.",
+        "Toolbar background when hovering over actions using the mouse",
         "Highlight background color of a snippet tabstop.",
         "Highlight border color of a snippet tabstop.",
         "Highlight background color of the final tabstop of a snippet.",
@@ -1157,16 +1374,23 @@ module.exports = {
         "Overview ruler marker color for find matches. The color must not be opaque so as not to hide underlying decorations.",
         "Overview ruler marker color for selection highlights. The color must not be opaque so as not to hide underlying decorations.",
         "Minimap marker color for find matches.",
+        "Minimap marker color for repeating editor selections.",
         "Minimap marker color for the editor selection.",
         "Minimap marker color for errors.",
         "Minimap marker color for warnings.",
         "Minimap background color.",
+        "Opacity of foreground elements rendered in the minimap. For example, \"#000000c0\" will render the elements with 75% opacity.",
         "Minimap slider background color.",
         "Minimap slider background color when hovering.",
         "Minimap slider background color when clicked on.",
         "The color used for the problems error icon.",
         "The color used for the problems warning icon.",
         "The color used for the problems info icon."
+    ],
+    "vs/platform/theme/common/iconRegistry": [
+        "The id of the font to use. If not set, the font that is defined first is used.",
+        "The font character associated with the icon definition.",
+        "Icon for the close action in widgets."
     ],
     "vs/platform/undoRedo/common/undoRedoService": [
         "The following files have been closed and modified on disk: {0}.",
@@ -1181,6 +1405,9 @@ module.exports = {
         "Undo this File",
         "Cancel",
         "Could not undo '{0}' because there is already an undo or redo operation running.",
+        "Would you like to undo '{0}'?",
+        "Yes",
+        "Cancel",
         "Could not redo '{0}' across all files. {1}",
         "Could not redo '{0}' across all files. {1}",
         "Could not redo '{0}' across all files because changes were made to {1}",

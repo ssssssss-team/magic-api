@@ -13,7 +13,7 @@
   "dependencies": {
     "axios": "^0.21.0",
     "core-js": "^3.6.5",
-    "monaco-editor": "^0.21.2",
+    "monaco-editor": "^0.29.1",
     "qs": "^6.9.4",
     "vue": "^2.6.11",
     "worker-loader": "^3.0.6"
