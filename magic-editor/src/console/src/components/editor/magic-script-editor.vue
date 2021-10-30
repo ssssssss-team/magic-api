@@ -150,7 +150,6 @@ export default {
     updateKeys.forEach(item => {
       let action = item[0]
       const { handler, when } = CommandsRegistry.getCommand(action) ?? {}
-      console.log(action, when, handler)
       if (handler) {
         let index = KeybindingsRegistry._coreKeybindings.findIndex(it => it.command === action);
         if(index > 0){
