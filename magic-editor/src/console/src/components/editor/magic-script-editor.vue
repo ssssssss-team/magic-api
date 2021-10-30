@@ -79,6 +79,7 @@ import tokenizer from '@/scripts/parsing/tokenizer.js'
 import {TokenStream} from '@/scripts/parsing/index.js'
 import RequestParameter from '@/scripts/editor/request-parameter.js';
 import { CommandsRegistry } from 'monaco-editor/esm/vs/platform/commands/common/commands'
+import { KeybindingsRegistry } from 'monaco-editor/esm/vs/platform/keybinding/common/keybindingsRegistry.js'
 
 export default {
   name: 'MagicScriptEditor',
@@ -138,11 +139,25 @@ export default {
         },
         '!findWidgetVisible && !inreferenceSearchEditor && !editorHasSelection'
     )
-    this.editor._standaloneKeybindingService.addDynamicKeybinding(`-editor.action.formatDocument`, undefined, () => {})
-    const { handler, when } = CommandsRegistry.getCommand('editor.action.formatDocument') ?? {}
-    if (handler) {
-      this.editor._standaloneKeybindingService.addDynamicKeybinding('editor.action.formatDocument', monaco.KeyMod.CtrlCmd | monaco.KeyMod.Alt | monaco.KeyCode.KEY_L, handler, when)
-    }
+    const updateKeys = [
+        ['editor.action.triggerSuggest', monaco.KeyMod.Alt | monaco.KeyCode.US_SLASH],
+        ['editor.action.triggerParameterHints', monaco.KeyMod.Alt | monaco.KeyCode.US_SLASH],
+        ['toggleSuggestionDetails', monaco.KeyMod.Alt | monaco.KeyCode.US_SLASH],
+        ['editor.action.formatDocument', monaco.KeyMod.CtrlCmd | monaco.KeyMod.Alt | monaco.KeyCode.KEY_L],
+        ['editor.action.marker.nextInFiles', monaco.KeyMod.CtrlCmd | monaco.KeyCode.F8]
+    ]
+    updateKeys.forEach(item => {
+      let action = item[0]
+      const { handler, when } = CommandsRegistry.getCommand(action) ?? {}
+      if (handler) {
+        let index = KeybindingsRegistry._coreKeybindings.findIndex(it => it.command === action);
+        if(index > 0){
+          KeybindingsRegistry._coreKeybindings.splice(index, 1)
+        }
+        this.editor._standaloneKeybindingService.addDynamicKeybinding(action, item[1], handler, when)
+      }
+    })
+    KeybindingsRegistry._cachedMergedKeybindings = null;
     this.editor.onMouseDown(e => {
       if (e.target.element.classList.contains('codicon')) {
         return
