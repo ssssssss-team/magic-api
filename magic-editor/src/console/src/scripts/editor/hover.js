@@ -41,6 +41,33 @@ const generateMethodDocument = (prefix,method, contents) => {
     })
     contents.push({value: `返回类型：\`${method.returnType}\``})
 }
+
+const generateFunctionCall = (methodName, env, contents)=>{
+    let functions = JavaClass.findFunction().filter(method => method.name === methodName);
+    if (functions.length > 0) {
+        generateMethodDocument('', functions[0], contents);
+    } else {
+        let value = env[methodName];
+        if (value && value.indexOf('@') === 0) {
+            let functionName = value.substring(1);
+            let func = JavaClass.getOnlineFunction(functionName);
+            if (func) {
+                let parameters = Array.isArray(func.parameter) ? func.parameter : JSON.parse(func.parameter || '[]');
+                parameters.forEach(it => it.comment = it.description);
+                generateMethodDocument('', {
+                    fullName: methodName + " " + func.name,
+                    comment: func.description || '',
+                    parameters,
+                    returnType: func.returnType
+                }, contents);
+            }
+
+        } else {
+            contents.push({value: `访问变量：${methodName}`})
+            contents.push({value: `类型：${value || 'unknow'}`})
+        }
+    }
+}
 const HoverProvider = {
     provideHover: async (model, position) => {
         let value = model.getValue()
@@ -63,8 +90,8 @@ const HoverProvider = {
                 let line = best.getSpan().getLine();
                 if (best instanceof VarDefine) {
                     let value = env[best.getVarName()];
-                    contents.push({value: `变量：${best.getVarName()}`})
-                    contents.push({value: `类型：${value}`})
+                    contents.push({value: `定义变量：${best.getVarName()}`})
+                    contents.push({value: `变量类型：${value}`})
                 } else if (best instanceof ClassConverter) {
                     if(best.convert === 'json'){
                         contents.push({value: '强制转换为`JSON`类型'})
@@ -78,8 +105,12 @@ const HoverProvider = {
                     }
                 } else if (best instanceof VariableAccess) {
                     let value = env[best.getVariable()];
-                    contents.push({value: `访问变量：${best.getVariable()}`})
-                    contents.push({value: `类型：${value || 'unknow'}`})
+                    if(value){
+                        contents.push({value: `访问变量：${best.getVariable()}`})
+                        contents.push({value: `变量类型：${value || 'unknow'}`})
+                    }else{
+                        generateFunctionCall(best.getVariable(), env, contents)
+                    }
                 } else if (best instanceof MemberAccess) {
                     let javaType = await best.getTarget().getJavaType(env);
                     let clazz = await JavaClass.loadClass(javaType);
@@ -97,30 +128,7 @@ const HoverProvider = {
                     line = best.member.getLine();
                 } else if (best instanceof FunctionCall) {
                     let target = best.target;
-                    let functions = JavaClass.findFunction().filter(method => method.name === target.variable);
-                    if (functions.length > 0) {
-                        generateMethodDocument('', functions[0], contents);
-                    } else {
-                        let value = env[target.variable];
-                        if (value && value.indexOf('@') === 0) {
-                            let functionName = value.substring(1);
-                            let func = JavaClass.getOnlineFunction(functionName);
-                            if (func) {
-                                let parameters = Array.isArray(func.parameter) ? func.parameter : JSON.parse(func.parameter || '[]');
-                                parameters.forEach(it => it.comment = it.description);
-                                generateMethodDocument('', {
-                                    fullName: target.variable + " " + func.name,
-                                    comment: func.description || '',
-                                    parameters,
-                                    returnType: func.returnType
-                                }, contents);
-                            }
-
-                        } else {
-                            contents.push({value: `访问变量：${target.variable}`})
-                            contents.push({value: `类型：${value || 'unknow'}`})
-                        }
-                    }
+                    generateFunctionCall(target.variable, env, contents)
                 } else if (best instanceof MapOrArrayAccess) {
                     contents.push({value: `访问Map或数组`})
                 } else if (best instanceof LinqSelect) {

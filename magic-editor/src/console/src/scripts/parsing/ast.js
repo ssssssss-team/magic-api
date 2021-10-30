@@ -10,8 +10,15 @@ class Node {
         return this.span;
     }
 
-    async getJavaType() {
+    async getJavaType(env) {
+        await this.getExpressionsJavaType(env);
         return 'java.lang.Object';
+    }
+
+    async getExpressionsJavaType(env){
+        for (const expr of this.expressions().filter(it => it)) {
+            await expr.getJavaType(env);
+        }
     }
 
     expressions() {
