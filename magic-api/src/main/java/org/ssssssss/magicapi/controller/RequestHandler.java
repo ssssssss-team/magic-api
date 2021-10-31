@@ -11,6 +11,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
@@ -80,6 +81,7 @@ public class RequestHandler extends MagicController {
 	@Valid(requireLogin = false)
 	public Object invoke(HttpServletRequest request, HttpServletResponse response,
 						 @PathVariable(required = false) Map<String, Object> pathVariables,
+						 @RequestHeader(required = false) Map<String, Object> headers,
 						 @RequestParam(required = false) Map<String, Object> parameters) throws Throwable {
 		String sessionId = null;
 		boolean requestedFromTest = configuration.isEnableWeb() && (sessionId = request.getHeader(HEADER_REQUEST_SESSION)) != null;
@@ -89,12 +91,6 @@ public class RequestHandler extends MagicController {
 			logger.error("{}找不到对应接口", request.getRequestURI());
 			return afterCompletion(requestEntity, buildResult(requestEntity, API_NOT_FOUND, "接口不存在"));
 		}
-		Map<String, Object> headers = new HashMap<String, Object>() {
-			@Override
-			public Object get(Object key) {
-				return getOrDefault(key, request.getHeader(key.toString()));
-			}
-		};
 		requestEntity.setHeaders(headers);
 		List<Path> paths = new ArrayList<>(info.getPaths());
 		MappingHandlerMapping.findGroups(info.getGroupId())

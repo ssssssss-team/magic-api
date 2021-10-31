@@ -50,7 +50,7 @@ public class MappingHandlerMapping {
 	/**
 	 * 请求到达时处理的方法
 	 */
-	private final Method method = RequestHandler.class.getDeclaredMethod("invoke", HttpServletRequest.class, HttpServletResponse.class, Map.class, Map.class);
+	private final Method method = RequestHandler.class.getDeclaredMethod("invoke", HttpServletRequest.class, HttpServletResponse.class, Map.class,Map.class, Map.class);
 	/**
 	 * 统一接口前缀
 	 */
