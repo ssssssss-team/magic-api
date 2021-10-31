@@ -1,6 +1,6 @@
 <template>
   <div class="ma-status-container">
-    <div>{{ message }}</div>
+    <div v-html="message"></div>
     <div class="ma-icons">
       <span v-if="config.header.repo !== false" title="Gitee"
             @click="open('https://gitee.com/ssssssss-team/magic-api')">

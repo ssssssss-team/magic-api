@@ -99,6 +99,7 @@ export default {
         'text-property-color': '#9876aa',
         'text-key-color': '#9876aa',
         'suggest-hover-background': '#113A5C',
-        'suggest-hover-color': '#fff'
+        'suggest-hover-color': '#fff',
+        'statusbar-em-color': '#68dd9a'
     }
 };

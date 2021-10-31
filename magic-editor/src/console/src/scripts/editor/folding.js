@@ -1,3 +1,4 @@
+import * as monaco from 'monaco-editor'
 let computeIndentLevel = function (line, tabSize) {
     var indent = 0;
     var i = 0;

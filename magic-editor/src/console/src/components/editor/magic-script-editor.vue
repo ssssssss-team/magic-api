@@ -480,7 +480,8 @@ export default {
         } else {
           bus.$emit('report','script_add')
         }
-        bus.$emit('status',`接口「${thisInfo.groupName}/${thisInfo.name}(${thisInfo.groupPath}/${thisInfo.path})」已保存`.replace(/\/+/g, '/'))
+        let fullName = utils.replaceURL(`${thisInfo.groupName}/${thisInfo.name}(${thisInfo.groupPath}/${thisInfo.path})`)
+        bus.$emit('status',`接口「${fullName}」已保存`)
         thisInfo.id = id
         this.info.ext.tmpScript = saveObj.script
       })
@@ -502,7 +503,8 @@ export default {
         } else {
           bus.$emit('report','function_add')
         }
-        bus.$emit('status',`函数「${thisInfo.groupName}/${thisInfo.name}(${thisInfo.groupPath}/${thisInfo.path})」已保存`.replace(/\/+/g, '/'))
+        let fullName = utils.replaceURL(`${thisInfo.groupName}/${thisInfo.name}(${thisInfo.groupPath}/${thisInfo.path})`)
+        bus.$emit('status',`函数「${fullName}」已保存`)
         thisInfo.id = id
         this.info.ext.tmpScript = saveObj.script
       })
@@ -698,7 +700,10 @@ export default {
           .join(',')
       requestConfig.responseType = 'blob'
       requestConfig.validateStatus = () => true
+      let dataLen = 0
+      let fullName = utils.replaceURL(`${target.groupName}/${target.name}(${target.groupPath}/${target.path})`)
       requestConfig.transformResponse = [function(data, headers){
+        dataLen = data.size;
         if(headers['content-disposition']){
           return new Promise(function(resolve){resolve(data)});
         }
@@ -714,13 +719,20 @@ export default {
           }
         })
       }]
-      bus.$emit('status', '开始测试...')
+      bus.$emit('status', `开始测试「${fullName}」`)
       let start = new Date().getTime()
       request
           .execute(requestConfig)
           .then(res => {
             res.data.then(data =>{
-              bus.$emit('status', `测试完毕，本次请求耗时:${new Date().getTime() - start}ms`)
+              let unit = ['B','KB','MB'];
+              let index = 0;
+              while(index < unit.length && dataLen >= 1024){
+                dataLen = dataLen / 1024
+                index++;
+              }
+              dataLen = dataLen.toFixed(2);
+              bus.$emit('status', `「${fullName}」测试完毕，状态：<em>${res.status}</em> 大小：<em>${dataLen}${unit[index]}</em> 耗时：<em>${new Date().getTime() - start}ms</em>`)
               const contentType = res.headers['content-type']
               target.ext.debugDecorations && this.editor.deltaDecorations(target.ext.debugDecorations, [])
               target.ext.debugDecorations = target.ext.debugDecoration = null
@@ -731,7 +743,6 @@ export default {
                 bus.$emit('update-response-body-definition', target.responseBodyDefinition);
                 bus.$emit('update-response-body', target.responseBody)
               } else {
-                bus.$emit('status', '脚本执行完毕')
                 // 执行完毕
                 target.running = false
                 bus.$emit('switch-tab', 'result')
@@ -740,7 +751,7 @@ export default {
             })
           })
           .catch(error => {
-            bus.$emit('status', '请求出错...')
+            bus.$emit('status', `请求出错：「${fullName}」`)
             target.ext.debuging = target.running = false
             request.processError(error)
           })

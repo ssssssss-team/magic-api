@@ -117,6 +117,7 @@
     --text-key-color: #660e7a;
     --suggest-hover-background: #D6EBFF;
     --suggest-hover-color: #000;
+    --statusbar-em-color: #007f31;
     scrollbar-color: var(--scollbar-color) var(--scollbar-color);
     scrollbar-width: thin;
     outline: 0;
@@ -316,6 +317,11 @@
 }
 .ma-container .monaco-list-row.focused .monaco-highlighted-label .highlight{
     color: #0097fb !important
+}
+.ma-container .ma-status-container em,.ma-event .ma-content em{
+    color: var(--statusbar-em-color);
+    font-style: normal;
+    font-weight: bold;
 }
 
 /** 旋转特效 **/

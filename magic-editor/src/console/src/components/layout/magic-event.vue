@@ -12,7 +12,7 @@
         <div class="ma-content">
           <div v-for="(item, key) in eventList" :key="'event_' + key" class="ma-table-row content-bg">
             <div>{{ item.timestamp }}</div>
-            <div>{{ item.content }}</div>
+            <div v-html="item.content"></div>
           </div>
         </div>
       </div>
