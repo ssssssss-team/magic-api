@@ -491,8 +491,10 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			MagicResourceLoader.addModule(module.getModuleName(), module);
 		});
         MagicResourceLoader.addModule(sqlModule.getModuleName(), new DynamicModuleImport(SQLModule.class, context -> {
+			String dataSourceKey = context.getString(Options.DEFAULT_DATA_SOURCE.getValue());
+			if(StringUtils.isEmpty(dataSourceKey)) return sqlModule;
 			SQLModule newSqlModule = sqlModule.cloneSQLModule();
-			newSqlModule.setDataSourceNode(dynamicDataSource.getDataSource(context.getString(Options.DEFAULT_DATA_SOURCE.getValue())));
+			newSqlModule.setDataSourceNode(dynamicDataSource.getDataSource(dataSourceKey));
             return newSqlModule;
         }));
 		MagicResourceLoader.getModuleNames().stream().filter(importModules::contains).forEach(moduleName -> {
