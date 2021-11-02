@@ -26,6 +26,7 @@
       <template #folder="{ item }">
         <div
             v-if="item._searchShow !== false"
+            :id="'magic-function-list-' + item.id"
             :class="{ 'ma-tree-select': item.selectRightItem }"
             :draggable="true"
             :style="{ 'padding-left': 17 * item.level + 'px' }"
@@ -49,6 +50,7 @@
             v-if="item._searchShow !== false"
             :class="{ 'ma-tree-select': item.selectRightItem || item.tmp_id === currentFileItem.tmp_id }"
             :draggable="true"
+            :id="'magic-function-list-' + (item.id || item.tmp_id)"
             :style="{ 'padding-left': 17 * item.level + 'px' }"
             class="ma-tree-hover"
             :title="(item.name || '') + '(' + (item.path || '') + ')'"
@@ -551,6 +553,9 @@ export default {
             this.tempGroupObj.name = this.createGroupObj.name
             this.tempGroupObj.path = this.createGroupObj.path
             this.rebuildTree()
+            this.$nextTick(() => {
+              goToAnchor('#magic-function-list-' + this.createGroupObj.id)
+            })
             this.initCreateGroupObj()
             this.tempGroupObj = {}
           })
@@ -564,7 +569,7 @@ export default {
             this.rebuildTree()
             const id = this.createGroupObj.id
             this.$nextTick(() => {
-              goToAnchor('#magic-api-list-' + id)
+              goToAnchor('#magic-function-list-' + id)
             })
             this.initCreateGroupObj()
           })
@@ -762,6 +767,9 @@ export default {
                   this.rebuildTree()
                   this.initCreateGroupObj()
                   this.changeForceUpdate()
+                  this.$nextTick(() => {
+                    goToAnchor('#magic-function-list-' + this.draggableItem.id)
+                  })
                 })
               } else {
                 this.$magicAlert({content: `不能移到${this.draggableTargetItem.name}`})
@@ -782,6 +790,9 @@ export default {
                   this.rebuildTree()
                   this.initCreateGroupObj()
                   this.changeForceUpdate()
+                  this.$nextTick(() => {
+                    goToAnchor('#magic-function-list-' + this.draggableItem.id)
+                  })
                 })
               }
             }

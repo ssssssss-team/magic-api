@@ -51,6 +51,7 @@
             v-if="item._searchShow !== false"
             :class="{ 'ma-tree-select': item.selectRightItem || item.tmp_id === currentFileItem.tmp_id }"
             :draggable="true"
+            :id="'magic-api-list-' + (item.id || item.tmp_id)"
             :style="{ 'padding-left': 17 * item.level + 'px' }"
             class="ma-tree-hover"
             :title="item.method + ':' + (item.name || '') + '(' + (item.path || '') + ')'"
@@ -579,6 +580,9 @@ export default {
             this.tempGroupObj.name = this.createGroupObj.name
             this.tempGroupObj.path = this.createGroupObj.path
             this.rebuildTree()
+            this.$nextTick(() => {
+              goToAnchor('#magic-api-list-' + this.createGroupObj.id)
+            })
             this.initCreateGroupObj()
             this.tempGroupObj = {}
           })
@@ -795,6 +799,9 @@ export default {
                   this.rebuildTree()
                   this.initCreateGroupObj()
                   this.changeForceUpdate()
+                  this.$nextTick(() => {
+                    goToAnchor('#magic-api-list-' + this.draggableItem.id)
+                  })
                   bus.$emit('status', `接口分组「${params.name}」移动成功`)
                 })
               } else {
@@ -817,6 +824,9 @@ export default {
                   this.rebuildTree()
                   this.initCreateGroupObj()
                   this.changeForceUpdate()
+                  this.$nextTick(() => {
+                    goToAnchor('#magic-api-list-' + this.draggableItem.id)
+                  })
                   bus.$emit('status', `接口「${this.draggableItem.name}」移动成功`)
                 })
               }
