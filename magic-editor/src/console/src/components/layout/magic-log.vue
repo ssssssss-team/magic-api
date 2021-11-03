@@ -1,20 +1,13 @@
 <template>
   <div ref="container" class="ma-log" @contextmenu.prevent="e=>onContextMenu(e)">
-    <div v-for="(item, key) in logs" :key="'run_log_' + key" :class="{collapse: item.newline&&!item.expand}">
-      <div>{{ item.timestamp }}</div>
-      <div :style="{color :'var(--log-'+ item.level.toLocaleLowerCase() + '-color)'}">
-        {{ item.level }}
-      </div>
-      <i class="ma-icon" :class="{'ma-icon-expand': !item.expand, 'ma-icon-collapse': item.expand}" v-if="item.newline" @click.stop="doExpand(item)"></i>
-      <div :class="{throwable: item.throwable === true}" v-html="item.message"></div>
-    </div>
+    <pre v-for="(item, key) in logs" :key="'run_log_' + key" v-html="item">
+    </pre>
   </div>
 </template>
 
 <script>
 import bus from "@/scripts/bus";
-import * as utils from "@/scripts/utils";
-import contants from "@/scripts/contants";
+import Anser from 'anser'
 
 export default {
   name: "MagicLog",
@@ -34,20 +27,11 @@ export default {
       item.expand = !item.expand;
     },
     onLogReceived(row){
-      row.timestamp = utils.formatDate(new Date())
-      let throwable = row.throwable
-      delete row.throwable
-      row.message = (row.message || '').replace(/ /g, '&nbsp;').replace(/\n/g,'<br>')
-      row.expand = false;
-      if (throwable) {
-        row.message += throwable.replace(/ /g, '&nbsp;').replace(/\n/g,'<br>')
-        row.throwable = true
-      }
-      row.newline = row.message.indexOf('<br>') > -1
-      if(this.logs.length >= contants.LOG_MAX_ROWS){
-        this.logs.shift()
-      }
-      this.logs.push(row)
+      let html = Anser.linkify(Anser.ansiToHtml(Anser.escapeForHtml(row[0])));
+      // 替换链接为新标签页打开
+      html = html.replace(/<a /g,'<a target="blank" ');
+      html = html.replace(/(\tat .*\()(.*?:\d+)(\).*?[\r\n])/g,'$1<span style="color:#808080;text-decoration: underline;">$2</span>$3')
+      this.logs.push(html)
       let container = this.$refs.container;
       this.$nextTick(() => container.scrollTop = container.scrollHeight)
     },
@@ -67,48 +51,17 @@ export default {
 <style scoped>
 .ma-log {
   overflow: auto;
-  font-size: 1.1em;
+  font-size: 13.5px;
   height: 100%;
-  background: var(--toolbox-background);
+  background: var(--run-log-background);
+  padding-top: 5px;
+  padding-left: 5px;
 }
 
-.ma-log > div > div {
-  display: inline;
+.ma-log pre{
   line-height: 20px;
-  white-space: nowrap;
 }
-
-.ma-log > div > div:first-child {
-  padding: 0 5px;
-}
-
-.ma-log > div > div:nth-child(2) {
-  width: 50px;
-  padding: 0 5px;
-  text-align: right;
-  margin-left: 5px;
-}
-
-.ma-log > div > div:last-child {
-  padding: 0 10px;
-}
-
-.ma-log .throwable {
-  color: var(--log-error-color)
-}
-
-.ma-log i{
-  margin-right: -10px;
-  margin-left: -10px;
-  font-size: 12px;
-  width: 20px;
-  display: inline-block;
-  height: 20px;
-  text-align: center;
-}
-.ma-log .collapse{
-  height: 20px;
-  line-height: 20px;
-  overflow: hidden;
+.ma-log >>> pre span{
+  opacity: 1 !important;
 }
 </style>

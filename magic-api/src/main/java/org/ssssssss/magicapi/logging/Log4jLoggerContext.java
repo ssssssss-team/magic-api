@@ -5,7 +5,6 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.RootLogger;
-import org.apache.log4j.spi.ThrowableInformation;
 
 
 /**
@@ -28,14 +27,7 @@ public class Log4jLoggerContext implements MagicLoggerContext {
 
 		@Override
 		protected void append(LoggingEvent event) {
-			LogInfo logInfo = new LogInfo();
-			logInfo.setLevel(event.getLevel().toString().toLowerCase());
-			logInfo.setMessage(String.valueOf(event.getMessage()));
-			ThrowableInformation throwableInformation = event.getThrowableInformation();
-			if (throwableInformation != null) {
-				logInfo.setThrowable(throwableInformation.getThrowable());
-			}
-			MagicLoggerContext.println(logInfo);
+			MagicLoggerContext.println(getLayout().format(event));
 		}
 
 		@Override

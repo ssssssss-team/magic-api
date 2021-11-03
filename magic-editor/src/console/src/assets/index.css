@@ -1,6 +1,6 @@
 .ma-container {
     font-size: 12px;
-    font-family: 'Consolas', '微软雅黑';
+    font-family: 'Consolas', "Courier New",monospace, '微软雅黑';
     letter-spacing: 0px;
     overflow: auto;
     display: flex;
@@ -83,12 +83,6 @@
     --toolbox-list-arrow-color: #b3b3b3;
     /* 左侧工具条列表中头部图标的颜色 */
     --toolbox-list-header-icon-color: #7f7f7f;
-    /* 日志级别颜色 */
-    --log-info-color: #00cd00;
-    --log-warn-color: #A66F00;
-    --log-debug-color: #00cccc;
-    --log-error-color: #cd0000;
-    --log-trace-color: #0000EE;
 
     /* 中间选项卡边框颜色 */
     --tab-bar-border-color: #c9c9c9;
@@ -118,10 +112,15 @@
     --suggest-hover-background: #D6EBFF;
     --suggest-hover-color: #000;
     --statusbar-em-color: #007f31;
+    --run-log-background: #fff;
     scrollbar-color: var(--scollbar-color) var(--scollbar-color);
     scrollbar-width: thin;
     outline: 0;
 
+}
+
+.ma-container pre{
+    font-family: 'Consolas', "Courier New",monospace, '微软雅黑';
 }
 
 .ma-container * {
