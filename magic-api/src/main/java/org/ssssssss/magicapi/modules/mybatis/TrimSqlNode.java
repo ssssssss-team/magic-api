@@ -39,10 +39,10 @@ public class TrimSqlNode extends SqlNode {
     @Override
     public String getSql(Map<String, Object> paramMap, List<Object> parameters) {
         StringBuilder sqlBuffer = new StringBuilder();
-        String childrenSql = executeChildren(paramMap, parameters);
+        String childrenSql = executeChildren(paramMap, parameters).trim();
         // 如果子节点不为null，则转成数组
         if (StringUtils.isNotEmpty(childrenSql)) {
-            String upperSql = childrenSql.toUpperCase().trim();
+            String upperSql = childrenSql.toUpperCase();
             // 开始拼接SQL,
             sqlBuffer.append(StringUtils.defaultString(this.prefix)).append(" ");
             //去掉prefixOverrides
@@ -50,8 +50,8 @@ public class TrimSqlNode extends SqlNode {
                 String[] overrideArray = this.prefixOverrides.split("\\|");
                 for (String override : overrideArray) {
                     if (upperSql.startsWith(override)) {
-                        childrenSql = childrenSql.substring(upperSql.indexOf(override) + override.length());
-                        upperSql = childrenSql.toUpperCase().trim();
+                        childrenSql = childrenSql.substring(upperSql.indexOf(override) + override.length()).trim();
+                        upperSql = childrenSql.toUpperCase();
                         break;
                     }
                 }
@@ -71,5 +71,10 @@ public class TrimSqlNode extends SqlNode {
             sqlBuffer.append(" ").append(StringUtils.defaultString(this.suffix));
         }
         return sqlBuffer.toString();
+    }
+
+    public static void main(String[] args) {
+        String sql = "11111?,";
+        System.out.println(sql.substring(0, sql.lastIndexOf(",")));
     }
 }
