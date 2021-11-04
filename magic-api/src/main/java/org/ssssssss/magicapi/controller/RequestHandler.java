@@ -3,7 +3,6 @@ package org.ssssssss.magicapi.controller;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -47,6 +46,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.springframework.http.HttpHeaders.*;
 import static org.ssssssss.magicapi.config.MessageType.BREAKPOINT;
 import static org.ssssssss.magicapi.config.MessageType.EXCEPTION;
 import static org.ssssssss.magicapi.model.Constants.*;
@@ -61,6 +61,9 @@ public class RequestHandler extends MagicController {
 	private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 	private static final Map<String, Object> EMPTY_MAP = new HashMap<>();
 	private final ResultProvider resultProvider;
+	private static final List<String> DEFAULT_ALLOW_READ_RESPONSE_HEADERS = Arrays.asList(
+			ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_METHODS,
+			CONTENT_TYPE, DATE, SERVER, SET_COOKIE, CONNECTION, CONTENT_LENGTH, CONTENT_ENCODING, TRANSFER_ENCODING, VARY);
 
 	public RequestHandler(MagicConfiguration configuration) {
 		super(configuration);
@@ -130,12 +133,12 @@ public class RequestHandler extends MagicController {
 			// 设置 path 变量
 			context.set(VAR_NAME_PATH_VARIABLE, requestEntity.getPathVariables());
 			// 设置 body 变量
-			if(bodyValue != null){
+			if (bodyValue != null) {
 				context.set(VAR_NAME_REQUEST_BODY, bodyValue);
 			}
 			BaseDefinition requestBody = info.getRequestBodyDefinition();
 			if (requestBody != null) {
-				if(!CollectionUtils.isEmpty(requestBody.getChildren())){
+				if (!CollectionUtils.isEmpty(requestBody.getChildren())) {
 					requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
 					doValidate(scriptName, VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
 						put(requestBody.getName(), bodyValue);
@@ -204,16 +207,16 @@ public class RequestHandler extends MagicController {
 				List<Object> list = (List) parameters.get(parameter.getName());
 				if (list != null) {
 					List<Map<String, Object>> newList = list.stream().map(it -> doValidate(scriptName, VAR_NAME_REQUEST_BODY, parameter.getChildren(), new HashMap<String, Object>() {{
-						put(EMPTY, it);
+						put(Constants.EMPTY, it);
 					}}, jsonCode)).collect(Collectors.toList());
 					for (int i = 0, size = newList.size(); i < size; i++) {
-						list.set(i, newList.get(i).get(EMPTY));
+						list.set(i, newList.get(i).get(Constants.EMPTY));
 					}
 				}
 
 			} else if (StringUtils.isNotBlank(parameter.getName()) || parameters.containsKey(parameter.getName())) {
 				boolean isFile = parameter.getDataType() == DataType.MultipartFile || parameter.getDataType() == DataType.MultipartFiles;
-				String requestValue = StringUtils.defaultIfBlank(Objects.toString(parameters.get(parameter.getName()), EMPTY), Objects.toString(parameter.getDefaultValue(), EMPTY));
+				String requestValue = StringUtils.defaultIfBlank(Objects.toString(parameters.get(parameter.getName()), Constants.EMPTY), Objects.toString(parameter.getDefaultValue(), Constants.EMPTY));
 				if (StringUtils.isBlank(requestValue) && !isFile) {
 					if (!parameter.isRequired()) {
 						continue;
@@ -230,7 +233,7 @@ public class RequestHandler extends MagicController {
 					// 正则验证
 					if (VALIDATE_TYPE_PATTERN.equals(parameter.getValidateType())) {
 						String expression = parameter.getExpression();
-						if (StringUtils.isNotBlank(expression) && !PatternUtils.match(Objects.toString(value, EMPTY), expression)) {
+						if (StringUtils.isNotBlank(expression) && !PatternUtils.match(Objects.toString(value, Constants.EMPTY), expression)) {
 							throw new ValidateException(jsonCode, StringUtils.defaultIfBlank(parameter.getError(), String.format("%s[%s]不满足正则表达式", comment, parameter.getName())));
 						}
 					}
@@ -394,14 +397,6 @@ public class RequestHandler extends MagicController {
 	 */
 	private Object response(RequestEntity requestEntity, Object value) {
 		if (value instanceof ResponseEntity) {
-			if (requestEntity.isRequestedFromTest()) {
-				ResponseEntity<?> entity = (ResponseEntity<?>) value;
-				Set<String> headerKeys = entity.getHeaders().keySet();
-				if (!headerKeys.isEmpty()) {
-					// 允许前端读取自定义的header（跨域情况）。
-					requestEntity.getResponse().setHeader(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, String.join(",", headerKeys));
-				}
-			}
 			return value;
 		} else if (value instanceof ResponseModule.NullValue) {
 			return null;
@@ -433,6 +428,18 @@ public class RequestHandler extends MagicController {
 			} catch (Exception e) {
 				logger.warn("执行afterCompletion出现出错", e);
 			}
+		}
+		Set<String> exposeHeaders = new HashSet<>(16);
+		if (returnValue instanceof ResponseEntity) {
+			exposeHeaders.addAll(((ResponseEntity<?>) returnValue).getHeaders().keySet());
+		}
+		if (requestEntity.isRequestedFromTest()) {
+			HttpServletResponse response = requestEntity.getResponse();
+			exposeHeaders.addAll(response.getHeaderNames());
+			exposeHeaders.addAll(DEFAULT_ALLOW_READ_RESPONSE_HEADERS);
+		}
+		if (!exposeHeaders.isEmpty()) {
+			requestEntity.getResponse().setHeader(ACCESS_CONTROL_EXPOSE_HEADERS, String.join(",", exposeHeaders));
 		}
 		return returnValue;
 	}

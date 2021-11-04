@@ -8,7 +8,7 @@
       <button class="ma-button" @click="doSave">保存</button>
     </div>
     <div class="ma-request-parameters">
-      <ul class="not-select">
+      <ul class="not-select ma-nav-tab">
         <li v-for="(item, key) in navs" :key="key" :class="{ selected: showIndex === key }" @click="showIndex = key;">{{ item }}
         </li>
       </ul>

@@ -1,13 +1,26 @@
 <template>
-  <div class="ma-run" style="display: flex; flex-direction: row;">
-    <div style="width: 40%" v-show="!contentType">
-      <div ref="resultEditor" class="ma-body-editor"></div>
+  <div class="ma-run">
+    <ul class="not-select ma-nav-tab">
+      <li v-for="(item, key) in navs" :key="'response_item_' + key" :class="{ selected: showIndex === key }" @click="showIndex = key;">{{ item }}
+      </li>
+    </ul>
+    <div ref="resultEditor" class="ma-body-editor" v-show="showIndex === 0 && !contentType"></div>
+    <iframe v-if="contentType && showIndex === 0" class="ma-response-body-container" style="padding:5px;" :src="this.objectUrl"></iframe>
+    <div class="ma-layout" v-if="showIndex === 1">
+      <div class="ma-layout-container">
+        <div class="ma-header ma-table-row">
+          <div>Key</div>
+          <div>Value</div>
+        </div>
+        <div class="ma-content">
+          <div v-for="(value, key) in responseHeaders" :key="'response_header_' + key" class="ma-table-row content-bg">
+            <div>{{ key }}</div>
+            <div>{{ value }}</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div style="flex: 1;" v-show="!contentType">
-      <magic-json :jsonData="responseBody || []" :forceUpdate="forceUpdate" :height="layoutHeight" type="response"></magic-json>
-    </div>
-    <iframe v-if="contentType" class="ma-response-body-container" style="padding:5px;" :src="this.objectUrl">
-    </iframe>
+    <magic-json v-if="!contentType && showIndex === 2" :jsonData="responseBody || []" :forceUpdate="forceUpdate" type="response"></magic-json>
   </div>
 </template>
 
@@ -33,10 +46,12 @@ export default {
     return {
       resultEditor: null,
       responseBody: [],
+      responseHeaders: {},
       forceUpdate: false,
-      layoutHeight: '255px',
       contentType: '',
-      objectUrl: null
+      navs: ['Body','响应Header', '响应结构'],
+      objectUrl: null,
+      showIndex: 0
     }
   },
   watch: {
@@ -52,7 +67,7 @@ export default {
   },
   mounted() {
     this.createEditor()
-    bus.$on('update-response-body', (responseBody) => {
+    bus.$on('update-response-body', (responseBody, headers) => {
       this.contentType = null
       if(this.objectUrl){
         URL.revokeObjectURL(this.objectUrl)
@@ -60,12 +75,14 @@ export default {
       }
       this.resultEditor && this.resultEditor.setValue(responseBody || '')
       this.updateResponseBody(responseBody)
+      this.responseHeaders = headers
     })
     bus.$on('update-response-body-definition', (responseBodyDefinition) => {
       this.responseBody = responseBodyDefinition ? [responseBodyDefinition] : []
     })
     bus.$on('update-response-blob',(contentType, blob, headers) => {
       this.contentType = contentType
+      this.responseHeaders = headers
       let disposition = headers['content-disposition'];
       if(disposition){
         try {
@@ -169,11 +186,15 @@ div.ma-run{
   height: 100%;
   width: 100%;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-div.ma-run > div {
+div.ma-run > *:not(ul) {
   width: 100%;
   height: 100%;
+  flex: 1;
 }
 .ma-body-editor {
   width: 100%;
@@ -184,4 +205,17 @@ div.ma-run > div {
   height: 100%;
   border: none;
 }
+.ma-layout-container .ma-header div,
+.ma-layout-container .ma-content .ma-table-row div{
+  width: 50%;
+  padding-left: 5px;
+  background: none;
+}
+.ma-run .ma-layout .ma-content .content-bg{
+  cursor: pointer;
+}
+.ma-run .ma-layout .ma-content .content-bg:hover{
+  background: var(--toolbox-list-hover-background);
+}
+
 </style>

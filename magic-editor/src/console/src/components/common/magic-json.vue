@@ -1,12 +1,12 @@
 <template>
   <div class="ma-json-container">
-    <div class="json-view f_c" :style="'height:'+ height">
+    <div class="json-view f_c">
       <!-- 解决子组件不强制刷新 -->
       <div v-show="forceUpdate"></div>
       <div class="header">视图</div>
       <magic-json-tree :jsonData="jsonData" :forceUpdate="forceUpdate" class="view-box" v-on:jsonClick="handleJsonClick"></magic-json-tree>
     </div>
-    <div class="json-panel f_c" :style="'height:'+ height">
+    <div class="json-panel f_c">
       <div class="header">属性</div>
       <div class="panel-box f_c" v-if="fieldObj.dataType && fieldObj.dataType !== 'Object' && fieldObj.dataType !== 'Array'">
         <div class="box-item">
@@ -104,7 +104,6 @@
       },
       // 解决子组件不强制刷新
       forceUpdate: Boolean,
-      height: String,
       type: String
     },
     data() {
@@ -192,8 +191,7 @@
   }
 
   .json-view {
-    width: 30vw;
-    overflow: scroll;
+    flex: 1;
     margin: 0px 10px;
     border: 1px solid var(--border-color);
     border-top: none;

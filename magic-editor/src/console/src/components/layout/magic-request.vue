@@ -9,7 +9,7 @@
       <magic-input :value.sync="info.path" placeholder="请输入接口路径" style="flex: 2"/>
     </div>
     <div class="ma-request-parameters">
-      <ul class="not-select">
+      <ul class="not-select ma-nav-tab">
         <li v-for="(item, key) in navs" :key="'request_item_' + key" :class="{ selected: showIndex === key }"
             @click="showIndex = key;initRequestBodyDom();">{{ item }}
         </li>

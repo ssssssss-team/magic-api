@@ -9,7 +9,7 @@
       <magic-input :value.sync="info.path" placeholder="请输入函数路径" width="500px"/>
     </div>
     <div class="ma-request-parameters">
-      <ul class="not-select">
+      <ul class="not-select ma-nav-tab">
         <li v-for="(item, key) in navs" :key="'request_item_' + key" :class="{ selected: showIndex === key }"
             @click="showIndex = key;">{{ item }}
         </li>

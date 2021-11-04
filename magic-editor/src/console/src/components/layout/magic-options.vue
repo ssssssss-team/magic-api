@@ -279,7 +279,7 @@ export default {
   background: var(--hover-background);
 }
 
-.ma-request-parameters > ul li {
+.ma-nav-tab li {
   display: inline-block;
   height: 24px;
   line-height: 24px;
@@ -287,15 +287,15 @@ export default {
   cursor: pointer;
 }
 
-.ma-request-parameters > ul li.selected {
+.ma-nav-tab li.selected {
   background: var(--selected-background);
 }
 
-.ma-request-parameters > ul li:hover {
+.ma-nav-tab li:hover {
   background: var(--hover-background);
 }
 
-.ma-request-parameters > ul {
+.ma-nav-tab {
   border-bottom: 1px solid var(--tab-bar-border-color);
   height: 24px;
 }

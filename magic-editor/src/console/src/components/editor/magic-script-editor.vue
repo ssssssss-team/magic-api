@@ -732,7 +732,7 @@ export default {
                 index++;
               }
               dataLen = dataLen.toFixed(2);
-              bus.$emit('status', `「${fullName}」测试完毕，状态：<em>${res.status}</em> 大小：<em>${dataLen}${unit[index]}</em> 耗时：<em>${new Date().getTime() - start}ms</em>`)
+              bus.$emit('status', `「${fullName}」测试完毕，状态：<em>${res.status}</em> 大小：<em>${dataLen} ${unit[index]}</em> 耗时：<em>${new Date().getTime() - start} ms</em>`)
               const contentType = res.headers['content-type']
               target.ext.debugDecorations && this.editor.deltaDecorations(target.ext.debugDecorations, [])
               target.ext.debugDecorations = target.ext.debugDecoration = null
@@ -741,7 +741,7 @@ export default {
                 target.responseBody = utils.formatJson(data)
                 bus.$emit('switch-tab', 'result')
                 bus.$emit('update-response-body-definition', target.responseBodyDefinition);
-                bus.$emit('update-response-body', target.responseBody)
+                bus.$emit('update-response-body', target.responseBody, res.headers)
               } else {
                 // 执行完毕
                 target.running = false
