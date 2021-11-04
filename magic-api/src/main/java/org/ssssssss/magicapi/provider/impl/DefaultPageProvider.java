@@ -5,10 +5,10 @@ import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.script.MagicScriptContext;
 
+import java.util.Objects;
+
 /**
  * 分页对象默认提取接口
- *
- * @author mxd
  */
 public class DefaultPageProvider implements PageProvider {
 
@@ -33,8 +33,7 @@ public class DefaultPageProvider implements PageProvider {
 	private long defaultPage = 1;
 
 	public DefaultPageProvider(String pageName, String pageSize) {
-		this.pageName = pageName;
-		this.pageSize = pageSize;
+		this(pageName, pageSize, 1, 10);
 	}
 
 	public DefaultPageProvider(String pageName, String pageSize, long defaultPage, long defaultPageSize) {
@@ -47,9 +46,9 @@ public class DefaultPageProvider implements PageProvider {
 
 	@Override
 	public Page getPage(MagicScriptContext context) {
-		// 从Request中提取page以及pageSize
-		long page = NumberUtils.toLong(context.getString(this.pageName), this.defaultPage);
-		long pageSize = NumberUtils.toLong(context.getString(this.pageSize), this.defaultPageSize);
+		// 改为从脚本中获取
+		long page = NumberUtils.toLong(Objects.toString(context.eval(this.pageName), null), this.defaultPage);
+		long pageSize = NumberUtils.toLong(Objects.toString(context.eval(this.pageSize), null), this.defaultPageSize);
 		// 计算limit以及offset
 		return new Page(pageSize, (page - 1) * pageSize);
 

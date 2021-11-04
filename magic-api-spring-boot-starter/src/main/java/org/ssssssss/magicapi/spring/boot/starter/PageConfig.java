@@ -8,12 +8,12 @@ package org.ssssssss.magicapi.spring.boot.starter;
 public class PageConfig {
 
 	/**
-	 * 默认page参数名
+	 * 默认page表达式
 	 */
 	private String page = "page";
 
 	/**
-	 * 默认size参数名
+	 * 默认size表达式
 	 */
 	private String size = "size";
 
