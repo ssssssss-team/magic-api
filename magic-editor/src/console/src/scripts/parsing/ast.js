@@ -37,9 +37,14 @@ class Expression extends Node {
 }
 
 class Literal extends Expression {
-    constructor(span, javaType) {
+    constructor(span, javaType, expressionList) {
         super(span);
         this.javaType = javaType;
+        this.expressionList = expressionList || []
+    }
+
+    expressions() {
+        return this.expressionList
     }
 
     async getJavaType() {

@@ -249,9 +249,6 @@ const tokenizerTemplateString = (stream, tokens)=>{
             }
             stream.consume();
         }
-        if (!matchedEndQuote) {
-            throw new ParseException("模板字符串没有结束符`", stream.endSpan());
-        }
         let stringSpan = stream.endSpan(begin, stream.getPosition());
         let end = stream.getPosition() - 1;
         if (end - start > 0) {

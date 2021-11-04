@@ -479,14 +479,15 @@ export class Parser {
 
     parseAccessOrCall(target, isNew) {
         if (target === TokenType.StringLiteral || target === TokenType.Identifier) {
-            let identifier = this.stream.expect(target).getSpan();
+            let token = this.stream.expect(target);
+            let identifier = token.getSpan();
             if (target === TokenType.Identifier && "new" === identifier.getText()) {
                 return this.parseNewExpression(identifier);
             }
             if (target === TokenType.Identifier && this.stream.match(TokenType.Lambda, true)) {
                 return this.parseLambdaBody(identifier, [identifier.getText()]);
             }
-            let result = target === TokenType.StringLiteral ? new Literal(identifier, 'java.lang.String') : new VariableAccess(identifier, identifier.getText());
+            let result = target === TokenType.StringLiteral ? this.createStringLiteral(token) : new VariableAccess(identifier, identifier.getText());
             return this.parseAccessOrCall(result, isNew);
         } else {
             while (this.stream.hasMore() && this.stream.match([TokenType.LeftParantheses, TokenType.LeftBracket, TokenType.Period, TokenType.QuestionPeriod, TokenType.ColonColon], false)) {
@@ -717,7 +718,6 @@ export class Parser {
 
     parseAccessOrCallOrLiteral(expectRightCurly) {
         let expression;
-        let isString = false;
         if (expectRightCurly && this.stream.match("}", false)) {
             return null;
         } else if (this.stream.match(TokenType.Spread, false)) {
@@ -735,8 +735,7 @@ export class Parser {
         } else if (this.stream.match(TokenType.LeftBracket, false)) {
             expression = this.parseListLiteral();
         } else if (this.stream.match(TokenType.StringLiteral, false)) {
-            isString = true;
-            expression = new Literal(this.stream.expect(TokenType.StringLiteral).getSpan(), 'java.lang.String');
+            expression = this.createStringLiteral(this.stream.expect(TokenType.StringLiteral));
         } else if (this.stream.match(TokenType.BooleanLiteral, false)) {
             expression = new Literal(this.stream.expect(TokenType.BooleanLiteral).getSpan(), 'java.lang.Boolean');
         } else if (this.stream.match(TokenType.DoubleLiteral, false)) {
@@ -767,6 +766,20 @@ export class Parser {
             throw new ParseException("Expected a variable, field, map, array, function or method call, or literal.", this.stream.hasMore() ? this.stream.consume().getSpan() : this.stream.getPrev().getSpan());
         }
         return this.parseAccessOrCall(expression);
+    }
+
+    createStringLiteral(token) {
+        if (token.getTokenStream() == null) {
+            return new Literal(token.getSpan(), 'java.lang.String');
+        }
+        let tempStream = this.stream;
+        this.stream = token.getTokenStream();
+        let expressions = [];
+        while (this.stream.hasMore()) {
+            expressions.push(this.parseExpression());
+        }
+        this.stream = tempStream;
+        return new Literal(token.getSpan(), 'java.lang.String', expressions);
     }
 
     findBestMatch(node, position){
