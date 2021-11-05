@@ -111,7 +111,7 @@ export default {
       clearTimeout(this.searchListFlag)
       if (text) {
         this.searchListFlag = setTimeout(() => {
-          request.send(`search?keyword=${text}`).success(data => {
+          request.send(`search`,{ keyword: text }, { method: 'POST' }).success(data => {
             this.searchList = data
             this.buildSearchList(text)
             if(data && data.length > 0){
