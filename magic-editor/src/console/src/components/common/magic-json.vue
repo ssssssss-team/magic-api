@@ -191,7 +191,7 @@
   }
 
   .json-view {
-    flex: 1;
+    width: 50%;
     margin: 0px 10px;
     border: 1px solid var(--border-color);
     border-top: none;
@@ -204,7 +204,7 @@
   }
 
   .json-panel {
-    flex: 1;
+    width: 50%;
     margin: 0px 10px;
     border: 1px solid var(--border-color);
     border-top: none;
