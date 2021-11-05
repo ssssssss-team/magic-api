@@ -32,6 +32,7 @@
             :style="{ 'padding-left': 17 * item.level + 'px' }"
             :title="(item.name || '') + '(' + (item.path || '') + ')'"
             class="ma-tree-item-header ma-tree-hover"
+            :dragtarget="dragging && draggableTargetItem === item"
             @click="$set(item, 'opened', !item.opened)"
             @dragenter="e => draggable(item, e, 'dragenter')"
             @contextmenu.prevent="e => folderRightClickHandle(e, item)"
@@ -153,6 +154,7 @@ export default {
       draggableTargetItem: {},
       // 是否展示tree-loading
       showLoading: true,
+      dragging: false,
       // 缓存一个openId
       tmpOpenId: []
     }
@@ -733,9 +735,11 @@ export default {
           // 拖拽到某个元素上
         case 'dragenter':
           this.draggableTargetItem = item
+          this.dragging = true
           break
           // 结束拖拽
         case 'dragend':
+          this.dragging = false
           // 目标对象必须是分组
           if (this.draggableTargetItem.folder === true) {
             // 移动分组

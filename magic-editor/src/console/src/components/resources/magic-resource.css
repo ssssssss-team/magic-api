@@ -20,7 +20,9 @@
     /* padding-left: 17px; */
     white-space: nowrap;
 }
-
+.ma-tree-wrapper .ma-tree-item .ma-tree-item-header[dragtarget] label{
+    border-color: red;
+}
 .ma-tree-wrapper .ma-tree-hover:hover,
 .ma-tree-wrapper .ma-tree-select {
     background: var(--toolbox-list-hover-background);
@@ -54,8 +56,7 @@
 .ma-tree-wrapper label {
     color: var(--toolbox-list-label-color);
     display: inline-block;
-    height: 22px;
-    line-height: 22px;
+    border: 1px solid transparent;
 }
 
 .ma-tree-wrapper .ma-tree-toolbar-search {
