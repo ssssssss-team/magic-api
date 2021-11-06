@@ -107,8 +107,9 @@ public class RequestHandler extends MagicController {
 		MagicScriptContext context = createMagicScriptContext(scriptName, requestEntity);
 		requestEntity.setMagicScriptContext(context);
 		try {
+			boolean disabledUnknownParameter = CONST_STRING_TRUE.equalsIgnoreCase(info.getOptionValue(Options.DISABLED_UNKNOWN_PARAMETER));
 			// 验证参数
-			doValidate(scriptName, "参数", info.getParameters(), parameters, PARAMETER_INVALID);
+			doValidate(scriptName, "参数", info.getParameters(), parameters, PARAMETER_INVALID, disabledUnknownParameter);
 
 			Object wrap = requestEntity.getApiInfo().getOptionValue(Options.WRAP_REQUEST_PARAMETERS.getValue());
 			if (wrap != null && StringUtils.isNotBlank(wrap.toString())) {
@@ -120,12 +121,12 @@ public class RequestHandler extends MagicController {
 			}
 			context.putMapIntoContext(requestEntity.getParameters());
 			// 验证 path
-			doValidate(scriptName, "path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID);
+			doValidate(scriptName, "path", paths, requestEntity.getPathVariables(), PATH_VARIABLE_INVALID, disabledUnknownParameter);
 			context.putMapIntoContext(requestEntity.getPathVariables());
 			// 设置 cookie 变量
 			context.set(VAR_NAME_COOKIE, new CookieContext(requestEntity.getRequest()));
 			// 验证 header
-			doValidate(scriptName, "header", info.getHeaders(), headers, HEADER_INVALID);
+			doValidate(scriptName, "header", info.getHeaders(), headers, HEADER_INVALID, disabledUnknownParameter);
 			// 设置 header 变量
 			context.set(VAR_NAME_HEADER, headers);
 			// 设置 session 变量
@@ -137,13 +138,11 @@ public class RequestHandler extends MagicController {
 				context.set(VAR_NAME_REQUEST_BODY, bodyValue);
 			}
 			BaseDefinition requestBody = info.getRequestBodyDefinition();
-			if (requestBody != null) {
-				if (!CollectionUtils.isEmpty(requestBody.getChildren())) {
-					requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
-					doValidate(scriptName, VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
-						put(requestBody.getName(), bodyValue);
-					}}, BODY_INVALID);
-				}
+			if (requestBody != null && !CollectionUtils.isEmpty(requestBody.getChildren())) {
+				requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
+				doValidate(scriptName, VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
+					put(requestBody.getName(), bodyValue);
+				}}, BODY_INVALID, disabledUnknownParameter);
 			}
 		} catch (ValidateException e) {
 			return afterCompletion(requestEntity, resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, e.getMessage()));
@@ -173,6 +172,17 @@ public class RequestHandler extends MagicController {
 		return resultProvider.buildResult(requestEntity, code.getCode(), code.getMessage(), data);
 	}
 
+	private void removeUnknownKey(Map<String, Object> src, List<? extends BaseDefinition> definitions) {
+		if (!src.isEmpty()) {
+			Map<String, Object> newMap = new HashMap<>(definitions.size());
+			for (BaseDefinition definition : definitions) {
+				newMap.put(definition.getName(), src.get(definition.getName()));
+			}
+			src.clear();
+			src.putAll(newMap);
+		}
+	}
+
 
 	private boolean doValidateBody(String comment, BaseDefinition parameter, Map<String, Object> parameters, JsonCode jsonCode, Class<?> target) {
 		if (!parameter.isRequired() && parameters.isEmpty()) {
@@ -188,10 +198,13 @@ public class RequestHandler extends MagicController {
 		return false;
 	}
 
-	private <T extends BaseDefinition> Map<String, Object> doValidate(String scriptName, String comment, List<T> validateParameters, Map<String, Object> parameters, JsonCode jsonCode) {
+	private Map<String, Object> doValidate(String scriptName, String comment, List<? extends BaseDefinition> validateParameters, Map<String, Object> parameters, JsonCode jsonCode, boolean disabledUnknownParameter) {
 		parameters = parameters != null ? parameters : EMPTY_MAP;
 		if (CollectionUtils.isEmpty(validateParameters)) {
 			return parameters;
+		}
+		if(disabledUnknownParameter){
+			removeUnknownKey(parameters, validateParameters);
 		}
 		for (BaseDefinition parameter : validateParameters) {
 			// 针对requestBody多层级的情况
@@ -199,7 +212,7 @@ public class RequestHandler extends MagicController {
 				if (doValidateBody(comment, parameter, parameters, jsonCode, Map.class)) {
 					continue;
 				}
-				doValidate(scriptName, VAR_NAME_REQUEST_BODY, parameter.getChildren(), (Map) parameters.get(parameter.getName()), jsonCode);
+				doValidate(scriptName, VAR_NAME_REQUEST_BODY, parameter.getChildren(), (Map) parameters.get(parameter.getName()), jsonCode, disabledUnknownParameter);
 			} else if (DataType.Array == parameter.getDataType()) {
 				if (doValidateBody(comment, parameter, parameters, jsonCode, List.class)) {
 					continue;
@@ -208,7 +221,7 @@ public class RequestHandler extends MagicController {
 				if (list != null) {
 					List<Map<String, Object>> newList = list.stream().map(it -> doValidate(scriptName, VAR_NAME_REQUEST_BODY, parameter.getChildren(), new HashMap<String, Object>() {{
 						put(Constants.EMPTY, it);
-					}}, jsonCode)).collect(Collectors.toList());
+					}}, jsonCode, disabledUnknownParameter)).collect(Collectors.toList());
 					for (int i = 0, size = newList.size(); i < size; i++) {
 						list.set(i, newList.get(i).get(Constants.EMPTY));
 					}

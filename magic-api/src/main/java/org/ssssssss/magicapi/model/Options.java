@@ -35,7 +35,12 @@ public enum Options {
 	/**
 	 * 该接口需要不登录也可访问
 	 */
-	ANONYMOUS("该接口需要不登录也可访问", "anonymous", "true");
+	ANONYMOUS("该接口需要不登录也可访问", "anonymous", "true"),
+
+	/**
+	 * 不接收未经定义的参数
+	 */
+	DISABLED_UNKNOWN_PARAMETER("不接收未经定义的参数", "disabled_unknown_parameter", "true");
 
 	private final String name;
 	private final String value;
