@@ -11,7 +11,6 @@
 
 <script>
 import bus from "@/scripts/bus";
-import Anser from 'anser'
 
 export default {
   name: "MagicLog",
@@ -32,9 +31,14 @@ export default {
     },
     onLogReceived(row){
       let text = row[0]
-      let html = Anser.linkify(Anser.ansiToHtml(Anser.escapeForHtml(text)));
-      // 替换链接为新标签页打开
-      html = html.replace(/<a /g,'<a target="blank" ');
+      // escape
+      let html = text.replace(/[&<>]/gm, function (str) {
+        return str === "&" ? "&amp;" : str === "<" ? "&lt;" : str === ">" ? "&gt;" : "";
+      });
+      html = html.replace(/(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}.\d{3}\s+)([^\s]+)( --- \[)(.{15})(] )(.{40})/gm,'$1 <span class="log-$2">$2</span>$3$4$5<span class="log-cyan">$6</span>')
+      // 替换链接
+      html = html.replace(/(https?:\/\/[^\s]+)/gm, '<a class="log-link" href="$1" target="blank">$1</a>')
+      // 处理异常里的 at
       html = html.replace(/(\tat .*\()(.*?:\d+)(\).*?[\r\n])/g,'$1<span style="color:#808080;text-decoration: underline;">$2</span>$3')
       let lines = text.split('\n').length;
       this.logs.push({
@@ -79,10 +83,6 @@ export default {
 .ma-log > div.multiple.more pre{
   max-height: none;
 }
-.ma-log >>> pre span{
-  opacity: 1 !important;
-}
-
 .ma-log span.multiple{
   opacity: 0.5;
   font-size: 13px;

@@ -113,6 +113,14 @@
     --suggest-hover-color: #000;
     --statusbar-em-color: #007f31;
     --run-log-background: #fff;
+    /* 日志级别颜色 */
+    --log-color-info: #00cd00;
+    --log-color-warn: #A66F00;
+    --log-color-debug: #00cccc;
+    --log-color-error: #cd0000;
+    --log-color-trace: #0000EE;
+    --log-color-cyan: #00CCCC;
+    --log-color-link: #006DCC;
     scrollbar-color: var(--scollbar-color) var(--scollbar-color);
     scrollbar-width: thin;
     outline: 0;
@@ -321,6 +329,28 @@
     color: var(--statusbar-em-color);
     font-style: normal;
     font-weight: bold;
+}
+
+.ma-log pre span.log-INFO{
+    color: var(--log-color-info);
+}
+.ma-log pre span.log-DEBUG{
+    color: var(--log-color-debug);
+}
+.ma-log pre span.log-ERROR{
+    color: var(--log-color-error);
+}
+.ma-log pre span.log-WARN{
+    color: var(--log-color-warn);
+}
+.ma-log pre span.log-TRACE{
+    color: var(--log-color-trace);
+}
+.ma-log pre span.log-cyan{
+    color: var(--log-color-cyan);
+}
+.ma-log pre a.log-link{
+    color: var(--log-color-link);
 }
 
 /** 旋转特效 **/

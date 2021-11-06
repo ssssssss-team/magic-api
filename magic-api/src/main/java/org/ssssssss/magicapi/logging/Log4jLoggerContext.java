@@ -27,7 +27,20 @@ public class Log4jLoggerContext implements MagicLoggerContext {
 
 		@Override
 		protected void append(LoggingEvent event) {
-			MagicLoggerContext.println(getLayout().format(event));
+			String message = Formatter.create()
+					.timestamp(event.getTimeStamp())
+					.space()
+					.level(event.getLevel().toString())
+					.value(" --- [")
+					.thread(event.getThreadName())
+					.value("] ")
+					.loggerName(event.getLoggerName())
+					.value(": ")
+					.value(event.getRenderedMessage())
+					.newline()
+					.throwable(event.getThrowableInformation() == null ? null : event.getThrowableInformation().getThrowable())
+					.toString();
+			MagicLoggerContext.println(message);
 		}
 
 		@Override

@@ -101,6 +101,13 @@ export default {
         'suggest-hover-background': '#113A5C',
         'suggest-hover-color': '#fff',
         'statusbar-em-color': '#68dd9a',
-        'run-log-background': '#2b2b2b'
+        'run-log-background': '#2b2b2b',
+        'log-level-info': '#ABC023',
+        'log-level-error': '#CC666E',
+        'log-level-debug': '#299999',
+        'log-level-warn': 'unset',
+        'log-level-trace': '#5394EC',
+        'log-color-cyan': '#009191',
+        'log-color-link': '#287BDE'
     }
 };

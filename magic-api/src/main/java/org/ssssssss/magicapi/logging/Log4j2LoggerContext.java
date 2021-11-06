@@ -6,7 +6,6 @@ import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
-import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.config.Property;
@@ -26,16 +25,11 @@ public class Log4j2LoggerContext implements MagicLoggerContext {
 		LoggerContext context = (LoggerContext) LogManager.getContext(false);
 		Configuration configuration = context.getConfiguration();
 		LoggerConfig logger = configuration.getRootLogger();
-		Layout<String> layout = logger.getAppenders().values()
-				.stream()
-				.filter(it -> it instanceof ConsoleAppender)
-				.map(it -> (Layout<String>)it.getLayout())
-				.findFirst()
-				.orElseGet(() -> PatternLayout.newBuilder()
-						.withCharset(StandardCharsets.UTF_8)
-						.withConfiguration(configuration)
-						.withPattern(PATTERN)
-						.build());
+		PatternLayout layout = PatternLayout.newBuilder()
+				.withCharset(StandardCharsets.UTF_8)
+				.withConfiguration(configuration)
+				.withPattern("%d %t %p %X{TracingMsg} %c - %m%n")
+				.build();
 		MagicLog4j2Appender appender = new MagicLog4j2Appender("Magic", logger.getFilter(), layout);
 		appender.start();
 		configuration.addAppender(appender);
@@ -45,16 +39,26 @@ public class Log4j2LoggerContext implements MagicLoggerContext {
 
 	static class MagicLog4j2Appender extends AbstractAppender {
 
-		private Layout<String> layout;
-
 		MagicLog4j2Appender(String name, Filter filter, Layout<String> layout) {
 			super(name, filter, layout, true, Property.EMPTY_ARRAY);
-			this.layout = layout;
 		}
 
 		@Override
 		public void append(LogEvent event) {
-			MagicLoggerContext.println(this.layout.toSerializable(event));
+			String message = Formatter.create()
+					.timestamp(event.getTimeMillis())
+					.space()
+					.level(event.getLevel().toString())
+					.value(" --- [")
+					.thread(event.getThreadName())
+					.value("] ")
+					.loggerName(event.getLoggerName())
+					.value(": ")
+					.value(event.getMessage().getFormattedMessage())
+					.newline()
+					.throwable(event.getThrown())
+					.toString();
+			MagicLoggerContext.println(message);
 		}
 	}
 }

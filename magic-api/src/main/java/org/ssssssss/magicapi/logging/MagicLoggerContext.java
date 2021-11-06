@@ -14,13 +14,12 @@ public interface MagicLoggerContext {
 
 	String LOGGER_NAME = "magic";
 
-	String PATTERN = "%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n%wEx";
-
 	ThreadLocal<String> SESSION = new InheritableThreadLocal<>();
 
 	/**
 	 * 打印日志
-	 *re
+	 * re
+	 *
 	 * @param logInfo 日志信息
 	 */
 	static void println(String logInfo) {
