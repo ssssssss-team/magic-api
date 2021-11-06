@@ -374,7 +374,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 插入并返回主键
 	 */
 	@Comment("执行insert操作，返回插入主键")
-	public long insert(@Comment("`SQL`语句或`xml`") String sqlOrXml) {
+	public Object insert(@Comment("`SQL`语句或`xml`") String sqlOrXml) {
 		return insert(sqlOrXml, (Map<String, Object>) null);
 	}
 
@@ -382,10 +382,10 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 插入并返回主键，并传入变量信息
 	 */
 	@Comment("执行insert操作，并传入变量信息，返回插入主键")
-	public long insert(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("变量信息")Map<String, Object> params) {
+	public Object insert(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("变量信息")Map<String, Object> params) {
 		MagicKeyHolder magicKeyHolder = new MagicKeyHolder();
 		insert(new BoundSql(sqlOrXml, params,this), magicKeyHolder);
-		return magicKeyHolder.getLongKey();
+		return magicKeyHolder.getObjectKey();
 	}
 
 	/**
@@ -633,18 +633,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 			return connection.prepareStatement(sql, new String[]{primary});
 		}
 
-		public long getLongKey() throws InvalidDataAccessApiUsageException, DataRetrievalFailureException {
-			Number key = super.getKey();
-			if (key == null) {
-				return -1;
-			}
-			return key.longValue();
-		}
-
 		public Object getObjectKey() {
-			if (useGeneratedKeys) {
-				return getLongKey();
-			}
 			List<Map<String, Object>> keyList = getKeyList();
 			if (keyList.isEmpty()) {
 				return null;
