@@ -10,8 +10,6 @@ import 'monaco-editor/esm/vs/editor/editor.worker.js'
 import 'monaco-editor/esm/vs/language/json/json.worker.js'
 import 'monaco-editor/esm/vs/language/json/workerManager'
 import 'monaco-editor/esm/vs/language/json/jsonMode'
-import 'monaco-editor/esm/vs/basic-languages/sql/sql.contribution.js'
-import 'monaco-editor/esm/vs/basic-languages/sql/sql.js'
 
 export function install(Vue) {
     if (install.installed) return
