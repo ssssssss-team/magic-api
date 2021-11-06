@@ -22,6 +22,7 @@ import org.ssssssss.magicapi.model.RequestEntity;
 import org.ssssssss.magicapi.modules.table.NamedTable;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
+import org.ssssssss.magicapi.script.ScriptManager;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.annotation.UnableCall;
@@ -639,7 +640,11 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 				return null;
 			}
 			Iterator<Object> keyIterator = keyList.get(0).values().iterator();
-			return keyIterator.hasNext() ? keyIterator.next() : null;
+			Object key = keyIterator.hasNext() ? keyIterator.next() : null;
+			if(key != null && "oracle.sql.ROWID".equals(key.getClass().getName())){
+				return ScriptManager.executeExpression("row.stringValue()", Collections.singletonMap("row", key));
+			}
+			return key;
 		}
 	}
 
