@@ -46,6 +46,7 @@ export default {
       fixedOverflowWidgets: false,
       fontFamily: contants.EDITOR_FONT_FAMILY,
       fontSize: contants.EDITOR_FONT_SIZE,
+      fontLigatures: true
     })
     bus.$on('update-window-size', this.layout)
   },

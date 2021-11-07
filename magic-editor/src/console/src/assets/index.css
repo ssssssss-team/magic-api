@@ -1,6 +1,12 @@
+@font-face{
+    font-family:JetBrainsMono;
+    src:url(JetBrainsMono-Regular.woff2) format("woff2");
+    font-weight:100;
+    font-style:normal
+}
 .ma-container {
     font-size: 12px;
-    font-family: 'Consolas', "Courier New",monospace, '微软雅黑';
+    font-family: 'JetBrainsMono','Consolas', "Courier New",monospace, '微软雅黑';
     letter-spacing: 0px;
     overflow: auto;
     display: flex;
@@ -127,8 +133,9 @@
 
 }
 
-.ma-container pre{
-    font-family: 'Consolas', "Courier New",monospace, '微软雅黑';
+.ma-container pre,
+.ma-container .monaco-editor{
+    font-family: 'JetBrainsMono','Consolas', "Courier New",monospace, '微软雅黑';
 }
 
 .ma-container * {

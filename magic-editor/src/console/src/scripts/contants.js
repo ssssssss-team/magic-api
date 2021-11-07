@@ -28,7 +28,7 @@ const contants = {
   JDBC_DRIVERS: [],
   DATASOURCE_TYPES: [],
   OPTIONS: [],
-  EDITOR_FONT_FAMILY: 'Consolas, "Courier New", monospace',
+  EDITOR_FONT_FAMILY: 'JetBrainsMono, Consolas, "Courier New",monospace, 微软雅黑',
   EDITOR_FONT_SIZE: 14,
   config: {}
 }

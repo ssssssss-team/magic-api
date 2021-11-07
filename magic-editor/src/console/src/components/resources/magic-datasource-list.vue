@@ -315,6 +315,7 @@ export default {
             wordWrap: 'on',
             fontFamily: contants.EDITOR_FONT_FAMILY,
             fontSize: contants.EDITOR_FONT_SIZE,
+            fontLigatures: true,
             theme: store.get('skin') || 'default',
             value: formatJson(temp) || '{\r\n\t\r\n}'
           })

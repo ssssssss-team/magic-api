@@ -76,6 +76,7 @@ export default {
           lineDecorationsWidth: 0,
           wordWrap: 'on',
           readOnly: true,
+          fontLigatures: true,
           scrollBeyondLastLine: false,
           fontFamily: contants.EDITOR_FONT_FAMILY,
           fontSize: contants.EDITOR_FONT_SIZE,
