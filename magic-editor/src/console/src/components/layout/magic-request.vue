@@ -161,7 +161,7 @@
               <div class="header">编辑器</div>
               <div ref="bodyEditor" class="ma-body-editor"></div>
             </div>
-            <div style="flex: 1;">
+            <div style="width: 50%">
               <magic-json :jsonData="requestBody || []" :forceUpdate="forceUpdate" :height="layoutHeight" type="request"></magic-json>
             </div>
           </div>

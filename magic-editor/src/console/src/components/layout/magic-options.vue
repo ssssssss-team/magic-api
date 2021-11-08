@@ -220,6 +220,7 @@ export default {
 .ma-layout .ma-layout-container {
   flex: auto;
   height: 100%;
+  width: 100%;
 }
 
 .ma-layout .ma-header > * {
