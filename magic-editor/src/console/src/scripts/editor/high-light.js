@@ -9,10 +9,6 @@ export const HighLightOptions = {
     tokenizer: {
         root: [
             [/\s+/, 'white'],
-            [
-                /```((?:\w|[\/\-#])+).*$/,
-                { token: 'string', next: '@codeblockgh', nextEmbedded: '$1' }
-            ],
             [/```$/, { token: 'string', next: '@codeblock' }],
             [/[a-zA-Z_$][\w$]*[\s]?/, {
                 cases: {
@@ -77,10 +73,6 @@ export const HighLightOptions = {
         codeblock: [
             [/^```$/, { token: 'string', next: '@pop' }],
             [/.*$/, 'variable.source']
-        ],
-        codeblockgh: [
-            [/```\s*$/, { token: 'variable.source', next: '@pop', nextEmbedded: '@pop' }],
-            [/[^`]+/, 'variable.source']
         ],
         regexrange: [
             [/-/, 'regexp.escape.control'],
