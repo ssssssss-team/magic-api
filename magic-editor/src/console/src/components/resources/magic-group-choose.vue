@@ -131,6 +131,9 @@ export default {
     doSelected(item) {
       this.selectedItem = item.id
     },
+    unDoSelected() {
+      this.selectedItem = ''
+    },
     // 排序tree,分组在前,接口在后
     sortTree() {
       if (this.treeSort === null) {

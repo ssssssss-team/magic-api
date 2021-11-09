@@ -85,6 +85,15 @@
         <button class="ma-button" @click="createGroupAction(false)">取消</button>
       </template>
     </magic-dialog>
+    <magic-dialog v-model="apiCopyGroupChooseVisible" title="复制接口到组" align="right" :moveable="false" width="340px" height="390px"
+                  className="ma-tree-wrapper">
+      <template #content>
+        <magic-group-choose ref="apiCopyGroupChoose" rootName="接口分组" type="1" height="300px" max-height="300px"/>
+      </template>
+      <template #buttons>
+        <button class="ma-button active" @click="copyApi">复制</button>
+      </template>
+    </magic-dialog>
     <magic-dialog v-model="groupChooseVisible" title="复制分组" align="right" :moveable="false" width="340px" height="390px"
                   className="ma-tree-wrapper">
       <template #content>
@@ -131,7 +140,9 @@ export default {
       tree: [],
       // 数据排序规则,true:升序,false:降序
       treeSort: true,
+      apiCopyGroupChooseVisible: false,
       groupChooseVisible: false,
+      srcItem: {},
       srcId: '',
       // 新建分组对象
       createGroupObj: {
@@ -460,6 +471,19 @@ export default {
             }
           },
           {
+            label: '复制接口到...',
+            icon: 'ma-icon-copy',
+            onClick: () => {
+              if (!item.id) {
+                this.$magicAlert({content: '请先保存在复制！'})
+                return
+              }
+              this.srcItem = item;
+              this.apiCopyGroupChooseVisible = true
+              this.$refs.apiCopyGroupChoose.initData();
+            }
+          },
+          {
             label: '复制路径',
             icon: 'ma-icon-copy',
             divided: true,
@@ -516,6 +540,29 @@ export default {
         }
       })
       return false
+    },
+    copyApi() {
+      let target = this.$refs.apiCopyGroupChoose.getSelected()
+      if(target && this.srcItem.id){
+        this.$refs.apiCopyGroupChoose.unDoSelected();
+        this.apiCopyGroupChooseVisible = false
+        let group = this.getGroupsById(target)[0];
+        bus.$emit('status', `复制接口「${this.srcItem.name}」到「${group.name}」分组`)
+        let newItem = {
+          ...deepClone(this.srcItem),
+          copy: true
+        }
+        newItem.name = newItem.name + '(复制)'
+        newItem.tmp_id = new Date().getTime() + '' + Math.floor(Math.random() * 1000)
+        newItem.selectRightItem = false
+        newItem.level = group.level + 1;
+        newItem.groupId = target;
+        newItem.groupName = group.name;
+        newItem.groupPath = group.path;
+        this.pushFileItemToGroup(this.tree, newItem)
+        this.open(newItem)
+        this.srcItem = {};
+      }
     },
     copyGroup(){
       let target = this.$refs.groupChoose.getSelected()
