@@ -48,22 +48,18 @@ public class MagicFunctionManager {
 				String scriptName = groupServiceProvider.getScriptName(info.getGroupId(), info.getName(), info.getPath());
 				List<Parameter> parameters = info.getParameters();
 				return (Function<Object[], Object>) objects -> {
-					try {
-						MagicScriptContext functionContext = new MagicScriptContext(context.getRootVariables());
-						functionContext.setScriptName(scriptName);
-						if (objects != null) {
-							for (int i = 0, len = objects.length, size = parameters.size(); i < len && i < size; i++) {
-								functionContext.set(parameters.get(i).getName(), objects[i]);
-							}
+					MagicScriptContext functionContext = new MagicScriptContext(context.getRootVariables());
+					functionContext.setScriptName(scriptName);
+					if (objects != null) {
+						for (int i = 0, len = objects.length, size = parameters.size(); i < len && i < size; i++) {
+							functionContext.set(parameters.get(i).getName(), objects[i]);
 						}
-						Object value = ScriptManager.executeScript(info.getScript(), functionContext);
-						if (value instanceof ExitValue) {
-							throw new MagicExitException((ExitValue) value);
-						}
-						return value;
-					} finally {
-						MagicScriptContext.set(context);
 					}
+					Object value = ScriptManager.executeScript(info.getScript(), functionContext);
+					if (value instanceof ExitValue) {
+						throw new MagicExitException((ExitValue) value);
+					}
+					return value;
 				};
 			}
 			return null;

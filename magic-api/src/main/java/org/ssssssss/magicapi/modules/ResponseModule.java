@@ -41,7 +41,8 @@ public class ResponseModule {
 	 * @param filename 文件名
 	 */
 	@Comment("文件下载")
-	public static ResponseEntity<?> download(@Comment("文件内容，如`byte[]`") Object value, @Comment("文件名") String filename) throws UnsupportedEncodingException {
+	public static ResponseEntity<?> download(@Comment(name = "value", value = "文件内容，如`byte[]`") Object value,
+											 @Comment(name = "filename", value = "文件名") String filename) throws UnsupportedEncodingException {
 		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncoder.encode(filename, "UTF-8"))
 				.body(value);
@@ -54,7 +55,8 @@ public class ResponseModule {
 	 * @param values 数据内容
 	 */
 	@Comment("返回自定义分页结果")
-	public Object page(@Comment("总条数") long total, @Comment("当前结果集") List<Map<String, Object>> values) {
+	public Object page(@Comment(name = "total", value = "总条数") long total,
+					   @Comment(name = "values", value = "当前结果集") List<Map<String, Object>> values) {
 		return resultProvider.buildPageResult(RequestContext.getRequestEntity(), null, total, values);
 	}
 
@@ -64,7 +66,7 @@ public class ResponseModule {
 	 * @param value json内容
 	 */
 	@Comment("自定义返回json内容")
-	public ResponseEntity<Object> json(@Comment("返回对象") Object value) {
+	public ResponseEntity<Object> json(@Comment(name = "value", value = "返回对象") Object value) {
 		return ResponseEntity.ok(value);
 	}
 
@@ -72,7 +74,8 @@ public class ResponseModule {
 	 * 添加Header
 	 */
 	@Comment("添加response header")
-	public ResponseModule addHeader(@Comment("header名") String key, @Comment("header值") String value) {
+	public ResponseModule addHeader(@Comment(name = "key", value = "header名") String key,
+									@Comment(name = "value", value = "header值") String value) {
 		if (StringUtils.isNotBlank(key)) {
 			HttpServletResponse response = getResponse();
 			if (response != null) {
@@ -86,7 +89,8 @@ public class ResponseModule {
 	 * 设置header
 	 */
 	@Comment("设置response header")
-	public ResponseModule setHeader(@Comment("header名") String key, @Comment("header值") String value) {
+	public ResponseModule setHeader(@Comment(name = "key", value = "header名") String key,
+									@Comment(name = "value", value = "header值") String value) {
 		if (StringUtils.isNotBlank(key)) {
 			HttpServletResponse response = getResponse();
 			if (response != null) {
@@ -100,7 +104,8 @@ public class ResponseModule {
 	 * 添加cookie
 	 */
 	@Comment("添加Cookie")
-	public ResponseModule addCookie(@Comment("cookie名") String name, @Comment("cookie值") String value) {
+	public ResponseModule addCookie(@Comment(name = "name", value = "cookie名") String name,
+									@Comment(name = "value", value = "cookie值") String value) {
 		if (StringUtils.isNotBlank(name)) {
 			addCookie(new Cookie(name, value));
 		}
@@ -111,7 +116,8 @@ public class ResponseModule {
 	 * 批量添加cookie
 	 */
 	@Comment("批量添加Cookie")
-	public ResponseModule addCookies(@Comment("Cookies") Map<String, String> cookies, @Comment("Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
+	public ResponseModule addCookies(@Comment(name = "cookies", value = "Cookies") Map<String, String> cookies,
+									 @Comment(name = "options", value = "Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
 		if (cookies != null) {
 			for (Map.Entry<String, String> entry : cookies.entrySet()) {
 				addCookie(entry.getKey(), entry.getValue(), options);
@@ -124,7 +130,7 @@ public class ResponseModule {
 	 * 批量添加cookie
 	 */
 	@Comment("批量添加Cookie")
-	public ResponseModule addCookies(@Comment("Cookies") Map<String, String> cookies) {
+	public ResponseModule addCookies(@Comment(name = "cookies", value = "Cookies") Map<String, String> cookies) {
 		return addCookies(cookies, null);
 
 	}
@@ -144,8 +150,9 @@ public class ResponseModule {
 	 * 添加cookie
 	 */
 	@Comment("添加Cookie")
-	public ResponseModule addCookie(@Comment("Cookie名") String name, @Comment("Cookie值") String value,
-									@Comment("Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
+	public ResponseModule addCookie(@Comment(name = "name", value = "Cookie名") String name,
+									@Comment(name = "value", value = "Cookie值") String value,
+									@Comment(name = "options", value = "Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
 		if (StringUtils.isNotBlank(name)) {
 			Cookie cookie = new Cookie(name, value);
 			if (options != null) {
@@ -181,7 +188,7 @@ public class ResponseModule {
 	 * 添加cookie
 	 */
 	@Comment("添加Cookie")
-	public ResponseModule addCookie(@Comment("Cookie对象") Cookie cookie) {
+	public ResponseModule addCookie(@Comment(name = "cookie", value = "Cookie对象") Cookie cookie) {
 		if (cookie != null) {
 			HttpServletResponse response = getResponse();
 			if (response != null) {
@@ -206,7 +213,8 @@ public class ResponseModule {
 	 * @param mime  图片类型，image/png,image/jpeg,image/gif
 	 */
 	@Comment("输出图片")
-	public ResponseEntity image(@Comment("图片内容，如`byte[]`") Object value, @Comment("图片类型，如`image/png`、`image/jpeg`、`image/gif`") String mime) {
+	public ResponseEntity image(@Comment(name = "value", value = "图片内容，如`byte[]`") Object value,
+								@Comment(name = "mime", value = "图片类型，如`image/png`、`image/jpeg`、`image/gif`") String mime) {
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, mime).body(value);
 	}
 

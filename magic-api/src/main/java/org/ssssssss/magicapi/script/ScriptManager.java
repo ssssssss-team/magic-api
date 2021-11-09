@@ -36,10 +36,6 @@ public class ScriptManager {
 	 * 执行脚本
 	 */
 	public static Object executeExpression(String script, Map<String, Object> paramMap) {
-		MagicScriptContext context = MagicScriptContext.get();
-		if(context == null){
-			return executeExpression(script, new MagicScriptContext(paramMap));
-		}
-		return context.eval(script, paramMap);
+		return executeExpression(script, new MagicScriptContext(paramMap));
 	}
 }

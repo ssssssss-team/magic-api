@@ -60,7 +60,7 @@ public class DatabaseResource extends KeyValueResource {
 		if (value == null) {
 			String sql = String.format("select file_content from %s where file_path = ?", tableName);
 			value = template.queryForObject(sql, String.class, this.path);
-			if(value != null){
+			if (value != null) {
 				this.cachedContent.put(path, value);
 			}
 		}

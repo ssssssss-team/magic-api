@@ -31,7 +31,7 @@ public class RequestModule {
 	 * @param name 参数名
 	 */
 	@Comment("获取文件")
-	public static MultipartFile getFile(@Comment("参数名") String name) {
+	public static MultipartFile getFile(@Comment(name = "name", value = "参数名") String name) {
 		MultipartRequest request = getMultipartHttpServletRequest();
 		if (request == null) {
 			return null;
@@ -46,7 +46,7 @@ public class RequestModule {
 	 * @param name 参数名
 	 */
 	@Comment("获取多个文件")
-	public static List<MultipartFile> getFiles(@Comment("参数名") String name) {
+	public static List<MultipartFile> getFiles(@Comment(name = "name", value = "参数名") String name) {
 		MultipartRequest request = getMultipartHttpServletRequest();
 		if (request == null) {
 			return null;
@@ -75,7 +75,7 @@ public class RequestModule {
 	 * @param name 参数名
 	 */
 	@Comment("根据请求参数名获取值")
-	public List<String> getValues(@Comment("参数名") String name) {
+	public List<String> getValues(@Comment(name = "name", value = "参数名") String name) {
 		HttpServletRequest request = get();
 		if (request != null) {
 			String[] values = request.getParameterValues(name);
@@ -90,7 +90,7 @@ public class RequestModule {
 	 * @param name 参数名
 	 */
 	@Comment("根据header名获取值")
-	public List<String> getHeaders(@Comment("header名") String name) {
+	public List<String> getHeaders(@Comment(name = "name", value = "header名") String name) {
 		HttpServletRequest request = get();
 		if (request != null) {
 			Enumeration<String> headers = request.getHeaders(name);

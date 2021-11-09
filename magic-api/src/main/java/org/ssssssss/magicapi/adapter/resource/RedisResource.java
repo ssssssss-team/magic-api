@@ -51,7 +51,7 @@ public class RedisResource extends KeyValueResource {
 		String value = this.cachedContent.get(path);
 		if (value == null) {
 			value = redisTemplate.opsForValue().get(path);
-			if(value != null){
+			if (value != null) {
 				this.cachedContent.put(path, value);
 			}
 		}

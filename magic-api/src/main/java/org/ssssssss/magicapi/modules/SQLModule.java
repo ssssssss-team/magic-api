@@ -1,8 +1,6 @@
 package org.ssssssss.magicapi.modules;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.dao.DataRetrievalFailureException;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SqlParameterValue;
@@ -23,11 +21,11 @@ import org.ssssssss.magicapi.modules.table.NamedTable;
 import org.ssssssss.magicapi.provider.PageProvider;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
-import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.annotation.UnableCall;
 import org.ssssssss.script.parsing.ast.statement.ClassConverter;
 import org.ssssssss.script.reflection.JavaReflection;
+import org.ssssssss.script.runtime.RuntimeContext;
 
 import java.lang.reflect.Field;
 import java.sql.*;
@@ -212,7 +210,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * @param function 回调函数
 	 */
 	@Comment("开启事务，并在回调中处理")
-	public Object transaction(@Comment("回调函数，如：()=>{....}") Function<?, ?> function) {
+	public Object transaction(@Comment(name = "function", value = "回调函数，如：()=>{....}") Function<?, ?> function) {
 		// 创建事务
 		Transaction transaction = transaction();
 		try {
@@ -240,7 +238,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * @param ttl       过期时间
 	 */
 	@Comment("使用缓存")
-	public SQLModule cache(@Comment("缓存名") String cacheName, @Comment("过期时间") long ttl) {
+	public SQLModule cache(@Comment(name = "cacheName", value = "缓存名") String cacheName, @Comment(name = "ttl", value = "过期时间") long ttl) {
 		if (cacheName == null) {
 			return this;
 		}
@@ -256,7 +254,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * @param cacheName 缓冲名
 	 */
 	@Comment("使用缓存，过期时间采用默认配置")
-	public SQLModule cache(@Comment("缓存名") String cacheName) {
+	public SQLModule cache(@Comment(name = "cacheName", value = "缓存名") String cacheName) {
 		return cache(cacheName, 0);
 	}
 
@@ -312,16 +310,19 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 查询List
 	 */
 	@Comment("查询SQL，返回List类型结果")
-	public List<Map<String, Object>> select(@Comment("`SQL`语句或`xml`") String sqlOrXml) {
-		return select(sqlOrXml, null);
+	public List<Map<String, Object>> select(RuntimeContext runtimeContext,
+											@Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml) {
+		return select(runtimeContext, sqlOrXml, null);
 	}
 
 	/**
 	 * 查询List，并传入变量信息
 	 */
 	@Comment("查询SQL，并传入变量信息，返回List类型结果")
-	public List<Map<String, Object>> select(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("变量信息") Map<String, Object> params) {
-		return select(new BoundSql(sqlOrXml, params, this));
+	public List<Map<String, Object>> select(RuntimeContext runtimeContext,
+											@Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+											@Comment(name = "params", value = "变量信息") Map<String, Object> params) {
+		return select(new BoundSql(runtimeContext, sqlOrXml, params, this));
 	}
 
 	@UnableCall
@@ -348,16 +349,19 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 执行update
 	 */
 	@Comment("执行update操作，返回受影响行数")
-	public int update(@Comment("`SQL`语句或`xml`") String sqlOrXml) {
-		return update(sqlOrXml, null);
+	public int update(RuntimeContext runtimeContext,
+					  @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml) {
+		return update(runtimeContext, sqlOrXml, null);
 	}
 
 	/**
 	 * 执行update，并传入变量信息
 	 */
 	@Comment("执行update操作，并传入变量信息，返回受影响行数")
-	public int update(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("变量信息") Map<String, Object> params) {
-		return update(new BoundSql(sqlOrXml, params, this));
+	public int update(RuntimeContext runtimeContext,
+					  @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+					  @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
+		return update(new BoundSql(runtimeContext, sqlOrXml, params, this));
 	}
 
 	@UnableCall
@@ -375,17 +379,20 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 插入并返回主键
 	 */
 	@Comment("执行insert操作，返回插入主键")
-	public Object insert(@Comment("`SQL`语句或`xml`") String sqlOrXml) {
-		return insert(sqlOrXml, (Map<String, Object>) null);
+	public Object insert(RuntimeContext runtimeContext,
+						 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml) {
+		return insert(runtimeContext, sqlOrXml, (Map<String, Object>) null);
 	}
 
 	/**
 	 * 插入并返回主键，并传入变量信息
 	 */
 	@Comment("执行insert操作，并传入变量信息，返回插入主键")
-	public Object insert(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("变量信息")Map<String, Object> params) {
+	public Object insert(RuntimeContext runtimeContext,
+						 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+						 @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
 		MagicKeyHolder magicKeyHolder = new MagicKeyHolder();
-		insert(new BoundSql(sqlOrXml, params,this), magicKeyHolder);
+		insert(new BoundSql(runtimeContext, sqlOrXml, params, this), magicKeyHolder);
 		return magicKeyHolder.getObjectKey();
 	}
 
@@ -393,16 +400,21 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 插入并返回主键
 	 */
 	@Comment("执行insert操作，返回插入主键")
-	public Object insert(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("主键列") String primary) {
-		return insert(sqlOrXml, primary, null);
+	public Object insert(RuntimeContext runtimeContext,
+						 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+						 @Comment(name = "primary", value = "主键列") String primary) {
+		return insert(runtimeContext, sqlOrXml, primary, null);
 	}
 
 	/**
 	 * 插入并返回主键
 	 */
 	@Comment("执行insert操作，并传入主键和变量信息，返回插入主键")
-	public Object insert(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("主键列") String primary, @Comment("变量信息")Map<String, Object> params) {
-		return insert(new BoundSql(sqlOrXml, params, this), primary);
+	public Object insert(RuntimeContext runtimeContext,
+						 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+						 @Comment(name = "primary", value = "主键列") String primary,
+						 @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
+		return insert(new BoundSql(runtimeContext, sqlOrXml, params, this), primary);
 	}
 
 	void insert(BoundSql boundSql, MagicKeyHolder keyHolder) {
@@ -422,7 +434,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 插入并返回主键
 	 */
 	@Comment("批量执行insert操作，返回插入主键数组")
-	public int[] batchInsert(@Comment("`SQL`语句") String sql, @Comment("参数") List<Object[]> list) {
+	public int[] batchInsert(@Comment(name = "sql", value = "`SQL`语句") String sql, @Comment(name = "list", value = "参数") List<Object[]> list) {
 		assertDatasourceNotNull();
 		return dataSourceNode.getJdbcTemplate().batchUpdate(sql, list);
 	}
@@ -431,7 +443,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 插入并返回主键
 	 */
 	@Comment("批量执行insert操作，返回插入主键数组")
-	public int[] batchInsert(@Comment("`SQL`语句") String[] sqls) {
+	public int[] batchInsert(@Comment(name = "sqls", value = "`SQL`语句") String[] sqls) {
 		assertDatasourceNotNull();
 		return dataSourceNode.getJdbcTemplate().batchUpdate(sqls);
 	}
@@ -447,38 +459,48 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 分页查询
 	 */
 	@Comment("执行分页查询，分页条件自动获取")
-	public Object page(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("变量信息")Map<String, Object> params) {
-		return page(new BoundSql(sqlOrXml, params, this));
+	public Object page(RuntimeContext runtimeContext,
+					   @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+					   @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
+		return page(new BoundSql(runtimeContext, sqlOrXml, params, this));
 	}
 
 	/**
 	 * 分页查询,并传入变量信息
 	 */
 	@Comment("执行分页查询，并传入变量信息，分页条件自动获取")
-	public Object page(@Comment("`SQL`语句或`xml`") String sqlOrXml) {
-		return page(sqlOrXml, (Map<String, Object>) null);
+	public Object page(RuntimeContext runtimeContext,
+					   @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml) {
+		return page(runtimeContext, sqlOrXml, (Map<String, Object>) null);
 	}
 
 	/**
 	 * 分页查询（手动传入limit和offset参数）
 	 */
 	@Comment("执行分页查询，分页条件手动传入")
-	public Object page(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("限制条数") long limit, @Comment("跳过条数") long offset) {
-		return page(sqlOrXml, limit, offset, null);
+	public Object page(RuntimeContext runtimeContext,
+					   @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+					   @Comment(name = "limit", value = "限制条数") long limit,
+					   @Comment(name = "limit", value = "跳过条数") long offset) {
+		return page(runtimeContext, sqlOrXml, limit, offset, null);
 	}
 
 	/**
 	 * 分页查询（手动传入limit和offset参数）
 	 */
 	@Comment("执行分页查询，并传入变量信息，分页条件手动传入")
-	public Object page(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("限制条数") long limit, @Comment("跳过条数") long offset, @Comment("变量信息")Map<String, Object> params) {
-		BoundSql boundSql = new BoundSql(sqlOrXml, params, this);
+	public Object page(RuntimeContext runtimeContext,
+					   @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+					   @Comment(name = "limit", value = "限制条数") long limit,
+					   @Comment(name = "offset", value = "跳过条数") long offset,
+					   @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
+		BoundSql boundSql = new BoundSql(runtimeContext, sqlOrXml, params, this);
 		return page(boundSql, new Page(limit, offset));
 	}
 
 	@UnableCall
 	public Object page(BoundSql boundSql) {
-		Page page = pageProvider.getPage(MagicScriptContext.get());
+		Page page = pageProvider.getPage(boundSql.getRuntimeContext());
 		return page(boundSql, page);
 	}
 
@@ -491,25 +513,30 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 分页查询（手动传入分页SQL语句）
 	 */
 	@Comment("执行分页查询，分页`SQL`语句手动传入")
-	public Object page(@Comment("count语句") String countSqlOrXml, @Comment("查询语句") String sqlOrXml){
-		return page(countSqlOrXml, sqlOrXml, null);
+	public Object page(RuntimeContext runtimeContext,
+					   @Comment(name = "countSqlOrXml", value = "count语句") String countSqlOrXml,
+					   @Comment(name = "sqlOrXml", value = "查询语句") String sqlOrXml) {
+		return page(runtimeContext, countSqlOrXml, sqlOrXml, null);
 	}
 
 	/**
 	 * 分页查询（手动传入分页SQL语句）
 	 */
 	@Comment("执行分页查询，并传入变量信息，分页`SQL`countSqlOrXml")
-	public Object page(@Comment("count语句")String countSqlOrXml, @Comment("查询语句")String sqlOrXml, @Comment("变量信息") Map<String, Object> params){
-		int count = selectInt(new BoundSql(countSqlOrXml, params, this));
-		Page page = pageProvider.getPage(MagicScriptContext.get());
-		BoundSql boundSql = new BoundSql(sqlOrXml, params, this);
+	public Object page(RuntimeContext runtimeContext,
+					   @Comment(name = "countSqlOrXml", value = "count语句") String countSqlOrXml,
+					   @Comment(name = "sqlOrXml", value = "查询语句") String sqlOrXml,
+					   @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
+		int count = selectInt(new BoundSql(runtimeContext, countSqlOrXml, params, this));
+		Page page = pageProvider.getPage(runtimeContext);
+		BoundSql boundSql = new BoundSql(runtimeContext, sqlOrXml, params, this);
 		return page(count, boundSql, page, null);
 	}
 
 	private Object page(int count, BoundSql boundSql, Page page, Dialect dialect) {
 		List<Map<String, Object>> list = null;
-		if(count > 0){
-			if(dialect == null){
+		if (count > 0) {
+			if (dialect == null) {
 				dialect = dataSourceNode.getDialect(dialectAdapter);
 			}
 			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, page.getOffset(), page.getLimit());
@@ -532,16 +559,19 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 查询int值
 	 */
 	@Comment("查询int值，适合单行单列int的结果")
-	public Integer selectInt(@Comment("`SQL`语句或`xml`") String sqlOrXml) {
-		return selectInt(sqlOrXml, null);
+	public Integer selectInt(RuntimeContext runtimeContext,
+							 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml) {
+		return selectInt(runtimeContext, sqlOrXml, null);
 	}
 
 	/**
 	 * 查询int值
 	 */
 	@Comment("查询int值，并传入变量信息，适合单行单列int的结果")
-	public Integer selectInt(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("变量信息") Map<String, Object> params) {
-		return selectInt(new BoundSql(sqlOrXml, params, this));
+	public Integer selectInt(RuntimeContext runtimeContext,
+							 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+							 @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
+		return selectInt(new BoundSql(runtimeContext, sqlOrXml, params, this));
 	}
 
 	@UnableCall
@@ -554,16 +584,19 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 查询Map
 	 */
 	@Comment("查询单条结果，查不到返回null")
-	public Map<String, Object> selectOne(@Comment("`SQL`语句或`xml`") String sqlOrXml) {
-		return selectOne(sqlOrXml, null);
+	public Map<String, Object> selectOne(RuntimeContext runtimeContext,
+										 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml) {
+		return selectOne(runtimeContext, sqlOrXml, null);
 	}
 
 	/**
 	 * 查询Map,并传入变量信息
 	 */
 	@Comment("查询单条结果，并传入变量信息，查不到返回null")
-	public Map<String, Object> selectOne(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("变量信息") Map<String, Object> params) {
-		return selectOne(new BoundSql(sqlOrXml, params, this));
+	public Map<String, Object> selectOne(RuntimeContext runtimeContext,
+										 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+										 @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
+		return selectOne(new BoundSql(runtimeContext, sqlOrXml, params, this));
 	}
 
 	@UnableCall
@@ -582,22 +615,25 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 查询单行单列的值
 	 */
 	@Comment("查询单行单列的值")
-	public Object selectValue(@Comment("`SQL`语句或`xml`") String sqlOrXml) {
-		return selectValue(sqlOrXml, null);
+	public Object selectValue(RuntimeContext runtimeContext,
+							  @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml) {
+		return selectValue(runtimeContext, sqlOrXml, null);
 	}
 
 	/**
 	 * 查询单行单列的值，并传入变量信息
 	 */
 	@Comment("查询单行单列的值，并传入变量信息")
-	public Object selectValue(@Comment("`SQL`语句或`xml`") String sqlOrXml, @Comment("变量信息")Map<String, Object> params) {
+	public Object selectValue(RuntimeContext runtimeContext,
+							  @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+							  @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
 		assertDatasourceNotNull();
-		BoundSql boundSql = new BoundSql(sqlOrXml, params, this);
+		BoundSql boundSql = new BoundSql(runtimeContext, sqlOrXml, params, this);
 		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), new SingleRowResultSetExtractor<>(Object.class), boundSql.getParameters()));
 	}
 
 	@Comment("指定table，进行单表操作")
-	public NamedTable table(String tableName) {
+	public NamedTable table(@Comment(name = "tableName", value = "表名") String tableName) {
 		return new NamedTable(tableName, this, rowMapColumnMapper, namedTableInterceptors);
 	}
 
@@ -641,7 +677,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 			}
 			Iterator<Object> keyIterator = keyList.get(0).values().iterator();
 			Object key = keyIterator.hasNext() ? keyIterator.next() : null;
-			if(key != null && "oracle.sql.ROWID".equals(key.getClass().getName())){
+			if (key != null && "oracle.sql.ROWID".equals(key.getClass().getName())) {
 				return ScriptManager.executeExpression("row.stringValue()", Collections.singletonMap("row", key));
 			}
 			return key;

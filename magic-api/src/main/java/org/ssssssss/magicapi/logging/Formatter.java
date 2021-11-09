@@ -25,83 +25,8 @@ public class Formatter {
 	}
 
 
-	public static Formatter create(){
+	public static Formatter create() {
 		return new Formatter();
-	}
-
-	public Formatter timestamp(long timestamp){
-		buf.append(CACHING_DATE_FORMATTER.format(timestamp));
-		return this;
-	}
-
-	public Formatter space(){
-		buf.append(SPACES[0]);
-		return this;
-	}
-
-	public Formatter value(String value) {
-		buf.append(value);
-		return this;
-	}
-	public Formatter newline() {
-		buf.append("\n");
-		return this;
-	}
-
-	public Formatter thread(String value) {
-		return alignment(value, 15, 15, true, true);
-	}
-
-	public Formatter level(String value) {
-		return alignment(value, 5, 2147483647, true, true);
-	}
-
-	public Formatter loggerName(String value) {
-		return alignment(ABBREVIATOR.abbreviate(value), 40, 40, true, false);
-	}
-
-	@Override
-	public String toString() {
-		return buf.toString();
-	}
-
-	public Formatter throwable(Throwable throwable){
-		if(throwable != null){
-			this.newline();
-			StringWriter sw = new StringWriter(1024);
-			PrintWriter writer = new PrintWriter(sw);
-			throwable.printStackTrace(writer);
-			writer.close();
-			buf.append(sw.getBuffer());
-			this.newline();
-		}
-		return this;
-	}
-
-	private Formatter alignment(String value, int min, int max, boolean leftTruncate, boolean leftPad){
-		if (value == null) {
-			if (0 < min) {
-				spacePad(buf, min);
-			}
-		} else {
-			int len = value.length();
-			if (len > max) {
-				if (leftTruncate) {
-					buf.append(value.substring(len - max));
-				} else {
-					buf.append(value, 0, max);
-				}
-			} else if (len < min) {
-				if (leftPad) {
-					leftPad(buf, value, min);
-				} else {
-					rightPad(buf, value, min);
-				}
-			} else {
-				buf.append(value);
-			}
-		}
-		return this;
 	}
 
 	private static void leftPad(StringBuilder buf, String s, int desiredLength) {
@@ -146,11 +71,87 @@ public class Formatter {
 		}
 	}
 
+	public Formatter timestamp(long timestamp) {
+		buf.append(CACHING_DATE_FORMATTER.format(timestamp));
+		return this;
+	}
+
+	public Formatter space() {
+		buf.append(SPACES[0]);
+		return this;
+	}
+
+	public Formatter value(String value) {
+		buf.append(value);
+		return this;
+	}
+
+	public Formatter newline() {
+		buf.append("\n");
+		return this;
+	}
+
+	public Formatter thread(String value) {
+		return alignment(value, 15, 15, true, true);
+	}
+
+	public Formatter level(String value) {
+		return alignment(value, 5, 2147483647, true, true);
+	}
+
+	public Formatter loggerName(String value) {
+		return alignment(ABBREVIATOR.abbreviate(value), 40, 40, true, false);
+	}
+
+	@Override
+	public String toString() {
+		return buf.toString();
+	}
+
+	public Formatter throwable(Throwable throwable) {
+		if (throwable != null) {
+			this.newline();
+			StringWriter sw = new StringWriter(1024);
+			PrintWriter writer = new PrintWriter(sw);
+			throwable.printStackTrace(writer);
+			writer.close();
+			buf.append(sw.getBuffer());
+			this.newline();
+		}
+		return this;
+	}
+
+	private Formatter alignment(String value, int min, int max, boolean leftTruncate, boolean leftPad) {
+		if (value == null) {
+			if (0 < min) {
+				spacePad(buf, min);
+			}
+		} else {
+			int len = value.length();
+			if (len > max) {
+				if (leftTruncate) {
+					buf.append(value.substring(len - max));
+				} else {
+					buf.append(value, 0, max);
+				}
+			} else if (len < min) {
+				if (leftPad) {
+					leftPad(buf, value, min);
+				} else {
+					rightPad(buf, value, min);
+				}
+			} else {
+				buf.append(value);
+			}
+		}
+		return this;
+	}
+
 	private static class CachingDateFormatter {
 
+		final SimpleDateFormat sdf;
 		long lastTimestamp = -1;
 		String cachedStr = null;
-		final SimpleDateFormat sdf;
 
 		public CachingDateFormatter(String pattern) {
 			sdf = new SimpleDateFormat(pattern);

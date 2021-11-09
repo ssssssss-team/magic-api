@@ -3,7 +3,7 @@ package org.ssssssss.magicapi.provider.impl;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.magicapi.provider.PageProvider;
-import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.runtime.RuntimeContext;
 
 import java.util.Objects;
 
@@ -45,7 +45,7 @@ public class DefaultPageProvider implements PageProvider {
 
 
 	@Override
-	public Page getPage(MagicScriptContext context) {
+	public Page getPage(RuntimeContext context) {
 		// 改为从脚本中获取
 		long page = NumberUtils.toLong(Objects.toString(context.eval(this.pageName), null), this.defaultPage);
 		long pageSize = NumberUtils.toLong(Objects.toString(context.eval(this.pageSize), null), this.defaultPageSize);

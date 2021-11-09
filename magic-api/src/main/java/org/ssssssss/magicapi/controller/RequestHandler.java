@@ -60,10 +60,10 @@ public class RequestHandler extends MagicController {
 
 	private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 	private static final Map<String, Object> EMPTY_MAP = new HashMap<>();
-	private final ResultProvider resultProvider;
 	private static final List<String> DEFAULT_ALLOW_READ_RESPONSE_HEADERS = Arrays.asList(
 			ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_METHODS,
 			CONTENT_TYPE, DATE, SERVER, SET_COOKIE, CONNECTION, CONTENT_LENGTH, CONTENT_ENCODING, TRANSFER_ENCODING, VARY);
+	private final ResultProvider resultProvider;
 
 	public RequestHandler(MagicConfiguration configuration) {
 		super(configuration);
@@ -203,7 +203,7 @@ public class RequestHandler extends MagicController {
 		if (CollectionUtils.isEmpty(validateParameters)) {
 			return parameters;
 		}
-		if(disabledUnknownParameter){
+		if (disabledUnknownParameter) {
 			removeUnknownKey(parameters, validateParameters);
 		}
 		for (BaseDefinition parameter : validateParameters) {

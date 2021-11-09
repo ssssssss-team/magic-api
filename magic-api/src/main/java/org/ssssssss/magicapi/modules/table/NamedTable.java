@@ -12,6 +12,7 @@ import org.ssssssss.magicapi.modules.BoundSql;
 import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.annotation.UnableCall;
+import org.ssssssss.script.runtime.RuntimeContext;
 
 import java.io.Serializable;
 import java.util.*;
@@ -120,20 +121,22 @@ public class NamedTable extends Attributes<Object> {
 	}
 
 	@Comment("设置主键名，update时使用")
-	public NamedTable primary(String primary) {
+	public NamedTable primary(@Comment(name = "primary", value = "主键列") String primary) {
 		this.primary = rowMapColumnMapper.apply(primary);
 		return this;
 	}
 
 	@Comment("设置主键名，并设置默认主键值(主要用于insert)")
-	public NamedTable primary(String primary, Serializable defaultPrimaryValue) {
+	public NamedTable primary(@Comment(name = "primary", value = "主键列") String primary,
+							  @Comment(name = "defaultPrimaryValue", value = "默认值") Serializable defaultPrimaryValue) {
 		this.primary = rowMapColumnMapper.apply(primary);
 		this.defaultPrimaryValue = defaultPrimaryValue;
 		return this;
 	}
 
 	@Comment("设置主键名，并设置默认主键值(主要用于insert)")
-	public NamedTable primary(String primary, Supplier<Object> defaultPrimaryValue) {
+	public NamedTable primary(@Comment(name = "primary", value = "主键列") String primary,
+							  @Comment(name = "defaultPrimaryValue", value = "默认值") Supplier<Object> defaultPrimaryValue) {
 		this.primary = rowMapColumnMapper.apply(primary);
 		this.defaultPrimaryValue = defaultPrimaryValue;
 		return this;
@@ -145,90 +148,92 @@ public class NamedTable extends Attributes<Object> {
 	}
 
 	@Comment("设置单列的值")
-	public NamedTable column(@Comment("列名") String key, @Comment("值") Object value) {
-		this.columns.put(rowMapColumnMapper.apply(key), value);
+	public NamedTable column(@Comment(name = "property", value = "列名") String property,
+							 @Comment(name = "value", value = "值") Object value) {
+		this.columns.put(rowMapColumnMapper.apply(property), value);
 		return this;
 	}
 
 	@Comment("设置查询的列，如`columns('a','b','c')`")
-	public NamedTable columns(@Comment("各项列") String... columns) {
-		if (columns != null) {
-			for (String column : columns) {
-				column(column);
+	public NamedTable columns(@Comment(name = "properties", value = "各项列") String... properties) {
+		if (properties != null) {
+			for (String property : properties) {
+				column(property);
 			}
 		}
 		return this;
 	}
 
 	@Comment("设置要排除的列")
-	public NamedTable exclude(String column) {
-		if (column != null) {
-			excludeColumns.add(rowMapColumnMapper.apply(column));
+	public NamedTable exclude(@Comment(name = "property", value = "排除的列") String property) {
+		if (property != null) {
+			excludeColumns.add(rowMapColumnMapper.apply(property));
 		}
 		return this;
 	}
 
 	@Comment("设置要排除的列")
-	public NamedTable excludes(String... columns) {
+	public NamedTable excludes(@Comment(name = "properties", value = "排除的列") String... properties) {
 		if (columns != null) {
-			excludeColumns.addAll(Arrays.stream(columns).map(rowMapColumnMapper).collect(Collectors.toList()));
+			excludeColumns.addAll(Arrays.stream(properties).map(rowMapColumnMapper).collect(Collectors.toList()));
 		}
 		return this;
 	}
 
 	@Comment("设置要排除的列")
-	public NamedTable excludes(List<String> columns) {
+	public NamedTable excludes(@Comment(name = "properties", value = "排除的列") List<String> properties) {
 		if (columns != null) {
-			excludeColumns.addAll(columns.stream().map(rowMapColumnMapper).collect(Collectors.toList()));
+			excludeColumns.addAll(properties.stream().map(rowMapColumnMapper).collect(Collectors.toList()));
 		}
 		return this;
 	}
 
 	@Comment("设置查询的列，如`columns(['a','b','c'])`")
-	public NamedTable columns(Collection<String> columns) {
-		if (columns != null) {
-			columns.stream().filter(StringUtils::isNotBlank).map(rowMapColumnMapper).forEach(this.fields::add);
+	public NamedTable columns(@Comment(name = "properties", value = "查询的列") Collection<String> properties) {
+		if (properties != null) {
+			properties.stream().filter(StringUtils::isNotBlank).map(rowMapColumnMapper).forEach(this.fields::add);
 		}
 		return this;
 	}
 
 	@Comment("设置查询的列，如`column('a')`")
-	public NamedTable column(String column) {
-		if (StringUtils.isNotBlank(column)) {
-			this.fields.add(this.rowMapColumnMapper.apply(column));
+	public NamedTable column(@Comment(name = "property", value = "查询的列") String property) {
+		if (StringUtils.isNotBlank(property)) {
+			this.fields.add(this.rowMapColumnMapper.apply(property));
 		}
 		return this;
 	}
 
 	@Comment("拼接`order by xxx asc/desc`")
-	public NamedTable orderBy(@Comment("要排序的列") String column, @Comment("`asc`或`desc`") String sort) {
-		this.orders.add(rowMapColumnMapper.apply(column) + " " + sort);
+	public NamedTable orderBy(@Comment(name = "property", value = "要排序的列") String property,
+							  @Comment(name = "sort", value = "`asc`或`desc`") String sort) {
+		this.orders.add(rowMapColumnMapper.apply(property) + " " + sort);
 		return this;
 	}
 
 	@Comment("拼接`order by xxx asc`")
-	public NamedTable orderBy(@Comment("要排序的列") String column) {
-		return orderBy(column, "asc");
+	public NamedTable orderBy(@Comment(name = "property", value = "要排序的列") String property) {
+		return orderBy(property, "asc");
 	}
 
 	@Comment("拼接`order by xxx desc`")
-	public NamedTable orderByDesc(@Comment("要排序的列") String column) {
-		return orderBy(column, "desc");
+	public NamedTable orderByDesc(@Comment(name = "property", value = "要排序的列") String property) {
+		return orderBy(property, "desc");
 	}
 
 	@Comment("拼接`group by`")
-	public NamedTable groupBy(@Comment("要分组的列") String... columns) {
-		this.groups.addAll(Arrays.stream(columns).map(rowMapColumnMapper).collect(Collectors.toList()));
+	public NamedTable groupBy(@Comment(name = "properties", value = "要分组的列") String... properties) {
+		this.groups.addAll(Arrays.stream(properties).map(rowMapColumnMapper).collect(Collectors.toList()));
 		return this;
 	}
 
 	@Comment("执行插入,返回主键")
-	public Object insert() {
-		return insert(null);
+	public Object insert(RuntimeContext runtimeContext) {
+		return insert(runtimeContext, null);
 	}
 
 	@Comment("执行插入,返回主键")
-	public Object insert(@Comment("各项列和值") Map<String, Object> data) {
+	public Object insert(RuntimeContext runtimeContext, @Comment(name = "data", value = "各项列和值") Map<String, Object> data) {
 		if (data != null) {
 			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
 		}
@@ -252,16 +257,16 @@ public class NamedTable extends Attributes<Object> {
 		builder.append(") values (");
 		builder.append(StringUtils.join(Collections.nCopies(entries.size(), "?"), ","));
 		builder.append(")");
-		return sqlModule.insert(new BoundSql(builder.toString(), entries.stream().map(Map.Entry::getValue).collect(Collectors.toList()), sqlModule), this.primary);
+		return sqlModule.insert(new BoundSql(runtimeContext, builder.toString(), entries.stream().map(Map.Entry::getValue).collect(Collectors.toList()), sqlModule), this.primary);
 	}
 
 	@Comment("执行delete语句")
-	public int delete() {
+	public int delete(RuntimeContext runtimeContext) {
 		preHandle(SqlMode.DELETE);
 		if (useLogic) {
 			Map<String, Object> dataMap = new HashMap<>();
 			dataMap.put(logicDeleteColumn, logicDeleteValue);
-			return update(dataMap);
+			return update(runtimeContext, dataMap);
 		}
 		if (where.isEmpty()) {
 			throw new MagicAPIException("delete语句不能没有条件");
@@ -270,16 +275,18 @@ public class NamedTable extends Attributes<Object> {
 		builder.append("delete from ");
 		builder.append(tableName);
 		builder.append(where.getSql());
-		return sqlModule.update(new BoundSql(builder.toString(), where.getParams(), sqlModule));
+		return sqlModule.update(new BoundSql(runtimeContext, builder.toString(), where.getParams(), sqlModule));
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
-	public Object save() {
-		return this.save(null, false);
+	public Object save(RuntimeContext runtimeContext) {
+		return this.save(runtimeContext, null, false);
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
-	public Object save(@Comment("各项列和值") Map<String, Object> data, @Comment("是否根据id查询有没有数据") boolean beforeQuery) {
+	public Object save(RuntimeContext runtimeContext,
+					   @Comment(name = "data", value = "各项列和值") Map<String, Object> data,
+					   @Comment(name = "beforeQuery", value = "是否根据id查询有没有数据") boolean beforeQuery) {
 		if (StringUtils.isBlank(this.primary)) {
 			throw new MagicAPIException("请设置主键");
 		}
@@ -291,64 +298,70 @@ public class NamedTable extends Attributes<Object> {
 			if (StringUtils.isNotBlank(primaryValue)) {
 				List<Object> params = new ArrayList<>();
 				params.add(primaryValue);
-				Integer count = sqlModule.selectInt(new BoundSql("select count(*) count from " + this.tableName + " where " + this.primary + " = ?", params, sqlModule));
+				Integer count = sqlModule.selectInt(new BoundSql(runtimeContext, "select count(*) count from " + this.tableName + " where " + this.primary + " = ?", params, sqlModule));
 				if (count == 0) {
-					return insert(data);
+					return insert(runtimeContext, data);
 				}
-				return update(data);
+				return update(runtimeContext, data);
 			} else {
-				return insert(data);
+				return insert(runtimeContext, data);
 			}
 		}
 
 		if (StringUtils.isNotBlank(primaryValue)) {
-			return update(data);
+			return update(runtimeContext, data);
 		}
-		return insert(data);
+		return insert(runtimeContext, data);
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
-	public Object save(boolean beforeQuery) {
-		return this.save(null, beforeQuery);
+	public Object save(RuntimeContext runtimeContext,
+					   @Comment(name = "beforeQuery", value = "是否根据id查询有没有数据") boolean beforeQuery) {
+		return this.save(runtimeContext, null, beforeQuery);
 	}
 
 	@Comment("保存到表中，当主键有值时则修改，否则插入")
-	public Object save(@Comment("各项列和值") Map<String, Object> data) {
-		return this.save(data, false);
+	public Object save(RuntimeContext runtimeContext,
+					   @Comment(name = "data", value = "各项列和值") Map<String, Object> data) {
+		return this.save(runtimeContext, data, false);
 	}
 
 
 	@Comment("执行`select`查询")
-	public List<Map<String, Object>> select() {
+	public List<Map<String, Object>> select(RuntimeContext runtimeContext) {
 		preHandle(SqlMode.SELECT);
-		return sqlModule.select(buildSelect());
+		return sqlModule.select(buildSelect(runtimeContext));
 	}
 
 	@Comment("执行`selectOne`查询")
-	public Map<String, Object> selectOne() {
+	public Map<String, Object> selectOne(RuntimeContext runtimeContext) {
 		preHandle(SqlMode.SELECT_ONE);
-		return sqlModule.selectOne(buildSelect());
+		return sqlModule.selectOne(buildSelect(runtimeContext));
 	}
 
 	@Comment("执行分页查询")
-	public Object page() {
+	public Object page(RuntimeContext runtimeContext) {
 		preHandle(SqlMode.PAGE);
-		return sqlModule.page(buildSelect());
+		return sqlModule.page(buildSelect(runtimeContext));
 	}
 
 	@Comment("执行分页查询，分页条件手动传入")
-	public Object page(@Comment("限制条数") long limit, @Comment("跳过条数") long offset) {
+	public Object page(RuntimeContext runtimeContext,
+					   @Comment(name = "limit", value = "限制条数") long limit,
+					   @Comment(name = "offset", value = "跳过条数") long offset) {
 		preHandle(SqlMode.PAGE);
-		return sqlModule.page(buildSelect(), new Page(limit, offset));
+		return sqlModule.page(buildSelect(runtimeContext), new Page(limit, offset));
 	}
 
 	@Comment("执行update语句")
-	public int update() {
-		return update(null);
+	public int update(RuntimeContext runtimeContext) {
+		return update(runtimeContext, null);
 	}
 
 	@Comment("执行update语句")
-	public int update(@Comment("各项列和值") Map<String, Object> data, @Comment("是否更新空值字段") boolean isUpdateBlank) {
+	public int update(RuntimeContext runtimeContext,
+					  @Comment(name = "data", value = "各项列和值") Map<String, Object> data,
+					  @Comment(name = "isUpdateBlank", value = "是否更新空值字段") boolean isUpdateBlank) {
 		if (null != data) {
 			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
 		}
@@ -384,26 +397,27 @@ public class NamedTable extends Attributes<Object> {
 		} else {
 			throw new MagicAPIException("主键值不能为空");
 		}
-		return sqlModule.update(new BoundSql(builder.toString(), params, sqlModule));
+		return sqlModule.update(new BoundSql(runtimeContext, builder.toString(), params, sqlModule));
 	}
 
 	@Comment("执行update语句")
-	public int update(@Comment("各项列和值") Map<String, Object> data) {
-		return update(data, this.withBlank);
+	public int update(RuntimeContext runtimeContext,
+					  @Comment(name = "data", value = "各项列和值") Map<String, Object> data) {
+		return update(runtimeContext, data, this.withBlank);
 	}
 
 	@Comment("查询条数")
-	public int count() {
+	public int count(RuntimeContext runtimeContext) {
 		preHandle(SqlMode.COUNT);
 		StringBuilder builder = new StringBuilder();
 		builder.append("select count(1) from ").append(tableName);
 		List<Object> params = buildWhere(builder);
-		return sqlModule.selectInt(new BoundSql(builder.toString(), params, sqlModule));
+		return sqlModule.selectInt(new BoundSql(runtimeContext, builder.toString(), params, sqlModule));
 	}
 
 	@Comment("判断是否存在")
-	public boolean exists() {
-		return count() > 0;
+	public boolean exists(RuntimeContext runtimeContext) {
+		return count(runtimeContext) > 0;
 	}
 
 	private Collection<Map.Entry<String, Object>> filterNotBlanks() {
@@ -420,13 +434,13 @@ public class NamedTable extends Attributes<Object> {
 				.collect(Collectors.toList());
 	}
 
-	private void preHandle(SqlMode sqlMode){
-		if(this.namedTableInterceptors != null){
+	private void preHandle(SqlMode sqlMode) {
+		if (this.namedTableInterceptors != null) {
 			this.namedTableInterceptors.forEach(interceptor -> interceptor.preHandle(sqlMode, this));
 		}
 	}
 
-	private BoundSql buildSelect() {
+	private BoundSql buildSelect(RuntimeContext runtimeContext) {
 		StringBuilder builder = new StringBuilder();
 		builder.append("select ");
 		List<String> fields = this.fields.stream()
@@ -447,7 +461,7 @@ public class NamedTable extends Attributes<Object> {
 			builder.append(" group by ");
 			builder.append(String.join(",", groups));
 		}
-		BoundSql boundSql = new BoundSql(builder.toString(), params, sqlModule);
+		BoundSql boundSql = new BoundSql(runtimeContext, builder.toString(), params, sqlModule);
 		boundSql.setExcludeColumns(excludeColumns);
 		return boundSql;
 	}
@@ -471,6 +485,7 @@ public class NamedTable extends Attributes<Object> {
 
 	/**
 	 * 获取查询的表名
+	 *
 	 * @return 表名
 	 */
 	@UnableCall
@@ -479,8 +494,17 @@ public class NamedTable extends Attributes<Object> {
 	}
 
 	/**
-	 * 获取SQL模块
+	 * 设置表名
 	 *
+	 * @param tableName 表名
+	 */
+	@UnableCall
+	public void setTableName(String tableName) {
+		this.tableName = tableName;
+	}
+
+	/**
+	 * 获取SQL模块
 	 */
 	@UnableCall
 	public SQLModule getSqlModule() {
@@ -520,11 +544,27 @@ public class NamedTable extends Attributes<Object> {
 	}
 
 	/**
+	 * 设置columns
+	 */
+	@UnableCall
+	public void setColumns(Map<String, Object> columns) {
+		this.columns = columns;
+	}
+
+	/**
 	 * 获取设置的fields
 	 */
 	@UnableCall
 	public List<String> getFields() {
 		return fields;
+	}
+
+	/**
+	 * 设置 fields
+	 */
+	@UnableCall
+	public void setFields(List<String> fields) {
+		this.fields = fields;
 	}
 
 	/**
@@ -536,11 +576,27 @@ public class NamedTable extends Attributes<Object> {
 	}
 
 	/**
+	 * 设置 group
+	 */
+	@UnableCall
+	public void setGroups(List<String> groups) {
+		this.groups = groups;
+	}
+
+	/**
 	 * 获取设置的order
 	 */
 	@UnableCall
 	public List<String> getOrders() {
 		return orders;
+	}
+
+	/**
+	 * 设置 order
+	 */
+	@UnableCall
+	public void setOrders(List<String> orders) {
+		this.orders = orders;
 	}
 
 	/**
@@ -552,7 +608,16 @@ public class NamedTable extends Attributes<Object> {
 	}
 
 	/**
+	 * 设置排除的列
+	 */
+	@UnableCall
+	public void setExcludeColumns(Set<String> excludeColumns) {
+		this.excludeColumns = excludeColumns;
+	}
+
+	/**
 	 * 主键默认值
+	 *
 	 * @return
 	 */
 	@UnableCall
@@ -569,71 +634,6 @@ public class NamedTable extends Attributes<Object> {
 	}
 
 	/**
-	 * 获取是否不过滤空参数
-	 */
-	@UnableCall
-	public boolean isWithBlank() {
-		return withBlank;
-	}
-
-	/**
-	 * 获取where
-	 */
-	@UnableCall
-	public Where getWhere() {
-		return where;
-	}
-
-	/**
-	 * 设置表名
-	 * @param tableName 表名
-	 */
-	@UnableCall
-	public void setTableName(String tableName) {
-		this.tableName = tableName;
-	}
-
-	/**
-	 * 设置columns
-	 */
-	@UnableCall
-	public void setColumns(Map<String, Object> columns) {
-		this.columns = columns;
-	}
-
-	/**
-	 * 设置 fields
-	 */
-	@UnableCall
-	public void setFields(List<String> fields) {
-		this.fields = fields;
-	}
-
-	/**
-	 * 设置 group
-	 */
-	@UnableCall
-	public void setGroups(List<String> groups) {
-		this.groups = groups;
-	}
-
-	/**
-	 * 设置 order
-	 */
-	@UnableCall
-	public void setOrders(List<String> orders) {
-		this.orders = orders;
-	}
-
-	/**
-	 * 设置排除的列
-	 */
-	@UnableCall
-	public void setExcludeColumns(Set<String> excludeColumns) {
-		this.excludeColumns = excludeColumns;
-	}
-
-	/**
 	 * 设置是否使用逻辑删除
 	 */
 	@UnableCall
@@ -642,11 +642,27 @@ public class NamedTable extends Attributes<Object> {
 	}
 
 	/**
+	 * 获取是否不过滤空参数
+	 */
+	@UnableCall
+	public boolean isWithBlank() {
+		return withBlank;
+	}
+
+	/**
 	 * 设置是否不过滤空参数
 	 */
 	@UnableCall
 	public void setWithBlank(boolean withBlank) {
 		this.withBlank = withBlank;
+	}
+
+	/**
+	 * 获取where
+	 */
+	@UnableCall
+	public Where getWhere() {
+		return where;
 	}
 
 	/**

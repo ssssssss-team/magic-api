@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.provider;
 
 import org.ssssssss.magicapi.model.Page;
 import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.runtime.RuntimeContext;
 
 /**
  * 分页对象提取接口
@@ -16,5 +17,5 @@ public interface PageProvider {
 	 * @param context 脚本上下文
 	 * @return 返回分页对象
 	 */
-	public Page getPage(MagicScriptContext context);
+	public Page getPage(RuntimeContext context);
 }

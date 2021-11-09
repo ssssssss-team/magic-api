@@ -38,15 +38,12 @@ import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.magicapi.utils.SignUtils;
 import org.ssssssss.script.MagicResourceLoader;
-import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.exception.MagicExitException;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 import org.ssssssss.script.runtime.ExitValue;
 import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 
-import javax.script.ScriptContext;
-import javax.script.SimpleScriptContext;
 import javax.sql.DataSource;
 import java.io.*;
 import java.sql.Connection;
@@ -127,15 +124,11 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 						varMap.putAll(variables.getVariables(context));
 						newContext.setScriptName(groupServiceProvider.getScriptName(info.getGroupId(), info.getName(), info.getPath()));
 						newContext.putMapIntoContext(varMap);
-						try {
-							Object value = ScriptManager.executeScript(info.getScript(), newContext);
-							if (value instanceof ExitValue) {
-								throw new MagicExitException((ExitValue) value);
-							}
-							return value;
-						} finally {
-							MagicScriptContext.set(context);
+						Object value = ScriptManager.executeScript(info.getScript(), newContext);
+						if (value instanceof ExitValue) {
+							throw new MagicExitException((ExitValue) value);
 						}
+						return value;
 					};
 				}
 			}
@@ -144,21 +137,10 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	private Object execute(ApiInfo info, Map<String, Object> context) {
-
-		// 获取原上下文
-		final MagicScriptContext magicScriptContext = MagicScriptContext.get();
-
 		MagicScriptContext scriptContext = new MagicScriptContext();
 		scriptContext.setScriptName(groupServiceProvider.getScriptName(info.getGroupId(), info.getName(), info.getPath()));
 		scriptContext.putMapIntoContext(context);
-		final Object evalVal;
-		try {
-			evalVal = ScriptManager.executeScript(info.getScript(), scriptContext);
-		} finally {
-			// 恢复原接口上下文，修复当前调完其它接口后原接口上下文丢失的问题
-			MagicScriptContext.set(magicScriptContext);
-		}
-		return evalVal;
+		return ScriptManager.executeScript(info.getScript(), scriptContext);
 	}
 
 	@Override

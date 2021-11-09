@@ -42,7 +42,7 @@ public class LogbackLoggerContext implements MagicLoggerContext {
 					.value(event.getFormattedMessage())
 					.newline();
 			IThrowableProxy proxy = event.getThrowableProxy();
-			if(proxy instanceof ThrowableProxy){
+			if (proxy instanceof ThrowableProxy) {
 				formatter.throwable(((ThrowableProxy) proxy).getThrowable());
 			}
 			MagicLoggerContext.println(formatter.toString());

@@ -17,8 +17,9 @@ public class Attributes<T> {
 
 	/**
 	 * 设置属性
-	 * @param key	key
-	 * @param value	value
+	 *
+	 * @param key   key
+	 * @param value value
 	 */
 	@UnableCall
 	public void setAttribute(String key, T value) {
@@ -27,7 +28,8 @@ public class Attributes<T> {
 
 	/**
 	 * 获取属性
-	 * @param key	key
+	 *
+	 * @param key key
 	 */
 	@UnableCall
 	public Object getAttribute(String key) {

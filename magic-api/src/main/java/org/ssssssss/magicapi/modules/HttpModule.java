@@ -47,12 +47,13 @@ public class HttpModule implements MagicModule {
 	}
 
 	@Comment("创建连接")
-	public HttpModule connect(@Comment("目标URL") String url) {
+	public HttpModule connect(@Comment(name = "url", value = "目标URL") String url) {
 		return new HttpModule(template, url);
 	}
 
 	@Comment("设置URL参数")
-	public HttpModule param(@Comment("参数名") String key, @Comment("参数值") Object... values) {
+	public HttpModule param(@Comment(name = "key", value = "参数名") String key,
+							@Comment(name = "values", value = "参数值") Object... values) {
 		if (values != null) {
 			for (Object value : values) {
 				this.params.add(key, value);
@@ -62,13 +63,14 @@ public class HttpModule implements MagicModule {
 	}
 
 	@Comment("批量设置URL参数")
-	public HttpModule param(@Comment("参数值") Map<String, Object> values) {
+	public HttpModule param(@Comment(name = "values", value = "参数值") Map<String, Object> values) {
 		values.forEach((key, value) -> param(key, Objects.toString(value, "")));
 		return this;
 	}
 
 	@Comment("设置form参数")
-	public HttpModule data(@Comment("参数名") String key, @Comment("参数值") Object... values) {
+	public HttpModule data(@Comment(name = "key", value = "参数名") String key,
+						   @Comment(name = "values", value = "参数值") Object... values) {
 		if (values != null) {
 			for (Object value : values) {
 				this.data.add(key, value);
@@ -78,19 +80,20 @@ public class HttpModule implements MagicModule {
 	}
 
 	@Comment("批量设置form参数")
-	public HttpModule data(@Comment("参数值") Map<String, Object> values) {
+	public HttpModule data(@Comment(name = "values", value = "参数值") Map<String, Object> values) {
 		values.forEach((key, value) -> data(key, Objects.toString(value, "")));
 		return this;
 	}
 
 	@Comment("设置header")
-	public HttpModule header(@Comment("header名") String key, @Comment("header值") String value) {
+	public HttpModule header(@Comment(name = "key", value = "header名") String key,
+							 @Comment(name = "value", value = "header值") String value) {
 		httpHeaders.add(key, value);
 		return this;
 	}
 
 	@Comment("批量设置header")
-	public HttpModule header(@Comment("header值") Map<String, Object> values) {
+	public HttpModule header(@Comment(name = "values", value = "header值") Map<String, Object> values) {
 		values.entrySet()
 				.stream()
 				.filter(it -> it.getValue() != null)
@@ -99,31 +102,31 @@ public class HttpModule implements MagicModule {
 	}
 
 	@Comment("设置请求方法，默认GET")
-	public HttpModule method(@Comment("请求方法") HttpMethod method) {
+	public HttpModule method(@Comment(name = "method", value = "请求方法") HttpMethod method) {
 		this.method = method;
 		return this;
 	}
 
 	@Comment("设置`RequestBody`")
-	public HttpModule body(@Comment("`RequestBody`") Object requestBody) {
+	public HttpModule body(@Comment(name = "requestBody", value = "`RequestBody`") Object requestBody) {
 		this.requestBody = requestBody;
 		this.contentType(MediaType.APPLICATION_JSON);
 		return this;
 	}
 
 	@Comment("自定义`HttpEntity`")
-	public HttpModule entity(@Comment("`HttpEntity`") HttpEntity<Object> entity) {
+	public HttpModule entity(@Comment(name = "entity", value = "`HttpEntity`") HttpEntity<Object> entity) {
 		this.entity = entity;
 		return this;
 	}
 
 	@Comment("设置`ContentType`")
-	public HttpModule contentType(@Comment("Content-Type值") String contentType) {
+	public HttpModule contentType(@Comment(name = "contentType", value = "Content-Type值") String contentType) {
 		return contentType(MediaType.parseMediaType(contentType));
 	}
 
 	@Comment("设置`ContentType`")
-	public HttpModule contentType(@Comment("Content-Type值") MediaType mediaType) {
+	public HttpModule contentType(@Comment(name = "mediaType", value = "Content-Type值") MediaType mediaType) {
 		this.httpHeaders.setContentType(mediaType);
 		return this;
 	}

@@ -9,7 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.ssssssss.magicapi.model.Constants.*;
+import static org.ssssssss.magicapi.model.Constants.HEADER_REQUEST_BREAKPOINTS;
+import static org.ssssssss.magicapi.model.Constants.HEADER_REQUEST_SESSION;
 
 /**
  * 请求信息

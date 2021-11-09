@@ -23,12 +23,13 @@ public class EnvModule implements MagicModule {
 	}
 
 	@Comment("获取配置")
-	public String get(@Comment("配置项") String key) {
+	public String get(@Comment(name = "key", value = "配置项") String key) {
 		return environment.getProperty(key);
 	}
 
 	@Comment("获取配置")
-	public String get(@Comment("配置项") String key, @Comment("未配置时的默认值") String defaultValue) {
+	public String get(@Comment(name = "key", value = "配置项") String key,
+					  @Comment(name = "defaultValue", value = "未配置时的默认值") String defaultValue) {
 		return environment.getProperty(key, defaultValue);
 	}
 }
