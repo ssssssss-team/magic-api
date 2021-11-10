@@ -51,6 +51,11 @@ class Literal extends Expression {
         return this.javaType;
     }
 
+    getValue(){
+        const text = this.getSpan().getText()
+        return text.replace(/\\\\/g, '\\').replace(/\\n/g, '\n').replace(/\\r/g, '\r').replace(/\\t/g, '\t').replace(/\\"/g, '"').replace(/\\'/g, "\'")
+    }
+
 }
 
 class MethodCall extends Node {
@@ -179,6 +184,11 @@ class MapOrArrayAccess extends Node {
         super(span)
         this.target = target
         this.keyOrIndex = keyOrIndex
+    }
+
+    async getJavaType(env) {
+        const javaType = await this.target.getJavaType(env)
+        return javaType === 'db' ? 'db' : super.getJavaType(env);
     }
 }
 
@@ -396,7 +406,7 @@ class Import extends Node {
         }else if(this.module){
             env[this.packageName] = this.packageName
         }else if(this.varName){
-            env[this.varName.getText()] = this.packageName
+            env[this.varName] = this.packageName
         }else {
             let index = this.packageName.lastIndexOf('.');
             if (index > -1) {

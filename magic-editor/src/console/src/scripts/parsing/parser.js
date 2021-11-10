@@ -1,4 +1,4 @@
-import {LiteralToken, ParseException, Span, TokenStream, TokenType} from './index.js'
+import { ParseException, Span, TokenStream, TokenType} from './index.js'
 import tokenizer from './tokenizer.js'
 import JavaClass from '../editor/java-class.js'
 import {
@@ -209,20 +209,50 @@ export class Parser {
         let opening = this.stream.expect("import").getSpan();
         if (this.stream.hasMore()) {
             let expected = this.stream.consume();
-            let varName;
-            let packageName;
-            let module = expected.getTokenType() === TokenType.Identifier
-            if (expected.getTokenType() === TokenType.StringLiteral || module) {
-                if (expected.getTokenType() === TokenType.StringLiteral) {
-                    if (this.stream.match("as", true)) {
-                        varName = this.stream.expect(TokenType.Identifier);
-                        this.checkKeyword(varName.getSpan());
+            let packageName = null;
+            let isStringLiteral = expected.getTokenType() === TokenType.StringLiteral
+            if (isStringLiteral) {
+                packageName = this.createStringLiteral(expected).getValue();
+            } else if (expected.type === TokenType.Identifier) {
+                let startSpan = expected.getSpan();
+                let endSpan = null;
+                packageName = startSpan.getText();
+                while (this.stream.match(TokenType.Period, true)){
+                    isStringLiteral = true;
+                    if(this.stream.match(TokenType.Asterisk, false)){
+                        expected = this.stream.consume()
+                        break;
                     }
+                    expected = this.stream.expect(TokenType.Identifier)
                 }
-                return new Import(new Span(opening, expected.getSpan()), expected.getText(), varName, module);
+                if(isStringLiteral){
+                    endSpan = expected.getSpan();
+                    packageName = new Span(startSpan, endSpan).getText();
+                }
             } else {
                 throw new ParseException("Expected identifier or string, but got stream is " + expected.getTokenType().error, this.stream.getPrev().getSpan());
             }
+
+            let varName = packageName;
+            if (isStringLiteral) {
+                if (this.stream.match("as", true)) {
+                    expected = this.stream.expect(TokenType.Identifier);
+                    this.checkKeyword(expected.getSpan());
+                    varName = expected.getSpan().getText();
+                } else {
+                    let temp = packageName;
+                    if (!temp.startsWith("@")) {
+                        let index = temp.lastIndexOf(".");
+                        if (index != -1) {
+                            temp = temp.substring(index + 1);
+                        }
+                    } else {
+                        throw new ParseException("Expected as", this.stream.getPrev().getSpan());
+                    }
+                    varName = temp;
+                }
+            }
+            return new Import(new Span(opening, expected.getSpan()), packageName, varName, !isStringLiteral);
         }
         throw new ParseException("Expected identifier or string, but got stream is EOF", this.stream.getPrev().getSpan());
     }

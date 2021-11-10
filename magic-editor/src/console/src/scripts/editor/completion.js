@@ -5,13 +5,78 @@ import {Parser} from '../parsing/parser.js'
 import * as monaco from 'monaco-editor'
 import RequestParameter from "@/scripts/editor/request-parameter";
 
-const completionImport = (suggestions, position, line, importIndex) => {
-    let len = 0;
-    let start = line.indexOf('"') + 1;
-    if (start === 0) {
-        start = line.indexOf("'") + 1;
-    }
-    if(start === 0){
+const completionImportJavaPackage = (suggestions, keyword, start, position) => {
+    let len = -1
+    let importClass = JavaClass.getImportClass();
+    if (start !== 0 && keyword && (len = importClass.length) > 0) {
+        keyword = keyword.toLowerCase()
+        JavaClass.getDefineModules().filter(module => module.toLowerCase().indexOf(keyword) > -1).forEach(module => suggestions.push({
+            label: module,
+            filterText: module,
+            kind: monaco.languages.CompletionItemKind.Module,
+            detail: module,
+            insertText: module,
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+        }))
+        let set = new Set();
+        for (let i = 0; i < len; i++) {
+            let clazz = importClass[i];
+            let index = clazz.toLowerCase().indexOf(keyword);
+            if (index > -1) {
+                let className = clazz.substring(clazz.lastIndexOf('.') + 1);
+                if (index === 0) {
+                    let content = clazz.substring(keyword.length);
+                    let detail = content
+                    if(content.startsWith(".")){
+                        detail = keyword + '.'
+                        content = keyword.substring(keyword.lastIndexOf(".") + 1) + '.'
+                    } else {
+                        if(content.indexOf('.') === -1){
+                            suggestions.push({
+                                sortText: `2${className}`,
+                                label: className,
+                                kind: monaco.languages.CompletionItemKind.Class,
+                                filterText: clazz,
+                                detail: clazz,
+                                insertText: className,
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            })
+                            continue;
+                        }
+                        let text = content.substring(0, content.indexOf('.') + 1);
+                        detail = keyword + text
+                        content = keyword.substring(keyword.lastIndexOf(".") + 1) + text;
+                    }
+                    if (set.has(content)) {
+                        continue;
+                    }
+                    set.add(content);
+                    suggestions.push({
+                        sortText: `1${content}`,
+                        label: content,
+                        kind: monaco.languages.CompletionItemKind.Folder,
+                        filterText: clazz,
+                        detail: detail.replace(/\.$/, ''),
+                        insertText: content,
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                        command: {
+                            id: 'editor.action.triggerSuggest'
+                        }
+                    })
+                } else if (className.toLowerCase().indexOf(keyword) > -1) {
+                    suggestions.push({
+                        sortText: `2${className}`,
+                        label: className,
+                        kind: monaco.languages.CompletionItemKind.Class,
+                        filterText: className,
+                        detail: clazz,
+                        insertText: clazz,
+                        range: new monaco.Range(position.lineNumber, start + 1, position.lineNumber, position.column)
+                    })
+                }
+            }
+        }
+    } else {
         JavaClass.getDefineModules().forEach(module => suggestions.push({
             label: module,
             filterText: module,
@@ -20,9 +85,20 @@ const completionImport = (suggestions, position, line, importIndex) => {
             insertText: module,
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
         }))
+    }
+}
+
+const completionImport = (suggestions, position, line, importIndex) => {
+    let start = line.indexOf('"') + 1;
+    if (start === 0) {
+        start = line.indexOf("'") + 1;
+    }
+    if(start === 0){
+        line = line.trim().replace('import', '').trim()
+        completionImportJavaPackage(suggestions, line, importIndex + 1 , position)
         return;
     }
-    let text = line.trim().substring(importIndex + 6).trim().replace(/['|"]/g, '');
+    let text = line.substring(importIndex).trim().replace(/['|"]/g, '');
     if(text.startsWith('@')){
         if(text.indexOf(' ')> -1){
             return;
@@ -37,7 +113,7 @@ const completionImport = (suggestions, position, line, importIndex) => {
                 filterText: label,
                 detail: it.name,
                 insertText: label,
-                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                range: new monaco.Range(position.lineNumber, start + 1, position.lineNumber, position.column)
             })
         })
         finder = JavaClass.getFunctionFinder();
@@ -50,55 +126,39 @@ const completionImport = (suggestions, position, line, importIndex) => {
                 filterText: label,
                 detail: it.name,
                 insertText: label,
-                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                range: new monaco.Range(position.lineNumber, start + 1, position.lineNumber, position.column)
             })
         })
         return;
     }
-    let keyword = text.toLowerCase();
-    let importClass = JavaClass.getImportClass();
-    if (start !== 0 && keyword && (len = importClass.length) > 0) {
-        let set = new Set();
-        for (let i = 0; i < len; i++) {
-            let clazz = importClass[i];
-            let index = clazz.toLowerCase().indexOf(keyword);
-            if (index > -1) {
-                if ((index = clazz.indexOf('.', index + keyword.length)) > -1) {
-                    let content = clazz.substring(0, index);
-                    content = content.substring(content.lastIndexOf('.') + 1) + '.';
-                    if (set.has(content)) {
-                        continue;
-                    }
-                    set.add(content);
+    completionImportJavaPackage(suggestions, text, start, position)
+}
+const completionFunction = async (suggestions, input, env, best) => {
+    env = env || {}
+    if (best && best.constructor.name === 'VariableAccess') {
+        if(await best.getJavaType(env) === 'java.lang.Object'){
+            let importClass = JavaClass.getImportClass();
+            const keyword = best.variable
+            importClass.forEach(clazz => {
+                let className = clazz.substring(clazz.lastIndexOf('.') + 1);
+                if(className.indexOf(keyword) > -1){
                     suggestions.push({
-                        sortText: '1',
-                        label: content,
-                        kind: monaco.languages.CompletionItemKind.Folder,
-                        filterText: clazz,
-                        detail: content,
-                        insertText: content,
-                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-                        command: {
-                            id: 'editor.action.triggerSuggest'
-                        }
-                    })
-                } else {
-                    suggestions.push({
-                        sortText: '2',
-                        label: clazz.substring(clazz.lastIndexOf('.') + 1),
-                        kind: monaco.languages.CompletionItemKind.Module,
-                        filterText: clazz,
+                        sortText: `${className}`,
+                        label: className,
+                        kind: monaco.languages.CompletionItemKind.Class,
+                        filterText: className,
                         detail: clazz,
-                        insertText: clazz,
-                        range: new monaco.Range(position.lineNumber, start + 1, position.lineNumber, position.column)
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.KeepWhitespace,
+                        additionalTextEdits: [{
+                            forceMoveMarkers: true,
+                            text: `import ${clazz}\r\n`,
+                            range: new monaco.Range(1, 0, 1, 0)
+                        }]
                     })
                 }
-            }
+            })
         }
     }
-}
-const completionFunction = (suggestions, input, env) => {
-    env = env || {}
     JavaClass.findFunction().forEach(it => {
         suggestions.push({
             sortText: it.sortText || it.fullName,
@@ -124,8 +184,8 @@ const completionFunction = (suggestions, input, env) => {
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
         })
     })
-    if(count > 2){
-        Array.from(new Set(matches)).filter((it,index) => index + 2 < count && known.indexOf(it) === -1 && vars.indexOf(it) === -1).map(it => {
+    if (count > 2) {
+        Array.from(new Set(matches)).filter((it, index) => index + 2 < count && known.indexOf(it) === -1 && vars.indexOf(it) === -1).map(it => {
             suggestions.push({
                 label: it,
                 filterText: it,
@@ -178,20 +238,18 @@ const completionMethod = async (className, suggestions) => {
             }
             mmap[method.signature] = true;
             let document = [];
+            method.comment && document.push(method.comment)
             for (let j = (method.extension ? 1 : 0); j < method.parameters.length; j++) {
                 let param = method.parameters[j];
-                document.push('`' + param.name + '` ' + (param.comment || param.type));
-                document.push('\r\n')
+                document.push(`\`${param.name}\`：${(param.comment || param.type)}`)
             }
-            method.comment && document.push('\r\n') && document.push(method.comment)
+            document.push(`返回类型：\`${method.returnType}\``)
             suggestions.push({
                 sortText: method.sortText || method.fullName,
                 label: method.fullName,
                 kind: monaco.languages.CompletionItemKind.Method,
                 detail: `${simpleName}.${method.fullName}: ${method.returnType}`,
-                documentation: {
-                    value: document.join('\r\n')
-                },
+                documentation: { value: document.join('\r\n\r\n\r\n') },
                 insertText: method.insertText,
                 insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
             })
@@ -204,7 +262,7 @@ async function completionScript(suggestions, input) {
         let tokens = tokenizer(input);
         let tokenLen = tokens.length;
         if (tokenLen === 0) {
-            completionFunction(suggestions, input)
+            await completionFunction(suggestions, input)
             return;
         }
         let parser = new Parser(new TokenStream(tokens));
@@ -216,16 +274,30 @@ async function completionScript(suggestions, input) {
             if (astName === 'MemberAccess' || astName === 'MethodCall') {
                 await completionMethod(await best.target.getJavaType(env), suggestions)
             } else {
-                completionFunction(suggestions, input, env)
+                await completionFunction(suggestions, input, env, best)
             }
         } else {
-            completionFunction(suggestions, input, env)
+           await completionFunction(suggestions, input, env)
         }
         return suggestions;
     } catch (e) {
-        // console.log("error")
+        // console.error(e)
     }
 }
+
+const quickSuggestions = [
+    ['bre', 'break;', '跳出循环'],
+    ['con', 'continue;', '继续循环'],
+    ['imp', 'import $1', '导入'],
+    ['if', 'if (${1:condition}){\r\n\t$2\r\n}', '判断'],
+    ['ife', 'if (${1:condition}) {\r\n\t$2\r\n} else { \r\n\t$3\r\n}', '判断'],
+    ['for', 'for (item in ${1:collection}) {\r\n\t$2\r\n}', '循环集合'],
+    ['exit', 'exit ${1:code}, ${2:message};', '退出'],
+    ['info', 'log.info($1);', 'info日志'],
+    ['debug', 'log.debug($1);', 'debug日志'],
+    ['err', 'log.error($1);', 'error日志'],
+    ['ass', 'assert ${1:condition} : ${2:code}, ${3:message}', '校验参数']
+]
 
 const CompletionItemProvider = {
     provideCompletionItems: async function (model, position) {
@@ -241,10 +313,28 @@ const CompletionItemProvider = {
             endLineNumber: position.lineNumber,
             endColumn: position.column
         });
-        let suggestions = [];
-        let importIndex;
-        if (line.length > 1 && (importIndex = line.trim().indexOf('import')) === 0) {
-            completionImport(suggestions, position, line, importIndex)
+        let word = model.getWordUntilPosition(position);
+        let range = {
+            startLineNumber: position.lineNumber,
+            endLineNumber: position.lineNumber,
+            startColumn: word.startColumn,
+            endColumn: word.endColumn
+        }
+        let incomplete = false;
+        let suggestions = quickSuggestions.map(item => {
+            return {
+                label: item[0],
+                kind: monaco.languages.CompletionItemKind.Struct,
+                detail: item[2] || item[1],
+                insertText: item[1],
+                filterText: item[0],
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                range
+            }
+        });
+        if (line.length > 1 && (line.trim().indexOf('import')) === 0) {
+            completionImport(suggestions, position, line, line.indexOf('import') + 6)
+            incomplete = true;
         } else if (line.endsWith("::")) {
             suggestions = ['int', 'long', 'date', 'string', 'short', 'byte', 'float', 'double', 'json','stringify', 'sql'].map(it => {
                 return {
@@ -258,14 +348,14 @@ const CompletionItemProvider = {
         } else if (value.length > 1) {
             await completionScript(suggestions, value)
         } else {
-            completionFunction(suggestions, value, {
+            await completionFunction(suggestions, value, {
                 ...RequestParameter.environmentFunction(),
                 ...JavaClass.getAutoImportClass(),
                 ...JavaClass.getAutoImportModule()
             })
         }
-        return {suggestions}
+        return { suggestions, incomplete }
     },
-    triggerCharacters: ['.', ":"]
+    triggerCharacters: ['.', ':']
 };
 export default CompletionItemProvider

@@ -114,6 +114,7 @@ export default {
       theme: store.get('skin') || 'default',
       fontFamily: contants.EDITOR_FONT_FAMILY,
       fontSize: contants.EDITOR_FONT_SIZE,
+      scrollBeyondLastLine: false,
       fontLigatures: true,
       // 自动调整大小
       automaticLayout: true
