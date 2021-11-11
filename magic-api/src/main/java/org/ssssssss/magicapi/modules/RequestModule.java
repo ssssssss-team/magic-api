@@ -57,6 +57,7 @@ public class RequestModule {
 	/**
 	 * 获取原生HttpServletRequest对象
 	 */
+	@Comment("获取原生HttpServletRequest对象")
 	public static HttpServletRequest get() {
 		return org.ssssssss.magicapi.utils.WebUtils.getRequest().orElse(null);
 	}

@@ -22,7 +22,9 @@ public class AssertModule implements MagicModule {
 	 * @param message 状态说明
 	 */
 	@Comment("判断值不能为空")
-	public void notNull(@Comment(name = "value", value = "值") Object value, @Comment(name = "code", value = "判断失败时的code") int code, @Comment(name = "message", value = "判断失败时的说明") String message) {
+	public void notNull(@Comment(name = "value", value = "值") Object value,
+						@Comment(name = "code", value = "判断失败时的code") int code,
+						@Comment(name = "message", value = "判断失败时的说明") String message) {
 		if (value == null) {
 			throw new MagicScriptAssertException(code, message);
 		}
@@ -36,7 +38,9 @@ public class AssertModule implements MagicModule {
 	 * @param message 状态说明
 	 */
 	@Comment("判断值不能为Empty")
-	public void notEmpty(@Comment(name = "value", value = "值") String value, @Comment(name = "code", value = "判断失败时的code") int code, @Comment(name = "message", value = "判断失败时的说明") String message) {
+	public void notEmpty(@Comment(name = "value", value = "值") String value,
+						 @Comment(name = "code", value = "判断失败时的code") int code,
+						 @Comment(name = "message", value = "判断失败时的说明") String message) {
 		if (StringUtils.isEmpty(value)) {
 			throw new MagicScriptAssertException(code, message);
 		}
@@ -50,7 +54,9 @@ public class AssertModule implements MagicModule {
 	 * @param message 状态说明
 	 */
 	@Comment("判断值不能为Blank")
-	public void notBlank(@Comment(name = "value", value = "值") String value, @Comment(name = "code", value = "判断失败时的code") int code, @Comment(name = "message", value = "判断失败时的说明") String message) {
+	public void notBlank(@Comment(name = "value", value = "值") String value,
+						 @Comment(name = "code", value = "判断失败时的code") int code,
+						 @Comment(name = "message", value = "判断失败时的说明") String message) {
 		if (StringUtils.isBlank(value)) {
 			throw new MagicScriptAssertException(code, message);
 		}
@@ -64,7 +70,9 @@ public class AssertModule implements MagicModule {
 	 * @param message 状态说明
 	 */
 	@Comment("正则判断")
-	public void regx(@Comment(name = "value", value = "值") String value, String pattern, @Comment(name = "code", value = "判断失败时的code") int code, @Comment(name = "message", value = "判断失败时的说明") String message) {
+	public void regx(@Comment(name = "value", value = "值") String value, String pattern,
+					 @Comment(name = "code", value = "判断失败时的code") int code,
+					 @Comment(name = "message", value = "判断失败时的说明") String message) {
 		if (value == null || !Pattern.compile(pattern).matcher(value).matches()) {
 			throw new MagicScriptAssertException(code, message);
 		}
@@ -78,7 +86,9 @@ public class AssertModule implements MagicModule {
 	 * @param message 状态说明
 	 */
 	@Comment("判断值是否为true")
-	public void isTrue(@Comment(name = "value", value = "值") boolean value, @Comment(name = "code", value = "判断失败时的code") int code, @Comment(name = "message", value = "判断失败时的说明") String message) {
+	public void isTrue(@Comment(name = "value", value = "值") boolean value,
+					   @Comment(name = "code", value = "判断失败时的code") int code,
+					   @Comment(name = "message", value = "判断失败时的说明") String message) {
 		if (!value) {
 			throw new MagicScriptAssertException(code, message);
 		}

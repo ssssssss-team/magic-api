@@ -286,12 +286,13 @@ public class Where {
 	}
 
 	@Comment("`and`嵌套，如and(it => it.eq('name','李白').ne('status','正常') --> and (name = '李白' and status <> '正常')")
-	public Where and(Function<Object[], Where> function) {
+	public Where and(@Comment(name = "function", value = "回调函数") Function<Object[], Where> function) {
 		return and(true, function);
 	}
 
 	@Comment("`and`嵌套，如and(it => it.eq('name','李白').ne('status','正常') --> and (name = '李白' and status <> '正常')")
-	public Where and(@Comment(name = "condition", value = "判断表达式，当为true时拼接条件") boolean condition, Function<Object[], Where> function) {
+	public Where and(@Comment(name = "condition", value = "判断表达式，当为true时拼接条件") boolean condition,
+					 @Comment(name = "function", value = "回调函数") Function<Object[], Where> function) {
 		if (condition) {
 			Where expr = function.apply(new Object[]{new Where(this.namedTable, false)});
 			this.params.addAll(expr.params);

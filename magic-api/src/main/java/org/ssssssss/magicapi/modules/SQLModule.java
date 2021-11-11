@@ -238,7 +238,8 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * @param ttl       过期时间
 	 */
 	@Comment("使用缓存")
-	public SQLModule cache(@Comment(name = "cacheName", value = "缓存名") String cacheName, @Comment(name = "ttl", value = "过期时间") long ttl) {
+	public SQLModule cache(@Comment(name = "cacheName", value = "缓存名") String cacheName,
+						   @Comment(name = "ttl", value = "过期时间") long ttl) {
 		if (cacheName == null) {
 			return this;
 		}
@@ -434,7 +435,8 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	 * 插入并返回主键
 	 */
 	@Comment("批量执行insert操作，返回插入主键数组")
-	public int[] batchInsert(@Comment(name = "sql", value = "`SQL`语句") String sql, @Comment(name = "list", value = "参数") List<Object[]> list) {
+	public int[] batchInsert(@Comment(name = "sql", value = "`SQL`语句") String sql,
+							 @Comment(name = "list", value = "参数") List<Object[]> list) {
 		assertDatasourceNotNull();
 		return dataSourceNode.getJdbcTemplate().batchUpdate(sql, list);
 	}

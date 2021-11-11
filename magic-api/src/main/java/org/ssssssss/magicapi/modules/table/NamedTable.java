@@ -233,7 +233,8 @@ public class NamedTable extends Attributes<Object> {
 	}
 
 	@Comment("执行插入,返回主键")
-	public Object insert(RuntimeContext runtimeContext, @Comment(name = "data", value = "各项列和值") Map<String, Object> data) {
+	public Object insert(RuntimeContext runtimeContext,
+						 @Comment(name = "data", value = "各项列和值") Map<String, Object> data) {
 		if (data != null) {
 			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
 		}
