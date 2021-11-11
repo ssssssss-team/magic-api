@@ -63,7 +63,7 @@
             @dragend.stop="e => draggable(item, e, 'dragend')"
             @dragover.prevent
         >
-          <i class="ma-svg-icon" :class="['request-method-' + item.method]" />
+          <magic-text-icon v-model="item.method"/>
           <label>{{ item.name }}</label>
           <span>({{ item.path }})</span>
           <i class="ma-icon ma-icon-lock" v-if="item.lock === '1'"></i>
@@ -117,6 +117,7 @@ import { replaceURL, download as downloadFile, requestGroup, goToAnchor, deepClo
 import contants from '@/scripts/contants.js'
 import Key from '@/scripts/hotkey.js'
 import JavaClass from "@/scripts/editor/java-class.js"
+import MagicTextIcon from "@/components/common/magic-text-icon";
 
 export default {
   name: 'MagicApiList',
@@ -124,6 +125,7 @@ export default {
     apis: Array
   },
   components: {
+    MagicTextIcon,
     MagicTree,
     MagicDialog,
     MagicInput,

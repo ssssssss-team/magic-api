@@ -12,8 +12,8 @@
         <div class="ma-content">
           <div v-for="(item, key) in todoList" :key="'todo_' + key" class="ma-table-row content-bg" @click="openItem(item)">
             <div>
-              <i class="ma-svg-icon" v-if="item.type === 1" :class="['request-method-' + item.cache.method]" />
-              <i class="ma-svg-icon" v-if="item.type === 2" :class="['icon-function']" />
+              <magic-text-icon v-if="item.type === 1" v-model="item.cache.method"/>
+              <magic-text-icon v-if="item.type === 2" value="function"/>
               <label>{{ item.cache.name }}</label>
               <span>({{ item.cache.path }})</span>
             </div>
@@ -38,8 +38,10 @@
 <script>
 import request from '@/api/request.js'
 import bus from '@/scripts/bus.js'
+import MagicTextIcon from "@/components/common/magic-text-icon";
 export default {
   name: 'MagicTodo',
+  components: {MagicTextIcon},
   data() {
     return {
       todoList: [],

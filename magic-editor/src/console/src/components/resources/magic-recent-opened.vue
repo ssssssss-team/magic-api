@@ -5,8 +5,8 @@
       <div style="height: 380px; overflow: auto">
         <div v-for="(it, i) in fullScripts" :key="i" @click="open(it)" class="ma-tree-item">
           <div class="ma-tree-hover" style="padding-left: 5px;">
-            <i v-if="it._type === 'api'" :class="'ma-svg-icon request-method-' + it.method"></i>
-            <i v-if="it._type === 'function'" class="ma-svg-icon icon-function"></i>
+            <magic-text-icon v-if="it._type === 'api'" v-model="it.method"/>
+            <magic-text-icon v-if="it._type === 'function'" value="function"/>
             <label>{{ displayText(it.groupName + '/' + it.name) }}({{ displayText(it.groupPath + '/' + it.path) }})</label>
           </div>
         </div>
@@ -23,10 +23,11 @@ import Key from '@/scripts/hotkey.js'
 import MagicDialog from '@/components/common/modal/magic-dialog.vue'
 import store from '@/scripts/store.js'
 import contants from "@/scripts/contants.js"
+import MagicTextIcon from "@/components/common/magic-text-icon";
 
 export default {
   name: 'MagicRecentOpened',
-  components: {MagicDialog},
+  components: {MagicTextIcon, MagicDialog},
   data() {
     return {
       visible: false,

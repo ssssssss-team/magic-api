@@ -251,27 +251,6 @@
     background: var(--dialog-button-hover-background);
     border-color: var(--dialog-button-hover-border-color);
 }
-.ma-svg-icon{
-    display: inline-block;
-    width: 30px;
-    height: 12px;
-    background-repeat: no-repeat;
-}
-.ma-svg-icon.request-method-GET{
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjI4IiBoZWlnaHQ9IjEyIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iYm9sZCI+PHRleHQgeD0iMTQiIHk9IjgiIGZpbGw9IiMyNDlDNDciIHN0eWxlPSJkb21pbmFudC1iYXNlbGluZTogbWlkZGxlO3RleHQtYW5jaG9yOm1pZGRsZTsiID5HRVQ8L3RleHQ+PC9zdmc+');
-}
-.ma-svg-icon.request-method-POST{
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjI4IiBoZWlnaHQ9IjEyIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iYm9sZCI+PHRleHQgeD0iMTQiIHk9IjgiIGZpbGw9IiNGRkI0MDAiIHN0eWxlPSJkb21pbmFudC1iYXNlbGluZTogbWlkZGxlO3RleHQtYW5jaG9yOm1pZGRsZTsiID5QT1NUPC90ZXh0Pjwvc3ZnPg==');
-}
-.ma-svg-icon.request-method-PUT{
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjI4IiBoZWlnaHQ9IjEyIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iYm9sZCI+PHRleHQgeD0iMTQiIHk9IjgiIGZpbGw9IiMwOTdCRUQiIHN0eWxlPSJkb21pbmFudC1iYXNlbGluZTogbWlkZGxlO3RleHQtYW5jaG9yOm1pZGRsZTsiID5QVVQ8L3RleHQ+PC9zdmc+');
-}
-.ma-svg-icon.request-method-DELETE{
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjI4IiBoZWlnaHQ9IjEyIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iYm9sZCI+PHRleHQgeD0iMTQiIHk9IjgiIGZpbGw9IiNFQjIwMTMiIHN0eWxlPSJkb21pbmFudC1iYXNlbGluZTogbWlkZGxlO3RleHQtYW5jaG9yOm1pZGRsZTsiID5ERUw8L3RleHQ+PC9zdmc+');
-}
-.ma-svg-icon.icon-function{
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjI4IiBoZWlnaHQ9IjEyIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iYm9sZCI+PHRleHQgeD0iMTQiIHk9IjgiIGZpbGw9IiM5MDEyRkUiIHN0eWxlPSJkb21pbmFudC1iYXNlbGluZTogbWlkZGxlO3RleHQtYW5jaG9yOm1pZGRsZTsiID5GbjwvdGV4dD48L3N2Zz4=');
-}
 
 .ma-request-wrapper {
     background: var(--background);

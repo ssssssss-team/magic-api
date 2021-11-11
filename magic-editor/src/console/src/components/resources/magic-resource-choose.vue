@@ -22,8 +22,8 @@
             @click.stop="doSelected(item,item.selected = !item.selected)"
         >
           <magic-checkbox v-model="item.selected" @change="e => doSelected(item,e)"/>
-          <i v-if="item._type === 'api'" class="ma-svg-icon" :class="['request-method-' + item.method]" />
-          <i v-if="item._type === 'function'" class="ma-svg-icon icon-function" />
+          <magic-text-icon v-if="item._type === 'api'" v-model="item.method"/>
+          <magic-text-icon v-if="item._type === 'function'" value="function"/>
           <i v-if="item._type === 'datasource'" class="ma-icon ma-icon-datasource" />
           <label>{{ item.name }}</label>
           <span>({{ item.path }})</span>
@@ -38,6 +38,7 @@ import MagicTree from '../common/magic-tree.vue'
 import request from '@/api/request.js'
 import contants from '@/scripts/contants.js'
 import MagicCheckbox from "@/components/common/magic-checkbox";
+import MagicTextIcon from "@/components/common/magic-text-icon";
 
 export default {
   name: 'MagicResourceChoose',
@@ -53,6 +54,7 @@ export default {
     refreshData: Boolean
   },
   components: {
+    MagicTextIcon,
     MagicCheckbox,
     MagicTree
   },

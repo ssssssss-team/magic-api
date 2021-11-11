@@ -62,7 +62,7 @@
             @dragend.stop="e => draggable(item, e, 'dragend')"
             @dragover.prevent
         >
-          <i class="ma-svg-icon icon-function" />
+          <magic-text-icon value="function"/>
           <label>{{ item.name }}</label>
           <span>({{ item.path }})</span>
           <i class="ma-icon ma-icon-lock" v-if="item.lock === '1'"></i>
@@ -108,6 +108,7 @@ import { replaceURL, requestGroup, goToAnchor, deepClone } from '@/scripts/utils
 import JavaClass from '@/scripts/editor/java-class.js'
 import Key from '@/scripts/hotkey.js'
 import contants from '@/scripts/contants.js'
+import MagicTextIcon from "@/components/common/magic-text-icon";
 
 export default {
   name: 'MagicFunctionList',
@@ -115,6 +116,7 @@ export default {
     groups: Array
   },
   components: {
+    MagicTextIcon,
     MagicTree,
     MagicDialog,
     MagicInput,

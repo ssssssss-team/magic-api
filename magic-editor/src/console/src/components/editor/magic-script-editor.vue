@@ -16,8 +16,8 @@
             @dragend.stop="e => tabDraggable(item, e, 'dragend')"
             @dragover.prevent
         >
-          <i class="ma-svg-icon" v-if="item._type === 'api'" :class="['request-method-' + item.method]" />
-          <i class="ma-svg-icon" v-if="item._type !== 'api'" :class="['icon-function']" />
+          <magic-text-icon v-if="item._type === 'api'" v-model="item.method" style="margin-top: -4px"/>
+          <magic-text-icon v-if="item._type !== 'api'" value="function" style="margin-top: -4px"/>
           {{item.displayName || item.name}}<i class="ma-icon ma-icon-lock" v-if="item.lock === '1'" />
           <span v-show="!item.id || item.script !== item.ext.tmpScript">*</span>
           <i class="ma-icon ma-icon-close" @click.stop="close(item.id || item.tmp_id)"/>
@@ -81,10 +81,12 @@ import RequestParameter from '@/scripts/editor/request-parameter.js';
 import { CommandsRegistry } from 'monaco-editor/esm/vs/platform/commands/common/commands'
 import { KeybindingsRegistry } from 'monaco-editor/esm/vs/platform/keybinding/common/keybindingsRegistry.js'
 import { ContextKeyExpr } from 'monaco-editor/esm/vs/platform/contextkey/common/contextkey.js'
+import MagicTextIcon from "@/components/common/magic-text-icon";
 
 export default {
   name: 'MagicScriptEditor',
   components: {
+    MagicTextIcon,
     MagicDialog,
     MagicHistory
   },
@@ -968,11 +970,6 @@ export default {
   font-size: 16px;
   padding-right: 3px;
 }
-.ma-wrapper .ma-tab .ma-svg-icon{
-  height: 16px;
-  margin-left: 0;
-}
-
 .ma-hot-key {
   position: absolute;
   top: 50%;
