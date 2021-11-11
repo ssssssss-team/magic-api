@@ -114,7 +114,6 @@ export default {
       theme: store.get('skin') || 'default',
       fontFamily: contants.EDITOR_FONT_FAMILY,
       fontSize: contants.EDITOR_FONT_SIZE,
-      scrollBeyondLastLine: false,
       fontLigatures: true,
       // 自动调整大小
       automaticLayout: true
@@ -126,6 +125,9 @@ export default {
       run: () => {
         this.editor.trigger(null, 'editor.action.triggerSuggest', {})
       }
+    })
+    CommandsRegistry.registerCommand('editor.action.scrollUp1Line', () => {
+      this.editor.setScrollTop(this.editor.getScrollTop() - 22)
     })
     this.editor.addCommand(
         monaco.KeyMod.Alt | monaco.KeyCode.US_SLASH,

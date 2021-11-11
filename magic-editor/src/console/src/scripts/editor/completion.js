@@ -148,7 +148,11 @@ const completionFunction = async (suggestions, input, env, best) => {
                         kind: monaco.languages.CompletionItemKind.Class,
                         filterText: className,
                         detail: clazz,
-                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.KeepWhitespace,
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                        command: {
+                            id: 'editor.action.scrollUp1Line'
+                        },
+                        insertText: className,
                         additionalTextEdits: [{
                             forceMoveMarkers: true,
                             text: `import ${clazz}\r\n`,
