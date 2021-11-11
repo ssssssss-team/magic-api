@@ -210,7 +210,9 @@
           {value: 'GET', text: 'GET'},
           {value: 'POST', text: 'POST'},
           {value: 'PUT', text: 'PUT'},
-          {value: 'DELETE', text: 'DELETE'}
+          {value: 'DELETE', text: 'DELETE'},
+          {value: 'HEAD', text: 'HEAD'},
+          {value: 'PATCH', text: 'PATCH'}
         ],
         headerTypes: [
           {value: 'String', text: 'String'},
