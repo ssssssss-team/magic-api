@@ -4,6 +4,7 @@ import {TokenStream} from '../parsing/index.js'
 import {Parser} from '../parsing/parser.js'
 import * as monaco from 'monaco-editor'
 import RequestParameter from "@/scripts/editor/request-parameter";
+import {VariableAccess} from "@/scripts/parsing/ast";
 
 const completionImportJavaPackage = (suggestions, keyword, start, position) => {
     let len = -1
@@ -133,7 +134,7 @@ const completionImport = (suggestions, position, line, importIndex) => {
     }
     completionImportJavaPackage(suggestions, text, start, position)
 }
-const completionFunction = async (suggestions, input, env, best) => {
+const completionFunction = async (suggestions, input, env, best, isNew) => {
     env = env || {}
     if (best && best.constructor.name === 'VariableAccess') {
         if(await best.getJavaType(env) === 'java.lang.Object'){
@@ -152,7 +153,7 @@ const completionFunction = async (suggestions, input, env, best) => {
                         command: {
                             id: 'editor.action.scrollUp1Line'
                         },
-                        insertText: className,
+                        insertText: className + (isNew ? '()' : ''),
                         additionalTextEdits: [{
                             forceMoveMarkers: true,
                             text: `import ${clazz}\r\n`,
@@ -277,6 +278,8 @@ async function completionScript(suggestions, input) {
             let astName = best.constructor.name;
             if (astName === 'MemberAccess' || astName === 'MethodCall') {
                 await completionMethod(await best.target.getJavaType(env), suggestions)
+            } else if(astName === 'NewStatement' && best.identifier instanceof VariableAccess){
+                await completionFunction(suggestions, input, env, best.identifier, true)
             } else {
                 await completionFunction(suggestions, input, env, best)
             }

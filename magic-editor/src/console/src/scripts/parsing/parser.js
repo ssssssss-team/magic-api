@@ -298,14 +298,14 @@ export class Parser {
 
     parseNewExpression(opening) {
         let expression = this.parseAccessOrCall(TokenType.Identifier, true);
+        let span = new Span(opening.getSource(), opening.getStart(), this.stream.getPrev().getSpan().getEnd())
         if (expression instanceof MethodCall) {
-            let span = new Span(opening.getSource(), opening.getStart(), this.stream.getPrev().getSpan().getEnd());
             return this.parseAccessOrCall(new NewStatement(span, expression.getMethod(), expression.getArguments()));
         } else if (expression instanceof FunctionCall) {
-            let span = new Span(opening.getSource(), opening.getStart(), this.stream.getPrev().getSpan().getEnd());
             return this.parseAccessOrCall(new NewStatement(span, expression.getFunction(), expression.getArguments()));
         }
-        throw new ParseException("Expected MethodCall or FunctionCall or LambdaFunction", this.stream.getPrev().getSpan());
+        return this.parseAccessOrCall(new NewStatement(span, expression, []));
+        // throw new ParseException("Expected MethodCall or FunctionCall or LambdaFunction", this.stream.getPrev().getSpan());
     }
 
     parseArguments() {

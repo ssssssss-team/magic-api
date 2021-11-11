@@ -5,7 +5,7 @@ import {
     FunctionCall,
     LinqSelect,
     MapOrArrayAccess,
-    MemberAccess,
+    MemberAccess, NewStatement,
     Node,
     VarDefine,
     VariableAccess
@@ -42,7 +42,7 @@ const generateMethodDocument = (prefix,method, contents) => {
     contents.push({value: `返回类型：\`${method.returnType}\``})
 }
 
-const generateFunctionCall = (methodName, env, contents)=>{
+const generateFunctionCall = (methodName, env, contents, isNew)=>{
     let functions = JavaClass.findFunction().filter(method => method.name === methodName);
     if (functions.length > 0) {
         generateMethodDocument('', functions[0], contents);
@@ -63,7 +63,7 @@ const generateFunctionCall = (methodName, env, contents)=>{
             }
 
         } else {
-            contents.push({value: `访问变量：${methodName}`})
+            contents.push({value: `${isNew ? '创建对象' : '访问变量'}：${methodName}`})
             contents.push({value: `类型：${value || 'unknow'}`})
         }
     }
@@ -129,6 +129,11 @@ const HoverProvider = {
                 } else if (best instanceof FunctionCall) {
                     let target = best.target;
                     generateFunctionCall(target.variable, env, contents)
+                } else if (best instanceof NewStatement) {
+                    let target = best.identifier;
+                    if(target instanceof VariableAccess){
+                        generateFunctionCall(target, env, contents, true)
+                    }
                 } else if (best instanceof MapOrArrayAccess) {
                     contents.push({value: `访问Map或数组`})
                 } else if (best instanceof LinqSelect) {
