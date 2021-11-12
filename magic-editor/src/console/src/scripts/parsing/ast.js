@@ -344,8 +344,8 @@ class UnaryOperation extends Node {
         this.atAfter = atAfter
     }
 
-    async getJavaType() {
-        return await this.operand.getJavaType();
+    async getJavaType(env) {
+        return await this.operand.getJavaType(env);
     }
 
 }
