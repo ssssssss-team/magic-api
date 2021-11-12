@@ -476,7 +476,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 				}).orElse(null)
 		);
 		logger.info("注册模块:{} -> {}", "log", Logger.class);
-		MagicResourceLoader.addModule("log", new DynamicModuleImport(Logger.class, context -> LoggerFactory.getLogger(context.getScriptName())));
+		MagicResourceLoader.addModule("log", new DynamicModuleImport(Logger.class, context -> LoggerFactory.getLogger(Objects.toString(context.getScriptName(),"Unknown"))));
 		List<String> importModules = properties.getAutoImportModuleList();
 		logger.info("注册模块:{} -> {}", "env", EnvModule.class);
 		MagicResourceLoader.addModule("env", new EnvModule(environment));
