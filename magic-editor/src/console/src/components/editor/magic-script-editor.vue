@@ -117,6 +117,7 @@ export default {
       fontFamily: contants.EDITOR_FONT_FAMILY,
       fontSize: contants.EDITOR_FONT_SIZE,
       fontLigatures: true,
+      renderWhitespace: 'none',
       // 自动调整大小
       automaticLayout: true
     })

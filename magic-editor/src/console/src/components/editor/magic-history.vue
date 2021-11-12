@@ -44,6 +44,7 @@ export default {
       folding: false,
       lineDecorationsWidth: 20,
       fixedOverflowWidgets: false,
+      renderWhitespace: 'none',
       fontFamily: contants.EDITOR_FONT_FAMILY,
       fontSize: contants.EDITOR_FONT_SIZE,
       fontLigatures: true

@@ -79,6 +79,7 @@ export default {
           readOnly: true,
           fontLigatures: true,
           scrollBeyondLastLine: false,
+          renderWhitespace: 'none',
           fontFamily: contants.EDITOR_FONT_FAMILY,
           fontSize: contants.EDITOR_FONT_SIZE,
           theme: store.get('skin') || 'default'

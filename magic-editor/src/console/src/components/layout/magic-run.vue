@@ -114,6 +114,7 @@ export default {
         fontSize: contants.EDITOR_FONT_SIZE,
         fontLigatures: true,
         value: this.info.responseBody || '',
+        renderWhitespace: 'none',
         theme: store.get('skin') || 'default'
       })
       bus.$on('update-window-size', () => this.updateSize())
