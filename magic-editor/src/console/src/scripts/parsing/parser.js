@@ -267,10 +267,7 @@ export class Parser {
     parseAsync() {
         let opening = this.stream.expect("async").getSpan();
         let expression = this.parseExpression();
-        if (expression instanceof MethodCall || expression instanceof FunctionCall || expression instanceof LambdaFunction) {
-            return new AsyncCall(new Span(opening, this.stream.getPrev().getSpan()), expression);
-        }
-        throw new ParseException("Expected MethodCall or FunctionCall or LambdaFunction", this.stream.getPrev().getSpan())
+        return new AsyncCall(new Span(opening, this.stream.getPrev().getSpan()), expression);
     }
 
     parseIfStatement() {
