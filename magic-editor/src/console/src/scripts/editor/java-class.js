@@ -73,7 +73,12 @@ const initImportClass = () => {
             url: 'classes.txt',
             responseType: 'text'
         }).then(e => {
-            importClass = e.data.split('\r\n')
+            const array = [];
+            e.data.split('\n').forEach(item => {
+                const tmp = item.split(':')
+                array.push(...tmp[1].split(',').map(it => tmp[0] + "." + it))
+            })
+            importClass = array
             resolve()
         }).catch(res => {
             reject()

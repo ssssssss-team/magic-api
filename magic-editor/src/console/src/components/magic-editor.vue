@@ -192,7 +192,9 @@ export default {
       window.onbeforeunload = () => '系统可能不会保存您所做的更改。'
     }
     this.bindKey()
-    Promise.all([JavaClass.initClasses(), JavaClass.initImportClass(), this.loadConfig()])
+    JavaClass.initClasses()
+    JavaClass.initImportClass()
+    Promise.all([this.loadConfig()])
       .then(e => {
         this.hideLoading()
         this.login()

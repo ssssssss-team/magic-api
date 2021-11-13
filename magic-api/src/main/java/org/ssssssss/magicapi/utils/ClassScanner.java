@@ -35,6 +35,42 @@ public class ClassScanner {
 		return new ArrayList<>(classes);
 	}
 
+	public static String compress(List<String> classes){
+		Collections.sort(classes);
+		String currentPackage = "";
+		StringBuffer buf = new StringBuffer();
+		int classCount = 0;
+		for (String fullName : classes) {
+			String packageName = "";
+			String className = fullName;
+			if (fullName.contains(".")) {
+				int index = fullName.lastIndexOf(".");
+				className = fullName.substring(index + 1);
+				packageName = fullName.substring(0, index);
+			}
+			if(className.equals("package-info")){
+				continue;
+			}
+			if (currentPackage.equals(packageName)) {
+				if (classCount > 0) {
+					buf.append(",");
+				}
+				buf.append(className);
+				classCount++;
+			} else {
+				currentPackage = packageName;
+				if(buf.length() > 0){
+					buf.append("\n");
+				}
+				buf.append(packageName);
+				buf.append(":");
+				buf.append(className);
+				classCount = 1;
+			}
+		}
+		return buf.toString();
+	}
+
 	private static Set<String> scan(URL[] urls) throws URISyntaxException {
 		Set<String> classes = new HashSet<>();
 		if (urls != null) {
@@ -164,5 +200,9 @@ public class ClassScanner {
 
 	private static boolean isClass(String className) {
 		return className.endsWith(".class") && !className.contains("$");
+	}
+
+	public static void main(String[] args) throws URISyntaxException {
+		List<String> classes = scan();
 	}
 }
