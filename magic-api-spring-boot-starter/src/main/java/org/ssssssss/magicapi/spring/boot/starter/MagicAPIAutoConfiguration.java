@@ -205,7 +205,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	private String readClass() {
 		if (allClassTxt == null) {
 			try {
-				allClassTxt = StringUtils.join(ClassScanner.scan(), "\r\n");
+				allClassTxt = ClassScanner.compress(ClassScanner.scan());
 			} catch (Throwable t) {
 				logger.warn("扫描Class失败", t);
 				allClassTxt = "";
