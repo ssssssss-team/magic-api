@@ -442,7 +442,7 @@ public class MappingHandlerMapping {
 			RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
 			if (requestMapping != null) {
 				String[] paths = Stream.of(requestMapping.value()).map(value -> base + value).toArray(String[]::new);
-				mappingHelper.register(RequestMappingInfo.paths(paths).build(), target, method);
+				mappingHelper.register(mappingHelper.paths(paths).build(), target, method);
 			}
 		}
 	}
@@ -479,14 +479,14 @@ public class MappingHandlerMapping {
 	 * 根据接口信息构建 RequestMappingInfo
 	 */
 	private RequestMappingInfo getRequestMapping(ApiInfo info) {
-		return RequestMappingInfo.paths(getRequestPath(info.getGroupId(), info.getPath())).methods(RequestMethod.valueOf(info.getMethod().toUpperCase())).build();
+		return mappingHelper.paths(getRequestPath(info.getGroupId(), info.getPath())).methods(RequestMethod.valueOf(info.getMethod().toUpperCase())).build();
 	}
 
 	/**
 	 * 根据接口信息构建 RequestMappingInfo
 	 */
 	private RequestMappingInfo getRequestMapping(String method, String path) {
-		return RequestMappingInfo.paths(path).methods(RequestMethod.valueOf(method.toUpperCase())).build();
+		return mappingHelper.paths(path).methods(RequestMethod.valueOf(method.toUpperCase())).build();
 	}
 
 	static class MappingNode {

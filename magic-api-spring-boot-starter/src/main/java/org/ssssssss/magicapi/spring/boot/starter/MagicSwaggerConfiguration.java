@@ -51,7 +51,8 @@ public class MagicSwaggerConfiguration {
 	@Primary
 	public SwaggerResourcesProvider magicSwaggerResourcesProvider(MappingHandlerMapping handlerMapping, GroupServiceProvider groupServiceProvider, ServletContext servletContext) throws NoSuchMethodException {
 		SwaggerConfig config = properties.getSwaggerConfig();
-		RequestMappingInfo requestMappingInfo = RequestMappingInfo.paths(config.getLocation()).build();
+		Mapping mapping = Mapping.create(requestMappingHandlerMapping);
+		RequestMappingInfo requestMappingInfo = mapping.paths(config.getLocation()).build();
 
 		// 构建文档信息
 		SwaggerProvider swaggerProvider = new SwaggerProvider();
@@ -64,7 +65,7 @@ public class MagicSwaggerConfiguration {
 
 
 		// 注册swagger.json
-		Mapping.create(requestMappingHandlerMapping).register(requestMappingInfo, swaggerProvider, SwaggerProvider.class.getDeclaredMethod("swaggerJson"));
+		mapping.register(requestMappingInfo, swaggerProvider, SwaggerProvider.class.getDeclaredMethod("swaggerJson"));
 
 		return () -> {
 			List<SwaggerResource> resources = new ArrayList<>();

@@ -274,13 +274,13 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			// 配置静态资源路径
 			registry.addResourceHandler(web + "/**").addResourceLocations("classpath:/magic-editor/");
 			try {
-				Mapping.create(requestMappingHandlerMapping)
+				Mapping mapping = Mapping.create(requestMappingHandlerMapping);
 						// 默认首页设置
-						.register(RequestMappingInfo.paths(web).build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("redirectIndex", HttpServletRequest.class))
+				mapping.register(mapping.paths(web).build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("redirectIndex", HttpServletRequest.class))
 						// 读取配置
-						.register(RequestMappingInfo.paths(web + "/config.json").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readConfig"))
+						.register(mapping.paths(web + "/config.json").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readConfig"))
 						// 读取配置
-						.register(RequestMappingInfo.paths(web + "/classes.txt").produces("text/plain").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readClass"));
+						.register(mapping.paths(web + "/classes.txt").produces("text/plain").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readClass"));
 			} catch (NoSuchMethodException ignored) {
 			}
 		}
@@ -583,9 +583,10 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		}
 		// 注册接收推送的接口
 		if (StringUtils.isNotBlank(properties.getSecretKey())) {
-			RequestMappingInfo requestMappingInfo = RequestMappingInfo.paths(properties.getPushPath()).build();
+			Mapping mapping = Mapping.create(requestMappingHandlerMapping);
+			RequestMappingInfo requestMappingInfo = mapping.paths(properties.getPushPath()).build();
 			Method method = MagicWorkbenchController.class.getDeclaredMethod("receivePush", MultipartFile.class, String.class, Long.class, String.class);
-			Mapping.create(requestMappingHandlerMapping).register(requestMappingInfo, magicWorkbenchController, method);
+			mapping.register(requestMappingInfo, magicWorkbenchController, method);
 		}
 		// 注册数据源
 		magicAPIService.registerAllDataSource();

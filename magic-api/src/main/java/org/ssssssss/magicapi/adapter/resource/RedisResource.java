@@ -8,7 +8,6 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.ssssssss.magicapi.adapter.Resource;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -98,7 +97,7 @@ public class RedisResource extends KeyValueResource {
 	@Override
 	protected Set<String> keys() {
 		Set<String> keys = this.redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
-			ScanOptions options = new ScanOptions.ScanOptionsBuilder()
+			ScanOptions options = ScanOptions.scanOptions()
 					.count(Long.MAX_VALUE)
 					.match((isDirectory() ? this.path : (this.path + separator)) + "*")
 					.build();
@@ -107,7 +106,7 @@ public class RedisResource extends KeyValueResource {
 				while (cursor.hasNext()) {
 					returnKeys.add(new String(cursor.next()));
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				logger.error("扫描key出错", e);
 			}
 			return returnKeys;
