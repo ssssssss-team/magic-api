@@ -4,6 +4,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.AbstractHandlerMethodMapping;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+import org.ssssssss.script.reflection.JavaReflection;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -17,7 +18,9 @@ public class Mapping {
 
 	private final AbstractHandlerMethodMapping<RequestMappingInfo> methodMapping;
 
-	private RequestMappingInfo.BuilderConfiguration config;
+	private final RequestMappingInfo.BuilderConfiguration config;
+
+	private static final boolean HAS_GET_PATTERN_PARSER = JavaReflection.getMethod(RequestMappingHandlerMapping.class, "getPatternParser") != null;
 
 	private Mapping(AbstractHandlerMethodMapping<RequestMappingInfo> methodMapping, RequestMappingInfo.BuilderConfiguration config) {
 		this.methodMapping = methodMapping;
@@ -25,19 +28,26 @@ public class Mapping {
 	}
 
 	public static Mapping create(RequestMappingHandlerMapping mapping) {
-		RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
-		config.setTrailingSlashMatch(mapping.useTrailingSlashMatch());
-		config.setContentNegotiationManager(mapping.getContentNegotiationManager());
-		if (mapping.getPatternParser() != null) {
-			config.setPatternParser(mapping.getPatternParser());
-		} else {
-			config.setPathMatcher(mapping.getPathMatcher());
+		if(HAS_GET_PATTERN_PARSER){
+			RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
+			config.setTrailingSlashMatch(mapping.useTrailingSlashMatch());
+			config.setContentNegotiationManager(mapping.getContentNegotiationManager());
+			if (mapping.getPatternParser() != null) {
+				config.setPatternParser(mapping.getPatternParser());
+			} else {
+				config.setPathMatcher(mapping.getPathMatcher());
+			}
+			return new Mapping(mapping, config);
 		}
-		return new Mapping(mapping, config);
+		return new Mapping(mapping, null);
 	}
 
 	public RequestMappingInfo.Builder paths(String ... paths){
-		return RequestMappingInfo.paths(paths).options(this.config);
+		RequestMappingInfo.Builder builder = RequestMappingInfo.paths(paths);
+		if(this.config != null){
+			return builder.options(this.config);
+		}
+		return builder;
 	}
 
 	public Mapping register(RequestMappingInfo requestMappingInfo, Object handler, Method method) {
