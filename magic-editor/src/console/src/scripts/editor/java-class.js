@@ -1,6 +1,6 @@
 import request from '@/api/request.js'
 import contants from '@/scripts/contants.js'
-import { HighLightOptions } from '@/scripts/editor/high-light.js'
+import {HighLightOptions} from '@/scripts/editor/high-light.js'
 import * as monaco from "monaco-editor";
 
 let scriptClass = {}
@@ -45,9 +45,9 @@ const getSimpleClass = (target) => {
     return target;
 }
 const matchTypes = (parameters, args, extension) => {
-    if(parameters.length > 0 && parameters[parameters.length - 1].varArgs){
+    if (parameters.length > 0 && parameters[parameters.length - 1].varArgs) {
         return extension ? parameters.length - 1 <= args.length : parameters.length <= args.length;
-    }else{
+    } else {
         return extension ? parameters.length - 1 === args.length : parameters.length === args.length;
     }
 }
@@ -76,7 +76,11 @@ const initImportClass = () => {
             const array = [];
             e.data.split('\n').forEach(item => {
                 const tmp = item.split(':')
-                array.push(...tmp[1].split(',').map(it => tmp[0] + "." + it))
+                if (tmp.length === 1) {
+                    array.push(tmp[0])
+                } else {
+                    array.push(...tmp[1].split(',').map(it => tmp[0] + "." + it))
+                }
             })
             importClass = array
             resolve()
@@ -106,7 +110,7 @@ const processMethod = (method, begin, sort) => {
         for (let j = begin; j < method.parameters.length; j++) {
             params.push('${' + (j + 1 - begin) + ':' + method.parameters[j].name + '}');
             if (method.parameters[j].varArgs) {
-                params2.push(getSimpleClass(method.parameters[j].type).replace('[]','') + " ... " + method.parameters[j].name);
+                params2.push(getSimpleClass(method.parameters[j].type).replace('[]', '') + " ... " + method.parameters[j].name);
             } else {
                 params2.push(getSimpleClass(method.parameters[j].type) + " " + method.parameters[j].name);
             }
@@ -193,12 +197,13 @@ const findClass = (className) => {
         throw new Error('className is required');
     }
     let value = scriptClass[className]
-    if(!value){
+    if (!value) {
         let index = importClass.findIndex(it => it === className)
         value = importClass[index]
     }
     return value
 }
+
 async function loadClass(className) {
     let val = scriptClass[className];
     if (!val) {
