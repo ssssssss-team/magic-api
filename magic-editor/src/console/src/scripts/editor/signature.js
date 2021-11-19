@@ -1,7 +1,8 @@
 import JavaClass from './java-class.js'
 import tokenizer from '@/scripts/parsing/tokenizer.js'
-import {TokenStream, TokenType} from '../parsing/index.js'
+import {TokenStream} from '../parsing/index.js'
 import {Parser} from '@/scripts/parsing/parser.js'
+import {MethodCall} from "@/scripts/parsing/ast";
 
 const SignatureHelpProvider = {
     signatureHelpRetriggerCharacters: ['(', ','],
@@ -29,7 +30,7 @@ const SignatureHelpProvider = {
             let tokens = tokenizer(value);
             let parser = new Parser(new TokenStream(tokens));
             const { best, env} = await parser.parseBest(value.length - 1);
-            if(best && best.constructor.name === 'MethodCall'){
+            if(best && best instanceof MethodCall){
                 let target = best.target
                 let className = await target.getTarget().getJavaType(env);
                 let methodName = target.member.getText()

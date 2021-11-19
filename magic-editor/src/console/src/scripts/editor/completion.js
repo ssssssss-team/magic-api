@@ -4,7 +4,7 @@ import {TokenStream} from '../parsing/index.js'
 import {Parser} from '../parsing/parser.js'
 import * as monaco from 'monaco-editor'
 import RequestParameter from "@/scripts/editor/request-parameter";
-import {VariableAccess} from "@/scripts/parsing/ast";
+import {MemberAccess, MethodCall, NewStatement, VariableAccess} from "@/scripts/parsing/ast";
 
 const completionImportJavaPackage = (suggestions, keyword, start, position) => {
     let len = -1
@@ -20,7 +20,7 @@ const completionImportJavaPackage = (suggestions, keyword, start, position) => {
             insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
         }))
         let set = new Set();
-        for (let i = 0; i < len; i++) {
+        for (let i = 0; i < len && suggestions.length < 100; i++) {
             let clazz = importClass[i];
             let index = clazz.toLowerCase().indexOf(keyword);
             if (index > -1) {
@@ -136,7 +136,7 @@ const completionImport = (suggestions, position, line, importIndex) => {
 }
 const completionFunction = async (suggestions, input, env, best, isNew) => {
     env = env || {}
-    if (best && best.constructor.name === 'VariableAccess') {
+    if (best && best instanceof VariableAccess) {
         if(await best.getJavaType(env) === 'java.lang.Object'){
             let importClass = JavaClass.getImportClass();
             const keyword = best.variable
@@ -275,10 +275,9 @@ async function completionScript(suggestions, input) {
         if(input.endsWith(".")){
             await completionMethod(await best.getJavaType(env), suggestions)
         } else if(best) {
-            let astName = best.constructor.name;
-            if (astName === 'MemberAccess' || astName === 'MethodCall') {
+            if (best instanceof MemberAccess || best instanceof MethodCall ) {
                 await completionMethod(await best.target.getJavaType(env), suggestions)
-            } else if(astName === 'NewStatement' && best.identifier instanceof VariableAccess){
+            } else if(best instanceof NewStatement && best.identifier instanceof VariableAccess){
                 await completionFunction(suggestions, input, env, best.identifier, true)
             } else {
                 await completionFunction(suggestions, input, env, best)
