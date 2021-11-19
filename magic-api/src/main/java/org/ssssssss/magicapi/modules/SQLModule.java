@@ -483,7 +483,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	public Object page(RuntimeContext runtimeContext,
 					   @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
 					   @Comment(name = "limit", value = "限制条数") long limit,
-					   @Comment(name = "limit", value = "跳过条数") long offset) {
+					   @Comment(name = "offset", value = "跳过条数") long offset) {
 		return page(runtimeContext, sqlOrXml, limit, offset, null);
 	}
 

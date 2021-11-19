@@ -20,20 +20,22 @@ import java.util.HashMap;
  *
  * @author mxd
  */
-public class MongoModule extends HashMap<String, Object> implements MagicModule {
+public class MongoModule extends HashMap<String, MongoModule.MongoDataBaseGetter> implements MagicModule {
 
 	private static final Logger logger = LoggerFactory.getLogger(MongoModule.class);
 
-	private final MongoTemplate mongoTemplate;
-	private final JavaInvoker<Method> mongoDbFactoryInvoker;
 	private JavaInvoker<Method> invoker;
 
+	private Object factory;
+
 	public MongoModule(MongoTemplate mongoTemplate) {
-		this.mongoTemplate = mongoTemplate;
-		mongoDbFactoryInvoker = JavaReflection.getMethod(this.mongoTemplate, "getMongoDbFactory");
+		JavaInvoker<Method> mongoDbFactoryInvoker = JavaReflection.getMethod(mongoTemplate, "getMongoDbFactory");
+		if(mongoDbFactoryInvoker == null){
+			mongoDbFactoryInvoker = JavaReflection.getMethod(mongoTemplate, "getMongoDatabaseFactory");
+		}
 		if (mongoDbFactoryInvoker != null) {
 			try {
-				Object factory = mongoDbFactoryInvoker.invoke0(this.mongoTemplate, null, Constants.EMPTY_OBJECT_ARRAY);
+				factory = mongoDbFactoryInvoker.invoke0(mongoTemplate, null, Constants.EMPTY_OBJECT_ARRAY);
 				invoker = JavaReflection.getMethod(factory, "getDb", StringUtils.EMPTY);
 				if (invoker == null) {
 					invoker = JavaReflection.getMethod(factory, "getMongoDatabase", StringUtils.EMPTY);
@@ -47,26 +49,34 @@ public class MongoModule extends HashMap<String, Object> implements MagicModule 
 	}
 
 	@Override
-	public Object get(Object databaseName) {
-		return databaseName == null ? null : new HashMap<String, MongoCollection<Document>>() {
-			@Override
-			public MongoCollection<Document> get(Object collection) {
-				if (collection == null) {
-					return null;
-				}
-				try {
-					Object factory = mongoDbFactoryInvoker.invoke0(mongoTemplate, null, Constants.EMPTY_OBJECT_ARRAY);
-					MongoDatabase database = (MongoDatabase) invoker.invoke0(factory, null, new Object[]{databaseName.toString()});
-					return database.getCollection(collection.toString());
-				} catch (Throwable throwable) {
-					throw new RuntimeException(throwable);
-				}
+	public MongoDataBaseGetter get(Object databaseName) {
+		try {
+			if (databaseName == null) {
+				return null;
 			}
-		};
+			MongoDatabase database = (MongoDatabase) invoker.invoke0(factory, null, new Object[]{databaseName.toString()});
+			return new MongoDataBaseGetter(database);
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
 	public String getModuleName() {
 		return "mongo";
+	}
+
+	public static class MongoDataBaseGetter extends HashMap<String, MongoCollection<Document>> {
+
+		MongoDatabase database;
+
+		public MongoDataBaseGetter(MongoDatabase database) {
+			this.database = database;
+		}
+
+		@Override
+		public MongoCollection<Document> get(Object key) {
+			return database.getCollection(key.toString());
+		}
 	}
 }
