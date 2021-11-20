@@ -136,6 +136,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 
 	private final ObjectProvider<MagicNotifyService> magicNotifyServiceProvider;
 
+	private final ObjectProvider<DataSourceEncryptProvider> dataSourceEncryptProvider;
+
 	private final Environment environment;
 
 	private final MagicCorsFilter magicCorsFilter = new MagicCorsFilter();
@@ -171,6 +173,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 									 ObjectProvider<MagicNotifyService> magicNotifyServiceProvider,
 									 ObjectProvider<AuthorizationInterceptor> authorizationInterceptorProvider,
 									 ObjectProvider<List<NamedTableInterceptor>> namedTableInterceptorsProvider,
+									 ObjectProvider<DataSourceEncryptProvider> dataSourceEncryptProvider,
 									 Environment environment,
 									 ApplicationContext applicationContext
 	) {
@@ -185,6 +188,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		this.magicNotifyServiceProvider = magicNotifyServiceProvider;
 		this.authorizationInterceptorProvider = authorizationInterceptorProvider;
 		this.namedTableInterceptorsProvider = namedTableInterceptorsProvider;
+		this.dataSourceEncryptProvider = dataSourceEncryptProvider;
 		this.environment = environment;
 		this.applicationContext = applicationContext;
 	}
@@ -400,7 +404,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 										   MagicFunctionManager magicFunctionManager,
 										   Resource workspace,
 										   MagicBackupService magicBackupService) {
-		return new DefaultMagicAPIService(mappingHandlerMapping, apiServiceProvider, functionServiceProvider, groupServiceProvider, resultProvider, magicDynamicDataSource, magicFunctionManager, magicNotifyServiceProvider.getObject(), properties.getClusterConfig().getInstanceId(), workspace, magicBackupService, properties.isThrowException());
+		return new DefaultMagicAPIService(mappingHandlerMapping, apiServiceProvider, functionServiceProvider, groupServiceProvider, resultProvider, magicDynamicDataSource, magicFunctionManager, magicNotifyServiceProvider.getObject(), properties.getClusterConfig().getInstanceId(), workspace, magicBackupService, dataSourceEncryptProvider.getIfAvailable() , properties.isThrowException());
 	}
 
 	/**

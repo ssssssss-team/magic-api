@@ -82,6 +82,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	private final Resource workspace;
 	private final Resource datasourceResource;
 	private final MagicBackupService backupService;
+	private final DataSourceEncryptProvider dataSourceEncryptProvider;
 
 	public DefaultMagicAPIService(MappingHandlerMapping mappingHandlerMapping,
 								  ApiServiceProvider apiServiceProvider,
@@ -94,6 +95,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 								  String instanceId,
 								  Resource workspace,
 								  MagicBackupService backupService,
+								  DataSourceEncryptProvider dataSourceEncryptProvider,
 								  boolean throwException) {
 		this.mappingHandlerMapping = mappingHandlerMapping;
 		this.apiServiceProvider = apiServiceProvider;
@@ -106,6 +108,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		this.workspace = workspace;
 		this.throwException = throwException;
 		this.instanceId = instanceId;
+		this.dataSourceEncryptProvider = dataSourceEncryptProvider;
 		this.backupService = backupService;
 		this.datasourceResource = workspace.getDirectory(PATH_DATASOURCE);
 		if (!this.datasourceResource.exists()) {
@@ -462,6 +465,9 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	private String registerDataSource(DataSourceInfo properties) {
 		if (properties != null) {
+			if(dataSourceEncryptProvider != null){
+				dataSourceEncryptProvider.decrypt(properties);
+			}
 			String key = properties.get("key");
 			String name = properties.getOrDefault("name", key);
 			String dsId = properties.remove("id");
@@ -535,6 +541,9 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		// 注册数据源
 		magicDynamicDataSource.put(dsId, key, name, createDataSource(properties), maxRows);
 		properties.put("id", dsId);
+		if(dataSourceEncryptProvider != null){
+			dataSourceEncryptProvider.encrypt(properties);
+		}
 		datasourceResource.getResource(dsId + ".json").write(JsonUtils.toJsonString(properties));
 		backupService.backup(properties);
 		magicNotifyService.sendNotify(new MagicNotify(instanceId, dsId, action, NOTIFY_ACTION_DATASOURCE));
