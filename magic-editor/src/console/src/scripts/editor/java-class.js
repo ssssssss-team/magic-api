@@ -115,9 +115,9 @@ const processMethod = (method, begin, sort) => {
                 params2.push(getSimpleClass(method.parameters[j].type) + " " + method.parameters[j].name);
             }
         }
-        if (!method.comment) {
-            method.comment = getSimpleClass(method.returnType) + ':' + method.name + '(' + params2.join(',') + ')';
-        }
+        // if (!method.comment) {
+        //     method.comment = getSimpleClass(method.returnType) + '.' + method.name + '(' + params2.join(', ') + ')';
+        // }
         method.sortText = padding(sort, 10) + method.name;
         method.fullName = method.name + '(' + params2.join(', ') + ')';
         method.insertText += '(' + params.join(',') + ')';
@@ -126,9 +126,9 @@ const processMethod = (method, begin, sort) => {
         method.sortText = padding(sort, 10) + method.name;
         method.insertText += '()';
         method.fullName = method.name + '()';
-        if (!method.comment) {
-            method.comment = getSimpleClass(method.returnType) + ':' + method.name + '()';
-        }
+        // if (!method.comment) {
+        //     method.comment = getSimpleClass(method.returnType) + '.' + method.name + '()';
+        // }
         method.signature = method.name;
     }
     return method;

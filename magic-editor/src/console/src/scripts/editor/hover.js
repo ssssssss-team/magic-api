@@ -31,9 +31,9 @@ const findBestMatch = (node, row, col) => {
     }
     return null;
 }
-const generateMethodDocument = (prefix,method, contents) => {
+const generateMethodDocument = (prefix, method, contents) => {
     contents.push({value: `${prefix}${method.fullName}`})
-    contents.push({value: `${method.comment}`})
+    method.comment && contents.push({value: `${method.comment}`})
     method.parameters.forEach((param, pIndex) => {
         if (pIndex > 0 || !method.extension) {
             contents.push({value: `${param.name}：${(param.comment || param.type)}`})

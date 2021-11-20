@@ -114,6 +114,12 @@ class FunctionCall extends Node {
     }
 
     async getJavaType(env) {
+        if(this.target instanceof VariableAccess){
+            const method = JavaClass.findFunction().find(method => method.name === this.target.variable)
+            if(method){
+                return method.returnType
+            }
+        }
         return await this.target.getJavaType(env);
     }
 }
