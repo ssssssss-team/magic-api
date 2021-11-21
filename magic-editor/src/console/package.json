@@ -1,6 +1,6 @@
 {
   "name": "magic-editor",
-  "version": "1.6.4",
+  "version": "1.7.0",
   "private": false,
   "description": "magic-editor for magic-api",
   "main": "dist/magic-editor.umd.min.js",
