@@ -9,6 +9,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -84,9 +85,11 @@ public class RequestHandler extends MagicController {
 	@Valid(requireLogin = false)
 	public Object invoke(HttpServletRequest request, HttpServletResponse response,
 						 @PathVariable(required = false) Map<String, Object> pathVariables,
-						 @RequestHeader(required = false) Map<String, Object> headers,
+						 @RequestHeader(required = false) Map<String, Object> defaultHeaders,
 						 @RequestParam(required = false) Map<String, Object> parameters) throws Throwable {
 		String sessionId = null;
+		Map<String, Object> headers = new LinkedCaseInsensitiveMap<>();
+		headers.putAll(defaultHeaders);
 		boolean requestedFromTest = configuration.isEnableWeb() && (sessionId = request.getHeader(HEADER_REQUEST_SESSION)) != null;
 		RequestEntity requestEntity = new RequestEntity(request, response, requestedFromTest, parameters, pathVariables);
 		ApiInfo info = requestEntity.getApiInfo();
