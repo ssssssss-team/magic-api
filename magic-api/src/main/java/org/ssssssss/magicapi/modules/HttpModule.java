@@ -23,7 +23,7 @@ public class HttpModule implements MagicModule {
 
 	private final RestTemplate template;
 	private final HttpHeaders httpHeaders = new HttpHeaders();
-	private final Class<?> responseType = Object.class;
+	private Class<?> responseType = Object.class;
 	private final MultiValueMap<String, Object> params = new LinkedMultiValueMap<>();
 	private final MultiValueMap<String, Object> data = new LinkedMultiValueMap<>();
 	private final Map<String, ?> variables = new HashMap<>();
@@ -131,32 +131,38 @@ public class HttpModule implements MagicModule {
 		return this;
 	}
 
+	@Comment("设置返回值为`byte[]`")
+	public HttpModule expectBytes() {
+		this.responseType = byte[].class;
+		return this;
+	}
+
 	@Comment("发送`POST`请求")
-	public ResponseEntity<Object> post() {
+	public ResponseEntity<?> post() {
 		this.method(HttpMethod.POST);
 		return this.execute();
 	}
 
 	@Comment("发送`GET`请求")
-	public ResponseEntity<Object> get() {
+	public ResponseEntity<?> get() {
 		this.method(HttpMethod.GET);
 		return this.execute();
 	}
 
 	@Comment("发送`PUT`请求")
-	public ResponseEntity<Object> put() {
+	public ResponseEntity<?> put() {
 		this.method(HttpMethod.PUT);
 		return this.execute();
 	}
 
 	@Comment("发送`DELETE`请求")
-	public ResponseEntity<Object> delete() {
+	public ResponseEntity<?> delete() {
 		this.method(HttpMethod.DELETE);
 		return this.execute();
 	}
 
 	@Comment("执行请求")
-	public ResponseEntity<Object> execute() {
+	public ResponseEntity<?> execute() {
 		if (!this.params.isEmpty()) {
 			String queryString = this.params.entrySet().stream()
 					.map(it -> it.getValue().stream()
@@ -174,6 +180,6 @@ public class HttpModule implements MagicModule {
 		} else {
 			this.entity = new HttpEntity<>(null, this.httpHeaders);
 		}
-		return template.exchange(url, this.method, entity, Object.class, responseType, variables);
+		return template.exchange(url, this.method, entity, responseType, variables);
 	}
 }
