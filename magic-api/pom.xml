@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.ssssssss</groupId>
         <artifactId>magic-api-parent</artifactId>
-        <version>1.7.0</version>
+        <version>1.7.1</version>
     </parent>
     <artifactId>magic-api</artifactId>
     <packaging>jar</packaging>
