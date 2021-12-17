@@ -299,9 +299,9 @@ const quickSuggestions = [
     ['ife', 'if (${1:condition}) {\r\n\t$2\r\n} else { \r\n\t$3\r\n}', '判断'],
     ['for', 'for (item in ${1:collection}) {\r\n\t$2\r\n}', '循环集合'],
     ['exit', 'exit ${1:code}, ${2:message};', '退出'],
-    ['info', 'log.info($1);', 'info日志'],
-    ['debug', 'log.debug($1);', 'debug日志'],
-    ['err', 'log.error($1);', 'error日志'],
+    ['logi', 'log.info($1);', 'info日志'],
+    ['logd', 'log.debug($1);', 'debug日志'],
+    ['loge', 'log.error($1);', 'error日志'],
     ['ass', 'assert ${1:condition} : ${2:code}, ${3:message}', '校验参数']
 ]
 

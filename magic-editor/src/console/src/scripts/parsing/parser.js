@@ -589,14 +589,9 @@ export class Parser {
             }
             if (this.stream.match(TokenType.StringLiteral, false)) {
                 key = this.stream.expect(TokenType.StringLiteral);
-            } else if (this.stream.match(TokenType.LeftBracket, false)) {	// [key]
-                let opening = this.stream.expect(TokenType.LeftBracket).getSpan();
-                this.stream.expect(TokenType.Identifier);
-                let closing = this.stream.expect(TokenType.RightBracket).getSpan();
-                let span = new Span(opening, closing);
-                let dynamicKey = span.getText();
-                dynamicKey = dynamicKey.substring(1, dynamicKey.length - 1);
-                key = new VariableAccess(span, dynamicKey);
+            } else if (this.stream.match(TokenType.LeftBracket, true)) {	// [key]
+                key = this.parseExpression()
+                this.stream.expect(TokenType.RightBracket);
             } else {
                 key = this.stream.expect(TokenType.Identifier);
             }
