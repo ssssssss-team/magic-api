@@ -424,10 +424,11 @@ class Import extends Node {
 }
 
 class VarDefine extends Node {
-    constructor(span, varName, expression) {
+    constructor(span, varName, expression, defineType) {
         super(span)
         this.varName = varName;
         this.expression = expression;
+        this.defineType = defineType
     }
 
     getVarName() {
@@ -439,7 +440,12 @@ class VarDefine extends Node {
     }
 
     async getJavaType(env) {
-        let type = await this.expression.getJavaType(env);
+        let type = 'java.lang.Object'
+        if(this.defineType){
+            type = env[this.defineType] || type
+        }else if(this.expression){
+            type = await this.expression.getJavaType(env);
+        }
         env[this.varName] = type
         return type
     }

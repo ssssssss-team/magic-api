@@ -339,9 +339,9 @@ export class Parser {
         this.checkKeyword(token.getSpan());
         let varDefine;
         if (this.stream.match(TokenType.Assignment, true)) {
-            varDefine = new VarDefine(new Span(opening, this.stream.getPrev().getSpan()), token.getText(), this.parseExpression());
+            varDefine = new VarDefine(new Span(opening, this.stream.getPrev().getSpan()), token.getText(), this.parseExpression(), opening.getText());
         } else {
-            varDefine = new VarDefine(new Span(opening, this.stream.getPrev().getSpan()), token.getText(), null);
+            varDefine = new VarDefine(new Span(opening, this.stream.getPrev().getSpan()), token.getText(), null, opening.getText());
         }
         return varDefine;
     }
