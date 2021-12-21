@@ -3,8 +3,30 @@ import {CharacterStream, LiteralToken, ParseException, Token, TokenStream, Token
 const regexpToken = (stream, tokens) => {
     if (tokens.length > 0) {
         let token = tokens[tokens.length - 1];
-        if (token instanceof LiteralToken || token.getTokenType() === TokenType.Identifier) {
+        if (token instanceof LiteralToken) {
             return false;
+        }
+        switch (token.getTokenType()){
+            case TokenType.Comma :			// ,
+            case TokenType.Semicolon :		// ;
+            case TokenType.Colon:			// :
+            case TokenType.RightCurly:		// }
+            case TokenType.LeftBracket:		// [
+            case TokenType.LeftParantheses:	// (
+            case TokenType.Assignment:		// =
+            case TokenType.NotEqual:		// !=
+            case TokenType.EqualEqualEqual:	// ===
+            case TokenType.NotEqualEqual:	// !==
+            case TokenType.Equal:			// ==
+            case TokenType.And:				// &&
+            case TokenType.Or:				// ||
+            case TokenType.SqlAnd:			// and
+            case TokenType.SqlOr:			// or
+            case TokenType.SqlNotEqual:		// <>
+            case TokenType.Questionmark:	// ?
+            case TokenType.Lambda:			// => ->
+                break;
+            default: return false;
         }
     }
     if (stream.match("/", false)) {
