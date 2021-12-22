@@ -1,10 +1,12 @@
 <template>
-  <div ref="container" class="ma-log" @contextmenu.prevent="e=>onContextMenu(e)">
-    <div v-for="(item, key) in logs" :class="{ multiple: item.multiple, more: item.showMore }" :key="'run_log_' + key">
-      <pre v-html="item.html"></pre>
-      <span v-if="item.multiple" class="multiple" @click="item.showMore = !item.showMore">
+  <div class="ma-log-wrapper" @contextmenu.prevent="e=>onContextMenu(e)">
+    <div ref="container" class="ma-log">
+      <div v-for="(item, key) in logs" :class="{ multiple: item.multiple, more: item.showMore }" :key="'run_log_' + key">
+        <pre v-html="item.html"></pre>
+        <span v-if="item.multiple" class="multiple" @click="item.showMore = !item.showMore">
         {{ item.showMore ? '点击隐藏多行日志' : `有 ${item.lines} 行日志被隐藏 点击显示`}}
       </span>
+      </div>
     </div>
   </div>
 </template>
@@ -64,13 +66,18 @@ export default {
 </script>
 
 <style scoped>
-.ma-log {
+.ma-log-wrapper{
+  position: relative;
   overflow: auto;
-  font-size: 13.5px;
+  width: 100%;
   height: 100%;
   background: var(--run-log-background);
-  padding-top: 5px;
-  padding-left: 5px;
+  padding: 5px;
+}
+.ma-log {
+  position: absolute;
+  font-size: 13.5px;
+  height: 100%;
 }
 
 .ma-log > div pre{
