@@ -44,27 +44,29 @@ export const linqKeywords = ["from", "join", "left", "group", "by", "as", "havin
 const binaryOperatorPrecedence = [
     [TokenType.Assignment],
     [TokenType.RShift2Equal, TokenType.RShiftEqual, TokenType.LShiftEqual, TokenType.XorEqual, TokenType.BitOrEqual, TokenType.BitAndEqual, TokenType.PercentEqual, TokenType.ForwardSlashEqual, TokenType.AsteriskEqual, TokenType.MinusEqual, TokenType.PlusEqual],
-    [TokenType.Or, TokenType.And, TokenType.SqlOr, TokenType.SqlAnd],
+    [TokenType.Or, TokenType.SqlOr],
+    [TokenType.And, TokenType.SqlAnd]
     [TokenType.BitOr],
     [TokenType.Xor],
     [TokenType.BitAnd],
     [TokenType.EqualEqualEqual, TokenType.Equal, TokenType.NotEqualEqual, TokenType.NotEqual, TokenType.SqlNotEqual],
-    [TokenType.Plus, TokenType.Minus],
     [TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual],
+    [TokenType.Plus, TokenType.Minus],
     [TokenType.LShift, TokenType.RShift, TokenType.RShift2],
-    [TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage]
+    [TokenType.Asterisk, TokenType.ForwardSlash, TokenType.Percentage]
 ];
 const linqBinaryOperatorPrecedence = [
     [TokenType.RShift2Equal, TokenType.RShiftEqual, TokenType.LShiftEqual, TokenType.XorEqual, TokenType.BitOrEqual, TokenType.BitAndEqual, TokenType.PercentEqual, TokenType.ForwardSlashEqual, TokenType.AsteriskEqual, TokenType.MinusEqual, TokenType.PlusEqual],
-    [TokenType.Or, TokenType.And, TokenType.SqlOr, TokenType.SqlAnd, TokenType.Xor],
+    [TokenType.Or, TokenType.SqlOr],
+    [TokenType.And, TokenType.SqlAnd]
     [TokenType.BitOr],
     [TokenType.Xor],
     [TokenType.BitAnd],
     [TokenType.Assignment, TokenType.EqualEqualEqual, TokenType.Equal, TokenType.NotEqualEqual, TokenType.Equal, TokenType.NotEqual, TokenType.SqlNotEqual],
-    [TokenType.Plus, TokenType.Minus],
     [TokenType.Less, TokenType.LessEqual, TokenType.Greater, TokenType.GreaterEqual],
+    [TokenType.Plus, TokenType.Minus],
     [TokenType.LShift, TokenType.RShift, TokenType.RShift2],
-    [TokenType.ForwardSlash, TokenType.Asterisk, TokenType.Percentage]
+    [TokenType.Asterisk, TokenType.ForwardSlash, TokenType.Percentage]
 ]
 const unaryOperators = [TokenType.MinusMinus, TokenType.PlusPlus, TokenType.BitNot, TokenType.Minus, TokenType.Plus, TokenType.Not];
 
