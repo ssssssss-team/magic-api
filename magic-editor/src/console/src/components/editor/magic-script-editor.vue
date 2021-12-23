@@ -719,7 +719,8 @@ export default {
           reader.readAsText(data)
           reader.onload = function() {
             try{
-              resolve(JSON.parse(this.result))
+              JSON.parse(this.result)
+              resolve(this.result)
             }catch(e){
               resolve(data)
             }

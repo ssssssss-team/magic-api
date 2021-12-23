@@ -1,15 +1,11 @@
 import request from "@/api/request";
-
+const Beautifier = require('./beautifier/javascript/beautifier').Beautifier
 const replaceURL = (url) => url.replace(/:?\/+/g, e => e.indexOf(':') > -1 ? e : '/');
 const isVisible = (elem) => elem && !!(elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length);
 const formatJson = (val, defaultVal) => {
     if (val) {
         if (typeof val == 'string') {
-            try {
-                val = JSON.parse(val);
-            } catch (ignored) {
-                return val;
-            }
+            return new Beautifier(val).beautify()
         }
         if (val) {
             return JSON.stringify(val, null, 4);
@@ -104,8 +100,8 @@ const goToAnchor = (dom) => {
 
 /**
  * 获取url中的参数
- * @param {String} variable 
- * @returns 
+ * @param {String} variable
+ * @returns
  */
 const getQueryVariable = (variable) => {
   var query = window.location.search.substring(1)
