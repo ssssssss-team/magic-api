@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.modules;
 
 import org.ssssssss.magicapi.context.RequestContext;
 import org.ssssssss.magicapi.interceptor.SQLInterceptor;
+import org.ssssssss.magicapi.model.RequestEntity;
 import org.ssssssss.magicapi.modules.mybatis.MybatisParser;
 import org.ssssssss.magicapi.modules.mybatis.SqlNode;
 import org.ssssssss.script.MagicScriptContext;
@@ -211,8 +212,17 @@ public class BoundSql {
 	/**
 	 * 获取缓存值
 	 */
-	<T> T getCacheValue(List<SQLInterceptor> interceptors, Supplier<T> supplier) {
-		interceptors.forEach(interceptor -> interceptor.preHandle(this, RequestContext.getRequestEntity()));
-		return getCacheValue(this.getSql(), this.getParameters(), supplier);
+	@SuppressWarnings("unchecked")
+	<T> T execute(List<SQLInterceptor> interceptors, Supplier<T> supplier) {
+		RequestEntity requestEntity = RequestContext.getRequestEntity();
+		interceptors.forEach(interceptor -> interceptor.preHandle(this, requestEntity));
+		Supplier<T> newSupplier = () -> {
+			Object result = supplier.get();
+			for (SQLInterceptor interceptor : interceptors) {
+				result = interceptor.postHandle(this, result, requestEntity);
+			}
+			return (T) result;
+		};
+		return getCacheValue(this.getSql(), this.getParameters(), newSupplier);
 	}
 }

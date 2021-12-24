@@ -329,7 +329,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@UnableCall
 	public List<Map<String, Object>> select(BoundSql boundSql) {
 		assertDatasourceNotNull();
-		return boundSql.getCacheValue(this.sqlInterceptors, () -> queryForList(boundSql));
+		return boundSql.execute(this.sqlInterceptors, () -> queryForList(boundSql));
 	}
 
 	private List<Map<String, Object>> queryForList(BoundSql boundSql) {
@@ -542,7 +542,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 				dialect = dataSourceNode.getDialect(dialectAdapter);
 			}
 			BoundSql pageBoundSql = buildPageBoundSql(dialect, boundSql, page.getOffset(), page.getLimit());
-			list = pageBoundSql.getCacheValue(this.sqlInterceptors, () -> queryForList(pageBoundSql));
+			list = pageBoundSql.execute(this.sqlInterceptors, () -> queryForList(pageBoundSql));
 		}
 		RequestEntity requestEntity = RequestContext.getRequestEntity();
 		return resultProvider.buildPageResult(requestEntity, page, count, list);
@@ -579,7 +579,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@UnableCall
 	public Integer selectInt(BoundSql boundSql) {
 		assertDatasourceNotNull();
-		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), new SingleRowResultSetExtractor<>(Integer.class), boundSql.getParameters()));
+		return boundSql.execute(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), new SingleRowResultSetExtractor<>(Integer.class), boundSql.getParameters()));
 	}
 
 	/**
@@ -604,7 +604,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@UnableCall
 	public Map<String, Object> selectOne(BoundSql boundSql) {
 		assertDatasourceNotNull();
-		return boundSql.getCacheValue(this.sqlInterceptors, () -> {
+		return boundSql.execute(this.sqlInterceptors, () -> {
 			Map<String, Object> row = dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), new SingleRowResultSetExtractor<>(this.columnMapRowMapper), boundSql.getParameters());
 			if (row != null && boundSql.getExcludeColumns() != null) {
 				boundSql.getExcludeColumns().forEach(row::remove);
@@ -631,7 +631,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 							  @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
 		assertDatasourceNotNull();
 		BoundSql boundSql = new BoundSql(runtimeContext, sqlOrXml, params, this);
-		return boundSql.getCacheValue(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), new SingleRowResultSetExtractor<>(Object.class), boundSql.getParameters()));
+		return boundSql.execute(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), new SingleRowResultSetExtractor<>(Object.class), boundSql.getParameters()));
 	}
 
 	@Comment("指定table，进行单表操作")
