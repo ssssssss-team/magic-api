@@ -368,12 +368,16 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@UnableCall
 	public int update(BoundSql boundSql) {
 		assertDatasourceNotNull();
-		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql, RequestContext.getRequestEntity()));
-		int value = dataSourceNode.getJdbcTemplate().update(boundSql.getSql(), boundSql.getParameters());
+		RequestEntity requestEntity = RequestContext.getRequestEntity();
+		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql, requestEntity));
+		Object value = dataSourceNode.getJdbcTemplate().update(boundSql.getSql(), boundSql.getParameters());
 		if (this.cacheName != null) {
 			this.sqlCache.delete(this.cacheName);
 		}
-		return value;
+		for (SQLInterceptor sqlInterceptor : sqlInterceptors) {
+			value = sqlInterceptor.postHandle(boundSql, value, requestEntity);
+		}
+		return (int) value;
 	}
 
 	/**
@@ -382,7 +386,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@Comment("执行insert操作，返回插入主键")
 	public Object insert(RuntimeContext runtimeContext,
 						 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml) {
-		return insert(runtimeContext, sqlOrXml, (Map<String, Object>) null);
+		return insert(runtimeContext, sqlOrXml, null, null);
 	}
 
 	/**
@@ -392,9 +396,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	public Object insert(RuntimeContext runtimeContext,
 						 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
 						 @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
-		MagicKeyHolder magicKeyHolder = new MagicKeyHolder();
-		insert(new BoundSql(runtimeContext, sqlOrXml, params, this), magicKeyHolder);
-		return magicKeyHolder.getObjectKey();
+		return insert(runtimeContext, sqlOrXml, null, params);
 	}
 
 	/**
@@ -420,7 +422,6 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 
 	void insert(BoundSql boundSql, MagicKeyHolder keyHolder) {
 		assertDatasourceNotNull();
-		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql, RequestContext.getRequestEntity()));
 		dataSourceNode.getJdbcTemplate().update(con -> {
 			PreparedStatement ps = keyHolder.createPrepareStatement(con, boundSql.getSql());
 			new ArgumentPreparedStatementSetter(boundSql.getParameters()).setValues(ps);
@@ -453,8 +454,14 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	@UnableCall
 	public Object insert(BoundSql boundSql, String primary) {
 		MagicKeyHolder keyHolder = new MagicKeyHolder(primary);
+		RequestEntity requestEntity = RequestContext.getRequestEntity();
+		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql, requestEntity));
 		insert(boundSql, keyHolder);
-		return keyHolder.getObjectKey();
+		Object value = keyHolder.getObjectKey();
+		for (SQLInterceptor sqlInterceptor : sqlInterceptors) {
+			value = sqlInterceptor.postHandle(boundSql, value, requestEntity);
+		}
+		return value;
 	}
 
 	/**
