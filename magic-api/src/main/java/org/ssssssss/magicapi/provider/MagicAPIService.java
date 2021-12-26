@@ -24,7 +24,7 @@ public interface MagicAPIService extends MagicModule {
 	 * @param context 变量信息
 	 * @return 返回执行结果
 	 */
-	Object execute(String method, String path, Map<String, Object> context);
+	<T> T execute(String method, String path, Map<String, Object> context);
 
 	/**
 	 * 执行MagicAPI中的接口,带code和message信息
@@ -34,7 +34,7 @@ public interface MagicAPIService extends MagicModule {
 	 * @param context 变量信息
 	 * @return 返回执行结果，包装JsonBena处理
 	 */
-	Object call(String method, String path, Map<String, Object> context);
+	<T> T call(String method, String path, Map<String, Object> context);
 
 	/**
 	 * 执行MagicAPI中的函数
@@ -43,7 +43,7 @@ public interface MagicAPIService extends MagicModule {
 	 * @param context 变量信息
 	 * @return 返回函数执行结果
 	 */
-	Object invoke(String path, Map<String, Object> context);
+	<T> T invoke(String path, Map<String, Object> context);
 
 	/**
 	 * 保存接口

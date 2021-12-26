@@ -147,19 +147,21 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
-	public Object execute(String method, String path, Map<String, Object> context) {
+	@SuppressWarnings("unchecked")
+	public <T> T execute(String method, String path, Map<String, Object> context) {
 		ApiInfo info = this.mappingHandlerMapping.getApiInfo(method, path);
 		if (info == null) {
 			throw new MagicResourceNotFoundException(String.format("找不到对应接口 [%s:%s]", method, path));
 		}
-		return execute(info, context);
+		return (T) execute(info, context);
 	}
 
 	@Override
-	public Object call(String method, String path, Map<String, Object> context) {
+	@SuppressWarnings("unchecked")
+	public <T> T call(String method, String path, Map<String, Object> context) {
 		RequestEntity requestEntity = RequestEntity.empty();
 		try {
-			return resultProvider.buildResult(requestEntity, execute(method, path, context));
+			return (T) resultProvider.buildResult(requestEntity, execute(method, path, context));
 		} catch (MagicResourceNotFoundException e) {
 			//找不到对应接口
 			return null;
@@ -167,12 +169,13 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			if (throwException) {
 				throw root;
 			}
-			return resultProvider.buildResult(requestEntity, root);
+			return (T) resultProvider.buildResult(requestEntity, root);
 		}
 	}
 
 	@Override
-	public Object invoke(String path, Map<String, Object> context) {
+	@SuppressWarnings("unchecked")
+	public <T> T invoke(String path, Map<String, Object> context) {
 		FunctionInfo functionInfo = magicFunctionManager.getFunctionInfo(path);
 		if (functionInfo == null) {
 			throw new MagicResourceNotFoundException(String.format("找不到对应函数 [%s]", path));
@@ -180,7 +183,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		MagicScriptContext scriptContext = new MagicScriptContext(context);
 		scriptContext.setScriptName(groupServiceProvider.getScriptName(functionInfo.getGroupId(), functionInfo.getName(), functionInfo.getPath()));
 		scriptContext.putMapIntoContext(context);
-		return ScriptManager.executeScript(functionInfo.getScript(), scriptContext);
+		return (T) ScriptManager.executeScript(functionInfo.getScript(), scriptContext);
 	}
 
 	@Override
