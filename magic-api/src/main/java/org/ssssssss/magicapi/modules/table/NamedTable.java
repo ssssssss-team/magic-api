@@ -291,6 +291,9 @@ public class NamedTable extends Attributes<Object> {
 		if (StringUtils.isBlank(this.primary)) {
 			throw new MagicAPIException("请设置主键");
 		}
+		if (data != null) {
+			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
+		}
 		String primaryValue = Objects.toString(this.columns.get(this.primary), "");
 		if (StringUtils.isBlank(primaryValue) && data != null) {
 			primaryValue = Objects.toString(data.get(this.primary), "");
