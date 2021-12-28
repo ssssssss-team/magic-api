@@ -45,7 +45,7 @@ const binaryOperatorPrecedence = [
     [TokenType.Assignment],
     [TokenType.RShift2Equal, TokenType.RShiftEqual, TokenType.LShiftEqual, TokenType.XorEqual, TokenType.BitOrEqual, TokenType.BitAndEqual, TokenType.PercentEqual, TokenType.ForwardSlashEqual, TokenType.AsteriskEqual, TokenType.MinusEqual, TokenType.PlusEqual],
     [TokenType.Or, TokenType.SqlOr],
-    [TokenType.And, TokenType.SqlAnd]
+    [TokenType.And, TokenType.SqlAnd],
     [TokenType.BitOr],
     [TokenType.Xor],
     [TokenType.BitAnd],
@@ -58,7 +58,7 @@ const binaryOperatorPrecedence = [
 const linqBinaryOperatorPrecedence = [
     [TokenType.RShift2Equal, TokenType.RShiftEqual, TokenType.LShiftEqual, TokenType.XorEqual, TokenType.BitOrEqual, TokenType.BitAndEqual, TokenType.PercentEqual, TokenType.ForwardSlashEqual, TokenType.AsteriskEqual, TokenType.MinusEqual, TokenType.PlusEqual],
     [TokenType.Or, TokenType.SqlOr],
-    [TokenType.And, TokenType.SqlAnd]
+    [TokenType.And, TokenType.SqlAnd],
     [TokenType.BitOr],
     [TokenType.Xor],
     [TokenType.BitAnd],
