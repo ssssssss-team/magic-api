@@ -161,7 +161,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	public <T> T call(String method, String path, Map<String, Object> context) {
 		RequestEntity requestEntity = RequestEntity.empty();
 		try {
-			return (T) resultProvider.buildResult(requestEntity, execute(method, path, context));
+			return (T) resultProvider.buildResult(requestEntity, (Object)execute(method, path, context));
 		} catch (MagicResourceNotFoundException e) {
 			//找不到对应接口
 			return null;
