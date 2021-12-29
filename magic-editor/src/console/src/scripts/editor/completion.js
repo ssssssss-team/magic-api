@@ -302,6 +302,7 @@ const quickSuggestions = [
     ['logi', 'log.info($1);', 'info日志'],
     ['logd', 'log.debug($1);', 'debug日志'],
     ['loge', 'log.error($1);', 'error日志'],
+    ['logw', 'log.warn($1);', 'warn日志'],
     ['ass', 'assert ${1:condition} : ${2:code}, ${3:message}', '校验参数']
 ]
 
