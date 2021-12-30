@@ -11,8 +11,12 @@ import org.ssssssss.magicapi.interceptor.MagicUser;
 import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.MagicBackupService;
+import org.ssssssss.magicapi.service.MagicResourceService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Controller 基类
@@ -53,31 +57,19 @@ public class MagicController implements JsonCodeConstants {
 		return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization);
 	}
 
-	/**
-	 * 判断是否有权限访问接口
-	 */
-	boolean allowVisit(HttpServletRequest request, Authorization authorization, ApiInfo apiInfo) {
+	boolean allowVisit(HttpServletRequest request, Authorization authorization, MagicEntity entity) {
 		if (authorization == null) {
 			return true;
 		}
 		MagicUser magicUser = (MagicUser) request.getAttribute(Constants.ATTRIBUTE_MAGIC_USER);
-		return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization, apiInfo);
-	}
-
-	/**
-	 * 判断是否有权限访问函数
-	 */
-	boolean allowVisit(HttpServletRequest request, Authorization authorization, FunctionInfo functionInfo) {
-		if (authorization == null) {
-			return true;
+		if (entity instanceof ApiInfo) {
+			return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization, (ApiInfo) entity);
+		} else if (entity instanceof FunctionInfo) {
+			return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization, (FunctionInfo) entity);
 		}
-		MagicUser magicUser = (MagicUser) request.getAttribute(Constants.ATTRIBUTE_MAGIC_USER);
-		return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization, functionInfo);
+		return false;
 	}
 
-	/**
-	 * 判断是否有权限访问分组
-	 */
 	boolean allowVisit(HttpServletRequest request, Authorization authorization, Group group) {
 		if (authorization == null) {
 			return true;
@@ -86,15 +78,18 @@ public class MagicController implements JsonCodeConstants {
 		return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization, group);
 	}
 
-	/**
-	 * 判断是否有权限访问分组
-	 */
-	boolean allowVisit(HttpServletRequest request, Authorization authorization, DataSourceInfo dataSourceInfo) {
-		if (authorization == null) {
-			return true;
-		}
-		MagicUser magicUser = (MagicUser) request.getAttribute(Constants.ATTRIBUTE_MAGIC_USER);
-		return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization, dataSourceInfo);
+	List<MagicEntity> entities(HttpServletRequest request, Authorization authorization) {
+		MagicResourceService service = configuration.getMagicResourceService();
+		return service.tree()
+				.values()
+				.stream()
+				.flatMap(it -> it.flat().stream())
+				.filter(it -> !Constants.ROOT_ID.equals(it.getId()))
+				.filter(it -> allowVisit(request, authorization))
+				.flatMap(it -> service.listFiles(it.getId()).stream())
+				.filter(it -> allowVisit(request, authorization, it))
+				.filter(it -> Objects.nonNull(it.getScript()))
+				.collect(Collectors.toList());
 	}
 
 	@ExceptionHandler(MagicLoginException.class)

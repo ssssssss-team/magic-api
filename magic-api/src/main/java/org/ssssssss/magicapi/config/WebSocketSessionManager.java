@@ -15,23 +15,21 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * WebSocket Session 管理
- *
- * @author mxd
- */
 public class WebSocketSessionManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(WebSocketSessionManager.class);
 
-	private static final Map<String, MagicConsoleSession> SESSION = new ConcurrentHashMap<>();
+	private static final Map<String, MagicConsoleSession> SESSIONS = new ConcurrentHashMap<>();
 
 	private static MagicNotifyService magicNotifyService;
+
+	private static final Map<String, MagicScriptDebugContext> CONTEXTS = new ConcurrentHashMap<>();
 
 	private static String instanceId;
 
 	public static void add(MagicConsoleSession session) {
-		SESSION.put(session.getId(), session);
+		SESSIONS.put(session.getId(), session);
+		sendBySession(session, buildMessage(MessageType.SESSION_ID, session.getId()));
 	}
 
 	public static void remove(MagicConsoleSession session) {
@@ -41,7 +39,7 @@ public class WebSocketSessionManager {
 	}
 
 	public static void remove(String sessionId) {
-		SESSION.remove(sessionId);
+		SESSIONS.remove(sessionId);
 	}
 
 	public static void sendToAll(MessageType messageType, Object... values) {
@@ -50,7 +48,7 @@ public class WebSocketSessionManager {
 	}
 
 	private static void sendToAll(String content) {
-		SESSION.values().stream().filter(MagicConsoleSession::writeable).forEach(session -> sendBySession(session, content));
+		SESSIONS.values().stream().filter(MagicConsoleSession::writeable).forEach(session -> sendBySession(session, content));
 		sendToOther(null, content);
 	}
 
@@ -107,8 +105,8 @@ public class WebSocketSessionManager {
 	}
 
 	public static MagicConsoleSession findSession(String sessionId) {
-		return SESSION.values().stream()
-				.filter(it -> Objects.equals(sessionId, it.getSessionId()))
+		return SESSIONS.values().stream()
+				.filter(it -> Objects.equals(sessionId, it.getId()))
 				.findFirst()
 				.orElse(null);
 	}
@@ -121,13 +119,16 @@ public class WebSocketSessionManager {
 		WebSocketSessionManager.instanceId = instanceId;
 	}
 
-	public static void createSession(String sessionId, MagicScriptDebugContext debugContext) {
-		MagicConsoleSession consoleSession = findSession(sessionId);
-		if (consoleSession == null) {
-			consoleSession = new MagicConsoleSession(sessionId, debugContext);
-			SESSION.put(sessionId, consoleSession);
-		} else {
-			consoleSession.setMagicScriptDebugContext(debugContext);
-		}
+	public static void addMagicScriptContext(String sessionAndScriptId, MagicScriptDebugContext context) {
+		CONTEXTS.put(sessionAndScriptId, context);
 	}
+
+	public static MagicScriptDebugContext findMagicScriptContext(String sessionAndScriptId) {
+		return CONTEXTS.get(sessionAndScriptId);
+	}
+
+	public static void removeMagicScriptContext(String sessionAndScriptId) {
+		CONTEXTS.remove(sessionAndScriptId);
+	}
+
 }

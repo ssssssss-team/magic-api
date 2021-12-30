@@ -1,77 +1,117 @@
 package org.ssssssss.magicapi.model;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+public class DataSourceInfo extends MagicEntity {
 
-/**
- * 数据源信息
- *
- * @author mxd
- */
-public class DataSourceInfo extends Attributes<String> implements Map<String, String> {
+	/**
+	 * URL
+	 */
+	private String url;
 
-	public String getId() {
-		return get("id");
+	/**
+	 * 用户名
+	 */
+	private String username;
+
+	/**
+	 * 密码
+	 */
+	private String password;
+
+	/**
+	 * 数据源key
+	 */
+	private String key;
+
+	/**
+	 * 最多返回条数
+	 */
+	private int maxRows;
+
+	/**
+	 * 驱动类
+	 */
+	private String driverClassName;
+
+	/**
+	 * 连接池类型
+	 */
+	private String type;
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
+	}
+
+	public int getMaxRows() {
+		return maxRows;
+	}
+
+	public void setMaxRows(int maxRows) {
+		this.maxRows = maxRows;
+	}
+
+	public String getDriverClassName() {
+		return driverClassName;
+	}
+
+	public void setDriverClassName(String driverClassName) {
+		this.driverClassName = driverClassName;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	@Override
-	public int size() {
-		return properties.size();
+	public MagicEntity simple() {
+		DataSourceInfo dataSourceInfo = new DataSourceInfo();
+		super.simple(dataSourceInfo);
+		dataSourceInfo.setKey(this.key);
+		return dataSourceInfo;
 	}
 
 	@Override
-	public boolean isEmpty() {
-		return properties.isEmpty();
-	}
-
-	@Override
-	public boolean containsKey(Object key) {
-		return properties.containsKey(key);
-	}
-
-	@Override
-	public boolean containsValue(Object value) {
-		return properties.containsValue(value);
-	}
-
-	@Override
-	public String get(Object key) {
-		return properties.get(key);
-	}
-
-	@Override
-	public String put(String key, String value) {
-		return properties.put(key, value);
-	}
-
-	@Override
-	public String remove(Object key) {
-		return properties.remove(key);
-	}
-
-	@Override
-	public void putAll(Map<? extends String, ? extends String> m) {
-		properties.putAll(m);
-	}
-
-	@Override
-	public void clear() {
-		properties.clear();
-	}
-
-	@Override
-	public Set<String> keySet() {
-		return properties.keySet();
-	}
-
-	@Override
-	public Collection<String> values() {
-		return properties.values();
-	}
-
-	@Override
-	public Set<Entry<String, String>> entrySet() {
-		return properties.entrySet();
+	public MagicEntity copy() {
+		DataSourceInfo dataSourceInfo = new DataSourceInfo();
+		super.copyTo(dataSourceInfo);
+		dataSourceInfo.setUsername(this.username);
+		dataSourceInfo.setPassword(this.password);
+		dataSourceInfo.setUrl(this.url);
+		dataSourceInfo.setDriverClassName(this.driverClassName);
+		dataSourceInfo.setType(this.type);
+		dataSourceInfo.setMaxRows(this.maxRows);
+		dataSourceInfo.setKey(this.key);
+		return dataSourceInfo;
 	}
 }

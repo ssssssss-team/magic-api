@@ -9,11 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * 接口跨域处理
- *
- * @author mxd
- */
 public class MagicCorsFilter implements Filter {
 
 	@Override
@@ -41,7 +36,7 @@ public class MagicCorsFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
-		if (StringUtils.isNotBlank(Constants.HEADER_REQUEST_SESSION)) {
+		if (StringUtils.isNotBlank(Constants.HEADER_REQUEST_SESSION_ID)) {
 			process(request, (HttpServletResponse) resp);
 		}
 		chain.doFilter(req, resp);

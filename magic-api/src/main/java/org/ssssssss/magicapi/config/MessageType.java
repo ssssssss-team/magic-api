@@ -1,9 +1,7 @@
 package org.ssssssss.magicapi.config;
 
 /**
- * WebSocket 消息类型
- *
- * @author mxd
+ * 消息类型
  */
 public enum MessageType {
 	/* S -> C message */
@@ -13,14 +11,14 @@ public enum MessageType {
 	BREAKPOINT,
 	/* 请求接口发生异常 */
 	EXCEPTION,
+	/* 发送给客户端的sessionId */
+	SESSION_ID,
 
 	/* C -> S message */
 	/* 设置断点 */
 	SET_BREAKPOINT,
 	/* 恢复断点 */
 	RESUME_BREAKPOINT,
-	/* 设置 Session ID */
-	SET_SESSION_ID,
 	/* 登录 */
 	LOGIN
 }

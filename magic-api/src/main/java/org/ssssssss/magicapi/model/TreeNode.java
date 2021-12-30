@@ -2,13 +2,8 @@ package org.ssssssss.magicapi.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Predicate;
 
-/**
- * 树形结构
- *
- * @author mxd
- */
 public class TreeNode<T> {
 
 	private T node;
@@ -39,16 +34,16 @@ public class TreeNode<T> {
 	}
 
 
-	public TreeNode<T> findTreeNode(Function<T, Boolean> mapping) {
-		return findTreeNode(this.children, mapping);
+	public TreeNode<T> findTreeNode(Predicate<T> predicate) {
+		return findTreeNode(this.children, predicate);
 	}
 
-	private TreeNode<T> findTreeNode(List<TreeNode<T>> childs, Function<T, Boolean> mapping) {
+	private TreeNode<T> findTreeNode(List<TreeNode<T>> childs, Predicate<T> predicate) {
 		for (TreeNode<T> child : childs) {
-			if (mapping.apply(child.getNode())) {
+			if (predicate.test(child.getNode())) {
 				return child;
 			}
-			TreeNode<T> node = findTreeNode(child.children, mapping);
+			TreeNode<T> node = findTreeNode(child.children, predicate);
 			if (node != null) {
 				return node;
 			}
@@ -71,5 +66,9 @@ public class TreeNode<T> {
 			result.addAll(flat(item));
 		}
 		return result;
+	}
+
+	public void addChild(TreeNode<T> node) {
+		this.children.add(node);
 	}
 }

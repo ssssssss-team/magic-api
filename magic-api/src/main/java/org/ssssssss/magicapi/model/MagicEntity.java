@@ -1,11 +1,8 @@
 package org.ssssssss.magicapi.model;
 
-/**
- * 接口、函数信息基类
- *
- * @author mxd
- */
-public class MagicEntity extends Attributes<Object> implements Cloneable {
+import java.util.Objects;
+
+public class MagicEntity extends Attributes<Object> {
 
 	protected String id;
 
@@ -20,6 +17,10 @@ public class MagicEntity extends Attributes<Object> implements Cloneable {
 	protected Long updateTime;
 
 	protected String lock;
+
+	protected String createBy;
+
+	protected String updateBy;
 
 	public String getId() {
 		return id;
@@ -77,12 +78,61 @@ public class MagicEntity extends Attributes<Object> implements Cloneable {
 		this.lock = lock;
 	}
 
+	public String getCreateBy() {
+		return createBy;
+	}
+
+	public void setCreateBy(String createBy) {
+		this.createBy = createBy;
+	}
+
+	public String getUpdateBy() {
+		return updateBy;
+	}
+
+	public void setUpdateBy(String updateBy) {
+		this.updateBy = updateBy;
+	}
+
 	@Override
-	public MagicEntity clone() {
-		try {
-			return (MagicEntity) super.clone();
-		} catch (CloneNotSupportedException e) {
-			return this;
-		}
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof MagicEntity)) return false;
+		MagicEntity that = (MagicEntity) o;
+		return Objects.equals(id, that.id) && Objects.equals(script, that.script) && Objects.equals(groupId, that.groupId) && Objects.equals(name, that.name);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, script, groupId, name);
+	}
+
+	public MagicEntity copy() {
+		MagicEntity entity = new MagicEntity();
+		copyTo(entity);
+		return entity;
+	}
+
+	public MagicEntity simple() {
+		MagicEntity entity = new MagicEntity();
+		simple(entity);
+		return entity;
+	}
+
+	protected void simple(MagicEntity entity) {
+		entity.setId(this.id);
+		entity.setName(this.name);
+		entity.setGroupId(this.groupId);
+		entity.setCreateBy(this.createBy);
+		entity.setCreateTime(this.createTime);
+		entity.setUpdateBy(this.updateBy);
+		entity.setUpdateTime(this.updateTime);
+		entity.setLock(this.lock);
+	}
+
+	protected void copyTo(MagicEntity entity) {
+		simple(entity);
+		entity.setScript(this.script);
+		entity.setProperties(this.properties);
 	}
 }

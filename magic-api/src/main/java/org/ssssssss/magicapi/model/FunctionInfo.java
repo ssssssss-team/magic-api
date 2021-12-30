@@ -7,14 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * 函数信息
- *
- * @author mxd
- */
-public class FunctionInfo extends MagicEntity {
-
-	private String path;
+public class FunctionInfo extends PathMagicEntity {
 
 	private String description;
 
@@ -37,7 +30,6 @@ public class FunctionInfo extends MagicEntity {
 			this.parameters = JsonUtils.readValue(Objects.toString(parameter, "[]"), new TypeReference<List<Parameter>>() {
 			});
 		} catch (Throwable ignored) {
-			// ignored
 		}
 	}
 
@@ -75,12 +67,8 @@ public class FunctionInfo extends MagicEntity {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
 		FunctionInfo functionInfo = (FunctionInfo) o;
 		return Objects.equals(id, functionInfo.id) &&
 				Objects.equals(path, functionInfo.path) &&
@@ -92,25 +80,25 @@ public class FunctionInfo extends MagicEntity {
 				Objects.equals(returnType, functionInfo.returnType);
 	}
 
+	public FunctionInfo copy() {
+		FunctionInfo info = new FunctionInfo();
+		super.copyTo(info);
+		info.setDescription(this.description);
+		info.setParameters(this.parameters);
+		info.setMappingPath(this.mappingPath);
+		info.setReturnType(this.returnType);
+		return info;
+	}
+
+	@Override
+	public MagicEntity simple() {
+		FunctionInfo info = new FunctionInfo();
+		super.simple(info);
+		return info;
+	}
 
 	@Override
 	public int hashCode() {
 		return Objects.hash(id, path, script, name, groupId, parameters, description, returnType);
-	}
-
-	public FunctionInfo copy() {
-		FunctionInfo info = new FunctionInfo();
-		info.setId(this.id);
-		info.setName(this.name);
-		info.setGroupId(this.groupId);
-		info.setScript(this.script);
-		info.setDescription(this.description);
-		info.setParameters(this.parameters);
-		info.setPath(this.path);
-		info.setMappingPath(this.mappingPath);
-		info.setReturnType(this.returnType);
-		info.setProperties(this.properties);
-		info.setLock(this.lock);
-		return info;
 	}
 }

@@ -80,12 +80,17 @@ public enum DataType {
 	MultipartFiles(findInvoker(RequestModule.class, "getFiles", new Class<?>[]{String.class}), true, false, "file");
 
 
-	public static String[] DATE_PATTERNS;
 	private boolean isNumber;
+
 	private JavaInvoker<Method> invoker;
+
 	private boolean needName;
+
 	private boolean needValue;
+
 	private String javascriptType;
+
+	public static String[] DATE_PATTERNS;
 
 	DataType(boolean isNumber, JavaInvoker<Method> invoker, boolean needName, boolean needValue, String javascriptType) {
 		this.isNumber = isNumber;
@@ -108,10 +113,6 @@ public enum DataType {
 		this.javascriptType = javascriptType;
 	}
 
-	public static java.util.Date parseDate(String value) throws ParseException {
-		return DateUtils.parseDate(value, DATE_PATTERNS);
-	}
-
 	public boolean isNumber() {
 		return isNumber;
 	}
@@ -130,5 +131,9 @@ public enum DataType {
 
 	public java.lang.String getJavascriptType() {
 		return javascriptType;
+	}
+
+	public static java.util.Date parseDate(String value) throws ParseException {
+		return DateUtils.parseDate(value, DATE_PATTERNS);
 	}
 }

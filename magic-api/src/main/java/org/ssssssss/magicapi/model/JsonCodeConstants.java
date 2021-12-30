@@ -3,11 +3,6 @@ package org.ssssssss.magicapi.model;
 import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.magicapi.exception.InvalidArgumentException;
 
-/**
- * JSON状态码常量
- *
- * @author mxd
- */
 public interface JsonCodeConstants {
 
 	JsonCode SUCCESS = new JsonCode(1, Constants.RESPONSE_MESSAGE_SUCCESS);
@@ -18,17 +13,27 @@ public interface JsonCodeConstants {
 
 	JsonCode GROUP_NOT_FOUND = new JsonCode(0, "找不到分组信息");
 
+	JsonCode NOT_SUPPORTED_GROUP_TYPE = new JsonCode(0, "不支持该分组类型");
+
 	JsonCode TARGET_IS_REQUIRED = new JsonCode(0, "目标网址不能为空");
 
 	JsonCode SECRET_KEY_IS_REQUIRED = new JsonCode(0, "secretKey不能为空");
 
-	JsonCode NAME_CONFLICT = new JsonCode(0, "移动后名称会重复，请修改名称后在试。");
+	JsonCode MOVE_NAME_CONFLICT = new JsonCode(0, "移动后名称会重复，请修改名称后在试。");
+
+	JsonCode FILE_NOT_FOUND = new JsonCode(0, "找不到对应文件或分组");
 
 	JsonCode RESOURCE_LOCKED = new JsonCode(0, "当前资源已被锁定，请解锁后在操作。");
 
 	JsonCode REQUEST_PATH_CONFLICT = new JsonCode(0, "该路径已被映射,请换一个请求方法或路径");
 
+	JsonCode PATH_CONFLICT = new JsonCode(0, "该路径已被使用,请换一个路径在试");
+
+	JsonCode MOVE_PATH_CONFLICT = new JsonCode(0, "移动后路径会冲突,请换一个路径在试");
+
 	JsonCode FUNCTION_PATH_CONFLICT = new JsonCode(0, "该路径已被映射,请换一个请求方法或路径");
+
+	JsonCode WEBSOCKET_PATH_CONFLICT = new JsonCode(0, "该路径已被映射,请换一个请求方法或路径");
 
 	JsonCode REQUEST_METHOD_REQUIRED = new JsonCode(0, "请求方法不能为空");
 
@@ -36,15 +41,39 @@ public interface JsonCodeConstants {
 
 	JsonCode FUNCTION_PATH_REQUIRED = new JsonCode(0, "函数路径不能为空");
 
+	JsonCode TABLE_NAME_REQUIRED = new JsonCode(0, "表名不能为空");
+
+	JsonCode GROUP_REQUIRED = new JsonCode(0, "分组不能为空");
+
+	JsonCode TABLE_COLUMNS_REQUIRED = new JsonCode(0, "列不能为空");
+
+	JsonCode COLUMN_PROPERTY_REQUIRED = new JsonCode(0, "Java属性不能为空");
+
+	JsonCode COLUMN_JAVA_TYPE_REQUIRED = new JsonCode(0, "Java类型不能为空");
+
+	JsonCode COLUMN_NAME_REQUIRED = new JsonCode(0, "列名不能为空");
+
 	JsonCode SCRIPT_REQUIRED = new JsonCode(0, "脚本内容不能为空");
 
 	JsonCode API_NAME_REQUIRED = new JsonCode(0, "接口名称不能为空");
 
+	JsonCode NAME_REQUIRED = new JsonCode(0, "名称不能为空");
+
+	JsonCode PATH_REQUIRED = new JsonCode(0, "路径不能为空");
+
+	JsonCode DS_URL_REQUIRED = new JsonCode(0, "jdbcURL不能为空");
+
+	JsonCode DS_KEY_REQUIRED = new JsonCode(0, "key不能为空");
+
 	JsonCode GROUP_NAME_REQUIRED = new JsonCode(0, "分组名称不能为空");
+
+	JsonCode GROUP_ID_REQUIRED = new JsonCode(0, "请选择分组");
 
 	JsonCode GROUP_TYPE_REQUIRED = new JsonCode(0, "分组类型不能为空");
 
 	JsonCode FUNCTION_NAME_REQUIRED = new JsonCode(0, "函数名称不能为空");
+
+	JsonCode WEBSOCKET_NAME_REQUIRED = new JsonCode(0, "WebSocket名称不能为空");
 
 	JsonCode NAME_INVALID = new JsonCode(0, "名称不能包含特殊字符，只允许中文、数字、字母以及+_-.()的组合且不能.开头");
 
@@ -54,11 +83,15 @@ public interface JsonCodeConstants {
 
 	JsonCode FUNCTION_ALREADY_EXISTS = new JsonCode(0, "函数%s已存在或名称重复");
 
+	JsonCode WEBSOCKET_ALREADY_EXISTS = new JsonCode(0, "WebSocket[%s:%s]已存在或名称重复");
+
 	JsonCode API_SAVE_FAILURE = new JsonCode(0, "保存失败,请检查接口名称是否重复且不能包含特殊字符。");
 
 	JsonCode FUNCTION_SAVE_FAILURE = new JsonCode(0, "保存失败,请检查函数名称是否重复且不能包含特殊字符。");
 
-	JsonCode GROUP_SAVE_FAILURE = new JsonCode(0, "保存失败,同一组下分组名称不能重复且不能包含特殊字符。");
+	JsonCode WEBSOCKET_SAVE_FAILURE = new JsonCode(0, "保存失败,请检查WebSocket名称是否重复且不能包含特殊字符。");
+
+	JsonCode FILE_SAVE_FAILURE = new JsonCode(0, "保存失败,同一组下分组名称不能重复且不能包含特殊字符。");
 
 	JsonCode GROUP_CONFLICT = new JsonCode(-20, "修改分组后，名称或路径会有冲突，请检查！");
 
@@ -80,6 +113,8 @@ public interface JsonCodeConstants {
 
 	JsonCode FUNCTION_NOT_FOUND = new JsonCode(1002, "function not found");
 
+	JsonCode WEBSOCKET_NOT_FOUND = new JsonCode(1003, "websocket not found");
+
 	JsonCode DATASOURCE_KEY_REQUIRED = new JsonCode(0, "数据源Key不能为空");
 
 	JsonCode DATASOURCE_KEY_EXISTS = new JsonCode(0, "数据源%s已存在或名称重复");
@@ -89,36 +124,18 @@ public interface JsonCodeConstants {
 
 	JsonCode DATASOURCE_TYPE_NOT_SET = new JsonCode(0, "请设置数据源类型");
 
-	/**
-	 * 值不能为空
-	 *
-	 * @param value    值
-	 * @param jsonCode 值为空时的状态码
-	 */
 	default void notNull(Object value, JsonCode jsonCode) {
 		if (value == null) {
 			throw new InvalidArgumentException(jsonCode);
 		}
 	}
 
-	/**
-	 * 值应为true
-	 *
-	 * @param value    值
-	 * @param jsonCode 值为false的状态码
-	 */
 	default void isTrue(boolean value, JsonCode jsonCode) {
 		if (!value) {
 			throw new InvalidArgumentException(jsonCode);
 		}
 	}
 
-	/**
-	 * 值不能为空
-	 *
-	 * @param value    值
-	 * @param jsonCode 值为空的状态码
-	 */
 	default void notBlank(String value, JsonCode jsonCode) {
 		isTrue(StringUtils.isNotBlank(value), jsonCode);
 	}

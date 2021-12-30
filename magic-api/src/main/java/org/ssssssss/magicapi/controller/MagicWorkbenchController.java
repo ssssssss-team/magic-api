@@ -8,10 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.ResourceUtils;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
@@ -44,17 +41,15 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * UI上其它相关操作
- *
- * @author mxd
- */
 public class MagicWorkbenchController extends MagicController implements MagicExceptionHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicWorkbenchController.class);
-	private static final Pattern SINGLE_LINE_COMMENT_TODO = Pattern.compile("((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n]+");
-	private static final Pattern MULTI_LINE_COMMENT_TODO = Pattern.compile("((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n(?!*/)]+");
+
 	private final String secretKey;
+
+	private static final Pattern SINGLE_LINE_COMMENT_TODO = Pattern.compile("((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n]+");
+
+	private static final Pattern MULTI_LINE_COMMENT_TODO = Pattern.compile("((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n(?!*/)]+");
 
 	public MagicWorkbenchController(MagicConfiguration configuration, String secretKey) {
 		super(configuration);
@@ -67,7 +62,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	/**
 	 * 获取所有class
 	 */
-	@RequestMapping("/classes")
+	@PostMapping("/classes")
 	@ResponseBody
 	@Valid(requireLogin = false)
 	public JsonBean<Map<String, Object>> classes() {
@@ -85,7 +80,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	 *
 	 * @param className 类名
 	 */
-	@RequestMapping("/class")
+	@PostMapping("/class")
 	@ResponseBody
 	public JsonBean<Set<ScriptClass>> clazz(String className) {
 		return new JsonBean<>(MagicScriptEngine.getScriptClass(className));
@@ -94,7 +89,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	/**
 	 * 登录
 	 */
-	@RequestMapping("/login")
+	@PostMapping("/login")
 	@ResponseBody
 	@Valid(requireLogin = false)
 	public JsonBean<Boolean> login(String username, String password, HttpServletRequest request, HttpServletResponse response) throws MagicLoginException {
@@ -114,7 +109,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		return new JsonBean<>(true);
 	}
 
-	@RequestMapping("/user")
+	@PostMapping("/user")
 	@ResponseBody
 	public JsonBean<MagicUser> user(HttpServletRequest request) {
 		if (configuration.getAuthorizationInterceptor().requireLogin()) {
@@ -127,7 +122,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		return new JsonBean<>(MagicUser.guest());
 	}
 
-	@RequestMapping("/logout")
+	@PostMapping("/logout")
 	@ResponseBody
 	@Valid(requireLogin = false)
 	public JsonBean<Void> logout(HttpServletRequest request) {
@@ -135,16 +130,12 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		return new JsonBean<>();
 	}
 
-	@RequestMapping("/refresh")
+	@PostMapping("/refresh")
 	@ResponseBody
 	@Valid
 	public JsonBean<Void> refresh() {
-		// 重新注册接口
-		configuration.getMappingHandlerMapping().registerAllMapping();
-		// 重新注册函数
-		configuration.getMagicFunctionManager().registerAllFunction();
-		// 重新注册数据源
-		magicAPIService.registerAllDataSource();
+		// 刷新缓存
+		configuration.getMagicResourceService().refresh();
 		// 发送更新通知
 		configuration.getMagicNotifyService().sendNotify(new MagicNotify(configuration.getInstanceId()));
 		return new JsonBean<>();
@@ -158,50 +149,38 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		return new JsonBean<>(Stream.of(Options.values()).map(item -> Arrays.asList(item.getValue(), item.getName(), item.getDefaultValue())).collect(Collectors.toList()));
 	}
 
-	@RequestMapping("/search")
+	@GetMapping("/search")
 	@ResponseBody
 	@Valid
-	public JsonBean<List<Map<String, Object>>> search(String keyword, String type) {
+	public JsonBean<List<Map<String, Object>>> search(String keyword, HttpServletRequest request) {
 		if (StringUtils.isBlank(keyword)) {
 			return new JsonBean<>(Collections.emptyList());
 		}
-		List<MagicEntity> entities = new ArrayList<>();
-		if (!Constants.GROUP_TYPE_FUNCTION.equals(type)) {
-			entities.addAll(configuration.getMappingHandlerMapping().getApiInfos());
-		}
-		if (!Constants.GROUP_TYPE_API.equals(type)) {
-			entities.addAll(configuration.getMagicFunctionManager().getFunctionInfos());
-		}
-		return new JsonBean<>(entities.stream().filter(it -> it.getScript().contains(keyword)).map(it -> {
-			String script = it.getScript();
-			int index = script.indexOf(keyword);
-			int endIndex = script.indexOf("\n", index + keyword.length());
-			index = script.lastIndexOf("\n", index) + 1;
-			Span span = new Span(script, index, endIndex == -1 ? script.length() : endIndex);
-			return new HashMap<String, Object>() {
-				{
-					put("id", it.getId());
-					put("text", span.getText().trim());
-					put("line", span.getLine().getLineNumber());
-					put("type", it instanceof ApiInfo ? 1 : 2);
-				}
-			};
-		}).collect(Collectors.toList()));
+		return new JsonBean<>(entities(request, Authorization.VIEW)
+				.stream()
+				.filter(it -> it.getScript().contains(keyword))
+				.map(it -> {
+					String script = it.getScript();
+					int index = script.indexOf(keyword);
+					int endIndex = script.indexOf("\n", index + keyword.length());
+					index = script.lastIndexOf("\n", index) + 1;
+					Span span = new Span(script, index, endIndex == -1 ? script.length() : endIndex);
+					return new HashMap<String, Object>() {
+						{
+							put("id", it.getId());
+							put("text", span.getText().trim());
+							put("line", span.getLine().getLineNumber());
+						}
+					};
+				}).collect(Collectors.toList()));
 	}
 
-	@RequestMapping("/todo")
+	@GetMapping("/todo")
 	@ResponseBody
 	@Valid
 	public JsonBean<List<Map<String, Object>>> todo(HttpServletRequest request) {
-		List<MagicEntity> entities = configuration.getMappingHandlerMapping()
-				.getApiInfos()
-				.stream()
-				.filter(it -> allowVisit(request, Authorization.VIEW, it))
-				.collect(Collectors.toList());
-		entities.addAll(configuration.getMagicFunctionManager().getFunctionInfos().stream()
-				.filter(it -> allowVisit(request, Authorization.VIEW, it))
-				.collect(Collectors.toList()));
-		List<Map<String, Object>> result = new ArrayList<>();
+		List<MagicEntity> entities = entities(request, Authorization.VIEW);
+		List<Map<String, Object>> result = new ArrayList<>(entities.size());
 		for (MagicEntity entity : entities) {
 			try {
 				List<Span> comments = Tokenizer.tokenize(entity.getScript(), true).comments();
@@ -215,7 +194,6 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 								put("id", entity.getId());
 								put("text", matcher.group(0).trim());
 								put("line", comment.getLine().getLineNumber());
-								put("type", entity instanceof ApiInfo ? 1 : 2);
 							}
 						});
 					}

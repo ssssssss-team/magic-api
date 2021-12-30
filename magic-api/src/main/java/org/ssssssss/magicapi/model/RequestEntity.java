@@ -1,6 +1,5 @@
 package org.ssssssss.magicapi.model;
 
-import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 
@@ -9,8 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.ssssssss.magicapi.model.Constants.HEADER_REQUEST_BREAKPOINTS;
-import static org.ssssssss.magicapi.model.Constants.HEADER_REQUEST_SESSION;
+import static org.ssssssss.magicapi.model.Constants.*;
 
 /**
  * 请求信息
@@ -36,38 +34,7 @@ public class RequestEntity {
 
 	}
 
-	public RequestEntity(HttpServletRequest request, HttpServletResponse response, boolean requestedFromTest, Map<String, Object> parameters, Map<String, Object> pathVariables) {
-		this.request = request;
-		this.response = response;
-		this.requestedFromTest = requestedFromTest;
-		this.parameters = parameters;
-		this.pathVariables = pathVariables;
-		ApiInfo info = MappingHandlerMapping.getMappingApiInfo(request);
-		this.apiInfo = info != null ? info.copy() : null;
-	}
-
-	public RequestEntity(ApiInfo apiInfo, HttpServletRequest request, HttpServletResponse response, boolean requestedFromTest, Map<String, Object> parameters, Map<String, Object> pathVariables) {
-		this.apiInfo = apiInfo;
-		this.request = request;
-		this.response = response;
-		this.requestedFromTest = requestedFromTest;
-		this.parameters = parameters;
-		this.pathVariables = pathVariables;
-	}
-
-	public RequestEntity(HttpServletRequest request, HttpServletResponse response, boolean requestedFromTest, Map<String, Object> parameters, Map<String, Object> pathVariables, MagicScriptContext magicScriptContext, Map<String, Object> headers) {
-		ApiInfo info = MappingHandlerMapping.getMappingApiInfo(request);
-		this.apiInfo = info != null ? info.copy() : null;
-		this.request = request;
-		this.response = response;
-		this.requestedFromTest = requestedFromTest;
-		this.parameters = parameters;
-		this.pathVariables = pathVariables;
-		this.magicScriptContext = magicScriptContext;
-		this.headers = headers;
-	}
-
-	public static RequestEntity empty() {
+	public static RequestEntity create() {
 		return new RequestEntity();
 	}
 
@@ -75,32 +42,36 @@ public class RequestEntity {
 		return apiInfo;
 	}
 
-	public void setApiInfo(ApiInfo apiInfo) {
+	public RequestEntity info(ApiInfo apiInfo) {
 		this.apiInfo = apiInfo;
+		return this;
 	}
 
 	public HttpServletRequest getRequest() {
 		return request;
 	}
 
-	public void setRequest(HttpServletRequest request) {
+	public RequestEntity request(HttpServletRequest request) {
 		this.request = request;
+		return this;
 	}
 
 	public HttpServletResponse getResponse() {
 		return response;
 	}
 
-	public void setResponse(HttpServletResponse response) {
+	public RequestEntity response(HttpServletResponse response) {
 		this.response = response;
+		return this;
 	}
 
 	public boolean isRequestedFromTest() {
 		return requestedFromTest;
 	}
 
-	public void setRequestedFromTest(boolean requestedFromTest) {
+	public RequestEntity requestedFromTest(boolean requestedFromTest) {
 		this.requestedFromTest = requestedFromTest;
+		return this;
 	}
 
 	public boolean isRequestedFromDebug() {
@@ -111,16 +82,18 @@ public class RequestEntity {
 		return parameters;
 	}
 
-	public void setParameters(Map<String, Object> parameters) {
+	public RequestEntity parameters(Map<String, Object> parameters) {
 		this.parameters = parameters;
+		return this;
 	}
 
 	public Map<String, Object> getPathVariables() {
 		return pathVariables;
 	}
 
-	public void setPathVariables(Map<String, Object> pathVariables) {
+	public RequestEntity pathVariables(Map<String, Object> pathVariables) {
 		this.pathVariables = pathVariables;
+		return this;
 	}
 
 	public Long getRequestTime() {
@@ -131,16 +104,18 @@ public class RequestEntity {
 		return magicScriptContext;
 	}
 
-	public void setMagicScriptContext(MagicScriptContext magicScriptContext) {
+	public RequestEntity setMagicScriptContext(MagicScriptContext magicScriptContext) {
 		this.magicScriptContext = magicScriptContext;
+		return this;
 	}
 
 	public Map<String, Object> getHeaders() {
 		return headers;
 	}
 
-	public void setHeaders(Map<String, Object> headers) {
+	public RequestEntity setHeaders(Map<String, Object> headers) {
 		this.headers = headers;
+		return this;
 	}
 
 	public String getRequestId() {
@@ -154,15 +129,23 @@ public class RequestEntity {
 		return this.requestBody;
 	}
 
-	public void setRequestBody(Object requestBody) {
+	public RequestEntity setRequestBody(Object requestBody) {
 		this.requestBody = requestBody;
+		return this;
+	}
+
+	/**
+	 * 获取测试scriptId
+	 */
+	public String getRequestedScriptId() {
+		return request.getHeader(HEADER_REQUEST_SCRIPT_ID);
 	}
 
 	/**
 	 * 获取测试sessionId
 	 */
 	public String getRequestedSessionId() {
-		return request.getHeader(HEADER_REQUEST_SESSION);
+		return request.getHeader(HEADER_REQUEST_SESSION_ID);
 	}
 
 	/**

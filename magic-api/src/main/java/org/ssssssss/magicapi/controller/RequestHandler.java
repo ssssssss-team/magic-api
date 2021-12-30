@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.config.MagicConfiguration;
-import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.context.CookieContext;
@@ -28,6 +27,7 @@ import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.modules.ResponseModule;
 import org.ssssssss.magicapi.provider.ResultProvider;
 import org.ssssssss.magicapi.script.ScriptManager;
+import org.ssssssss.magicapi.service.impl.RequestMagicDynamicRegistry;
 import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.magicapi.utils.PatternUtils;
 import org.ssssssss.script.MagicScriptContext;
@@ -66,8 +66,11 @@ public class RequestHandler extends MagicController {
 			CONTENT_TYPE, DATE, SERVER, SET_COOKIE, CONNECTION, CONTENT_LENGTH, CONTENT_ENCODING, TRANSFER_ENCODING, VARY);
 	private final ResultProvider resultProvider;
 
-	public RequestHandler(MagicConfiguration configuration) {
+	private final RequestMagicDynamicRegistry requestMagicDynamicRegistry;
+
+	public RequestHandler(MagicConfiguration configuration, RequestMagicDynamicRegistry requestMagicDynamicRegistry) {
 		super(configuration);
+		this.requestMagicDynamicRegistry = requestMagicDynamicRegistry;
 		this.resultProvider = configuration.getResultProvider();
 	}
 
@@ -90,8 +93,14 @@ public class RequestHandler extends MagicController {
 		String sessionId = null;
 		Map<String, Object> headers = new LinkedCaseInsensitiveMap<>();
 		headers.putAll(defaultHeaders);
-		boolean requestedFromTest = configuration.isEnableWeb() && (sessionId = request.getHeader(HEADER_REQUEST_SESSION)) != null;
-		RequestEntity requestEntity = new RequestEntity(request, response, requestedFromTest, parameters, pathVariables);
+		boolean requestedFromTest = configuration.isEnableWeb() && (sessionId = request.getHeader(HEADER_REQUEST_SESSION_ID)) != null && request.getHeader(HEADER_REQUEST_SCRIPT_ID) != null;
+		RequestEntity requestEntity = RequestEntity.create()
+				.info(requestMagicDynamicRegistry.getApiInfoFromRequest(request))
+				.request(request)
+				.response(response)
+				.requestedFromTest(requestedFromTest)
+				.pathVariables(pathVariables)
+				.parameters(parameters);
 		ApiInfo info = requestEntity.getApiInfo();
 		if (info == null) {
 			logger.error("{}找不到对应接口", request.getRequestURI());
@@ -99,14 +108,14 @@ public class RequestHandler extends MagicController {
 		}
 		requestEntity.setHeaders(headers);
 		List<Path> paths = new ArrayList<>(info.getPaths());
-		MappingHandlerMapping.findGroups(info.getGroupId())
-				.stream()
-				.flatMap(it -> it.getPaths().stream())
-				.filter(it -> !paths.contains(it))
-				.forEach(paths::add);
+//		MappingHandlerMapping.findGroups(info.getGroupId())
+//				.stream()
+//				.flatMap(it -> it.getPaths().stream())
+//				.filter(it -> !paths.contains(it))
+//				.forEach(paths::add);
 		Object bodyValue = readRequestBody(requestEntity.getRequest());
 		requestEntity.setRequestBody(bodyValue);
-		String scriptName = configuration.getGroupServiceProvider().getScriptName(info.getGroupId(), info.getName(), info.getPath());
+		String scriptName = "123";
 		MagicScriptContext context = createMagicScriptContext(scriptName, requestEntity);
 		requestEntity.setMagicScriptContext(context);
 		try {
@@ -159,12 +168,16 @@ public class RequestHandler extends MagicController {
 			return afterCompletion(requestEntity, value);
 		}
 		if (requestedFromTest) {
+			String sessionAndScriptId = requestEntity.getRequestedSessionId() + requestEntity.getRequestedScriptId();
 			try {
+				if (context instanceof MagicScriptDebugContext) {
+					WebSocketSessionManager.addMagicScriptContext(sessionAndScriptId, (MagicScriptDebugContext) context);
+				}
 				MagicLoggerContext.SESSION.set(sessionId);
 				return invokeRequest(requestEntity);
 			} finally {
 				MagicLoggerContext.remove();
-				WebSocketSessionManager.remove(sessionId);
+				WebSocketSessionManager.removeMagicScriptContext(sessionAndScriptId);
 			}
 		} else {
 			return invokeRequest(requestEntity);
@@ -346,7 +359,7 @@ public class RequestHandler extends MagicController {
 		if (se != null && requestEntity.isRequestedFromTest()) {
 			Span.Line line = se.getLine();
 			WebSocketSessionManager.sendBySessionId(requestEntity.getRequestedSessionId(), EXCEPTION, Arrays.asList(
-					requestEntity.getRequestedSessionId(),
+					requestEntity.getRequestedScriptId(),
 					se.getSimpleMessage(),
 					line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol())
 			));
@@ -387,18 +400,18 @@ public class RequestHandler extends MagicController {
 		MagicScriptContext context;
 		// TODO 安全校验
 		if (requestEntity.isRequestedFromDebug() && breakpoints.size() > 0) {
-			MagicScriptDebugContext debugContext = new MagicScriptDebugContext(breakpoints);
+			MagicScriptDebugContext debugContext = new MagicScriptDebugContext(requestEntity.getRequestedBreakpoints());
+			String scriptId = requestEntity.getRequestedScriptId();
 			String sessionId = requestEntity.getRequestedSessionId();
 			debugContext.setTimeout(configuration.getDebugTimeout());
-			debugContext.setId(sessionId);
+			debugContext.setId(scriptId);
 			debugContext.setCallback(variables -> {
 				List<Map<String, Object>> varList = (List<Map<String, Object>>) variables.get("variables");
 				varList.stream().filter(it -> it.containsKey("value")).forEach(variable -> {
 					variable.put("value", JsonUtils.toJsonStringWithoutLog(variable.get("value")));
 				});
-				WebSocketSessionManager.sendBySessionId(sessionId, BREAKPOINT, variables);
+				WebSocketSessionManager.sendBySessionId(sessionId, BREAKPOINT, scriptId, variables);
 			});
-			WebSocketSessionManager.createSession(sessionId, debugContext);
 			context = debugContext;
 		} else {
 			context = new MagicScriptContext();

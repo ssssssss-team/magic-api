@@ -5,50 +5,32 @@ import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.controller.RequestHandler;
 import org.ssssssss.magicapi.interceptor.AuthorizationInterceptor;
 import org.ssssssss.magicapi.interceptor.RequestInterceptor;
-import org.ssssssss.magicapi.provider.*;
+import org.ssssssss.magicapi.model.MagicEntity;
+import org.ssssssss.magicapi.provider.MagicAPIService;
+import org.ssssssss.magicapi.provider.MagicBackupService;
+import org.ssssssss.magicapi.provider.MagicNotifyService;
+import org.ssssssss.magicapi.provider.ResultProvider;
+import org.ssssssss.magicapi.service.MagicDynamicRegistry;
+import org.ssssssss.magicapi.service.MagicResourceService;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 配置信息
- *
- * @author mxd
- */
 public class MagicConfiguration {
 
 	/**
 	 * 拦截器
 	 */
 	private final List<RequestInterceptor> requestInterceptors = new ArrayList<>();
-	/**
-	 * 接口映射
-	 */
-	private MappingHandlerMapping mappingHandlerMapping;
-	/**
-	 * 函数管理
-	 */
-	private MagicFunctionManager magicFunctionManager;
+
 	/**
 	 * 编辑器配置文件
 	 */
 	private String editorConfig;
-	/**
-	 * 接口查询Service
-	 */
-	private ApiServiceProvider apiServiceProvider;
-
-	/**
-	 * 分组查询Service
-	 */
-	private GroupServiceProvider groupServiceProvider;
-
-	/**
-	 * 函数查询Service
-	 */
-	private FunctionServiceProvider functionServiceProvider;
 
 	private MagicAPIService magicAPIService;
+
+	private MagicDynamicDataSource magicDynamicDataSource;
 
 	/**
 	 * 请求出错时，是否抛出异常
@@ -72,6 +54,10 @@ public class MagicConfiguration {
 
 	private MagicBackupService magicBackupService;
 
+	private MagicResourceService magicResourceService;
+
+	private List<MagicDynamicRegistry<? extends MagicEntity>> magicDynamicRegistries;
+
 	/**
 	 * debug 超时时间
 	 */
@@ -81,14 +67,6 @@ public class MagicConfiguration {
 
 	public void addRequestInterceptor(RequestInterceptor requestInterceptor) {
 		this.requestInterceptors.add(requestInterceptor);
-	}
-
-	public MappingHandlerMapping getMappingHandlerMapping() {
-		return mappingHandlerMapping;
-	}
-
-	public void setMappingHandlerMapping(MappingHandlerMapping mappingHandlerMapping) {
-		this.mappingHandlerMapping = mappingHandlerMapping;
 	}
 
 	public AuthorizationInterceptor getAuthorizationInterceptor() {
@@ -101,22 +79,6 @@ public class MagicConfiguration {
 
 	public List<RequestInterceptor> getRequestInterceptors() {
 		return requestInterceptors;
-	}
-
-	public ApiServiceProvider getApiServiceProvider() {
-		return apiServiceProvider;
-	}
-
-	public void setApiServiceProvider(ApiServiceProvider apiServiceProvider) {
-		this.apiServiceProvider = apiServiceProvider;
-	}
-
-	public GroupServiceProvider getGroupServiceProvider() {
-		return groupServiceProvider;
-	}
-
-	public void setGroupServiceProvider(GroupServiceProvider groupServiceProvider) {
-		this.groupServiceProvider = groupServiceProvider;
 	}
 
 	public boolean isThrowException() {
@@ -157,22 +119,6 @@ public class MagicConfiguration {
 
 	public void setEnableWeb(boolean enableWeb) {
 		this.enableWeb = enableWeb;
-	}
-
-	public FunctionServiceProvider getFunctionServiceProvider() {
-		return functionServiceProvider;
-	}
-
-	public void setFunctionServiceProvider(FunctionServiceProvider functionServiceProvider) {
-		this.functionServiceProvider = functionServiceProvider;
-	}
-
-	public MagicFunctionManager getMagicFunctionManager() {
-		return magicFunctionManager;
-	}
-
-	public void setMagicFunctionManager(MagicFunctionManager magicFunctionManager) {
-		this.magicFunctionManager = magicFunctionManager;
 	}
 
 	public String getEditorConfig() {
@@ -223,6 +169,30 @@ public class MagicConfiguration {
 		this.magicBackupService = magicBackupService;
 	}
 
+	public MagicDynamicDataSource getMagicDynamicDataSource() {
+		return magicDynamicDataSource;
+	}
+
+	public void setMagicDynamicDataSource(MagicDynamicDataSource magicDynamicDataSource) {
+		this.magicDynamicDataSource = magicDynamicDataSource;
+	}
+
+	public MagicResourceService getMagicResourceService() {
+		return magicResourceService;
+	}
+
+	public void setMagicResourceService(MagicResourceService magicResourceService) {
+		this.magicResourceService = magicResourceService;
+	}
+
+	public List<MagicDynamicRegistry<? extends MagicEntity>> getMagicDynamicRegistries() {
+		return magicDynamicRegistries;
+	}
+
+	public void setMagicDynamicRegistries(List<MagicDynamicRegistry<? extends MagicEntity>> magicDynamicRegistries) {
+		this.magicDynamicRegistries = magicDynamicRegistries;
+	}
+
 	/**
 	 * 打印banner
 	 */
@@ -232,6 +202,6 @@ public class MagicConfiguration {
 		System.out.println(" | |\\/| | / _` | / _` || | / __|  / _ \\  | |_) || | ");
 		System.out.println(" | |  | || (_| || (_| || || (__  / ___ \\ |  __/ | | ");
 		System.out.println(" |_|  |_| \\__,_| \\__, ||_| \\___|/_/   \\_\\|_|   |___|");
-		System.out.println("                  |___/                        " + RequestHandler.class.getPackage().getImplementationVersion());
+		System.out.println("                  |___/                    Pro " + RequestHandler.class.getPackage().getImplementationVersion());
 	}
 }

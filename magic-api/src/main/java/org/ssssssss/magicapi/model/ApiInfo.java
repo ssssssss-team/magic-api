@@ -2,29 +2,19 @@ package org.ssssssss.magicapi.model;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.ssssssss.magicapi.config.MappingHandlerMapping;
 import org.ssssssss.magicapi.utils.JsonUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 接口信息
- *
- * @author mxd
  */
-public class ApiInfo extends MagicEntity {
+public class ApiInfo extends PathMagicEntity {
 
 	/**
 	 * 请求方法
 	 */
 	private String method = "GET";
-
-	/**
-	 * 请求路径
-	 */
-	private String path;
 
 	/**
 	 * 设置的请求参数
@@ -34,7 +24,7 @@ public class ApiInfo extends MagicEntity {
 	/**
 	 * 设置的接口选项
 	 */
-	private String option;
+	private List<Option> option = new ArrayList<>();
 
 	/**
 	 * 请求体
@@ -84,47 +74,6 @@ public class ApiInfo extends MagicEntity {
 		this.method = method;
 	}
 
-	public String getPath() {
-		return path;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
-	}
-
-	public void setParameter(String parameter) {
-		if (parameter != null) {
-			parameter = parameter.trim();
-			// v0.5.0+
-			if (parameter.startsWith("[")) {
-				this.parameters = JsonUtils.readValue(Objects.toString(parameter, "[]"), new TypeReference<List<Parameter>>() {
-				});
-			} else {
-				Map<String, Object> map = JsonUtils.readValue(Objects.toString(parameter, "{}"), new TypeReference<Map<String, Object>>() {
-				});
-				Object request = map.get("request");
-				if (request instanceof Map) {
-					Map<String, Object> requestMap = (Map<String, Object>) request;
-					this.parameters = requestMap.keySet()
-							.stream()
-							.map(key -> new Parameter(key, Objects.toString(requestMap.get(key), "")))
-							.collect(Collectors.toList());
-				}
-				Object header = map.get("header");
-				if (header instanceof Map) {
-					Map<String, Object> headers = (Map<String, Object>) header;
-					this.headers = headers.keySet()
-							.stream()
-							.map(key -> new Header(key, Objects.toString(headers.get(key), "")))
-							.collect(Collectors.toList());
-				}
-				if (map.containsKey("body")) {
-					this.requestBody = Objects.toString(map.get("body"), null);
-				}
-			}
-		}
-	}
-
 	public String getResponseBody() {
 		return responseBody;
 	}
@@ -152,7 +101,7 @@ public class ApiInfo extends MagicEntity {
 	public Map<String, String> getOptionMap() {
 		Map<String, String> map = new HashMap<>();
 		if (this.jsonNode == null) {
-			return Collections.emptyMap();
+			return null;
 		} else if (this.jsonNode.isArray()) {
 			for (JsonNode node : this.jsonNode) {
 				map.put(node.get("name").asText(), node.get("value").asText());
@@ -160,14 +109,14 @@ public class ApiInfo extends MagicEntity {
 		} else {
 			this.jsonNode.fieldNames().forEachRemaining(it -> map.put(it, this.jsonNode.get(it).asText()));
 		}
-		MappingHandlerMapping.findGroups(this.groupId)
-				.stream()
-				.flatMap(it -> it.getOptions().stream())
-				.forEach(option -> {
-					if (!map.containsKey(option.getName())) {
-						map.put(option.getName(), String.valueOf(option.getValue()));
-					}
-				});
+//		MagicRequestDynamicMappingRegistry.findGroups(this.groupId)
+//				.stream()
+//				.flatMap(it -> it.getOptions().stream())
+//				.forEach(option -> {
+//					if (!map.containsKey(option.getName())) {
+//						map.put(option.getName(), String.valueOf(option.getValue()));
+//					}
+//				});
 		return map;
 	}
 
@@ -179,17 +128,12 @@ public class ApiInfo extends MagicEntity {
 		this.description = description;
 	}
 
-	public String getOption() {
+	public List<Option> getOption() {
 		return option;
 	}
 
-	public void setOption(String option) {
+	public void setOption(List<Option> option) {
 		this.option = option;
-		try {
-			this.jsonNode = new ObjectMapper().readTree(option);
-		} catch (Throwable ignored) {
-			// ignored
-		}
 	}
 
 	public List<Parameter> getParameters() {
@@ -213,10 +157,6 @@ public class ApiInfo extends MagicEntity {
 		this.headers = headers;
 	}
 
-	public void setOptionValue(String optionValue) {
-		this.setOption(optionValue);
-	}
-
 	public String getOptionValue(Options options) {
 		return getOptionValue(options.getValue());
 	}
@@ -237,12 +177,13 @@ public class ApiInfo extends MagicEntity {
 				return node.asText();
 			}
 		}
-		return MappingHandlerMapping.findGroups(this.groupId)
-				.stream()
-				.flatMap(it -> it.getOptions().stream())
-				.filter(it -> key.equals(it.getName()))
-				.findFirst()
-				.map(it -> Objects.toString(it.getValue(), null)).orElse(null);
+		return null;
+//		return MagicRequestDynamicMappingRegistry.findGroups(this.groupId)
+//				.stream()
+//				.flatMap(it -> it.getOptions().stream())
+//				.filter(it -> key.equals(it.getName()))
+//				.findFirst()
+//				.map(it -> Objects.toString(it.getValue(), null)).orElse(null);
 	}
 
 	public BaseDefinition getRequestBodyDefinition() {
@@ -263,23 +204,15 @@ public class ApiInfo extends MagicEntity {
 
 	public ApiInfo simple() {
 		ApiInfo target = new ApiInfo();
-		target.setId(this.getId());
-		target.setName(this.getName());
-		target.setGroupId(this.getGroupId());
-		target.setPath(this.getPath());
+		super.simple(target);
 		target.setMethod(this.getMethod());
-		target.setLock(this.getLock());
 		return target;
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
 		ApiInfo apiInfo = (ApiInfo) o;
 		return Objects.equals(id, apiInfo.id) &&
 				Objects.equals(method, apiInfo.method) &&
@@ -303,14 +236,11 @@ public class ApiInfo extends MagicEntity {
 		return Objects.hash(id, method, path, script, name, groupId, parameters, option, requestBody, headers, responseBody, description, requestBodyDefinition, responseBodyDefinition);
 	}
 
+	@Override
 	public ApiInfo copy() {
 		ApiInfo info = new ApiInfo();
-		info.setId(this.id);
+		copyTo(info);
 		info.setMethod(this.method);
-		info.setName(this.name);
-		info.setPath(this.path);
-		info.setScript(this.script);
-		info.setGroupId(this.groupId);
 		info.setParameters(this.parameters);
 		info.jsonNode = this.jsonNode;
 		info.setRequestBody(this.requestBody);
@@ -320,8 +250,6 @@ public class ApiInfo extends MagicEntity {
 		info.setPaths(this.paths);
 		info.setRequestBodyDefinition(this.requestBodyDefinition);
 		info.setResponseBodyDefinition(this.responseBodyDefinition);
-		info.setLock(this.lock);
-		info.setProperties(this.properties);
 		return info;
 	}
 }

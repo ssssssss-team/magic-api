@@ -38,7 +38,7 @@ public interface MagicBackupService {
 	 * @param dataSourceInfo 数据源信息
 	 */
 	default void backup(DataSourceInfo dataSourceInfo) {
-		doBackup(new Backup(dataSourceInfo.getId(), Constants.PATH_DATASOURCE, dataSourceInfo.get("name"), JsonUtils.toJsonString(dataSourceInfo)));
+		// doBackup(new Backup(dataSourceInfo.getId(), Constants.PATH_DATASOURCE, dataSourceInfo.get("name"), JsonUtils.toJsonString(dataSourceInfo)));
 	}
 
 	/**
