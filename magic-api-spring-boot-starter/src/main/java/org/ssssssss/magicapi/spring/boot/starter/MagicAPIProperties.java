@@ -148,9 +148,6 @@ public class MagicAPIProperties {
 	private DebugConfig debugConfig = new DebugConfig();
 
 	@NestedConfigurationProperty
-	private SwaggerConfig swaggerConfig = new SwaggerConfig();
-
-	@NestedConfigurationProperty
 	private ResourceConfig resource = new ResourceConfig();
 
 	@NestedConfigurationProperty
@@ -263,14 +260,6 @@ public class MagicAPIProperties {
 
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
-	}
-
-	public SwaggerConfig getSwaggerConfig() {
-		return swaggerConfig;
-	}
-
-	public void setSwaggerConfig(SwaggerConfig swaggerConfig) {
-		this.swaggerConfig = swaggerConfig;
 	}
 
 	public String getAutoImportModule() {

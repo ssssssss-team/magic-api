@@ -6,74 +6,10 @@
     <parent>
         <groupId>org.ssssssss</groupId>
         <artifactId>magic-api-parent</artifactId>
-        <version>1.7.2</version>
+        <version>2.0.0-alpha.1</version>
     </parent>
     <artifactId>magic-editor</artifactId>
     <packaging>jar</packaging>
     <name>magic-editor</name>
     <description>magic-editor</description>
-    <build>
-        <plugins>
-            <!-- npm install && npm run build -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
-                <executions>
-                    <execution>
-                        <id>exec-npm-install</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>npm</executable>
-                            <arguments>
-                                <argument>install</argument>
-                            </arguments>
-                            <workingDirectory>${basedir}/src/console</workingDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>exec-npm-run-build</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>npm</executable>
-                            <arguments>
-                                <argument>run</argument>
-                                <argument>build</argument>
-                            </arguments>
-                            <workingDirectory>${basedir}/src/console</workingDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.2.0</version>
-                <executions>
-                    <execution>
-                        <id>copy-resource</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${basedir}/target/classes/magic-editor</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${basedir}/src/console/dist</directory>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>
