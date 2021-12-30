@@ -64,8 +64,6 @@ public class ForeachSqlNode extends SqlNode {
 		if (value == null) {
 			return "";
 		}
-		// 开始拼接SQL,
-		String sql = StringUtils.defaultString(this.open);
 		// 如果集合是Collection对象或其子类，则转成数组
 		if (value instanceof Collection) {
 			value = ((Collection) value).toArray();
@@ -74,19 +72,22 @@ public class ForeachSqlNode extends SqlNode {
 		if (!value.getClass().isArray()) {
 			return "";
 		}
+		// 开始拼接SQL,
+		StringBuilder sqlBuilder = new StringBuilder(StringUtils.defaultString(this.open));
 		// 获取数组长度
 		int len = Array.getLength(value);
 		for (int i = 0; i < len; i++) {
 			// 存入item对象
 			paramMap.put(this.item, Array.get(value, i));
 			// 拼接子节点
-			sql += executeChildren(paramMap, parameters);
+			sqlBuilder.append(executeChildren(paramMap, parameters));
 			// 拼接分隔符
 			if (i + 1 < len) {
-				sql += StringUtils.defaultString(this.separator);
+				sqlBuilder.append(StringUtils.defaultString(this.separator));
 			}
 		}
 		// 拼接结束SQL
-		return sql + StringUtils.defaultString(this.close);
+		sqlBuilder.append(StringUtils.defaultString(this.close));
+		return sqlBuilder.toString();
 	}
 }

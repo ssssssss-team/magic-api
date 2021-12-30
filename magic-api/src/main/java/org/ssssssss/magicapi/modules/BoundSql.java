@@ -5,18 +5,12 @@ import org.ssssssss.magicapi.interceptor.SQLInterceptor;
 import org.ssssssss.magicapi.model.RequestEntity;
 import org.ssssssss.magicapi.modules.mybatis.MybatisParser;
 import org.ssssssss.magicapi.modules.mybatis.SqlNode;
-import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.functions.StreamExtension;
-import org.ssssssss.script.parsing.GenericTokenParser;
-import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
+import org.ssssssss.magicapi.modules.mybatis.TextSqlNode;
 import org.ssssssss.script.runtime.RuntimeContext;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * SQL参数处理
@@ -24,14 +18,6 @@ import java.util.stream.IntStream;
  * @author mxd
  */
 public class BoundSql {
-
-	private static final GenericTokenParser CONCAT_TOKEN_PARSER = new GenericTokenParser("${", "}", false);
-
-	private static final GenericTokenParser REPLACE_TOKEN_PARSER = new GenericTokenParser("#{", "}", true);
-
-	private static final GenericTokenParser IF_TOKEN_PARSER = new GenericTokenParser("?{", "}", true);
-
-	private static final GenericTokenParser IF_PARAM_TOKEN_PARSER = new GenericTokenParser("?{", ",", true);
 
 	private static final Pattern REPLACE_MULTI_WHITE_LINE = Pattern.compile("(\r?\n(\\s*\r?\n)+)");
 
@@ -91,40 +77,12 @@ public class BoundSql {
 			this.sqlOrXml = sqlNode.getSql(varMap);
 			this.parameters = sqlNode.getParameters();
 		} else {
-			normal(runtimeContext, varMap);
+			normal(varMap);
 		}
 	}
 
-	private void normal(RuntimeContext runtimeContext, Map<String, Object> varMap) {
-		MagicScriptContext context = runtimeContext.getScriptContext();
-		// 处理?{}参数
-		this.sqlOrXml = IF_TOKEN_PARSER.parse(this.sqlOrXml.trim(), text -> {
-			AtomicBoolean ifTrue = new AtomicBoolean(false);
-			String val = IF_PARAM_TOKEN_PARSER.parse("?{" + text, param -> {
-				ifTrue.set(BooleanLiteral.isTrue(context.eval(param, varMap)));
-				return null;
-			});
-			return ifTrue.get() ? val : "";
-		});
-		// 处理${}参数
-		this.sqlOrXml = CONCAT_TOKEN_PARSER.parse(this.sqlOrXml, text -> String.valueOf(context.eval(text, varMap)));
-		// 处理#{}参数
-		this.sqlOrXml = REPLACE_TOKEN_PARSER.parse(this.sqlOrXml, text -> {
-			Object value = context.eval(text, varMap);
-			if (value == null) {
-				parameters.add(null);
-				return "?";
-			}
-			try {
-				//对集合自动展开
-				List<Object> objects = StreamExtension.arrayLikeToList(value);
-				parameters.addAll(objects);
-				return IntStream.range(0, objects.size()).mapToObj(t -> "?").collect(Collectors.joining(","));
-			} catch (Exception e) {
-				parameters.add(value);
-				return "?";
-			}
-		});
+	private void normal(Map<String, Object> varMap) {
+		this.sqlOrXml = TextSqlNode.parseSql(this.sqlOrXml, varMap, parameters);
 		this.sqlOrXml = this.sqlOrXml == null ? null : REPLACE_MULTI_WHITE_LINE.matcher(this.sqlOrXml.trim()).replaceAll("\r\n");
 	}
 

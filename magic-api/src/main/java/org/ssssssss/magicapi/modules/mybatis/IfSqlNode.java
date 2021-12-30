@@ -16,7 +16,7 @@ public class IfSqlNode extends SqlNode {
 	/**
 	 * 判断表达式
 	 */
-	private String test;
+	private final String test;
 
 	public IfSqlNode(String test) {
 		this.test = test;
