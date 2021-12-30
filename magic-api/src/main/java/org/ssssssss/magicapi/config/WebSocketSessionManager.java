@@ -3,7 +3,7 @@ package org.ssssssss.magicapi.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.TextMessage;
-import org.ssssssss.magicapi.model.Constants;
+import org.ssssssss.magicapi.event.EventAction;
 import org.ssssssss.magicapi.model.MagicConsoleSession;
 import org.ssssssss.magicapi.model.MagicNotify;
 import org.ssssssss.magicapi.provider.MagicNotifyService;
@@ -65,7 +65,7 @@ public class WebSocketSessionManager {
 	private static void sendToOther(String sessionId, String content) {
 		if (magicNotifyService != null) {
 			// 通知其他机器去发送消息
-			magicNotifyService.sendNotify(new MagicNotify(instanceId, Constants.NOTIFY_WS_S_C, sessionId, content));
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, EventAction.WS_S_C, sessionId, content));
 		}
 	}
 

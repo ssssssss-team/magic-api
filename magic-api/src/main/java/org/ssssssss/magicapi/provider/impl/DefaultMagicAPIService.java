@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.provider.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -22,9 +23,6 @@ import java.io.*;
 import java.util.List;
 import java.util.Map;
 
-import static org.ssssssss.magicapi.model.Constants.NOTIFY_WS_C_S;
-import static org.ssssssss.magicapi.model.Constants.NOTIFY_WS_S_C;
-
 public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstants {
 
 	private final static Logger logger = LoggerFactory.getLogger(DefaultMagicAPIService.class);
@@ -33,14 +31,18 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	private final String instanceId;
 	private final MagicResourceService resourceService;
 
+	private final ApplicationEventPublisher publisher;
+
 	public DefaultMagicAPIService(ResultProvider resultProvider,
 								  String instanceId,
 								  MagicResourceService resourceService,
-								  boolean throwException) {
+								  boolean throwException,
+								  ApplicationEventPublisher publisher) {
 		this.resultProvider = resultProvider;
 		this.throwException = throwException;
 		this.resourceService = resourceService;
 		this.instanceId = instanceId;
+		this.publisher = publisher;
 	}
 
 	private <T> T execute(ApiInfo info, Map<String, Object> context) {
@@ -252,23 +254,14 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			return false;
 		}
 		logger.info("收到通知消息:{}", magicNotify);
-		String id = magicNotify.getId();
-		int action = magicNotify.getAction();
-//		switch (magicNotify.getType()) {
-//			case NOTIFY_ACTION_API:
-//				return mappingRegistry.processNotify(id, action);
-//			case NOTIFY_ACTION_FUNCTION:
-//				return functionRegistry.processNotify(id, action);
-//			case NOTIFY_ACTION_WEBSOCKET:
-//				return webSocketRegistry.processNotify(id, action);
-//		}
-		switch (action) {
-			case NOTIFY_WS_C_S:
+		switch (magicNotify.getAction()) {
+			case WS_C_S:
 				return processWebSocketMessageReceived(magicNotify.getSessionId(), magicNotify.getContent());
-			case NOTIFY_WS_S_C:
+			case WS_S_C:
 				return processWebSocketSendMessage(magicNotify.getSessionId(), magicNotify.getContent());
 		}
-		return false;
+		resourceService.processNotify(magicNotify);
+		return true;
 	}
 
 	@Override

@@ -1,10 +1,7 @@
 package org.ssssssss.magicapi.service;
 
 import org.ssssssss.magicapi.adapter.Resource;
-import org.ssssssss.magicapi.model.Group;
-import org.ssssssss.magicapi.model.MagicEntity;
-import org.ssssssss.magicapi.model.SelectedResource;
-import org.ssssssss.magicapi.model.TreeNode;
+import org.ssssssss.magicapi.model.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -22,6 +19,8 @@ public interface MagicResourceService {
 	void refresh();
 
 	Resource getResource();
+
+	boolean processNotify(MagicNotify magicNotify);
 
 	/**
 	 * 保存分组

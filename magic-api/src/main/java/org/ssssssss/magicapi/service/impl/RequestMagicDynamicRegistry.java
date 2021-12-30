@@ -50,7 +50,6 @@ public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<Ap
 
 	public ApiInfo getApiInfoFromRequest(HttpServletRequest request) {
 		String mappingKey = Objects.toString(request.getMethod(), "GET").toUpperCase() + ":" + request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
-		;
 		return getMapping(mappingKey);
 	}
 

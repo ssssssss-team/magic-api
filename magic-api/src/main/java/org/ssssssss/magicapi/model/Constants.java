@@ -12,21 +12,6 @@ public class Constants {
 
 
 	/**
-	 * 分组类型: 接口
-	 */
-	public static final String GROUP_TYPE_API = "1";
-
-	/**
-	 * 分组类型: 函数
-	 */
-	public static final String GROUP_TYPE_FUNCTION = "2";
-
-	/**
-	 * 分组类型: WebSocket
-	 */
-	public static final String GROUP_TYPE_WEBSOCKET = "3";
-
-	/**
 	 * 接口文件夹名
 	 */
 	public static final String PATH_API = "api";
@@ -81,22 +66,11 @@ public class Constants {
 	 */
 	public static final String VAR_NAME_HEADER = "header";
 	/**
-	 * 脚本中query的变量名
-	 */
-	public static final String VAR_NAME_QUERY = "query";
 
 	/**
 	 * 脚本中RequestBody的变量名
 	 */
 	public static final String VAR_NAME_REQUEST_BODY = "body";
-	/**
-	 * 脚本中RequestBody的变量值字段类型
-	 */
-	public static final String VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT = "object";
-	/**
-	 * 脚本中RequestBody的变量名字段类型
-	 */
-	public static final String VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY = "array";
 
 	public static final String HEADER_REQUEST_SCRIPT_ID = "Magic-Request-Script-Id";
 
@@ -117,6 +91,10 @@ public class Constants {
 	public static final String UNLOCK = "0";
 
 	public static final String ROOT_ID = "0";
+
+	public static final String EVENT_TYPE_FILE = "file";
+
+	public static final String EVENT_SOURCE_NOTIFY = "notify";
 
 	/**
 	 * 执行成功的code值

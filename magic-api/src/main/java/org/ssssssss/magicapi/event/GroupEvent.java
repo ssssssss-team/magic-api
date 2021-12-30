@@ -8,19 +8,26 @@ import java.util.List;
 
 public class GroupEvent extends MagicEvent {
 
+	/**
+	 * 分组信息
+	 */
 	private final Group group;
 
-	private List<MagicEntity> entities = Collections.emptyList();
+	/**
+	 * 子分组
+	 */
+	private List<MagicEntity> entities;
 
 	public GroupEvent(String type, EventAction action, Group group) {
-		super(type, action);
-		this.group = group;
+		this(type, action, group, Collections.emptyList());
 	}
 
 	public GroupEvent(String type, EventAction action, Group group, List<MagicEntity> entities) {
-		this(type, action, group);
+		super(type, action);
+		this.group = group;
 		this.entities = entities;
 	}
+
 
 	public Group getGroup() {
 		return group;

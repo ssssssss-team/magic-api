@@ -11,6 +11,11 @@ public class FileEvent extends MagicEvent {
 		this.entity = entity;
 	}
 
+	public FileEvent(String type, EventAction action, MagicEntity entity, String source) {
+		super(type, action, source);
+		this.entity = entity;
+	}
+
 	public MagicEntity getEntity() {
 		return entity;
 	}

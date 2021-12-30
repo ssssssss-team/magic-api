@@ -1,5 +1,7 @@
 package org.ssssssss.magicapi.model;
 
+import org.ssssssss.magicapi.event.EventAction;
+
 /**
  * 消息通知对象
  *
@@ -13,19 +15,19 @@ public class MagicNotify {
 	private String from;
 
 	/**
-	 * 对应的id，如接口id、函数id，分组id、数据源id
+	 * 文件或文件夹id
 	 */
 	private String id;
 
 	/**
 	 * 动作
 	 */
-	private int action = -1;
+	private EventAction action = null;
 
 	/**
 	 * 操作对象，如接口、函数、分组、数据源
 	 */
-	private int type = -1;
+	private String type = null;
 
 	/**
 	 * WebSocket sessionId
@@ -41,17 +43,17 @@ public class MagicNotify {
 	}
 
 	public MagicNotify(String from) {
-		this(from, null, Constants.NOTIFY_ACTION_ALL, Constants.NOTIFY_ACTION_ALL);
+		this.from = from;
 	}
 
-	public MagicNotify(String from, int action, String sessionId, String content) {
+	public MagicNotify(String from, EventAction action, String sessionId, String content) {
 		this.from = from;
 		this.sessionId = sessionId;
 		this.action = action;
 		this.content = content;
 	}
 
-	public MagicNotify(String from, String id, int action, int type) {
+	public MagicNotify(String from, String id, EventAction action, String type) {
 		this.from = from;
 		this.id = id;
 		this.action = action;
@@ -74,19 +76,19 @@ public class MagicNotify {
 		this.id = id;
 	}
 
-	public int getAction() {
+	public EventAction getAction() {
 		return action;
 	}
 
-	public void setAction(int action) {
+	public void setAction(EventAction action) {
 		this.action = action;
 	}
 
-	public int getType() {
+	public String getType() {
 		return type;
 	}
 
-	public void setType(int type) {
+	public void setType(String type) {
 		this.type = type;
 	}
 
@@ -108,58 +110,13 @@ public class MagicNotify {
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("MagicNotify(from=");
-		builder.append(from);
-		builder.append(", action=");
-		switch (action) {
-			case Constants.NOTIFY_ACTION_ADD:
-				builder.append("新增");
-				break;
-			case Constants.NOTIFY_ACTION_UPDATE:
-				builder.append("修改");
-				break;
-			case Constants.NOTIFY_ACTION_DELETE:
-				builder.append("删除");
-				break;
-			case Constants.NOTIFY_ACTION_ALL:
-				builder.append("刷新全部");
-				break;
-			case Constants.NOTIFY_WS_C_S:
-				builder.append("通知客户端发来的消息");
-				builder.append(", sessionId=").append(sessionId);
-				builder.append(", content=").append(content);
-				break;
-			case Constants.NOTIFY_WS_S_C:
-				builder.append("通知服务端发送给客户端的消息");
-				builder.append(", sessionId=").append(sessionId);
-				builder.append(", content=").append(content);
-				break;
-			default:
-				builder.append("未知");
-		}
-		if (action != Constants.NOTIFY_ACTION_ALL && action < Constants.NOTIFY_WS_C_S) {
-			builder.append(", type=");
-			switch (type) {
-				case Constants.NOTIFY_ACTION_API:
-					builder.append("接口");
-					break;
-				case Constants.NOTIFY_ACTION_FUNCTION:
-					builder.append("函数");
-					break;
-				case Constants.NOTIFY_ACTION_DATASOURCE:
-					builder.append("数据源");
-					break;
-				case Constants.NOTIFY_ACTION_GROUP:
-					builder.append("分组");
-					break;
-				default:
-					builder.append("未知");
-			}
-			builder.append(", id=");
-			builder.append(id);
-		}
-		builder.append(")");
-		return builder.toString();
+		return "MagicNotify{" +
+				"from='" + from + '\'' +
+				", id='" + id + '\'' +
+				", action=" + action +
+				", type='" + type + '\'' +
+				", sessionId='" + sessionId + '\'' +
+				", content='" + content + '\'' +
+				'}';
 	}
 }

@@ -2,13 +2,29 @@ package org.ssssssss.magicapi.event;
 
 public class MagicEvent {
 
-	private String type;
+	/**
+	 * 消息类型
+	 */
+	private final String type;
 
-	private EventAction action;
+	/**
+	 * 消息动作
+	 */
+	private final EventAction action;
 
-	public MagicEvent(String type, EventAction action) {
+	/**
+	 * 消息来源
+	 */
+	private String source;
+
+	public MagicEvent(String type, EventAction action, String source) {
 		this.type = type;
 		this.action = action;
+		this.source = source;
+	}
+
+	public MagicEvent(String type, EventAction action) {
+		this(type, action, null);
 	}
 
 	public String getType() {
@@ -17,5 +33,13 @@ public class MagicEvent {
 
 	public EventAction getAction() {
 		return action;
+	}
+
+	public String getSource() {
+		return source;
+	}
+
+	public void setSource(String source) {
+		this.source = source;
 	}
 }

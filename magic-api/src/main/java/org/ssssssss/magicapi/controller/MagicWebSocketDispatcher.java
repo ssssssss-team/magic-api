@@ -8,7 +8,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.ssssssss.magicapi.config.Message;
 import org.ssssssss.magicapi.config.WebSocketSessionManager;
-import org.ssssssss.magicapi.model.Constants;
+import org.ssssssss.magicapi.event.EventAction;
 import org.ssssssss.magicapi.model.MagicConsoleSession;
 import org.ssssssss.magicapi.model.MagicNotify;
 import org.ssssssss.magicapi.provider.MagicNotifyService;
@@ -106,7 +106,7 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 		Object returnValue = findHandleAndInvoke(consoleSession, message.getPayload());
 		// 如果未成功处理消息，则通知其他机器去处理消息
 		if (Boolean.FALSE.equals(returnValue)) {
-			magicNotifyService.sendNotify(new MagicNotify(instanceId, Constants.NOTIFY_WS_C_S, consoleSession.getId(), message.getPayload()));
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, EventAction.WS_C_S, consoleSession.getId(), message.getPayload()));
 		}
 	}
 }

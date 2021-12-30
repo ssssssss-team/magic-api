@@ -19,6 +19,7 @@ import org.ssssssss.magicapi.model.MagicNotify;
 import org.ssssssss.magicapi.modules.RedisModule;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.MagicNotifyService;
+import org.ssssssss.magicapi.service.MagicSynchronizationService;
 import org.ssssssss.magicapi.utils.JsonUtils;
 
 import java.util.Objects;
@@ -71,6 +72,16 @@ public class MagicRedisAutoConfiguration {
 	@ConditionalOnProperty(prefix = "magic-api", name = "cluster-config.enable", havingValue = "true")
 	public MagicNotifyService magicNotifyService() {
 		return magicNotify -> stringRedisTemplate.convertAndSend(properties.getClusterConfig().getChannel(), Objects.requireNonNull(JsonUtils.toJsonString(magicNotify)));
+	}
+
+	/**
+	 * 消息处理服务
+	 */
+	@Bean
+	@ConditionalOnMissingBean
+	@ConditionalOnProperty(prefix = "magic-api", name = "cluster-config.enable", havingValue = "true")
+	public MagicSynchronizationService magicSynchronizationService(MagicNotifyService magicNotifyService) {
+		return new MagicSynchronizationService(magicNotifyService, properties.getClusterConfig().getInstanceId());
 	}
 
 	/**

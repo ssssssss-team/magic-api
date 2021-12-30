@@ -54,11 +54,56 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		this.publisher = publisher;
 	}
 
+	public boolean processNotify(MagicNotify notify) {
+		if (Constants.EVENT_TYPE_FILE.equals(notify.getType())) {
+			return processFileNotify(notify.getId(), notify.getAction());
+		}
+		return processGroupNotify(notify.getId(), notify.getAction());
+	}
+
+	private boolean processGroupNotify(String id, EventAction action) {
+		Group group = groupCache.get(id);
+		TreeNode<Group> treeNode = tree(group.getType()).findTreeNode(it -> it.getId().equals(group.getId()));
+		if (treeNode != null) {
+			GroupEvent event = new GroupEvent(group.getType(), action, group);
+			event.setSource(Constants.EVENT_SOURCE_NOTIFY);
+			if (action != EventAction.CREATE) {
+				event.setEntities(treeNode
+						.flat()
+						.stream()
+						.flatMap(g -> listFiles(g.getId()).stream())
+						.collect(Collectors.toList()));
+			}
+			refresh();
+			publisher.publishEvent(event);
+			return true;
+		}
+		return false;
+	}
+
+	private boolean processFileNotify(String id, EventAction action) {
+		MagicEntity entity = fileCache.get(id);
+		if (entity != null) {
+			Group group = groupCache.get(entity.getGroupId());
+			if (group != null) {
+				refresh();
+				if (action != EventAction.DELETE) {
+					entity = fileCache.get(id);
+				}
+				publisher.publishEvent(new FileEvent(group.getType(), action, entity, Constants.EVENT_SOURCE_NOTIFY));
+			}
+		}
+		return false;
+	}
+
 	@Override
 	public void refresh() {
-		readLock(() -> {
+		writeLock(() -> {
 			groupMappings.clear();
 			groupCache.clear();
+			fileMappings.clear();
+			fileCache.clear();
+			pathCache.clear();
 			this.root.readAll();
 			storages.forEach((key, registry) -> {
 				if (registry.requirePath()) {
@@ -83,6 +128,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 				Group group = groupCache.get(entity.getGroupId());
 				publisher.publishEvent(new FileEvent(group.getType(), EventAction.LOAD, entity));
 			});
+			return null;
 		});
 	}
 
@@ -127,7 +173,6 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 			}
 			Resource groupResource;
 			GroupEvent event = new GroupEvent(group.getType(), group.getId() == null ? EventAction.CREATE : EventAction.SAVE, group);
-			;
 			if (group.getId() == null) {
 				// 添加分组
 				group.setId(UUID.randomUUID().toString().replace("-", ""));
@@ -319,6 +364,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		notBlank(entity.getName(), NAME_REQUIRED);
 		isTrue(IoUtils.validateFileName(entity.getName()), NAME_INVALID);
 		return writeLock(() -> {
+			EventAction action = entity.getId() == null ? EventAction.CREATE : EventAction.SAVE;
 			// 获取所在分组
 			Resource groupResource = getGroupResource(entity.getGroupId());
 			// 分组需要存在
@@ -367,7 +413,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 			}
 			boolean flag = fileResource.write(storage.write(entity));
 			if (flag) {
-				publisher.publishEvent(new FileEvent(storage.folder(), EventAction.SAVE, entity));
+				publisher.publishEvent(new FileEvent(storage.folder(), action, entity));
 				putFile(storage, entity, fileResource);
 			}
 			return flag;
