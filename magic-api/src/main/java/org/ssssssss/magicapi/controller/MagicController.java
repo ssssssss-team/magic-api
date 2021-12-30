@@ -62,12 +62,7 @@ public class MagicController implements JsonCodeConstants {
 			return true;
 		}
 		MagicUser magicUser = (MagicUser) request.getAttribute(Constants.ATTRIBUTE_MAGIC_USER);
-		if (entity instanceof ApiInfo) {
-			return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization, (ApiInfo) entity);
-		} else if (entity instanceof FunctionInfo) {
-			return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization, (FunctionInfo) entity);
-		}
-		return false;
+		return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization, entity);
 	}
 
 	boolean allowVisit(HttpServletRequest request, Authorization authorization, Group group) {

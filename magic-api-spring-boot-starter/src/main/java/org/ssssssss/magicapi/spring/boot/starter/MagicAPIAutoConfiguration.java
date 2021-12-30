@@ -577,7 +577,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		MagicWorkbenchController magicWorkbenchController = new MagicWorkbenchController(configuration, properties.getSecretKey());
 		if (base != null) {
 			configuration.setEnableWeb(true);
-			mapping.registerController(magicWorkbenchController).registerController(new MagicResourceController(configuration));
+			mapping.registerController(magicWorkbenchController)
+					.registerController(new MagicResourceController(configuration))
+					.registerController(new MagicDataSourceController(configuration));
 		}
 		// 注册接收推送的接口
 		if (StringUtils.isNotBlank(properties.getSecretKey())) {

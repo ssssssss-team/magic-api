@@ -1,10 +1,8 @@
 package org.ssssssss.magicapi.interceptor;
 
 import org.ssssssss.magicapi.exception.MagicLoginException;
-import org.ssssssss.magicapi.model.ApiInfo;
-import org.ssssssss.magicapi.model.DataSourceInfo;
-import org.ssssssss.magicapi.model.FunctionInfo;
 import org.ssssssss.magicapi.model.Group;
+import org.ssssssss.magicapi.model.MagicEntity;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -75,25 +73,13 @@ public interface AuthorizationInterceptor {
 	 * @param magicUser     登录的用户对象
 	 * @param request       HttpServletRequest
 	 * @param authorization 鉴权方法
-	 * @param apiInfo       接口信息
+	 * @param entity        接口、函数、数据源信息
 	 * @return true 有权限访问， false 无权限访问
 	 */
-	default boolean allowVisit(MagicUser magicUser, HttpServletRequest request, Authorization authorization, ApiInfo apiInfo) {
+	default boolean allowVisit(MagicUser magicUser, HttpServletRequest request, Authorization authorization, MagicEntity entity) {
 		return allowVisit(magicUser, request, authorization);
 	}
 
-	/**
-	 * 是否拥有对该函数的增删改权限
-	 *
-	 * @param magicUser     登录的用户对象
-	 * @param request       HttpServletRequest
-	 * @param authorization 鉴权方法
-	 * @param functionInfo  函数信息
-	 * @return true 有权限访问， false 无权限访问
-	 */
-	default boolean allowVisit(MagicUser magicUser, HttpServletRequest request, Authorization authorization, FunctionInfo functionInfo) {
-		return allowVisit(magicUser, request, authorization);
-	}
 
 	/**
 	 * 是否拥有对该分组的增删改权限
@@ -108,16 +94,4 @@ public interface AuthorizationInterceptor {
 		return allowVisit(magicUser, request, authorization);
 	}
 
-	/**
-	 * 是否拥有对该数据源的增删改权限
-	 *
-	 * @param magicUser      登录的用户对象
-	 * @param request        HttpServletRequest
-	 * @param authorization  鉴权方法
-	 * @param dataSourceInfo 数据源信息
-	 * @return true 有权限访问， false 无权限访问
-	 */
-	default boolean allowVisit(MagicUser magicUser, HttpServletRequest request, Authorization authorization, DataSourceInfo dataSourceInfo) {
-		return allowVisit(magicUser, request, authorization);
-	}
 }
