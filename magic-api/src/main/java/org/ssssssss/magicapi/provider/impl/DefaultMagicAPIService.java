@@ -618,6 +618,14 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			} else {
 				groupServiceProvider.insert(group);
 			}
+			if(checked){
+				if(GROUP_TYPE_API.equals(group.getType())){
+					mappingHandlerMapping.updateGroup(group.getId());
+				} else {
+					magicFunctionManager.updateGroup(group.getId());
+				}
+			}
+
 		}
 		// 保存
 		write(apiServiceProvider, apiInfos);
