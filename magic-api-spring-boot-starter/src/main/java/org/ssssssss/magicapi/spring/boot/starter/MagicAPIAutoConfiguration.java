@@ -385,8 +385,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 
 	@Bean
 	@ConditionalOnMissingBean
-	public DataSourceMagicDynamicRegistry dataSourceMagicDynamicRegistry(DataSourceInfoMagicResourceStorage dataSourceInfoMagicResourceStorage) {
-		return new DataSourceMagicDynamicRegistry(dataSourceInfoMagicResourceStorage);
+	public DataSourceMagicDynamicRegistry dataSourceMagicDynamicRegistry(DataSourceInfoMagicResourceStorage dataSourceInfoMagicResourceStorage, MagicDynamicDataSource magicDynamicDataSource) {
+		return new DataSourceMagicDynamicRegistry(dataSourceInfoMagicResourceStorage, magicDynamicDataSource);
 	}
 
 

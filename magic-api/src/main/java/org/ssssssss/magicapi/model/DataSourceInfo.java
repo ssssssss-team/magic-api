@@ -25,7 +25,7 @@ public class DataSourceInfo extends MagicEntity {
 	/**
 	 * 最多返回条数
 	 */
-	private int maxRows;
+	private int maxRows = -1;
 
 	/**
 	 * 驱动类
