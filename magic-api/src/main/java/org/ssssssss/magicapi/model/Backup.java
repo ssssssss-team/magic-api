@@ -34,7 +34,7 @@ public class Backup {
 	/**
 	 * 备份内容
 	 */
-	private String content;
+	private byte[] content;
 
 	/**
 	 * 操作人，取用户名，空为系统记录
@@ -45,7 +45,7 @@ public class Backup {
 	public Backup() {
 	}
 
-	public Backup(String id, String type, String name, String content) {
+	public Backup(String id, String type, String name, byte[] content) {
 		this.id = id;
 		this.type = type;
 		this.name = name;
@@ -84,11 +84,11 @@ public class Backup {
 		this.id = id;
 	}
 
-	public String getContent() {
+	public byte[] getContent() {
 		return content;
 	}
 
-	public void setContent(String content) {
+	public void setContent(byte[] content) {
 		this.content = content;
 	}
 

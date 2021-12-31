@@ -54,7 +54,7 @@ public class MagicConfiguration {
 
 	private MagicBackupService magicBackupService;
 
-	private MagicResourceService magicResourceService;
+	private static MagicResourceService magicResourceService;
 
 	private List<MagicDynamicRegistry<? extends MagicEntity>> magicDynamicRegistries;
 
@@ -177,12 +177,12 @@ public class MagicConfiguration {
 		this.magicDynamicDataSource = magicDynamicDataSource;
 	}
 
-	public MagicResourceService getMagicResourceService() {
-		return magicResourceService;
+	public static MagicResourceService getMagicResourceService() {
+		return MagicConfiguration.magicResourceService;
 	}
 
 	public void setMagicResourceService(MagicResourceService magicResourceService) {
-		this.magicResourceService = magicResourceService;
+		MagicConfiguration.magicResourceService = magicResourceService;
 	}
 
 	public List<MagicDynamicRegistry<? extends MagicEntity>> getMagicDynamicRegistries() {

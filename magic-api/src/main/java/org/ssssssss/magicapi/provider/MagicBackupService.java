@@ -1,7 +1,9 @@
 package org.ssssssss.magicapi.provider;
 
-import org.ssssssss.magicapi.model.*;
-import org.ssssssss.magicapi.utils.JsonUtils;
+import org.ssssssss.magicapi.model.ApiInfo;
+import org.ssssssss.magicapi.model.Backup;
+import org.ssssssss.magicapi.model.DataSourceInfo;
+import org.ssssssss.magicapi.model.FunctionInfo;
 
 import java.util.List;
 
@@ -20,7 +22,7 @@ public interface MagicBackupService {
 	 * @param apiInfo 接口信息
 	 */
 	default void backup(ApiInfo apiInfo) {
-		doBackup(new Backup(apiInfo.getId(), Constants.PATH_API, apiInfo.getName(), JsonUtils.toJsonString(apiInfo)));
+//		doBackup(new Backup(apiInfo.getId(), Constants.PATH_API, apiInfo.getName(), JsonUtils.toJsonString(apiInfo)));
 	}
 
 	/**
@@ -29,7 +31,7 @@ public interface MagicBackupService {
 	 * @param functionInfo 函数信息
 	 */
 	default void backup(FunctionInfo functionInfo) {
-		doBackup(new Backup(functionInfo.getId(), Constants.PATH_FUNCTION, functionInfo.getName(), JsonUtils.toJsonString(functionInfo)));
+//		doBackup(new Backup(functionInfo.getId(), Constants.PATH_FUNCTION, functionInfo.getName(), JsonUtils.toJsonString(functionInfo)));
 	}
 
 	/**

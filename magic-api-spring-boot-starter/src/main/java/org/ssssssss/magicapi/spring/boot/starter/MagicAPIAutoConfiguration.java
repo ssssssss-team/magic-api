@@ -71,7 +71,6 @@ import org.ssssssss.script.reflection.JavaReflection;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sql.DataSource;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -398,13 +397,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		};
 	}
 
-	@Bean
-	@ConditionalOnMissingBean(MagicBackupService.class)
-	@ConditionalOnProperty(prefix = "magic-api", name = "backup-config.resource-type", havingValue = "file", matchIfMissing = true)
-	public MagicBackupService magicFileBackupService() {
-		return new MagicFileBackupService(new File(properties.getBackupConfig().getLocation()));
-	}
-
 	/**
 	 * 注入API调用Service
 	 */
@@ -538,7 +530,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 												 MagicAPIService magicAPIService,
 												 MagicNotifyService magicNotifyService,
 												 RequestMagicDynamicRegistry requestMagicDynamicRegistry,
-												 MagicBackupService magicBackupService) throws NoSuchMethodException {
+												 @Autowired(required = false) MagicBackupService magicBackupService) throws NoSuchMethodException {
 		logger.info("magic-api工作目录:{}", magicResource);
 		AsyncCall.setThreadPoolExecutorSize(properties.getThreadPoolExecutorSize());
 		DataType.DATE_PATTERNS = properties.getDatePattern();

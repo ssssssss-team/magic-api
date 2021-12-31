@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.model;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.utils.JsonUtils;
 
 import java.util.*;
@@ -24,7 +25,7 @@ public class ApiInfo extends PathMagicEntity {
 	/**
 	 * 设置的接口选项
 	 */
-	private List<Option> option = new ArrayList<>();
+	private List<Option> options = new ArrayList<>();
 
 	/**
 	 * 请求体
@@ -128,12 +129,12 @@ public class ApiInfo extends PathMagicEntity {
 		this.description = description;
 	}
 
-	public List<Option> getOption() {
-		return option;
+	public List<Option> getOptions() {
+		return options;
 	}
 
-	public void setOption(List<Option> option) {
-		this.option = option;
+	public void setOption(List<Option> options) {
+		this.options = options;
 	}
 
 	public List<Parameter> getParameters() {
@@ -162,28 +163,18 @@ public class ApiInfo extends PathMagicEntity {
 	}
 
 	public String getOptionValue(String key) {
-		if (this.jsonNode == null) {
-			return null;
-		}
-		if (this.jsonNode.isArray()) {
-			for (JsonNode node : this.jsonNode) {
-				if (node.isObject() && Objects.equals(key, node.get("name").asText())) {
-					return node.get("value").asText();
-				}
-			}
-		} else if (this.jsonNode.isObject()) {
-			JsonNode node = this.jsonNode.get(key);
-			if (node != null) {
-				return node.asText();
-			}
-		}
-		return null;
-//		return MagicRequestDynamicMappingRegistry.findGroups(this.groupId)
-//				.stream()
-//				.flatMap(it -> it.getOptions().stream())
-//				.filter(it -> key.equals(it.getName()))
-//				.findFirst()
-//				.map(it -> Objects.toString(it.getValue(), null)).orElse(null);
+		return this.options.stream()
+				.filter(it -> key.equals(it.getName()))
+				.findFirst()
+				.map(it -> Objects.toString(it.getValue(), null))
+				.orElseGet(() -> MagicConfiguration.getMagicResourceService().getGroupsByFileId(this.id)
+						.stream()
+						.flatMap(it -> it.getOptions().stream())
+						.filter(it -> key.equals(it.getName()))
+						.findFirst()
+						.map(it -> Objects.toString(it.getValue(), null)).orElse(null)
+				);
+
 	}
 
 	public BaseDefinition getRequestBodyDefinition() {
@@ -222,7 +213,7 @@ public class ApiInfo extends PathMagicEntity {
 				Objects.equals(paths, apiInfo.paths) &&
 				Objects.equals(groupId, apiInfo.groupId) &&
 				Objects.equals(parameters, apiInfo.parameters) &&
-				Objects.equals(option, apiInfo.option) &&
+				Objects.equals(options, apiInfo.options) &&
 				Objects.equals(requestBody, apiInfo.requestBody) &&
 				Objects.equals(headers, apiInfo.headers) &&
 				Objects.equals(description, apiInfo.description) &&
@@ -233,7 +224,7 @@ public class ApiInfo extends PathMagicEntity {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, method, path, script, name, groupId, parameters, option, requestBody, headers, responseBody, description, requestBodyDefinition, responseBodyDefinition);
+		return Objects.hash(id, method, path, script, name, groupId, parameters, options, requestBody, headers, responseBody, description, requestBodyDefinition, responseBodyDefinition);
 	}
 
 	@Override

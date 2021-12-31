@@ -328,6 +328,22 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		return readLock(() -> groupCache.values().stream().collect(Collectors.groupingBy(Group::getType, Collectors.collectingAndThen(Collectors.toList(), this::convertToTree))));
 	}
 
+	@Override
+	public List<Group> getGroupsByFileId(String id) {
+		return readLock(() -> {
+			List<Group> groups = new ArrayList<>();
+			MagicEntity entity = fileCache.get(id);
+			if (entity != null) {
+				Group group = groupCache.get(entity.getGroupId());
+				while (group != null) {
+					groups.add(group);
+					group = groupCache.get(group.getParentId());
+				}
+			}
+			return groups;
+		});
+	}
+
 	private TreeNode<Group> convertToTree(List<Group> groups) {
 		TreeNode<Group> root = new TreeNode<>();
 		root.setNode(new Group("0", "root"));

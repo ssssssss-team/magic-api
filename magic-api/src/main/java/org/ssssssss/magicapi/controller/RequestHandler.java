@@ -108,11 +108,11 @@ public class RequestHandler extends MagicController {
 		}
 		requestEntity.setHeaders(headers);
 		List<Path> paths = new ArrayList<>(info.getPaths());
-//		MappingHandlerMapping.findGroups(info.getGroupId())
-//				.stream()
-//				.flatMap(it -> it.getPaths().stream())
-//				.filter(it -> !paths.contains(it))
-//				.forEach(paths::add);
+		MagicConfiguration.getMagicResourceService().getGroupsByFileId(info.getId())
+				.stream()
+				.flatMap(it -> it.getPaths().stream())
+				.filter(it -> !paths.contains(it))
+				.forEach(paths::add);
 		Object bodyValue = readRequestBody(requestEntity.getRequest());
 		requestEntity.setRequestBody(bodyValue);
 		String scriptName = requestMagicDynamicRegistry.getMagicResourceStorage().buildScriptName(info);

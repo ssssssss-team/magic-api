@@ -45,6 +45,8 @@ public interface MagicResourceService {
 	 */
 	Map<String, TreeNode<Group>> tree();
 
+	List<Group> getGroupsByFileId(String id);
+
 	/**
 	 * 获取分组 Resource
 	 *
