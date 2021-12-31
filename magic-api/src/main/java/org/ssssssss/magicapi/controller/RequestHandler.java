@@ -115,7 +115,7 @@ public class RequestHandler extends MagicController {
 //				.forEach(paths::add);
 		Object bodyValue = readRequestBody(requestEntity.getRequest());
 		requestEntity.setRequestBody(bodyValue);
-		String scriptName = "123";
+		String scriptName = requestMagicDynamicRegistry.getMagicResourceStorage().buildScriptName(info);
 		MagicScriptContext context = createMagicScriptContext(scriptName, requestEntity);
 		requestEntity.setMagicScriptContext(context);
 		try {

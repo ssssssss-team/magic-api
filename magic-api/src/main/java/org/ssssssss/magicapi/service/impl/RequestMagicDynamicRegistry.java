@@ -10,12 +10,19 @@ import org.ssssssss.magicapi.event.FileEvent;
 import org.ssssssss.magicapi.event.GroupEvent;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.provider.MagicResourceStorage;
+import org.ssssssss.magicapi.script.ScriptManager;
 import org.ssssssss.magicapi.service.AbstractMagicDynamicRegistry;
 import org.ssssssss.magicapi.utils.Mapping;
+import org.ssssssss.script.MagicResourceLoader;
+import org.ssssssss.script.MagicScriptContext;
+import org.ssssssss.script.exception.MagicExitException;
+import org.ssssssss.script.runtime.ExitValue;
+import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -32,6 +39,32 @@ public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<Ap
 	public RequestMagicDynamicRegistry(MagicResourceStorage<ApiInfo> magicResourceStorage, Mapping mapping) throws NoSuchMethodException {
 		super(magicResourceStorage);
 		this.mapping = mapping;
+		MagicResourceLoader.addFunctionLoader(this::lookupLambdaFunction);
+	}
+
+	private Object lookupLambdaFunction(MagicScriptContext context, String name) {
+		int index = name.indexOf(":");
+		if (index > -1) {
+			String method = name.substring(0, index);
+			String path = name.substring(index + 1);
+			ApiInfo info = getMapping(method.toUpperCase() + ":" + path);
+			if (info != null) {
+				String scriptName = magicResourceStorage.buildScriptName(info);
+				return (MagicScriptLambdaFunction) (variables, args) -> {
+					MagicScriptContext newContext = new MagicScriptContext();
+					Map<String, Object> varMap = new LinkedHashMap<>(context.getRootVariables());
+					varMap.putAll(variables.getVariables(context));
+					newContext.setScriptName(scriptName);
+					newContext.putMapIntoContext(varMap);
+					Object value = ScriptManager.executeScript(info.getScript(), newContext);
+					if (value instanceof ExitValue) {
+						throw new MagicExitException((ExitValue) value);
+					}
+					return value;
+				};
+			}
+		}
+		return null;
 	}
 
 	public void setHandler(Object handler) {
