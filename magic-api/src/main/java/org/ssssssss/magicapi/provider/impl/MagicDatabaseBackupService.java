@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.event.FileEvent;
 import org.ssssssss.magicapi.event.GroupEvent;
 import org.ssssssss.magicapi.model.Backup;
@@ -14,6 +15,8 @@ import org.ssssssss.magicapi.provider.MagicBackupService;
 import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.magicapi.utils.WebUtils;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,6 +59,19 @@ public class MagicDatabaseBackupService implements MagicBackupService {
 		this.FIND_BY_TIMESTAMP = String.format("select %s from %s where create_date < ? order by create_date desc", DEFAULT_COLUMNS, tableName);
 		this.DELETE_BY_TIMESTAMP = String.format("delete from %s where create_date < ?", tableName);
 		this.FIND_BY_ID_AND_TIMESTAMP = String.format("select * from %s where id = ? and create_date = ?", tableName);
+	}
+
+	@Override
+	public void doBackupAll(String name, String createBy) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		MagicConfiguration.getMagicResourceService().export(null, null, baos);
+		Backup backup = new Backup();
+		backup.setId("full");
+		backup.setType("full");
+		backup.setName(name);
+		backup.setCreateBy(createBy);
+		backup.setContent(baos.toByteArray());
+		doBackup(backup);
 	}
 
 	@Override

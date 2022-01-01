@@ -1,13 +1,15 @@
 package org.ssssssss.magicapi.service;
 
+import org.springframework.context.event.EventListener;
 import org.ssssssss.magicapi.event.EventAction;
 import org.ssssssss.magicapi.event.FileEvent;
 import org.ssssssss.magicapi.event.GroupEvent;
+import org.ssssssss.magicapi.event.MagicEvent;
 import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.model.MagicEntity;
 import org.ssssssss.magicapi.provider.MagicResourceStorage;
 
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,6 +57,17 @@ public abstract class AbstractMagicDynamicRegistry<T extends MagicEntity> implem
 		return false;
 	}
 
+	@EventListener(condition = "#event.action == T(org.ssssssss.magicapi.event.EventAction).CLEAR")
+	public void clear(MagicEvent event){
+		Iterator<Map.Entry<String, MappingNode<T>>> iterator = mappings.entrySet().iterator();
+		while (iterator.hasNext()){
+			Map.Entry<String, MappingNode<T>> entry = iterator.next();
+			unregister(entry.getValue());
+			iterator.remove();
+		}
+
+	}
+
 	protected void processEvent(FileEvent event) {
 		T info = (T) event.getEntity();
 		if (event.getAction() == EventAction.DELETE) {
@@ -100,16 +113,6 @@ public abstract class AbstractMagicDynamicRegistry<T extends MagicEntity> implem
 
 	protected void unregister(MappingNode<T> mappingNode) {
 
-	}
-
-	public boolean register(List<T> entities) {
-		mappings.values().stream().distinct().forEach(node -> {
-			unregister(node);
-			mappings.remove(node.getMappingKey());
-			mappings.remove(node.getEntity().getId());
-		});
-		entities.forEach(this::register);
-		return true;
 	}
 
 	protected MappingNode<T> buildMappingNode(T entity) {

@@ -12,6 +12,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.ssssssss.magicapi.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.controller.MagicWebSocketDispatcher;
+import org.ssssssss.magicapi.event.EventAction;
+import org.ssssssss.magicapi.event.MagicEvent;
 import org.ssssssss.magicapi.exception.MagicResourceNotFoundException;
 import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.provider.MagicAPIService;
@@ -132,7 +134,8 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
-	public void upload(InputStream inputStream, String mode) throws IOException {
+	public boolean upload(InputStream inputStream, String mode) throws IOException {
+		return resourceService.upload(inputStream, Constants.UPLOAD_MODE_FULL.equals(mode));
 	}
 
 	@Override
@@ -184,6 +187,8 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				return processWebSocketMessageReceived(magicNotify.getSessionId(), magicNotify.getContent());
 			case WS_S_C:
 				return processWebSocketSendMessage(magicNotify.getSessionId(), magicNotify.getContent());
+			case CLEAR:
+				publisher.publishEvent(new MagicEvent("clear", EventAction.CLEAR, Constants.EVENT_SOURCE_NOTIFY));
 		}
 		return resourceService.processNotify(magicNotify);
 	}

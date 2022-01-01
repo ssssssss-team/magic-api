@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.service;
 import org.springframework.context.event.EventListener;
 import org.ssssssss.magicapi.event.FileEvent;
 import org.ssssssss.magicapi.event.GroupEvent;
+import org.ssssssss.magicapi.event.MagicEvent;
 import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.MagicNotify;
 import org.ssssssss.magicapi.provider.MagicNotifyService;
@@ -46,5 +47,10 @@ public class MagicSynchronizationService {
 				magicNotifyService.sendNotify(new MagicNotify(instanceId, event.getEntity().getId(), event.getAction(), Constants.EVENT_TYPE_FILE));
 				break;
 		}
+	}
+
+	@EventListener(condition = "#event.action == T(org.ssssssss.magicapi.event.EventAction).CLEAR && #event.source != T(org.ssssssss.magicapi.model.Constants).EVENT_SOURCE_NOTIFY")
+	public void onClearEvent(MagicEvent event){
+		magicNotifyService.sendNotify(new MagicNotify(instanceId, null, event.getAction(), null));
 	}
 }

@@ -1,6 +1,8 @@
 package org.ssssssss.magicapi.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -24,6 +26,8 @@ import java.util.Map;
 public class DataSourceMagicDynamicRegistry extends AbstractMagicDynamicRegistry<DataSourceInfo> {
 
 	private final MagicDynamicDataSource magicDynamicDataSource;
+
+	private static final Logger logger = LoggerFactory.getLogger(DataSourceMagicDynamicRegistry.class);
 
 	private static final ClassLoader CLASSLOADER = DataSourceMagicDynamicRegistry.class.getClassLoader();
 
@@ -57,12 +61,14 @@ public class DataSourceMagicDynamicRegistry extends AbstractMagicDynamicRegistry
 		}
 		DataSource datasource = createDataSource(getDataSourceType(info.getType()), properties);
 		magicDynamicDataSource.put(info.getId(), info.getKey(), info.getName(), datasource, info.getMaxRows());
+		logger.debug("注册数据源：{}", info.getKey());
 		return true;
 	}
 
 
 	@Override
 	public boolean unregister(DataSourceInfo info) {
+		logger.debug("取消注册数据源：{}", info.getKey());
 		return magicDynamicDataSource.delete(info.getKey());
 	}
 

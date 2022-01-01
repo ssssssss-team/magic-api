@@ -1,7 +1,6 @@
 package org.ssssssss.magicapi.service.impl;
 
 import org.ssssssss.magicapi.model.FunctionInfo;
-import org.ssssssss.magicapi.utils.PathUtils;
 
 public class FunctionInfoMagicResourceStorage extends AbstractPathMagicResourceStorage<FunctionInfo> {
 
@@ -17,6 +16,6 @@ public class FunctionInfoMagicResourceStorage extends AbstractPathMagicResourceS
 
 	@Override
 	public String buildMappingKey(FunctionInfo info) {
-		return PathUtils.replaceSlash("/" + magicResourceService.getGroupPath(info.getGroupId()) + "/" + info.getPath());
+		return buildMappingKey(info, magicResourceService.getGroupPath(info.getGroupId()));
 	}
 }

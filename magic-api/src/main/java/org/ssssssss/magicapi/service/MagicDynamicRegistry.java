@@ -13,11 +13,6 @@ public interface MagicDynamicRegistry<T extends MagicEntity> {
 	boolean register(T entity);
 
 	/**
-	 * 注册全部
-	 */
-	boolean register(List<T> entities);
-
-	/**
 	 * 取消注册
 	 */
 	boolean unregister(T entity);

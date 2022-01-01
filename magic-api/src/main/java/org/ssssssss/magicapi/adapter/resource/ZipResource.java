@@ -82,7 +82,7 @@ public class ZipResource implements Resource {
 	public String name() {
 		String name = this.path;
 		if (isDirectory()) {
-			name = this.path.substring(0, name.length() - 1);
+			name = this.path.length() > 0 ? this.path.substring(0, name.length() - 1) : "";
 		}
 		int index = name.lastIndexOf("/");
 		return index > -1 ? name.substring(index + 1) : name;

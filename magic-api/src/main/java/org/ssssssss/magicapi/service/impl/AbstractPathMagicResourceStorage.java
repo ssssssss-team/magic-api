@@ -5,6 +5,8 @@ import org.ssssssss.magicapi.provider.MagicResourceStorage;
 import org.ssssssss.magicapi.service.MagicResourceService;
 import org.ssssssss.magicapi.utils.PathUtils;
 
+import java.util.Objects;
+
 public abstract class AbstractPathMagicResourceStorage<T extends PathMagicEntity> implements MagicResourceStorage<T> {
 
 
@@ -23,6 +25,10 @@ public abstract class AbstractPathMagicResourceStorage<T extends PathMagicEntity
 	@Override
 	public void setMagicResourceService(MagicResourceService magicResourceService) {
 		this.magicResourceService = magicResourceService;
+	}
+
+	public String buildMappingKey(T entity, String path) {
+		return PathUtils.replaceSlash("/" + Objects.toString(path, "") + "/"+ Objects.toString(entity.getPath(), ""));
 	}
 
 	@Override

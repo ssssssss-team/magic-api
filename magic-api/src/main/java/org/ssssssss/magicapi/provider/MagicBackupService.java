@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.provider;
 
 import org.ssssssss.magicapi.model.Backup;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -19,6 +20,8 @@ public interface MagicBackupService {
 	 * @param backup 备份对象
 	 */
 	void doBackup(Backup backup);
+
+	void doBackupAll(String name, String createBy) throws IOException;
 
 	/**
 	 * 根据时间戳查询最近的 FETCH_SIZE 条记录

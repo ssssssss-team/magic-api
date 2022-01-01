@@ -4,6 +4,7 @@ import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.model.*;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +98,8 @@ public interface MagicResourceService {
 	boolean lock(String id);
 
 	boolean unlock(String id);
+
+	boolean upload(InputStream inputStream, boolean full) throws IOException;
 
 
 	public String getGroupPath(String groupId);

@@ -31,6 +31,8 @@ public interface JsonCodeConstants {
 
 	JsonCode PATH_CONFLICT = new JsonCode(0, "该路径已被使用,请换一个路径在试");
 
+	JsonCode RESOURCE_PATH_CONFLICT = new JsonCode(0, "资源中[%s]有冲突，请检查");
+
 	JsonCode MOVE_PATH_CONFLICT = new JsonCode(0, "移动后路径会冲突,请换一个路径在试");
 
 	JsonCode FUNCTION_PATH_CONFLICT = new JsonCode(0, "该路径已被映射,请换一个请求方法或路径");

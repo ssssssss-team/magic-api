@@ -83,7 +83,7 @@ public interface MagicAPIService extends MagicModule {
 	/**
 	 * 上传
 	 */
-	void upload(InputStream inputStream, String mode) throws IOException;
+	boolean upload(InputStream inputStream, String mode) throws IOException;
 
 	/**
 	 * 下载
