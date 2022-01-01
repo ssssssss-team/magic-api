@@ -1,9 +1,17 @@
 package org.ssssssss.magicapi.provider.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.ssssssss.magicapi.event.FileEvent;
+import org.ssssssss.magicapi.event.GroupEvent;
 import org.ssssssss.magicapi.model.Backup;
+import org.ssssssss.magicapi.model.Group;
+import org.ssssssss.magicapi.model.MagicEntity;
 import org.ssssssss.magicapi.provider.MagicBackupService;
+import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.magicapi.utils.WebUtils;
 
 import java.util.List;
@@ -37,6 +45,8 @@ public class MagicDatabaseBackupService implements MagicBackupService {
 
 	private final BeanPropertyRowMapper<Backup> rowMapper = new BeanPropertyRowMapper<>(Backup.class);
 
+	private static final Logger logger = LoggerFactory.getLogger(MagicDatabaseBackupService.class);
+
 	public MagicDatabaseBackupService(JdbcTemplate template, String tableName) {
 		this.template = template;
 		this.INSERT_SQL = String.format("insert into %s(%s,content) values(?,?,?,?,?,?,?)", tableName, DEFAULT_COLUMNS);
@@ -50,19 +60,24 @@ public class MagicDatabaseBackupService implements MagicBackupService {
 
 	@Override
 	public void doBackup(Backup backup) {
-		if (backup.getCreateDate() == 0) {
-			backup.setCreateDate(System.currentTimeMillis());
+		try {
+			if (backup.getCreateDate() == 0) {
+				backup.setCreateDate(System.currentTimeMillis());
+			}
+			if (backup.getCreateBy() == null) {
+				backup.setCreateBy(WebUtils.currentUserName());
+			}
+			template.update(INSERT_SQL, backup.getId(), backup.getCreateDate(), backup.getTag(), backup.getType(), backup.getName(), backup.getCreateBy(), backup.getContent());
+		} catch (Exception e) {
+			logger.warn("备份失败", e);
 		}
-		if (backup.getCreateBy() == null) {
-			backup.setCreateBy(WebUtils.currentUserName());
-		}
-		template.update(INSERT_SQL, backup.getId(), backup.getCreateDate(), backup.getTag(), backup.getType(), backup.getName(), backup.getCreateBy(), backup.getContent());
 	}
 
 	@Override
 	public List<Backup> backupList(long timestamp) {
-		Stream<Backup> stream = template.queryForStream(FIND_BY_TIMESTAMP, rowMapper, timestamp);
-		return stream.limit(FETCH_SIZE).collect(Collectors.toList());
+		try (Stream<Backup> stream = template.queryForStream(FIND_BY_TIMESTAMP, rowMapper, timestamp)) {
+			return stream.limit(FETCH_SIZE).collect(Collectors.toList());
+		}
 	}
 
 	@Override
@@ -86,12 +101,49 @@ public class MagicDatabaseBackupService implements MagicBackupService {
 	}
 
 	@Override
-	public long removeBackup(List<String> idList) {
-		return idList.stream().mapToLong(this::removeBackup).sum();
+	public long removeBackupByTimestamp(long timestamp) {
+		try {
+			return template.update(DELETE_BY_TIMESTAMP, timestamp);
+		} catch (Exception e) {
+			logger.warn("删除备份失败", e);
+			return -1;
+		}
 	}
 
-	@Override
-	public long removeBackupByTimestamp(long timestamp) {
-		return template.update(DELETE_BY_TIMESTAMP, timestamp);
+	@EventListener(condition = "#event.source != T(org.ssssssss.magicapi.model.Constants).EVENT_SOURCE_NOTIFY")
+	public void onFileEvent(FileEvent event) {
+		switch (event.getAction()) {
+			case SAVE:
+			case CREATE:
+			case MOVE:
+				break;
+			default:
+				return;
+		}
+		MagicEntity entity = event.getEntity();
+		doBackup(entity.getId(), JsonUtils.toJsonBytes(entity), entity.getName(), event.getType());
+	}
+
+	@EventListener(condition = "#event.source != T(org.ssssssss.magicapi.model.Constants).EVENT_SOURCE_NOTIFY")
+	public void onFolderEvent(GroupEvent event) {
+		switch (event.getAction()) {
+			case SAVE:
+			case CREATE:
+			case MOVE:
+				break;
+			default:
+				return;
+		}
+		Group group = event.getGroup();
+		doBackup(group.getId(), JsonUtils.toJsonBytes(group), group.getName(), group.getType() + "-group");
+	}
+
+	private void doBackup(String id, byte[] content, String name, String type) {
+		Backup backup = new Backup();
+		backup.setName(name);
+		backup.setId(id);
+		backup.setContent(content);
+		backup.setType(type);
+		doBackup(backup);
 	}
 }

@@ -4,19 +4,14 @@ package org.ssssssss.magicapi.spring.boot.starter;
  * 备份配置
  *
  * @author mxd
- * @since 1.3.5
+ * @since 2.0.0
  */
 public class BackupConfig {
 
 	/**
-	 * 存储类型，可选 file， database
+	 * 是否启用备份配置，默认不启用
 	 */
-	private String resourceType = "file";
-
-	/**
-	 * 存储位置，选择存储为文件时专用
-	 */
-	private String location = "/data/magic-api/backup";
+	private boolean enable = false;
 
 	/**
 	 * 保留天数，<=0 为不限制
@@ -32,22 +27,6 @@ public class BackupConfig {
 	 * 使用数据库存储时使用的数据源
 	 */
 	private String datasource;
-
-	public String getResourceType() {
-		return resourceType;
-	}
-
-	public void setResourceType(String resourceType) {
-		this.resourceType = resourceType;
-	}
-
-	public String getLocation() {
-		return location;
-	}
-
-	public void setLocation(String location) {
-		this.location = location;
-	}
 
 	public int getMaxHistory() {
 		return maxHistory;
@@ -71,5 +50,13 @@ public class BackupConfig {
 
 	public void setDatasource(String datasource) {
 		this.datasource = datasource;
+	}
+
+	public boolean isEnable() {
+		return enable;
+	}
+
+	public void setEnable(boolean enable) {
+		this.enable = enable;
 	}
 }

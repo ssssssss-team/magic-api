@@ -270,7 +270,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 
 	@Bean
 	@ConditionalOnMissingBean(MagicBackupService.class)
-	@ConditionalOnProperty(prefix = "magic-api", name = "backup-config.resource-type", havingValue = "database")
+	@ConditionalOnProperty(prefix = "magic-api", name = "backup-config.enable", havingValue = "true")
 	public MagicBackupService magicDatabaseBackupService(MagicDynamicDataSource magicDynamicDataSource) {
 		BackupConfig backupConfig = properties.getBackupConfig();
 		MagicDynamicDataSource.DataSourceNode dataSourceNode = magicDynamicDataSource.getDataSource(backupConfig.getDatasource());
@@ -446,8 +446,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	 * 注册模块、类型扩展
 	 */
 	private void setupMagicModules(MagicDynamicDataSource dynamicDataSource,
-                                   SQLModule sqlModule,
-                                   ResultProvider resultProvider,
+								   SQLModule sqlModule,
+								   ResultProvider resultProvider,
 								   List<MagicModule> magicModules,
 								   List<ExtensionMethod> extensionMethods,
 								   List<LanguageProvider> languageProviders) {
@@ -479,7 +479,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 				}).orElse(null)
 		);
 		logger.info("注册模块:{} -> {}", "log", Logger.class);
-		MagicResourceLoader.addModule("log", new DynamicModuleImport(Logger.class, context -> LoggerFactory.getLogger(Objects.toString(context.getScriptName(),"Unknown"))));
+		MagicResourceLoader.addModule("log", new DynamicModuleImport(Logger.class, context -> LoggerFactory.getLogger(Objects.toString(context.getScriptName(), "Unknown"))));
 		List<String> importModules = properties.getAutoImportModuleList();
 		logger.info("注册模块:{} -> {}", "env", EnvModule.class);
 		MagicResourceLoader.addModule("env", new EnvModule(environment));
@@ -493,13 +493,13 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
 			MagicResourceLoader.addModule(module.getModuleName(), module);
 		});
-        MagicResourceLoader.addModule(sqlModule.getModuleName(), new DynamicModuleImport(SQLModule.class, context -> {
+		MagicResourceLoader.addModule(sqlModule.getModuleName(), new DynamicModuleImport(SQLModule.class, context -> {
 			String dataSourceKey = context.getString(Options.DEFAULT_DATA_SOURCE.getValue());
-			if(StringUtils.isEmpty(dataSourceKey)) return sqlModule;
+			if (StringUtils.isEmpty(dataSourceKey)) return sqlModule;
 			SQLModule newSqlModule = sqlModule.cloneSQLModule();
 			newSqlModule.setDataSourceNode(dynamicDataSource.getDataSource(dataSourceKey));
-            return newSqlModule;
-        }));
+			return newSqlModule;
+		}));
 		MagicResourceLoader.getModuleNames().stream().filter(importModules::contains).forEach(moduleName -> {
 			logger.info("自动导入模块：{}", moduleName);
 			MagicScriptEngine.addDefaultImport(moduleName, MagicResourceLoader.loadModule(moduleName));
@@ -571,7 +571,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			configuration.setEnableWeb(true);
 			mapping.registerController(magicWorkbenchController)
 					.registerController(new MagicResourceController(configuration))
-					.registerController(new MagicDataSourceController(configuration));
+					.registerController(new MagicDataSourceController(configuration))
+					.registerController(new MagicBackupController(configuration));
 		}
 		// 注册接收推送的接口
 		if (StringUtils.isNotBlank(properties.getSecretKey())) {
@@ -586,8 +587,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		if (this.properties.isBanner()) {
 			configuration.printBanner();
 		}
+		if (magicBackupService == null) {
+			logger.error("当前备份设置未配置，强烈建议配置备份设置，以免代码丢失。");
+		}
 		// 备份清理
-		if (properties.getBackupConfig().getMaxHistory() > 0) {
+		if (properties.getBackupConfig().getMaxHistory() > 0 && magicBackupService != null) {
 			long interval = properties.getBackupConfig().getMaxHistory() * 86400000L;
 			// 1小时执行1次
 			new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-clean-task")).scheduleAtFixedRate(() -> {

@@ -1,9 +1,6 @@
 package org.ssssssss.magicapi.provider;
 
-import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.model.Backup;
-import org.ssssssss.magicapi.model.DataSourceInfo;
-import org.ssssssss.magicapi.model.FunctionInfo;
 
 import java.util.List;
 
@@ -15,33 +12,6 @@ import java.util.List;
 public interface MagicBackupService {
 
 	int FETCH_SIZE = 100;
-
-	/**
-	 * 备份接口
-	 *
-	 * @param apiInfo 接口信息
-	 */
-	default void backup(ApiInfo apiInfo) {
-//		doBackup(new Backup(apiInfo.getId(), Constants.PATH_API, apiInfo.getName(), JsonUtils.toJsonString(apiInfo)));
-	}
-
-	/**
-	 * 备份函数
-	 *
-	 * @param functionInfo 函数信息
-	 */
-	default void backup(FunctionInfo functionInfo) {
-//		doBackup(new Backup(functionInfo.getId(), Constants.PATH_FUNCTION, functionInfo.getName(), JsonUtils.toJsonString(functionInfo)));
-	}
-
-	/**
-	 * 备份数据源
-	 *
-	 * @param dataSourceInfo 数据源信息
-	 */
-	default void backup(DataSourceInfo dataSourceInfo) {
-		// doBackup(new Backup(dataSourceInfo.getId(), Constants.PATH_DATASOURCE, dataSourceInfo.get("name"), JsonUtils.toJsonString(dataSourceInfo)));
-	}
 
 	/**
 	 * 执行备份动作
@@ -86,14 +56,6 @@ public interface MagicBackupService {
 	 * @return 返回删除的记录数
 	 */
 	long removeBackup(String id);
-
-	/**
-	 * 删除一组备份信息
-	 *
-	 * @param idList 对象ID集合
-	 * @return 返回删除的记录数
-	 */
-	long removeBackup(List<String> idList);
 
 	/**
 	 * 根据13位时间戳删除备份记录（清除小于该值的记录）

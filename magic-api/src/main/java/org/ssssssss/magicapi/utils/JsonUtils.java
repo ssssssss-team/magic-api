@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * JSON工具包
@@ -78,6 +79,11 @@ public class JsonUtils {
 			logger.error("读取json失败,json:{}", new String(bytes), e);
 			return null;
 		}
+	}
+
+	public static byte[] toJsonBytes(Object target) {
+		String json = toJsonString(target);
+		return json == null ? new byte[0] : json.getBytes(StandardCharsets.UTF_8);
 	}
 
 }
