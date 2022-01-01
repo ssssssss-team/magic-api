@@ -233,6 +233,30 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		});
 	}
 
+	@Override
+	public String copyGroup(String src, String groupId) {
+		Group group = groupCache.get(groupId);
+		isTrue("0".equals(groupId) || group != null, GROUP_NOT_FOUND);
+		isTrue(!Objects.equals(src, groupId), SRC_GROUP_CONFLICT);
+		Group srcGroup = groupCache.get(src);
+		notNull(srcGroup, GROUP_NOT_FOUND);
+		Group newGroup = new Group();
+		newGroup.setType(srcGroup.getType());
+		newGroup.setParentId(groupId);
+		newGroup.setName(srcGroup.getName() + "(复制)");
+		newGroup.setPath(Objects.toString(srcGroup.getPath(), "") + "_copy");
+		newGroup.setOptions(srcGroup.getOptions());
+		newGroup.setPaths(srcGroup.getPaths());
+		newGroup.setProperties(srcGroup.getProperties());
+		saveGroup(newGroup);
+		listFiles(src).stream()
+				.map(MagicEntity::copy)
+				.peek(it -> it.setGroupId(newGroup.getId()))
+				.peek(it -> it.setId(null))
+				.forEach(this::saveFile);
+		return newGroup.getId();
+	}
+
 	/**
 	 * 移动分组
 	 *
@@ -461,7 +485,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 											fileMappings.remove(file.getId());
 											Map<String, String> map = pathCache.get(g.getType());
 											if (map != null) {
-												map.remove(id);
+												map.remove(file.getId());
 											}
 										});
 							});

@@ -21,6 +21,8 @@ public interface JsonCodeConstants {
 
 	JsonCode MOVE_NAME_CONFLICT = new JsonCode(0, "移动后名称会重复，请修改名称后在试。");
 
+	JsonCode SRC_GROUP_CONFLICT = new JsonCode(0, "源对象和分组不能一致");
+
 	JsonCode FILE_NOT_FOUND = new JsonCode(0, "找不到对应文件或分组");
 
 	JsonCode RESOURCE_LOCKED = new JsonCode(0, "当前资源已被锁定，请解锁后在操作。");

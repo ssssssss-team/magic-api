@@ -185,8 +185,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 			case WS_S_C:
 				return processWebSocketSendMessage(magicNotify.getSessionId(), magicNotify.getContent());
 		}
-		resourceService.processNotify(magicNotify);
-		return true;
+		return resourceService.processNotify(magicNotify);
 	}
 
 	@Override

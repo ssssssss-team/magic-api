@@ -36,6 +36,14 @@ public interface MagicResourceService {
 	boolean move(String src, String groupId);
 
 	/**
+	 * 复制分组
+	 *
+	 * @param src    源ID
+	 * @param target 目标分组
+	 */
+	String copyGroup(String src, String target);
+
+	/**
 	 * 全部分组
 	 */
 	TreeNode<Group> tree(String type);

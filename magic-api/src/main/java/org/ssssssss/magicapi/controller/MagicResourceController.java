@@ -34,6 +34,12 @@ public class MagicResourceController extends MagicController implements MagicExc
 		return new JsonBean<>((String) null);
 	}
 
+	@PostMapping("/resource/folder/copy")
+	@ResponseBody
+	public JsonBean<String> saveFolder(String src, String target) {
+		return new JsonBean<>(service.copyGroup(src, target));
+	}
+
 	@PostMapping("/resource/delete")
 	@ResponseBody
 	public JsonBean<Boolean> delete(String id, HttpServletRequest request) {
