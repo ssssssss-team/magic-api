@@ -7,6 +7,8 @@ public enum MessageType {
 	/* S -> C message */
 	/* 日志消息 */
 	LOG,
+	/* 多个日志消息 */
+	LOGS,
 	/* 进入断点 */
 	BREAKPOINT,
 	/* 请求接口发生异常 */

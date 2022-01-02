@@ -26,7 +26,7 @@ public interface MagicLoggerContext {
 		// 获取SessionId
 		String sessionId = SESSION.get();
 		if (sessionId != null) {
-			WebSocketSessionManager.sendBySessionId(sessionId, MessageType.LOG, Collections.singletonList(logInfo));
+			WebSocketSessionManager.sendLogs(sessionId, logInfo);
 		}
 	}
 

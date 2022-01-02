@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.util.Pair;
 import org.springframework.web.socket.TextMessage;
 import org.ssssssss.magicapi.event.EventAction;
 import org.ssssssss.magicapi.model.MagicConsoleSession;
@@ -16,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class WebSocketSessionManager {
 
@@ -29,11 +33,18 @@ public class WebSocketSessionManager {
 
 	private static String instanceId;
 
+	private static final List<Pair<String, String>> MESSAGE_CACHE = new ArrayList<>(200);
+
 	public static void add(MagicConsoleSession session) {
 		SESSIONS.put(session.getId(), session);
 	}
 
-	public static List<MagicConsoleSession> getSessions(){
+	static{
+		// 1秒1次发送日志
+		new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-send-log-task")).scheduleAtFixedRate(WebSocketSessionManager::flushLog, 1, 1, TimeUnit.SECONDS);
+	}
+
+	public static List<MagicConsoleSession> getSessions() {
 		return new ArrayList<>(SESSIONS.values());
 	}
 
@@ -55,6 +66,34 @@ public class WebSocketSessionManager {
 	private static void sendToAll(String content) {
 		SESSIONS.values().stream().filter(MagicConsoleSession::writeable).forEach(session -> sendBySession(session, content));
 		sendToOther(null, content);
+	}
+
+	public static void sendLogs(String sessionId, String message) {
+		synchronized (MESSAGE_CACHE) {
+			MESSAGE_CACHE.add(Pair.of(sessionId, message));
+			if (MESSAGE_CACHE.size() >= 100) {
+				flushLog();
+			}
+		}
+	}
+
+	public static void flushLog() {
+		try {
+			Map<String, List<String>> messages;
+			synchronized (MESSAGE_CACHE) {
+				messages = MESSAGE_CACHE.stream().collect(Collectors.groupingBy(Pair::getFirst, Collectors.mapping(Pair::getSecond, Collectors.toList())));
+				MESSAGE_CACHE.clear();
+			}
+			messages.forEach((sessionId, logs) -> {
+				if (logs.size() > 1) {
+					sendBySessionId(sessionId, MessageType.LOGS, logs);
+				} else {
+					sendBySessionId(sessionId, MessageType.LOG, logs.get(0));
+				}
+			});
+		} catch (Exception e) {
+			logger.warn("发生日志失败", e);
+		}
 	}
 
 	public static void sendBySessionId(String sessionId, MessageType messageType, Object... values) {
@@ -103,8 +142,8 @@ public class WebSocketSessionManager {
 
 	public static void sendBySession(MagicConsoleSession session, String content) {
 		try {
-			if(session != null){
-				synchronized (session.getId()){
+			if (session != null) {
+				synchronized (session.getId()) {
 					session.getWebSocketSession().sendMessage(new TextMessage(content));
 				}
 			}
