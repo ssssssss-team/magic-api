@@ -229,7 +229,8 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@RequestMapping("/download")
 	@Valid(authorization = Authorization.DOWNLOAD)
 	@ResponseBody
-	public ResponseEntity<?> download(String groupId, @RequestBody(required = false) List<SelectedResource> resources) throws IOException {
+	public ResponseEntity<?> download(String groupId, @RequestBody(required = false) List<SelectedResource> resources, HttpServletRequest request) throws IOException {
+		isTrue(allowVisit(request, Authorization.DOWNLOAD), PERMISSION_INVALID);
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		magicAPIService.download(groupId, resources, os);
 		if (StringUtils.isBlank(groupId)) {
@@ -242,8 +243,9 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@RequestMapping("/upload")
 	@Valid(readonly = false, authorization = Authorization.UPLOAD)
 	@ResponseBody
-	public JsonBean<Boolean> upload(MultipartFile file, String mode) throws IOException {
+	public JsonBean<Boolean> upload(MultipartFile file, String mode, HttpServletRequest request) throws IOException {
 		notNull(file, FILE_IS_REQUIRED);
+		isTrue(allowVisit(request, Authorization.UPLOAD), PERMISSION_INVALID);
 		return new JsonBean<>(magicAPIService.upload(file.getInputStream(), mode));
 	}
 
@@ -251,7 +253,9 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@ResponseBody
 	@Valid(authorization = Authorization.PUSH)
 	public JsonBean<?> push(@RequestHeader("magic-push-target") String target, @RequestHeader("magic-push-secret-key") String secretKey,
-							@RequestHeader("magic-push-mode") String mode, @RequestBody List<SelectedResource> resources) {
+							@RequestHeader("magic-push-mode") String mode, @RequestBody List<SelectedResource> resources,
+							HttpServletRequest request) {
+		isTrue(allowVisit(request, Authorization.PUSH), PERMISSION_INVALID);
 		return magicAPIService.push(target, secretKey, mode, resources);
 	}
 

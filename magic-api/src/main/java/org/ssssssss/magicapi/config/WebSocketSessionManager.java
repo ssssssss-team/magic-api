@@ -103,7 +103,11 @@ public class WebSocketSessionManager {
 
 	public static void sendBySession(MagicConsoleSession session, String content) {
 		try {
-			session.getWebSocketSession().sendMessage(new TextMessage(content));
+			if(session != null){
+				synchronized (session.getId()){
+					session.getWebSocketSession().sendMessage(new TextMessage(content));
+				}
+			}
 		} catch (IOException e) {
 			logger.error("发送WebSocket消息失败", e);
 		}

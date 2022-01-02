@@ -95,6 +95,19 @@ public class Group extends Attributes<Object> {
 		this.options = options;
 	}
 
+	public Group copy(){
+		Group group = new Group();
+		group.setId(this.id);
+		group.setName(this.name);
+		group.setType(this.type);
+		group.setPaths(this.paths);
+		group.setPath(this.path);
+		group.setProperties(this.properties);
+		group.setParentId(this.parentId);
+		group.setOptions(this.options);
+		return group;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {

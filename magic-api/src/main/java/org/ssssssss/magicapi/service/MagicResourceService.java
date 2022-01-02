@@ -93,6 +93,8 @@ public interface MagicResourceService {
 
 	<T extends MagicEntity> T file(String id);
 
+	Group getGroup(String id);
+
 	void export(String groupId, List<SelectedResource> resources, OutputStream os) throws IOException;
 
 	boolean lock(String id);

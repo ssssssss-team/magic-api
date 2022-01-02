@@ -80,7 +80,7 @@ public class MagicController implements JsonCodeConstants {
 				.stream()
 				.flatMap(it -> it.flat().stream())
 				.filter(it -> !Constants.ROOT_ID.equals(it.getId()))
-				.filter(it -> allowVisit(request, authorization))
+				.filter(it -> allowVisit(request, authorization, it))
 				.flatMap(it -> service.listFiles(it.getId()).stream())
 				.filter(it -> allowVisit(request, authorization, it))
 				.filter(it -> Objects.nonNull(it.getScript()))

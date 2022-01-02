@@ -19,4 +19,9 @@ public class ApiInfoMagicResourceStorage extends AbstractPathMagicResourceStorag
 		return info.getMethod().toUpperCase() + ":" + buildMappingKey(info, magicResourceService.getGroupPath(info.getGroupId()));
 	}
 
+	@Override
+	public void validate(ApiInfo entity) {
+		notBlank(entity.getMethod(), REQUEST_METHOD_REQUIRED);
+		super.validate(entity);
+	}
 }

@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.service.impl;
 
+import org.ssssssss.magicapi.model.JsonCodeConstants;
 import org.ssssssss.magicapi.model.PathMagicEntity;
 import org.ssssssss.magicapi.provider.MagicResourceStorage;
 import org.ssssssss.magicapi.service.MagicResourceService;
@@ -7,7 +8,7 @@ import org.ssssssss.magicapi.utils.PathUtils;
 
 import java.util.Objects;
 
-public abstract class AbstractPathMagicResourceStorage<T extends PathMagicEntity> implements MagicResourceStorage<T> {
+public abstract class AbstractPathMagicResourceStorage<T extends PathMagicEntity> implements MagicResourceStorage<T>, JsonCodeConstants {
 
 
 	protected MagicResourceService magicResourceService;
@@ -36,5 +37,11 @@ public abstract class AbstractPathMagicResourceStorage<T extends PathMagicEntity
 		String fullGroupName = magicResourceService.getGroupName(entity.getGroupId());
 		String fullGroupPath = magicResourceService.getGroupPath(entity.getGroupId());
 		return PathUtils.replaceSlash(String.format("/%s/%s(/%s/%s)", fullGroupName, entity.getName(), fullGroupPath, entity.getPath()));
+	}
+
+	@Override
+	public void validate(T entity) {
+		notBlank(entity.getPath(), REQUEST_PATH_REQUIRED);
+		notBlank(entity.getScript(), SCRIPT_REQUIRED);
 	}
 }

@@ -97,8 +97,6 @@ public interface JsonCodeConstants {
 
 	JsonCode FILE_SAVE_FAILURE = new JsonCode(0, "保存失败,同一组下分组名称不能重复且不能包含特殊字符。");
 
-	JsonCode GROUP_CONFLICT = new JsonCode(-20, "修改分组后，名称或路径会有冲突，请检查！");
-
 	JsonCode PARAMETER_INVALID = new JsonCode(0, "参数验证失败");
 
 	JsonCode HEADER_INVALID = new JsonCode(0, "header验证失败");
@@ -109,24 +107,9 @@ public interface JsonCodeConstants {
 
 	JsonCode FILE_IS_REQUIRED = new JsonCode(0, "请上传文件");
 
-	JsonCode SIGN_IS_INVALID = new JsonCode(0, "签名验证失败");
-
-	JsonCode UPLOAD_PATH_CONFLICT = new JsonCode(0, "上传后%s路径会有冲突，请检查");
+	JsonCode SIGN_IS_INVALID = new JsonCode(0, "签名验证失败,请检查秘钥是否正确");
 
 	JsonCode API_NOT_FOUND = new JsonCode(1001, "api not found");
-
-	JsonCode FUNCTION_NOT_FOUND = new JsonCode(1002, "function not found");
-
-	JsonCode WEBSOCKET_NOT_FOUND = new JsonCode(1003, "websocket not found");
-
-	JsonCode DATASOURCE_KEY_REQUIRED = new JsonCode(0, "数据源Key不能为空");
-
-	JsonCode DATASOURCE_KEY_EXISTS = new JsonCode(0, "数据源%s已存在或名称重复");
-
-	JsonCode DATASOURCE_TYPE_NOT_FOUND = new JsonCode(0, "%s not found");
-	JsonCode DATASOURCE_NOT_FOUND = new JsonCode(0, "找不到对应的数据源");
-
-	JsonCode DATASOURCE_TYPE_NOT_SET = new JsonCode(0, "请设置数据源类型");
 
 	default void notNull(Object value, JsonCode jsonCode) {
 		if (value == null) {

@@ -27,7 +27,8 @@ public class MagicResourceController extends MagicController implements MagicExc
 
 	@PostMapping("/resource/folder/save")
 	@ResponseBody
-	public JsonBean<String> saveFolder(@RequestBody Group group) {
+	public JsonBean<String> saveFolder(@RequestBody Group group, HttpServletRequest request) {
+		isTrue(allowVisit(request, Authorization.SAVE, group), PERMISSION_INVALID);
 		if (service.saveGroup(group)) {
 			return new JsonBean<>(group.getId());
 		}
@@ -36,13 +37,29 @@ public class MagicResourceController extends MagicController implements MagicExc
 
 	@PostMapping("/resource/folder/copy")
 	@ResponseBody
-	public JsonBean<String> saveFolder(String src, String target) {
+	public JsonBean<String> saveFolder(String src, String target, HttpServletRequest request) {
+		Group srcGroup = service.getGroup(src);
+		notNull(srcGroup, GROUP_NOT_FOUND);
+		isTrue(allowVisit(request, Authorization.VIEW, srcGroup), PERMISSION_INVALID);
+		Group targetGroup = srcGroup.copy();
+		targetGroup.setId(null);
+		targetGroup.setParentId(target);
+		targetGroup.setType(srcGroup.getType());
+		isTrue(allowVisit(request, Authorization.SAVE, targetGroup), PERMISSION_INVALID);
 		return new JsonBean<>(service.copyGroup(src, target));
 	}
 
 	@PostMapping("/resource/delete")
 	@ResponseBody
 	public JsonBean<Boolean> delete(String id, HttpServletRequest request) {
+		Group group = service.getGroup(id);
+		if(group == null){
+			MagicEntity entity = service.file(id);
+			notNull(entity, FILE_NOT_FOUND);
+			isTrue(allowVisit(request, Authorization.DELETE, entity), PERMISSION_INVALID);
+		} else {
+			isTrue(allowVisit(request, Authorization.DELETE, group), PERMISSION_INVALID);
+		}
 		return new JsonBean<>(service.delete(id));
 	}
 
@@ -80,7 +97,19 @@ public class MagicResourceController extends MagicController implements MagicExc
 
 	@PostMapping("/resource/move")
 	@ResponseBody
-	public JsonBean<Boolean> move(String src, String groupId) {
+	public JsonBean<Boolean> move(String src, String groupId, HttpServletRequest request) {
+		Group group = service.getGroup(src);
+		if(group == null){
+			MagicEntity entity = service.file(src);
+			notNull(entity, FILE_NOT_FOUND);
+			entity = entity.copy();
+			entity.setGroupId(groupId);
+			isTrue(allowVisit(request, Authorization.SAVE, entity), PERMISSION_INVALID);
+		} else {
+			group = group.copy();
+			group.setParentId(groupId);
+			isTrue(allowVisit(request, Authorization.DELETE, group), PERMISSION_INVALID);
+		}
 		return new JsonBean<>(service.move(src, groupId));
 	}
 
@@ -88,6 +117,7 @@ public class MagicResourceController extends MagicController implements MagicExc
 	@ResponseBody
 	public JsonBean<Boolean> lock(String id, HttpServletRequest request) {
 		MagicEntity entity = service.file(id);
+		notNull(entity, FILE_NOT_FOUND);
 		isTrue(allowVisit(request, Authorization.LOCK, entity), PERMISSION_INVALID);
 		return new JsonBean<>(service.lock(id));
 	}
@@ -96,27 +126,32 @@ public class MagicResourceController extends MagicController implements MagicExc
 	@ResponseBody
 	public JsonBean<Boolean> unlock(String id, HttpServletRequest request) {
 		MagicEntity entity = service.file(id);
+		notNull(entity, FILE_NOT_FOUND);
 		isTrue(allowVisit(request, Authorization.UNLOCK, entity), PERMISSION_INVALID);
 		return new JsonBean<>(service.unlock(id));
 	}
 
 	@GetMapping("/resource")
 	@ResponseBody
-	public JsonBean<Map<String, TreeNode<Attributes<Object>>>> resources() {
+	public JsonBean<Map<String, TreeNode<Attributes<Object>>>> resources(HttpServletRequest request) {
 		Map<String, TreeNode<Group>> tree = service.tree();
 		Map<String, TreeNode<Attributes<Object>>> result = new HashMap<>();
-		tree.forEach((key, value) -> result.put(key, process(value)));
+		tree.forEach((key, value) -> result.put(key, process(value, request)));
 		return new JsonBean<>(result);
 	}
 
-	private TreeNode<Attributes<Object>> process(TreeNode<Group> groupNode) {
+	private TreeNode<Attributes<Object>> process(TreeNode<Group> groupNode, HttpServletRequest request) {
 		TreeNode<Attributes<Object>> value = new TreeNode<>();
 		value.setNode(groupNode.getNode());
-		groupNode.getChildren().stream().map(this::process).forEach(value::addChild);
+		groupNode.getChildren().stream()
+				.filter(it -> allowVisit(request, Authorization.VIEW, it.getNode()))
+				.map(it -> process(it, request))
+				.forEach(value::addChild);
 		if (!Constants.ROOT_ID.equals(groupNode.getNode().getId())) {
 			service
 					.listFiles(groupNode.getNode().getId())
 					.stream()
+					.filter(it -> allowVisit(request, Authorization.VIEW, it))
 					.map(MagicEntity::simple)
 					.map((Function<MagicEntity, TreeNode<Attributes<Object>>>) TreeNode::new)
 					.forEach(value::addChild);

@@ -561,6 +561,11 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 	}
 
 	@Override
+	public Group getGroup(String id) {
+		return groupCache.get(id);
+	}
+
+	@Override
 	public void export(String groupId, List<SelectedResource> resources, OutputStream os) throws IOException {
 		if (StringUtils.isNotBlank(groupId)) {
 			Resource resource = getGroupResource(groupId);
