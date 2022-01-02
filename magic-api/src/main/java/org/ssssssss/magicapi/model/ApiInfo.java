@@ -99,7 +99,7 @@ public class ApiInfo extends PathMagicEntity {
 		this.paths = paths;
 	}
 
-	public Map<String, String> getOptionMap() {
+	public Map<String, String> options() {
 		Map<String, String> map = new HashMap<>();
 		if (this.jsonNode == null) {
 			return null;
@@ -110,15 +110,20 @@ public class ApiInfo extends PathMagicEntity {
 		} else {
 			this.jsonNode.fieldNames().forEachRemaining(it -> map.put(it, this.jsonNode.get(it).asText()));
 		}
-//		MagicRequestDynamicMappingRegistry.findGroups(this.groupId)
-//				.stream()
-//				.flatMap(it -> it.getOptions().stream())
-//				.forEach(option -> {
-//					if (!map.containsKey(option.getName())) {
-//						map.put(option.getName(), String.valueOf(option.getValue()));
-//					}
-//				});
+		MagicConfiguration.getMagicResourceService().getGroupsByFileId(this.groupId)
+				.stream()
+				.flatMap(it -> it.getOptions().stream())
+				.forEach(option -> {
+					if (!map.containsKey(option.getName())) {
+						map.put(option.getName(), String.valueOf(option.getValue()));
+					}
+				});
 		return map;
+	}
+
+	// 兼容1.x处理。
+	public void setOptionMap(Map<String, Object> optionMap) {
+
 	}
 
 	public String getDescription() {
@@ -137,17 +142,17 @@ public class ApiInfo extends PathMagicEntity {
 		this.options = options;
 	}
 
+	public void setOption(String json) {
+		this.options = JsonUtils.readValue(Objects.toString(json, "[]"), new TypeReference<List<Option>>() {
+		});
+	}
+
 	public List<Parameter> getParameters() {
 		return parameters;
 	}
 
 	public void setParameters(List<Parameter> parameters) {
 		this.parameters = parameters;
-	}
-
-	public void setRequestHeader(String requestHeader) {
-		this.headers = JsonUtils.readValue(Objects.toString(requestHeader, "[]"), new TypeReference<List<Header>>() {
-		});
 	}
 
 	public List<Header> getHeaders() {

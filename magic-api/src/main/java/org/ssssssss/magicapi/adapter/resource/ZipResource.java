@@ -7,10 +7,7 @@ import org.ssssssss.magicapi.adapter.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +24,7 @@ public class ZipResource implements Resource {
 	private Resource parent;
 
 	public ZipResource(InputStream is) throws IOException {
-		cachedContent = new HashMap<>();
+		cachedContent = new TreeMap<>();
 		try (ZipArchiveInputStream zis = new ZipArchiveInputStream(is)) {
 			ArchiveEntry entry;
 			byte[] buf = new byte[4096];
