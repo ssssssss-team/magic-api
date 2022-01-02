@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.model;
 
 import org.springframework.web.socket.WebSocketSession;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,6 +14,8 @@ public class MagicConsoleSession {
 	private final String id = UUID.randomUUID().toString();
 
 	private final WebSocketSession webSocketSession;
+
+	private final Map<String, Object> attributes = new HashMap<>();
 
 	public MagicConsoleSession(WebSocketSession webSocketSession) {
 		this.webSocketSession = webSocketSession;
@@ -41,5 +44,12 @@ public class MagicConsoleSession {
 
 	public static void remove(WebSocketSession session) {
 		cached.remove(session.getId());
+	}
+
+	public Object getAttribute(String key){
+		return attributes.get(key);
+	}
+	public void setAttribute(String key, Object value){
+		attributes.put(key, value);
 	}
 }

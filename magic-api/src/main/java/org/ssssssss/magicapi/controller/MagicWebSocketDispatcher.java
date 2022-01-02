@@ -7,14 +7,17 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.ssssssss.magicapi.config.Message;
+import org.ssssssss.magicapi.config.MessageType;
 import org.ssssssss.magicapi.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.event.EventAction;
+import org.ssssssss.magicapi.interceptor.MagicUser;
 import org.ssssssss.magicapi.model.MagicConsoleSession;
 import org.ssssssss.magicapi.model.MagicNotify;
 import org.ssssssss.magicapi.provider.MagicNotifyService;
 import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.script.reflection.MethodInvoker;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +47,7 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 		WebSocketSessionManager.setInstanceId(instanceId);
 		websocketMessageHandlers.forEach(websocketMessageHandler ->
 				Stream.of(websocketMessageHandler.getClass().getDeclaredMethods())
+						.filter(it -> it.getAnnotation(Message.class) != null)
 						.forEach(method -> HANDLERS.put(method.getAnnotation(Message.class).value().name().toLowerCase(), new MethodInvoker(method, websocketMessageHandler)))
 		);
 	}
@@ -96,8 +100,13 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-		WebSocketSessionManager.remove(MagicConsoleSession.from(session));
+		MagicConsoleSession mcsession = MagicConsoleSession.from(session);
+		WebSocketSessionManager.remove(mcsession);
 		MagicConsoleSession.remove(session);
+		MagicUser user = (MagicUser) mcsession.getAttribute("user");
+		if(user != null){
+			WebSocketSessionManager.sendToAll(MessageType.USER_LOGOUT, Arrays.asList(mcsession.getId(), mcsession.getAttribute("ip"), user));
+		}
 	}
 
 	@Override

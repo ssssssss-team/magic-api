@@ -13,6 +13,12 @@ public enum MessageType {
 	EXCEPTION,
 	/* 发送给客户端的sessionId */
 	SESSION_ID,
+	/* 通知客户端，有用户上线 */
+	USER_LOGIN,
+	/* 通知客户端，有用户下线 */
+	USER_LOGOUT,
+	/* 通知客户端，当前机器在线人数 */
+	ONLINE_USERS,
 
 	/* C -> S message */
 	/* 设置断点 */
@@ -20,5 +26,7 @@ public enum MessageType {
 	/* 恢复断点 */
 	RESUME_BREAKPOINT,
 	/* 登录 */
-	LOGIN
+	LOGIN,
+	/* 获取当前在线用户 */
+	GET_ONLINE
 }

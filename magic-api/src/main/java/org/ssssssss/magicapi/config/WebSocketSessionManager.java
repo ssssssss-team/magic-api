@@ -11,6 +11,8 @@ import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.script.MagicScriptDebugContext;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,7 +31,10 @@ public class WebSocketSessionManager {
 
 	public static void add(MagicConsoleSession session) {
 		SESSIONS.put(session.getId(), session);
-		sendBySession(session, buildMessage(MessageType.SESSION_ID, session.getId()));
+	}
+
+	public static List<MagicConsoleSession> getSessions(){
+		return new ArrayList<>(SESSIONS.values());
 	}
 
 	public static void remove(MagicConsoleSession session) {
@@ -69,7 +74,7 @@ public class WebSocketSessionManager {
 		}
 	}
 
-	private static String buildMessage(MessageType messageType, Object... values) {
+	public static String buildMessage(MessageType messageType, Object... values) {
 		StringBuilder builder = new StringBuilder(messageType.name().toLowerCase());
 		if (values != null) {
 			for (int i = 0, len = values.length; i < len; i++) {

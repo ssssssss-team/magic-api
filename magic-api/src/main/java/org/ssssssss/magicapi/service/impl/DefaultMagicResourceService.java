@@ -124,9 +124,9 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		});
 	}
 
-	@Override
-	public void refresh() {
+	private void read(){
 		writeLock(() -> {
+			publisher.publishEvent(new MagicEvent("clear", EventAction.CLEAR));
 			this.init();
 			this.root.readAll();
 			storages.forEach((key, registry) -> refreshGroup(root.getDirectory(key), registry));
@@ -136,6 +136,12 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 			});
 			return null;
 		});
+	}
+
+	@Override
+	public void refresh() {
+		publisher.publishEvent(new MagicEvent("clear", EventAction.CLEAR));
+		this.read();
 	}
 
 	@Override
@@ -787,6 +793,6 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	@Override
 	public void onApplicationEvent(ApplicationStartedEvent applicationStartedEvent) {
-		this.refresh();
+		this.read();
 	}
 }

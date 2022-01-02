@@ -48,7 +48,7 @@ public class MagicResourceController extends MagicController implements MagicExc
 
 	@PostMapping("/resource/file/{folder}/save")
 	@ResponseBody
-	public JsonBean<String> saveFile(@PathVariable("folder") String folder, HttpServletRequest request) throws IOException {
+	public JsonBean<String> saveFile(@PathVariable("folder") String folder, String auto, HttpServletRequest request) throws IOException {
 		byte[] bytes = IoUtils.bytes(request.getInputStream());
 		MagicEntity entity = configuration.getMagicDynamicRegistries().stream()
 				.map(MagicDynamicRegistry::getMagicResourceStorage)
@@ -57,6 +57,13 @@ public class MagicResourceController extends MagicController implements MagicExc
 				.orElseThrow(() -> new InvalidArgumentException(GROUP_NOT_FOUND))
 				.read(bytes);
 		isTrue(allowVisit(request, Authorization.SAVE, entity), PERMISSION_INVALID);
+		// 自动保存的代码，和旧版代码对比，如果一致，则不保存，直接返回。
+		if(entity.getId() != null && "1".equals(auto)){
+			MagicEntity oldInfo = service.file(entity.getId());
+			if(Objects.equals(oldInfo.getScript(), entity.getScript())){
+				return new JsonBean<>(entity.getId());
+			}
+		}
 		if (MagicConfiguration.getMagicResourceService().saveFile(entity)) {
 			return new JsonBean<>(entity.getId());
 		}

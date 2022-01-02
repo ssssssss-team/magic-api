@@ -27,8 +27,6 @@ public class DataSourceMagicDynamicRegistry extends AbstractMagicDynamicRegistry
 
 	private final MagicDynamicDataSource magicDynamicDataSource;
 
-	private static final Logger logger = LoggerFactory.getLogger(DataSourceMagicDynamicRegistry.class);
-
 	private static final ClassLoader CLASSLOADER = DataSourceMagicDynamicRegistry.class.getClassLoader();
 
 	// copy from DataSourceBuilder
@@ -61,14 +59,12 @@ public class DataSourceMagicDynamicRegistry extends AbstractMagicDynamicRegistry
 		}
 		DataSource datasource = createDataSource(getDataSourceType(info.getType()), properties);
 		magicDynamicDataSource.put(info.getId(), info.getKey(), info.getName(), datasource, info.getMaxRows());
-		logger.debug("注册数据源：{}", info.getKey());
 		return true;
 	}
 
 
 	@Override
 	public boolean unregister(DataSourceInfo info) {
-		logger.debug("取消注册数据源：{}", info.getKey());
 		return magicDynamicDataSource.delete(info.getKey());
 	}
 
