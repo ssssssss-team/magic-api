@@ -202,6 +202,6 @@ public class MagicConfiguration {
 		System.out.println(" | |\\/| | / _` | / _` || | / __|  / _ \\  | |_) || | ");
 		System.out.println(" | |  | || (_| || (_| || || (__  / ___ \\ |  __/ | | ");
 		System.out.println(" |_|  |_| \\__,_| \\__, ||_| \\___|/_/   \\_\\|_|   |___|");
-		System.out.println("                  |___/                    Pro " + RequestHandler.class.getPackage().getImplementationVersion());
+		System.out.println("                  |___/                        " + RequestHandler.class.getPackage().getImplementationVersion());
 	}
 }
