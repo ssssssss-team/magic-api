@@ -21,6 +21,7 @@ import org.ssssssss.magicapi.modules.SQLModule;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.utils.IoUtils;
 import org.ssssssss.magicapi.utils.SignUtils;
+import org.ssssssss.magicapi.utils.WebUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScriptEngine;
 import org.ssssssss.script.ScriptClass;
@@ -253,6 +254,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	public JsonBean<Boolean> upload(MultipartFile file, String mode, HttpServletRequest request) throws IOException {
 		notNull(file, FILE_IS_REQUIRED);
 		isTrue(allowVisit(request, Authorization.UPLOAD), PERMISSION_INVALID);
+		configuration.getMagicBackupService().doBackupAll("上传前，系统自动全量备份", WebUtils.currentUserName());
 		return new JsonBean<>(magicAPIService.upload(file.getInputStream(), mode));
 	}
 
@@ -275,6 +277,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		notNull(file, SIGN_IS_INVALID);
 		byte[] bytes = IoUtils.bytes(file.getInputStream());
 		isTrue(sign.equals(SignUtils.sign(timestamp, secretKey, mode, bytes)), SIGN_IS_INVALID);
+		configuration.getMagicBackupService().doBackupAll("推送前，系统自动全量备份", WebUtils.currentUserName());
 		magicAPIService.upload(new ByteArrayInputStream(bytes), mode);
 		return new JsonBean<>();
 	}
