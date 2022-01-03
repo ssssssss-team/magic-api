@@ -8,7 +8,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "build:lib": "vue-cli-service build --name magic-editor --target lib --entry ./src/index.js"
+    "build:lib": "vue-cli-service build --name magic-editor --target lib --formats umd-min --entry ./src/index.js"
   },
   "dependencies": {
     "axios": "^0.21.0",
