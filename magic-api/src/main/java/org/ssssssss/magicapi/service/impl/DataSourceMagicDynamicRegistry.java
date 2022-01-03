@@ -1,8 +1,6 @@
 package org.ssssssss.magicapi.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -46,7 +44,8 @@ public class DataSourceMagicDynamicRegistry extends AbstractMagicDynamicRegistry
 	}
 
 	@Override
-	public boolean register(DataSourceInfo info) {
+	protected boolean register(MappingNode<DataSourceInfo> mappingNode) {
+		DataSourceInfo info = mappingNode.getEntity();
 		Map<String, Object> properties = new HashMap<>(info.getProperties());
 		properties.put("url", info.getUrl());
 		properties.put("username", info.getUsername());
@@ -62,10 +61,9 @@ public class DataSourceMagicDynamicRegistry extends AbstractMagicDynamicRegistry
 		return true;
 	}
 
-
 	@Override
-	public boolean unregister(DataSourceInfo info) {
-		return magicDynamicDataSource.delete(info.getKey());
+	protected void unregister(MappingNode<DataSourceInfo> mappingNode) {
+		magicDynamicDataSource.delete(mappingNode.getMappingKey());
 	}
 
 	// copy from DataSourceBuilder

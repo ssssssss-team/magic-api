@@ -58,14 +58,15 @@ public abstract class AbstractMagicDynamicRegistry<T extends MagicEntity> implem
 	}
 
 	@EventListener(condition = "#event.action == T(org.ssssssss.magicapi.event.EventAction).CLEAR")
-	public void clear(MagicEvent event){
+	public void clear(MagicEvent event) {
 		Iterator<Map.Entry<String, MappingNode<T>>> iterator = mappings.entrySet().iterator();
-		while (iterator.hasNext()){
+		while (iterator.hasNext()) {
 			Map.Entry<String, MappingNode<T>> entry = iterator.next();
-			unregister(entry.getValue());
+			if (Objects.equals(entry.getKey(), entry.getValue().getEntity().getId())) {
+				unregister(entry.getValue());
+			}
 			iterator.remove();
 		}
-
 	}
 
 	protected void processEvent(FileEvent event) {

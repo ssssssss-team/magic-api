@@ -41,5 +41,9 @@ public enum Authorization {
 	/**
 	 * 解锁动作
 	 */
-	UNLOCK
+	UNLOCK,
+	/**
+	 * 重新加载
+	 */
+	RELOAD
 }

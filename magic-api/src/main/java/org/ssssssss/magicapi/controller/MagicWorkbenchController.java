@@ -149,9 +149,16 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		return new JsonBean<>(Stream.of(Options.values()).map(item -> Arrays.asList(item.getValue(), item.getName(), item.getDefaultValue())).collect(Collectors.toList()));
 	}
 
+	@GetMapping("/reload")
+	@ResponseBody
+	public JsonBean<Boolean> reload(HttpServletRequest request) {
+		isTrue(allowVisit(request, Authorization.RELOAD), PERMISSION_INVALID);
+		MagicConfiguration.getMagicResourceService().refresh();
+		return new JsonBean<>(true);
+	}
+
 	@GetMapping("/search")
 	@ResponseBody
-	@Valid
 	public JsonBean<List<Map<String, Object>>> search(String keyword, HttpServletRequest request) {
 		if (StringUtils.isBlank(keyword)) {
 			return new JsonBean<>(Collections.emptyList());
