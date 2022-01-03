@@ -61,8 +61,9 @@ public class MagicDatabaseBackupService implements MagicBackupService {
 
 	@Override
 	public List<Backup> backupList(long timestamp) {
-		Stream<Backup> stream = template.queryForStream(FIND_BY_TIMESTAMP, rowMapper, timestamp);
-		return stream.limit(FETCH_SIZE).collect(Collectors.toList());
+		try (Stream<Backup> stream = template.queryForStream(FIND_BY_TIMESTAMP, rowMapper, timestamp)) {
+			return stream.limit(FETCH_SIZE).collect(Collectors.toList());
+		}
 	}
 
 	@Override
