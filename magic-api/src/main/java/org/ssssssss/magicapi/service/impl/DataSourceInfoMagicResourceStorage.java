@@ -2,8 +2,10 @@ package org.ssssssss.magicapi.service.impl;
 
 import org.ssssssss.magicapi.model.DataSourceInfo;
 import org.ssssssss.magicapi.model.JsonCodeConstants;
+import org.ssssssss.magicapi.model.MagicEntity;
 import org.ssssssss.magicapi.provider.MagicResourceStorage;
 import org.ssssssss.magicapi.service.MagicResourceService;
+import org.ssssssss.magicapi.utils.JsonUtils;
 
 public class DataSourceInfoMagicResourceStorage implements MagicResourceStorage<DataSourceInfo>, JsonCodeConstants {
 
@@ -53,5 +55,15 @@ public class DataSourceInfoMagicResourceStorage implements MagicResourceStorage<
 	@Override
 	public void setMagicResourceService(MagicResourceService magicResourceService) {
 		this.magicResourceService = magicResourceService;
+	}
+
+	@Override
+	public DataSourceInfo read(byte[] bytes) {
+		return JsonUtils.readValue(bytes, DataSourceInfo.class);
+	}
+
+	@Override
+	public byte[] write(MagicEntity entity) {
+		return JsonUtils.toJsonBytes(entity);
 	}
 }

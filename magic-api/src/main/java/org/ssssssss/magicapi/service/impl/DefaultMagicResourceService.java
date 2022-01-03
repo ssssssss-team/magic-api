@@ -418,7 +418,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		notBlank(entity.getName(), NAME_REQUIRED);
 		isTrue(IoUtils.validateFileName(entity.getName()), NAME_INVALID);
 		return writeLock(() -> {
-			EventAction action = entity.getId() == null ? EventAction.CREATE : EventAction.SAVE;
+			EventAction action = entity.getId() == null || !fileCache.containsKey(entity.getId()) ? EventAction.CREATE : EventAction.SAVE;
 			// 获取所在分组
 			Resource groupResource = getGroupResource(entity.getGroupId());
 			// 分组需要存在
@@ -447,7 +447,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 			String filename = entity.getName() + storage.suffix();
 			// 获取修改前的信息
 			Resource fileResource = groupResource.getResource(filename);
-			if (entity.getId() == null || !fileCache.containsKey(entity.getId())) {
+			if (action == EventAction.CREATE) {
 				if(entity.getId() == null){
 					isTrue(!fileResource.exists(), FILE_SAVE_FAILURE);
 					// 新增操作赋值
@@ -592,7 +592,9 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 					MagicEntity entity = fileCache.get(item.getId());
 					notNull(entity, FILE_NOT_FOUND);
 					Resource groupResource = groupMappings.get(entity.getGroupId());
-					zos.putNextEntry(new ZipEntry(groupResource.getFilePath() + entity.getName() + ".ms"));
+					Group group = groupCache.get(entity.getGroupId());
+					MagicResourceStorage<? extends MagicEntity> storage = storages.get(group.getType());
+					zos.putNextEntry(new ZipEntry(groupResource.getFilePath() + entity.getName() + storage.suffix()));
 					zos.write(resource.read());
 					zos.closeEntry();
 				}
