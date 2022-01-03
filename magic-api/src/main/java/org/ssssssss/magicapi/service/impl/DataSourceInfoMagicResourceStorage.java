@@ -5,7 +5,10 @@ import org.ssssssss.magicapi.model.JsonCodeConstants;
 import org.ssssssss.magicapi.model.MagicEntity;
 import org.ssssssss.magicapi.provider.MagicResourceStorage;
 import org.ssssssss.magicapi.service.MagicResourceService;
+import org.ssssssss.magicapi.utils.IoUtils;
 import org.ssssssss.magicapi.utils.JsonUtils;
+
+import java.util.Objects;
 
 public class DataSourceInfoMagicResourceStorage implements MagicResourceStorage<DataSourceInfo>, JsonCodeConstants {
 
@@ -50,6 +53,11 @@ public class DataSourceInfoMagicResourceStorage implements MagicResourceStorage<
 	public void validate(DataSourceInfo entity) {
 		notBlank(entity.getUrl(), DS_URL_REQUIRED);
 		notBlank(entity.getKey(), DS_KEY_REQUIRED);
+		isTrue(IoUtils.validateFileName(entity.getKey()), DATASOURCE_KEY_INVALID);
+		boolean noneMatchKey = magicResourceService.listFiles("datasource:0").stream()
+				.map(it -> (DataSourceInfo)it)
+				.noneMatch(it -> Objects.equals(it.getKey(), entity.getKey()));
+		isTrue(noneMatchKey, DS_KEY_CONFLICT);
 	}
 
 	@Override

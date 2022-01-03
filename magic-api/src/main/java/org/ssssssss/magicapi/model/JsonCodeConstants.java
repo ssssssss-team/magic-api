@@ -27,17 +27,11 @@ public interface JsonCodeConstants {
 
 	JsonCode RESOURCE_LOCKED = new JsonCode(0, "当前资源已被锁定，请解锁后在操作。");
 
-	JsonCode REQUEST_PATH_CONFLICT = new JsonCode(0, "该路径已被映射,请换一个请求方法或路径");
-
 	JsonCode PATH_CONFLICT = new JsonCode(0, "该路径已被使用,请换一个路径在试");
 
 	JsonCode RESOURCE_PATH_CONFLICT = new JsonCode(0, "资源中[%s]有冲突，请检查");
 
 	JsonCode MOVE_PATH_CONFLICT = new JsonCode(0, "移动后路径会冲突,请换一个路径在试");
-
-	JsonCode FUNCTION_PATH_CONFLICT = new JsonCode(0, "该路径已被映射,请换一个请求方法或路径");
-
-	JsonCode WEBSOCKET_PATH_CONFLICT = new JsonCode(0, "该路径已被映射,请换一个请求方法或路径");
 
 	JsonCode REQUEST_METHOD_REQUIRED = new JsonCode(0, "请求方法不能为空");
 
@@ -45,21 +39,7 @@ public interface JsonCodeConstants {
 
 	JsonCode FUNCTION_PATH_REQUIRED = new JsonCode(0, "函数路径不能为空");
 
-	JsonCode TABLE_NAME_REQUIRED = new JsonCode(0, "表名不能为空");
-
-	JsonCode GROUP_REQUIRED = new JsonCode(0, "分组不能为空");
-
-	JsonCode TABLE_COLUMNS_REQUIRED = new JsonCode(0, "列不能为空");
-
-	JsonCode COLUMN_PROPERTY_REQUIRED = new JsonCode(0, "Java属性不能为空");
-
-	JsonCode COLUMN_JAVA_TYPE_REQUIRED = new JsonCode(0, "Java类型不能为空");
-
-	JsonCode COLUMN_NAME_REQUIRED = new JsonCode(0, "列名不能为空");
-
 	JsonCode SCRIPT_REQUIRED = new JsonCode(0, "脚本内容不能为空");
-
-	JsonCode API_NAME_REQUIRED = new JsonCode(0, "接口名称不能为空");
 
 	JsonCode NAME_REQUIRED = new JsonCode(0, "名称不能为空");
 
@@ -69,31 +49,13 @@ public interface JsonCodeConstants {
 
 	JsonCode DS_KEY_REQUIRED = new JsonCode(0, "key不能为空");
 
-	JsonCode GROUP_NAME_REQUIRED = new JsonCode(0, "分组名称不能为空");
+	JsonCode DS_KEY_CONFLICT = new JsonCode(0, "数据源key已被使用，请更换后在试");
 
 	JsonCode GROUP_ID_REQUIRED = new JsonCode(0, "请选择分组");
-
-	JsonCode GROUP_TYPE_REQUIRED = new JsonCode(0, "分组类型不能为空");
-
-	JsonCode FUNCTION_NAME_REQUIRED = new JsonCode(0, "函数名称不能为空");
-
-	JsonCode WEBSOCKET_NAME_REQUIRED = new JsonCode(0, "WebSocket名称不能为空");
 
 	JsonCode NAME_INVALID = new JsonCode(0, "名称不能包含特殊字符，只允许中文、数字、字母以及+_-.()的组合且不能.开头");
 
 	JsonCode DATASOURCE_KEY_INVALID = new JsonCode(0, "数据源Key不能包含特殊字符，只允许中文、数字、字母以及_组合");
-
-	JsonCode API_ALREADY_EXISTS = new JsonCode(0, "接口%s:%s已存在或接口名称重复");
-
-	JsonCode FUNCTION_ALREADY_EXISTS = new JsonCode(0, "函数%s已存在或名称重复");
-
-	JsonCode WEBSOCKET_ALREADY_EXISTS = new JsonCode(0, "WebSocket[%s:%s]已存在或名称重复");
-
-	JsonCode API_SAVE_FAILURE = new JsonCode(0, "保存失败,请检查接口名称是否重复且不能包含特殊字符。");
-
-	JsonCode FUNCTION_SAVE_FAILURE = new JsonCode(0, "保存失败,请检查函数名称是否重复且不能包含特殊字符。");
-
-	JsonCode WEBSOCKET_SAVE_FAILURE = new JsonCode(0, "保存失败,请检查WebSocket名称是否重复且不能包含特殊字符。");
 
 	JsonCode FILE_SAVE_FAILURE = new JsonCode(0, "保存失败,同一组下分组名称不能重复且不能包含特殊字符。");
 
