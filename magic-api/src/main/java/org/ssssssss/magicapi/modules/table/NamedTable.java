@@ -369,12 +369,12 @@ public class NamedTable extends Attributes<Object> {
 		if (null != data) {
 			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
 		}
+		preHandle(SqlMode.UPDATE);
 		Object primaryValue = null;
 		if (StringUtils.isNotBlank(this.primary)) {
 			primaryValue = this.columns.remove(this.primary);
 		}
 		this.withBlank = isUpdateBlank;
-		preHandle(SqlMode.UPDATE);
 		List<Map.Entry<String, Object>> entries = new ArrayList<>(filterNotBlanks());
 		if (entries.isEmpty()) {
 			throw new MagicAPIException("要修改的列不能为空");
