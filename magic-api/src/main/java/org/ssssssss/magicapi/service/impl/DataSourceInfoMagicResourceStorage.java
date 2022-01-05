@@ -56,6 +56,7 @@ public class DataSourceInfoMagicResourceStorage implements MagicResourceStorage<
 		isTrue(IoUtils.validateFileName(entity.getKey()), DATASOURCE_KEY_INVALID);
 		boolean noneMatchKey = magicResourceService.listFiles("datasource:0").stream()
 				.map(it -> (DataSourceInfo)it)
+				.filter(it -> !it.getId().equals(entity.getId()))
 				.noneMatch(it -> Objects.equals(it.getKey(), entity.getKey()));
 		isTrue(noneMatchKey, DS_KEY_CONFLICT);
 	}
