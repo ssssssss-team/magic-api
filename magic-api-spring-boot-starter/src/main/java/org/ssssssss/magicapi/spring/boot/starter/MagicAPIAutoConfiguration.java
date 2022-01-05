@@ -402,8 +402,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	 */
 	@Bean
 	@ConditionalOnMissingBean
-	public MagicAPIService magicAPIService(ResultProvider resultProvider, MagicResourceService magicResourceService) {
-		return new DefaultMagicAPIService(resultProvider, properties.getClusterConfig().getInstanceId(), magicResourceService, properties.isThrowException(), applicationContext);
+	public MagicAPIService magicAPIService(ResultProvider resultProvider, MagicResourceService magicResourceService, RequestMagicDynamicRegistry requestMagicDynamicRegistry, FunctionMagicDynamicRegistry functionMagicDynamicRegistry) {
+		return new DefaultMagicAPIService(resultProvider, properties.getClusterConfig().getInstanceId(), magicResourceService, requestMagicDynamicRegistry, functionMagicDynamicRegistry, properties.isThrowException(), applicationContext);
 	}
 
 	/**

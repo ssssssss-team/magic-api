@@ -14,16 +14,23 @@ import org.ssssssss.magicapi.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.controller.MagicWebSocketDispatcher;
 import org.ssssssss.magicapi.event.EventAction;
 import org.ssssssss.magicapi.event.MagicEvent;
+import org.ssssssss.magicapi.exception.MagicAPIException;
 import org.ssssssss.magicapi.exception.MagicResourceNotFoundException;
 import org.ssssssss.magicapi.model.*;
 import org.ssssssss.magicapi.provider.MagicAPIService;
 import org.ssssssss.magicapi.provider.ResultProvider;
+import org.ssssssss.magicapi.script.ScriptManager;
 import org.ssssssss.magicapi.service.MagicResourceService;
+import org.ssssssss.magicapi.service.impl.FunctionMagicDynamicRegistry;
+import org.ssssssss.magicapi.service.impl.RequestMagicDynamicRegistry;
+import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.magicapi.utils.SignUtils;
+import org.ssssssss.script.MagicScriptContext;
 
 import java.io.*;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstants {
 
@@ -32,47 +39,45 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	private final ResultProvider resultProvider;
 	private final String instanceId;
 	private final MagicResourceService resourceService;
-
 	private final ApplicationEventPublisher publisher;
+	private final RequestMagicDynamicRegistry requestMagicDynamicRegistry;
+	private final FunctionMagicDynamicRegistry functionMagicDynamicRegistry;
 
 	public DefaultMagicAPIService(ResultProvider resultProvider,
 								  String instanceId,
 								  MagicResourceService resourceService,
+								  RequestMagicDynamicRegistry requestMagicDynamicRegistry,
+								  FunctionMagicDynamicRegistry functionMagicDynamicRegistry,
 								  boolean throwException,
 								  ApplicationEventPublisher publisher) {
 		this.resultProvider = resultProvider;
+		this.requestMagicDynamicRegistry = requestMagicDynamicRegistry;
+		this.functionMagicDynamicRegistry = functionMagicDynamicRegistry;
 		this.throwException = throwException;
 		this.resourceService = resourceService;
 		this.instanceId = instanceId;
 		this.publisher = publisher;
 	}
 
-	private <T> T execute(ApiInfo info, Map<String, Object> context) {
+	private Object execute(PathMagicEntity info, Map<String, Object> context) {
 
-		// 获取原上下文
-//		final MagicScriptContext magicScriptContext = MagicScriptContext.get();
-//		MagicScriptContext scriptContext = new MagicScriptContext();
-//		scriptContext.setScriptName(groupServiceProvider.getScriptName(info.getGroupId(), info.getName(), info.getPath()));
-//		scriptContext.putMapIntoContext(context);
-//		final Object evalVal;
-//		try {
-//			evalVal = ScriptManager.executeScript(info.getScript(), scriptContext);
-//		} finally {
-//			// 恢复原接口上下文，修复当前调完其它接口后原接口上下文丢失的问题
-//			MagicScriptContext.set(magicScriptContext);
-//		}
-//		return evalVal;
-		return null;
+		MagicScriptContext scriptContext = new MagicScriptContext();
+		String fullGroupName = resourceService.getGroupName(info.getGroupId());
+		String fullGroupPath = resourceService.getGroupPath(info.getGroupId());
+		String scriptName = PathUtils.replaceSlash(String.format("/%s/%s(/%s/%s)", fullGroupName, info.getName(), fullGroupPath, info.getPath()));
+		scriptContext.setScriptName(scriptName);
+		scriptContext.putMapIntoContext(context);
+		return ScriptManager.executeScript(info.getScript(), scriptContext);
 	}
 
 	@Override
 	public <T> T execute(String method, String path, Map<String, Object> context) {
-//		ApiInfo info = this.mappingRegistry.getApiInfo(method, path);
-//		if (info == null) {
-//			throw new MagicServiceException(String.format("找不到对应接口 [%s:%s]", method, path));
-//		}
-//		return execute(info, context);
-		return null;
+		String mappingKey = Objects.toString(method, "GET").toUpperCase() + ":" + PathUtils.replaceSlash("/" + Objects.toString(path, ""));
+		ApiInfo info = requestMagicDynamicRegistry.getMapping(mappingKey);
+		if (info == null) {
+			throw new MagicAPIException(String.format("找不到对应接口 [%s:%s]", method, path));
+		}
+		return (T) execute(info, context);
 	}
 
 	@Override
@@ -92,15 +97,11 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 
 	@Override
 	public <T> T invoke(String path, Map<String, Object> context) {
-//		FunctionInfo functionInfo = functionRegistry.getFunctionInfo(path);
-//		if (functionInfo == null) {
-//			throw new MagicServiceException(String.format("找不到对应函数 [%s]", path));
-//		}
-//		MagicScriptContext scriptContext = new MagicScriptContext(context);
-//		scriptContext.setScriptName(groupServiceProvider.getScriptName(functionInfo.getGroupId(), functionInfo.getName(), functionInfo.getPath()));
-//		scriptContext.putMapIntoContext(context);
-//		return ScriptManager.executeScript(functionInfo.getScript(), scriptContext);
-		return null;
+		FunctionInfo functionInfo = functionMagicDynamicRegistry.getMapping(path);
+		if (functionInfo == null) {
+			throw new MagicAPIException(String.format("找不到对应函数 [%s]", path));
+		}
+		return (T) execute(functionInfo, context);
 	}
 
 	@Override
