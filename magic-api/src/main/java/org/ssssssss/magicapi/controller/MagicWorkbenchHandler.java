@@ -41,7 +41,7 @@ public class MagicWorkbenchHandler {
 				session.setClientId(clientId);
 				WebSocketSessionManager.add(session);
 				WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "1", session.getAttributes()));
-				WebSocketSessionManager.sendToAll(MessageType.USER_LOGIN, session.getAttributes());
+				WebSocketSessionManager.sendToOther(session.getClientId(), MessageType.USER_LOGIN, session.getAttributes());
 			}
 		} catch (MagicLoginException ignored) {
 			WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "0"));
