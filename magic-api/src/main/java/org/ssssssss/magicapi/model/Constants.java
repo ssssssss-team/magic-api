@@ -74,7 +74,7 @@ public class Constants {
 
 	public static final String HEADER_REQUEST_SCRIPT_ID = "Magic-Request-Script-Id";
 
-	public static final String HEADER_REQUEST_SESSION_ID = "Magic-Request-Session-Id";
+	public static final String HEADER_REQUEST_CLIENT_ID = "Magic-Request-Client-Id";
 
 	public static final String HEADER_REQUEST_BREAKPOINTS = "Magic-Request-Breakpoints";
 
@@ -95,6 +95,16 @@ public class Constants {
 	public static final String EVENT_TYPE_FILE = "file";
 
 	public static final String EVENT_SOURCE_NOTIFY = "notify";
+
+	public static final String WEBSOCKET_ATTRIBUTE_FILE_ID = "fileId";
+
+	public static final String WEBSOCKET_ATTRIBUTE_USER_ID = "id";
+
+	public static final String WEBSOCKET_ATTRIBUTE_USER_NAME = "username";
+
+	public static final String WEBSOCKET_ATTRIBUTE_USER_IP = "ip";
+
+	public static final String WEBSOCKET_ATTRIBUTE_CLIENT_ID = "cid";
 
 	/**
 	 * 执行成功的code值

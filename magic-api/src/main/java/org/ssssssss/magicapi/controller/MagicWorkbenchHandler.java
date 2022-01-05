@@ -6,11 +6,11 @@ import org.ssssssss.magicapi.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.exception.MagicLoginException;
 import org.ssssssss.magicapi.interceptor.AuthorizationInterceptor;
 import org.ssssssss.magicapi.interceptor.MagicUser;
+import org.ssssssss.magicapi.model.Constants;
 import org.ssssssss.magicapi.model.MagicConsoleSession;
 
-import java.net.InetSocketAddress;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -30,20 +30,21 @@ public class MagicWorkbenchHandler {
 	}
 
 	@Message(MessageType.LOGIN)
-	public void onLogin(MagicConsoleSession session, String token) {
+	public void onLogin(MagicConsoleSession session, String token, String clientId) {
 		try {
 			MagicUser user = guest;
 			if (!authorizationInterceptor.requireLogin() || (user = authorizationInterceptor.getUserByToken(token)) != null) {
 				String ip = Optional.ofNullable(session.getWebSocketSession().getRemoteAddress()).map(it -> it.getAddress().getHostAddress()).orElse("unknown");
-				session.setAttribute("user", user);
-				session.setAttribute("ip", ip);
+				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_ID, user.getId());
+				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_IP, ip);
+				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_NAME, user.getUsername());
+				session.setClientId(clientId);
 				WebSocketSessionManager.add(session);
-				List<Object> messages = Arrays.asList(session.getId(), ip, user);
-				WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.SESSION_ID, messages));
-				WebSocketSessionManager.sendToAll(MessageType.USER_LOGIN, messages);
+				WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "1", session.getAttributes()));
+				WebSocketSessionManager.sendToAll(MessageType.USER_LOGIN, session.getAttributes());
 			}
 		} catch (MagicLoginException ignored) {
-
+			WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "0"));
 		}
 	}
 
@@ -51,10 +52,10 @@ public class MagicWorkbenchHandler {
 	public boolean getOnline(MagicConsoleSession session) {
 		List<MagicConsoleSession> sessions = WebSocketSessionManager.getSessions();
 		if(sessions.size() > 0){
-			List<List<Object>> messages = sessions.stream()
-					.map(it -> Arrays.asList(it.getId(), it.getAttribute("ip"), it.getAttribute("user")))
+			List<Map<String, Object>> messages = sessions.stream()
+					.map(MagicConsoleSession::getAttributes)
 					.collect(Collectors.toList());
-			WebSocketSessionManager.sendBySessionId(session.getId(), WebSocketSessionManager.buildMessage(MessageType.ONLINE_USERS, messages));
+			WebSocketSessionManager.sendByClientId(session.getClientId(), WebSocketSessionManager.buildMessage(MessageType.ONLINE_USERS, messages));
 		}
 		return false;
 	}

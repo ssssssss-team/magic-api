@@ -36,7 +36,7 @@ public class MagicCorsFilter implements Filter {
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
-		if (StringUtils.isNotBlank(Constants.HEADER_REQUEST_SESSION_ID)) {
+		if (StringUtils.isNotBlank(Constants.HEADER_REQUEST_CLIENT_ID)) {
 			process(request, (HttpServletResponse) resp);
 		}
 		chain.doFilter(req, resp);

@@ -36,7 +36,7 @@ public class WebSocketSessionManager {
 	private static final List<Pair<String, String>> MESSAGE_CACHE = new ArrayList<>(200);
 
 	public static void add(MagicConsoleSession session) {
-		SESSIONS.put(session.getId(), session);
+		SESSIONS.put(session.getClientId(), session);
 	}
 
 	static{
@@ -49,8 +49,8 @@ public class WebSocketSessionManager {
 	}
 
 	public static void remove(MagicConsoleSession session) {
-		if (session.getId() != null) {
-			remove(session.getId());
+		if (session.getClientId() != null) {
+			remove(session.getClientId());
 		}
 	}
 
@@ -65,7 +65,7 @@ public class WebSocketSessionManager {
 
 	private static void sendToAll(String content) {
 		SESSIONS.values().stream().filter(MagicConsoleSession::writeable).forEach(session -> sendBySession(session, content));
-		sendToOther(null, content);
+		sendToMachine(null, content);
 	}
 
 	public static void sendLogs(String sessionId, String message) {
@@ -84,11 +84,11 @@ public class WebSocketSessionManager {
 				messages = MESSAGE_CACHE.stream().collect(Collectors.groupingBy(Pair::getFirst, Collectors.mapping(Pair::getSecond, Collectors.toList())));
 				MESSAGE_CACHE.clear();
 			}
-			messages.forEach((sessionId, logs) -> {
+			messages.forEach((clientId, logs) -> {
 				if (logs.size() > 1) {
-					sendBySessionId(sessionId, MessageType.LOGS, logs);
+					sendByClientId(clientId, MessageType.LOGS, logs);
 				} else {
-					sendBySessionId(sessionId, MessageType.LOG, logs.get(0));
+					sendByClientId(clientId, MessageType.LOG, logs.get(0));
 				}
 			});
 		} catch (Exception e) {
@@ -96,20 +96,29 @@ public class WebSocketSessionManager {
 		}
 	}
 
-	public static void sendBySessionId(String sessionId, MessageType messageType, Object... values) {
-		MagicConsoleSession session = findSession(sessionId);
+	public static void sendByClientId(String clientId, MessageType messageType, Object... values) {
+		MagicConsoleSession session = findSession(clientId);
 		String content = buildMessage(messageType, values);
 		if (session != null && session.writeable()) {
 			sendBySession(session, content);
 		} else {
-			sendToOther(sessionId, content);
+			sendToMachine(clientId, content);
 		}
 	}
 
-	private static void sendToOther(String sessionId, String content) {
+	public static void sendToOther(String excludeClientId, MessageType messageType, Object... values) {
+		String content = buildMessage(messageType, values);
+		SESSIONS.values().stream()
+				.filter(MagicConsoleSession::writeable)
+				.filter(it -> !it.getClientId().equals(excludeClientId))
+				.forEach(session -> sendBySession(session, content));
+		sendToMachine(null, content);
+	}
+
+	private static void sendToMachine(String clientId, String content) {
 		if (magicNotifyService != null) {
 			// 通知其他机器去发送消息
-			magicNotifyService.sendNotify(new MagicNotify(instanceId, EventAction.WS_S_C, sessionId, content));
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, EventAction.WS_S_C, clientId, content));
 		}
 	}
 
@@ -129,11 +138,11 @@ public class WebSocketSessionManager {
 		return builder.toString();
 	}
 
-	public static void sendBySessionId(String sessionId, String content) {
-		if (sessionId == null) {
+	public static void sendByClientId(String clientId, String content) {
+		if (clientId == null) {
 			sendToAll(content);
 		} else {
-			MagicConsoleSession session = findSession(sessionId);
+			MagicConsoleSession session = findSession(clientId);
 			if (session != null) {
 				sendBySession(session, content);
 			}
@@ -143,7 +152,7 @@ public class WebSocketSessionManager {
 	public static void sendBySession(MagicConsoleSession session, String content) {
 		try {
 			if (session != null) {
-				synchronized (session.getId()) {
+				synchronized (session.getClientId()) {
 					session.getWebSocketSession().sendMessage(new TextMessage(content));
 				}
 			}
@@ -152,9 +161,9 @@ public class WebSocketSessionManager {
 		}
 	}
 
-	public static MagicConsoleSession findSession(String sessionId) {
+	public static MagicConsoleSession findSession(String clientId) {
 		return SESSIONS.values().stream()
-				.filter(it -> Objects.equals(sessionId, it.getId()))
+				.filter(it -> Objects.equals(clientId, it.getClientId()))
 				.findFirst()
 				.orElse(null);
 	}

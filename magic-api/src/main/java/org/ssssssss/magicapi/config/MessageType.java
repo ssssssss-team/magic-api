@@ -13,14 +13,16 @@ public enum MessageType {
 	BREAKPOINT,
 	/* 请求接口发生异常 */
 	EXCEPTION,
-	/* 发送给客户端的sessionId */
-	SESSION_ID,
+	/* 登录结果 */
+	LOGIN_RESPONSE,
 	/* 通知客户端，有用户上线 */
 	USER_LOGIN,
 	/* 通知客户端，有用户下线 */
 	USER_LOGOUT,
 	/* 通知客户端，当前机器在线人数 */
 	ONLINE_USERS,
+	/* 通知客户端，他人进入文件*/
+	INTO_FILE_ID,
 
 	/* C -> S message */
 	/* 设置断点 */
@@ -30,5 +32,7 @@ public enum MessageType {
 	/* 登录 */
 	LOGIN,
 	/* 获取当前在线用户 */
-	GET_ONLINE
+	GET_ONLINE,
+	/* 设置当前所在文件 */
+	SET_FILE_ID
 }

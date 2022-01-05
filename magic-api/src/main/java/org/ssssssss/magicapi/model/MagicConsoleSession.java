@@ -11,7 +11,7 @@ public class MagicConsoleSession {
 
 	private static final Map<String, MagicConsoleSession> cached = new ConcurrentHashMap<>();
 
-	private final String id = UUID.randomUUID().toString();
+	private String clientId;
 
 	private final WebSocketSession webSocketSession;
 
@@ -21,8 +21,8 @@ public class MagicConsoleSession {
 		this.webSocketSession = webSocketSession;
 	}
 
-	public String getId() {
-		return id;
+	public String getClientId() {
+		return clientId;
 	}
 
 	public WebSocketSession getWebSocketSession() {
@@ -49,7 +49,17 @@ public class MagicConsoleSession {
 	public Object getAttribute(String key){
 		return attributes.get(key);
 	}
+
 	public void setAttribute(String key, Object value){
 		attributes.put(key, value);
+	}
+
+	public Map<String, Object> getAttributes(){
+		return attributes;
+	}
+
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
+		setAttribute(Constants.WEBSOCKET_ATTRIBUTE_CLIENT_ID, clientId);
 	}
 }

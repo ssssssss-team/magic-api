@@ -93,7 +93,7 @@ public class RequestHandler extends MagicController {
 		String sessionId = null;
 		Map<String, Object> headers = new LinkedCaseInsensitiveMap<>();
 		headers.putAll(defaultHeaders);
-		boolean requestedFromTest = configuration.isEnableWeb() && (sessionId = request.getHeader(HEADER_REQUEST_SESSION_ID)) != null && request.getHeader(HEADER_REQUEST_SCRIPT_ID) != null;
+		boolean requestedFromTest = configuration.isEnableWeb() && (sessionId = request.getHeader(HEADER_REQUEST_CLIENT_ID)) != null && request.getHeader(HEADER_REQUEST_SCRIPT_ID) != null;
 		RequestEntity requestEntity = RequestEntity.create()
 				.info(requestMagicDynamicRegistry.getApiInfoFromRequest(request))
 				.request(request)
@@ -168,7 +168,7 @@ public class RequestHandler extends MagicController {
 			return afterCompletion(requestEntity, value);
 		}
 		if (requestedFromTest) {
-			String sessionAndScriptId = requestEntity.getRequestedSessionId() + requestEntity.getRequestedScriptId();
+			String sessionAndScriptId = requestEntity.getRequestedClientId() + requestEntity.getRequestedScriptId();
 			try {
 				if (context instanceof MagicScriptDebugContext) {
 					WebSocketSessionManager.addMagicScriptContext(sessionAndScriptId, (MagicScriptDebugContext) context);
@@ -358,7 +358,7 @@ public class RequestHandler extends MagicController {
 		} while ((parent = parent.getCause()) != null);
 		if (se != null && requestEntity.isRequestedFromTest()) {
 			Span.Line line = se.getLine();
-			WebSocketSessionManager.sendBySessionId(requestEntity.getRequestedSessionId(), EXCEPTION, Arrays.asList(
+			WebSocketSessionManager.sendByClientId(requestEntity.getRequestedClientId(), EXCEPTION, Arrays.asList(
 					requestEntity.getRequestedScriptId(),
 					se.getSimpleMessage(),
 					line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol())
@@ -402,7 +402,7 @@ public class RequestHandler extends MagicController {
 		if (requestEntity.isRequestedFromDebug() && breakpoints.size() > 0) {
 			MagicScriptDebugContext debugContext = new MagicScriptDebugContext(requestEntity.getRequestedBreakpoints());
 			String scriptId = requestEntity.getRequestedScriptId();
-			String sessionId = requestEntity.getRequestedSessionId();
+			String clientId = requestEntity.getRequestedClientId();
 			debugContext.setTimeout(configuration.getDebugTimeout());
 			debugContext.setId(scriptId);
 			debugContext.setCallback(variables -> {
@@ -410,7 +410,7 @@ public class RequestHandler extends MagicController {
 				varList.stream().filter(it -> it.containsKey("value")).forEach(variable -> {
 					variable.put("value", JsonUtils.toJsonStringWithoutLog(variable.get("value")));
 				});
-				WebSocketSessionManager.sendBySessionId(sessionId, BREAKPOINT, scriptId, variables);
+				WebSocketSessionManager.sendByClientId(clientId, BREAKPOINT, scriptId, variables);
 			});
 			context = debugContext;
 		} else {

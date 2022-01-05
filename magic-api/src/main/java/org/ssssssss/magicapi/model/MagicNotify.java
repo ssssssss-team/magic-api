@@ -30,9 +30,9 @@ public class MagicNotify {
 	private String type = null;
 
 	/**
-	 * WebSocket sessionId
+	 * WebSocket clientId
 	 */
-	private String sessionId;
+	private String clientId;
 
 	/**
 	 * WebSocket消息内容
@@ -46,9 +46,9 @@ public class MagicNotify {
 		this.from = from;
 	}
 
-	public MagicNotify(String from, EventAction action, String sessionId, String content) {
+	public MagicNotify(String from, EventAction action, String clientId, String content) {
 		this.from = from;
-		this.sessionId = sessionId;
+		this.clientId = clientId;
 		this.action = action;
 		this.content = content;
 	}
@@ -92,12 +92,12 @@ public class MagicNotify {
 		this.type = type;
 	}
 
-	public String getSessionId() {
-		return sessionId;
+	public String getClientId() {
+		return clientId;
 	}
 
-	public void setSessionId(String sessionId) {
-		this.sessionId = sessionId;
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
 	}
 
 	public String getContent() {
@@ -115,7 +115,7 @@ public class MagicNotify {
 				", id='" + id + '\'' +
 				", action=" + action +
 				", type='" + type + '\'' +
-				", sessionId='" + sessionId + '\'' +
+				", clientId='" + clientId + '\'' +
 				", content='" + content + '\'' +
 				'}';
 	}

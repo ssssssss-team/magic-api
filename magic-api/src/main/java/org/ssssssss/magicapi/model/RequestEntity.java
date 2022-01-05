@@ -142,10 +142,10 @@ public class RequestEntity {
 	}
 
 	/**
-	 * 获取测试sessionId
+	 * 获取测试clientId
 	 */
-	public String getRequestedSessionId() {
-		return request.getHeader(HEADER_REQUEST_SESSION_ID);
+	public String getRequestedClientId() {
+		return request.getHeader(HEADER_REQUEST_CLIENT_ID);
 	}
 
 	/**

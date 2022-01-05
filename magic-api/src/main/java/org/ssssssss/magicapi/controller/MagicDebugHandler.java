@@ -26,7 +26,7 @@ public class MagicDebugHandler {
 	 */
 	@Message(MessageType.SET_BREAKPOINT)
 	public boolean setBreakPoint(MagicConsoleSession session, String scriptId, String breakpoints) {
-		MagicScriptDebugContext context = WebSocketSessionManager.findMagicScriptContext(session.getId() + scriptId);
+		MagicScriptDebugContext context = WebSocketSessionManager.findMagicScriptContext(session.getClientId() + scriptId);
 		if (context != null) {
 			context.setBreakpoints(Stream.of(breakpoints.split(",")).map(Integer::valueOf).collect(Collectors.toList()));
 			return true;
@@ -40,7 +40,7 @@ public class MagicDebugHandler {
 	 */
 	@Message(MessageType.RESUME_BREAKPOINT)
 	public boolean resumeBreakpoint(MagicConsoleSession session, String scriptId, String stepInto, String breakpoints) {
-		MagicScriptDebugContext context = WebSocketSessionManager.findMagicScriptContext(session.getId() + scriptId);
+		MagicScriptDebugContext context = WebSocketSessionManager.findMagicScriptContext(session.getClientId() + scriptId);
 		if (context != null) {
 			context.setStepInto("1".equals(stepInto));
 			if (StringUtils.isNotBlank(breakpoints)) {

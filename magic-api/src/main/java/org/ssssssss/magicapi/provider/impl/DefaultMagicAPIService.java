@@ -184,9 +184,9 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		logger.info("收到通知消息:{}", magicNotify);
 		switch (magicNotify.getAction()) {
 			case WS_C_S:
-				return processWebSocketMessageReceived(magicNotify.getSessionId(), magicNotify.getContent());
+				return processWebSocketMessageReceived(magicNotify.getClientId(), magicNotify.getContent());
 			case WS_S_C:
-				return processWebSocketSendMessage(magicNotify.getSessionId(), magicNotify.getContent());
+				return processWebSocketSendMessage(magicNotify.getClientId(), magicNotify.getContent());
 			case CLEAR:
 				publisher.publishEvent(new MagicEvent("clear", EventAction.CLEAR, Constants.EVENT_SOURCE_NOTIFY));
 		}
@@ -203,13 +203,13 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		return "magic";
 	}
 
-	private boolean processWebSocketSendMessage(String sessionId, String content) {
-		WebSocketSessionManager.sendBySessionId(sessionId, content);
+	private boolean processWebSocketSendMessage(String clientId, String content) {
+		WebSocketSessionManager.sendByClientId(clientId, content);
 		return true;
 	}
 
-	private boolean processWebSocketMessageReceived(String sessionId, String content) {
-		MagicWebSocketDispatcher.processMessageReceived(sessionId, content);
+	private boolean processWebSocketMessageReceived(String clientId, String content) {
+		MagicWebSocketDispatcher.processMessageReceived(clientId, content);
 		return true;
 	}
 }

@@ -103,10 +103,7 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 		MagicConsoleSession mcsession = MagicConsoleSession.from(session);
 		WebSocketSessionManager.remove(mcsession);
 		MagicConsoleSession.remove(session);
-		MagicUser user = (MagicUser) mcsession.getAttribute("user");
-		if(user != null){
-			WebSocketSessionManager.sendToAll(MessageType.USER_LOGOUT, Arrays.asList(mcsession.getId(), mcsession.getAttribute("ip"), user));
-		}
+		WebSocketSessionManager.sendToAll(MessageType.USER_LOGOUT, mcsession.getAttributes());
 	}
 
 	@Override
@@ -115,7 +112,7 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 		Object returnValue = findHandleAndInvoke(consoleSession, message.getPayload());
 		// 如果未成功处理消息，则通知其他机器去处理消息
 		if (Boolean.FALSE.equals(returnValue)) {
-			magicNotifyService.sendNotify(new MagicNotify(instanceId, EventAction.WS_C_S, consoleSession.getId(), message.getPayload()));
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, EventAction.WS_C_S, consoleSession.getClientId(), message.getPayload()));
 		}
 	}
 }
