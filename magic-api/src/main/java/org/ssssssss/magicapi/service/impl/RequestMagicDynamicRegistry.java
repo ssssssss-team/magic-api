@@ -96,7 +96,6 @@ public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<Ap
 	@Override
 	public boolean register(MappingNode<ApiInfo> mappingNode) {
 		String mappingKey = mappingNode.getMappingKey();
-		logger.debug("注册接口[{}({})]", mappingNode.getEntity().getName(), mappingKey);
 		int index = mappingKey.indexOf(":");
 		String requestMethod = mappingKey.substring(0, index);
 		String path = mappingKey.substring(index + 1);
@@ -110,7 +109,9 @@ public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<Ap
 			// 取消注册原接口
 			mapping.unregister(requestMappingInfo);
 		}
-		mappingNode.setMappingData(mapping.register(requestMappingInfo, handler, method));
+		logger.debug("注册接口[{}({})]", mappingNode.getEntity().getName(), mappingKey);
+		mapping.register(requestMappingInfo, handler, method);
+		mappingNode.setMappingData(requestMappingInfo);
 		return true;
 	}
 
