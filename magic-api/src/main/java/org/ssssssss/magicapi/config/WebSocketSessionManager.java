@@ -2,11 +2,11 @@ package org.ssssssss.magicapi.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.util.Pair;
 import org.springframework.web.socket.TextMessage;
 import org.ssssssss.magicapi.event.EventAction;
 import org.ssssssss.magicapi.model.MagicConsoleSession;
 import org.ssssssss.magicapi.model.MagicNotify;
+import org.ssssssss.magicapi.model.Pair;
 import org.ssssssss.magicapi.provider.MagicNotifyService;
 import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.script.MagicScriptDebugContext;
