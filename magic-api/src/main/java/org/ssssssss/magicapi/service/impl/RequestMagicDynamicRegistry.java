@@ -3,11 +3,13 @@ package org.ssssssss.magicapi.service.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.ssssssss.magicapi.controller.RequestHandler;
 import org.ssssssss.magicapi.event.FileEvent;
 import org.ssssssss.magicapi.event.GroupEvent;
+import org.ssssssss.magicapi.exception.InvalidArgumentException;
 import org.ssssssss.magicapi.model.ApiInfo;
 import org.ssssssss.magicapi.provider.MagicResourceStorage;
 import org.ssssssss.magicapi.script.ScriptManager;
@@ -26,6 +28,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.ssssssss.magicapi.model.JsonCodeConstants.REQUEST_PATH_CONFLICT;
+
 public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<ApiInfo> {
 
 	private final Mapping mapping;
@@ -36,9 +40,12 @@ public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<Ap
 
 	private static final Logger logger = LoggerFactory.getLogger(RequestMagicDynamicRegistry.class);
 
-	public RequestMagicDynamicRegistry(MagicResourceStorage<ApiInfo> magicResourceStorage, Mapping mapping) throws NoSuchMethodException {
+	private final boolean allowOverride;
+
+	public RequestMagicDynamicRegistry(MagicResourceStorage<ApiInfo> magicResourceStorage, Mapping mapping, boolean allowOverride) throws NoSuchMethodException {
 		super(magicResourceStorage);
 		this.mapping = mapping;
+		this.allowOverride = allowOverride;
 		MagicResourceLoader.addFunctionLoader(this::lookupLambdaFunction);
 	}
 
@@ -93,7 +100,17 @@ public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<Ap
 		int index = mappingKey.indexOf(":");
 		String requestMethod = mappingKey.substring(0, index);
 		String path = mappingKey.substring(index + 1);
-		mappingNode.setMappingData(mapping.register(requestMethod, path, handler, method));
+		RequestMappingInfo requestMappingInfo = mapping.paths(path).methods(RequestMethod.valueOf(requestMethod.toUpperCase())).build();
+		if (mapping.getHandlerMethods().containsKey(requestMappingInfo)) {
+			if (!allowOverride) {
+				logger.error("接口[{}({})]与应用冲突，无法注册", mappingNode.getEntity().getName(), mappingKey);
+				throw new InvalidArgumentException(REQUEST_PATH_CONFLICT.format(mappingNode.getEntity().getName(),mappingKey));
+			}
+			logger.warn("取消注册应用接口:{}", requestMappingInfo);
+			// 取消注册原接口
+			mapping.unregister(requestMappingInfo);
+		}
+		mappingNode.setMappingData(mapping.register(requestMappingInfo, handler, method));
 		return true;
 	}
 

@@ -1,6 +1,8 @@
 package org.ssssssss.magicapi.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
@@ -48,6 +50,8 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
 	private final ApplicationEventPublisher publisher;
+
+	private final Logger logger = LoggerFactory.getLogger(DefaultMagicResourceService.class);
 
 	public DefaultMagicResourceService(Resource resource, List<MagicResourceStorage<? extends MagicEntity>> storages, ApplicationEventPublisher publisher) {
 		this.root = resource;
@@ -800,6 +804,10 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	@Override
 	public void onApplicationEvent(ApplicationStartedEvent applicationStartedEvent) {
-		this.read();
+		try {
+			this.read();
+		} catch (Exception e) {
+			logger.error("启动过程中发生异常", e);
+		}
 	}
 }

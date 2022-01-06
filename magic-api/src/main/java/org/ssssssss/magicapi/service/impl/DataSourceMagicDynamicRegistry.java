@@ -1,6 +1,8 @@
 package org.ssssssss.magicapi.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.boot.context.properties.bind.Bindable;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -25,6 +27,8 @@ public class DataSourceMagicDynamicRegistry extends AbstractMagicDynamicRegistry
 
 	private final MagicDynamicDataSource magicDynamicDataSource;
 
+	private static final Logger logger = LoggerFactory.getLogger(DataSourceMagicDynamicRegistry.class);
+
 	private static final ClassLoader CLASSLOADER = DataSourceMagicDynamicRegistry.class.getClassLoader();
 
 	// copy from DataSourceBuilder
@@ -40,7 +44,11 @@ public class DataSourceMagicDynamicRegistry extends AbstractMagicDynamicRegistry
 
 	@EventListener(condition = "#event.type == 'datasource'")
 	public void onFileEvent(FileEvent event) {
-		processEvent(event);
+		try {
+			processEvent(event);
+		} catch (Exception e) {
+			logger.error("注册数据源失败", e);
+		}
 	}
 
 	@Override

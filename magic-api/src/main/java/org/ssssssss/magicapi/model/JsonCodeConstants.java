@@ -39,6 +39,8 @@ public interface JsonCodeConstants {
 
 	JsonCode FUNCTION_PATH_REQUIRED = new JsonCode(0, "函数路径不能为空");
 
+	JsonCode REQUEST_PATH_CONFLICT = new JsonCode(0, "接口[{}({})]与应用冲突，无法注册");
+
 	JsonCode SCRIPT_REQUIRED = new JsonCode(0, "脚本内容不能为空");
 
 	JsonCode NAME_REQUIRED = new JsonCode(0, "名称不能为空");
