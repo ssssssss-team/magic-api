@@ -22,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
@@ -388,6 +389,18 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		return new DataSourceMagicDynamicRegistry(dataSourceInfoMagicResourceStorage, magicDynamicDataSource);
 	}
 
+	@Bean
+	@ConditionalOnMissingBean
+	public TaskInfoMagicResourceStorage taskInfoMagicResourceStorage() {
+		return new TaskInfoMagicResourceStorage();
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public TaskMagicDynamicRegistry taskMagicDynamicRegistry(TaskInfoMagicResourceStorage taskInfoMagicResourceStorage, TaskScheduler taskScheduler) {
+		return new TaskMagicDynamicRegistry(taskInfoMagicResourceStorage, taskScheduler);
+	}
+
 
 	@Bean
 	@ConditionalOnMissingBean(MagicNotifyService.class)
@@ -572,6 +585,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			mapping.registerController(magicWorkbenchController)
 					.registerController(new MagicResourceController(configuration))
 					.registerController(new MagicDataSourceController(configuration))
+					.registerController(new MagicTaskController(configuration))
 					.registerController(new MagicBackupController(configuration));
 		}
 		// 注册接收推送的接口

@@ -168,7 +168,8 @@ public class RequestHandler extends MagicController {
 			return afterCompletion(requestEntity, value);
 		}
 		if (requestedFromTest) {
-			String sessionAndScriptId = requestEntity.getRequestedClientId() + requestEntity.getRequestedScriptId();
+			DebugRequest debugRequest = requestEntity.getDebugRequest();
+			String sessionAndScriptId = debugRequest.getRequestedClientId() + debugRequest.getRequestedScriptId();
 			try {
 				if (context instanceof MagicScriptDebugContext) {
 					WebSocketSessionManager.addMagicScriptContext(sessionAndScriptId, (MagicScriptDebugContext) context);
@@ -358,8 +359,8 @@ public class RequestHandler extends MagicController {
 		} while ((parent = parent.getCause()) != null);
 		if (se != null && requestEntity.isRequestedFromTest()) {
 			Span.Line line = se.getLine();
-			WebSocketSessionManager.sendByClientId(requestEntity.getRequestedClientId(), EXCEPTION, Arrays.asList(
-					requestEntity.getRequestedScriptId(),
+			WebSocketSessionManager.sendByClientId(requestEntity.getDebugRequest().getRequestedClientId(), EXCEPTION, Arrays.asList(
+					requestEntity.getDebugRequest().getRequestedScriptId(),
 					se.getSimpleMessage(),
 					line == null ? null : Arrays.asList(line.getLineNumber(), line.getEndLineNumber(), line.getStartCol(), line.getEndCol())
 			));
@@ -395,24 +396,13 @@ public class RequestHandler extends MagicController {
 	 * 构建 MagicScriptContext
 	 */
 	private MagicScriptContext createMagicScriptContext(String scriptName, RequestEntity requestEntity) {
-		List<Integer> breakpoints = requestEntity.getRequestedBreakpoints();
+		DebugRequest debugRequest = requestEntity.getDebugRequest();
+		List<Integer> breakpoints = debugRequest.getRequestedBreakpoints();
 		// 构建脚本上下文
 		MagicScriptContext context;
 		// TODO 安全校验
 		if (requestEntity.isRequestedFromDebug() && breakpoints.size() > 0) {
-			MagicScriptDebugContext debugContext = new MagicScriptDebugContext(requestEntity.getRequestedBreakpoints());
-			String scriptId = requestEntity.getRequestedScriptId();
-			String clientId = requestEntity.getRequestedClientId();
-			debugContext.setTimeout(configuration.getDebugTimeout());
-			debugContext.setId(scriptId);
-			debugContext.setCallback(variables -> {
-				List<Map<String, Object>> varList = (List<Map<String, Object>>) variables.get("variables");
-				varList.stream().filter(it -> it.containsKey("value")).forEach(variable -> {
-					variable.put("value", JsonUtils.toJsonStringWithoutLog(variable.get("value")));
-				});
-				WebSocketSessionManager.sendByClientId(clientId, BREAKPOINT, scriptId, variables);
-			});
-			context = debugContext;
+			context = debugRequest.createMagicScriptContext(configuration.getDebugTimeout());
 		} else {
 			context = new MagicScriptContext();
 		}

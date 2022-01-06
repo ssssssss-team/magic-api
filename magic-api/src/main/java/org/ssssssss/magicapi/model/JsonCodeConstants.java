@@ -55,6 +55,8 @@ public interface JsonCodeConstants {
 
 	JsonCode GROUP_ID_REQUIRED = new JsonCode(0, "请选择分组");
 
+	JsonCode CRON_ID_REQUIRED = new JsonCode(0, "cron表达式不能为空");
+
 	JsonCode NAME_INVALID = new JsonCode(0, "名称不能包含特殊字符，只允许中文、数字、字母以及+_-.()的组合且不能.开头");
 
 	JsonCode DATASOURCE_KEY_INVALID = new JsonCode(0, "数据源Key不能包含特殊字符，只允许中文、数字、字母以及_组合");

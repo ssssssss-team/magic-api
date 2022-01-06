@@ -1,14 +1,11 @@
 package org.ssssssss.magicapi.model;
 
 import org.ssssssss.script.MagicScriptContext;
-import org.ssssssss.script.functions.ObjectConvertExtension;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.ssssssss.magicapi.model.Constants.*;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * 请求信息
@@ -27,6 +24,7 @@ public class RequestEntity {
 	private Map<String, Object> pathVariables;
 	private MagicScriptContext magicScriptContext;
 	private Object requestBody;
+	private DebugRequest debugRequest;
 
 	private Map<String, Object> headers;
 
@@ -53,6 +51,7 @@ public class RequestEntity {
 
 	public RequestEntity request(HttpServletRequest request) {
 		this.request = request;
+		this.debugRequest = DebugRequest.create(request);
 		return this;
 	}
 
@@ -75,7 +74,7 @@ public class RequestEntity {
 	}
 
 	public boolean isRequestedFromDebug() {
-		return requestedFromTest && !getRequestedBreakpoints().isEmpty();
+		return requestedFromTest && !this.debugRequest.getRequestedBreakpoints().isEmpty();
 	}
 
 	public Map<String, Object> getParameters() {
@@ -134,31 +133,7 @@ public class RequestEntity {
 		return this;
 	}
 
-	/**
-	 * 获取测试scriptId
-	 */
-	public String getRequestedScriptId() {
-		return request.getHeader(HEADER_REQUEST_SCRIPT_ID);
-	}
-
-	/**
-	 * 获取测试clientId
-	 */
-	public String getRequestedClientId() {
-		return request.getHeader(HEADER_REQUEST_CLIENT_ID);
-	}
-
-	/**
-	 * 获得断点
-	 */
-	public List<Integer> getRequestedBreakpoints() {
-		String breakpoints = request.getHeader(HEADER_REQUEST_BREAKPOINTS);
-		if (breakpoints != null) {
-			return Arrays.stream(breakpoints.split(","))
-					.map(val -> ObjectConvertExtension.asInt(val, -1))
-					.filter(it -> it > 0)
-					.collect(Collectors.toList());
-		}
-		return Collections.emptyList();
+	public DebugRequest getDebugRequest() {
+		return debugRequest;
 	}
 }

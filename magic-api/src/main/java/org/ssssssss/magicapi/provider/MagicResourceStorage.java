@@ -68,9 +68,7 @@ public interface MagicResourceStorage<T extends MagicEntity> {
 		return read(resource.read());
 	}
 
-	default String buildMappingKey(T entity) {
-		return null;
-	}
+	String buildMappingKey(T entity);
 
 	default String buildScriptName(T entity) {
 		return null;
