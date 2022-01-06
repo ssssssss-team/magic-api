@@ -52,6 +52,7 @@ public class MagicDatabaseBackupService implements MagicBackupService {
 
 	public MagicDatabaseBackupService(JdbcTemplate template, String tableName) {
 		this.template = template;
+		this.template.setMaxRows(FETCH_SIZE);
 		this.INSERT_SQL = String.format("insert into %s(%s,content) values(?,?,?,?,?,?,?)", tableName, DEFAULT_COLUMNS);
 		this.FIND_BY_ID = String.format("select %s from %s where id = ? order by create_date desc", DEFAULT_COLUMNS, tableName);
 		this.DELETE_BY_ID = String.format("delete from %s where id = ?", tableName);
@@ -91,9 +92,7 @@ public class MagicDatabaseBackupService implements MagicBackupService {
 
 	@Override
 	public List<Backup> backupList(long timestamp) {
-		try (Stream<Backup> stream = template.queryForStream(FIND_BY_TIMESTAMP, rowMapper, timestamp)) {
-			return stream.limit(FETCH_SIZE).collect(Collectors.toList());
-		}
+		return template.query(FIND_BY_TIMESTAMP, rowMapper, timestamp);
 	}
 
 	@Override
