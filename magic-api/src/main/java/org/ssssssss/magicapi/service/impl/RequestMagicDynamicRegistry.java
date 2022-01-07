@@ -6,6 +6,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.controller.RequestHandler;
 import org.ssssssss.magicapi.event.FileEvent;
 import org.ssssssss.magicapi.event.GroupEvent;
@@ -56,7 +57,7 @@ public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<Ap
 			String path = name.substring(index + 1);
 			ApiInfo info = getMapping(method.toUpperCase() + ":" + path);
 			if (info != null) {
-				String scriptName = magicResourceStorage.buildScriptName(info);
+				String scriptName = MagicConfiguration.getMagicResourceService().getScriptName(info);
 				return (MagicScriptLambdaFunction) (variables, args) -> {
 					MagicScriptContext newContext = new MagicScriptContext();
 					Map<String, Object> varMap = new LinkedHashMap<>(context.getRootVariables());

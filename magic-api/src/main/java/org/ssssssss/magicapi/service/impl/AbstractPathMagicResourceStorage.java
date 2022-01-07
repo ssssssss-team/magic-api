@@ -33,13 +33,6 @@ public abstract class AbstractPathMagicResourceStorage<T extends PathMagicEntity
 	}
 
 	@Override
-	public String buildScriptName(T entity) {
-		String fullGroupName = magicResourceService.getGroupName(entity.getGroupId());
-		String fullGroupPath = magicResourceService.getGroupPath(entity.getGroupId());
-		return PathUtils.replaceSlash(String.format("/%s/%s(/%s/%s)", fullGroupName, entity.getName(), fullGroupPath, entity.getPath()));
-	}
-
-	@Override
 	public void validate(T entity) {
 		notBlank(entity.getPath(), REQUEST_PATH_REQUIRED);
 		notBlank(entity.getScript(), SCRIPT_REQUIRED);

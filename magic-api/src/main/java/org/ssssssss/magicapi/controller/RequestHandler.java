@@ -90,10 +90,10 @@ public class RequestHandler extends MagicController {
 						 @PathVariable(required = false) Map<String, Object> pathVariables,
 						 @RequestHeader(required = false) Map<String, Object> defaultHeaders,
 						 @RequestParam(required = false) Map<String, Object> parameters) throws Throwable {
-		String sessionId = null;
+		String clientId = null;
 		Map<String, Object> headers = new LinkedCaseInsensitiveMap<>();
 		headers.putAll(defaultHeaders);
-		boolean requestedFromTest = configuration.isEnableWeb() && (sessionId = request.getHeader(HEADER_REQUEST_CLIENT_ID)) != null && request.getHeader(HEADER_REQUEST_SCRIPT_ID) != null;
+		boolean requestedFromTest = configuration.isEnableWeb() && (clientId = request.getHeader(HEADER_REQUEST_CLIENT_ID)) != null && request.getHeader(HEADER_REQUEST_SCRIPT_ID) != null;
 		RequestEntity requestEntity = RequestEntity.create()
 				.info(requestMagicDynamicRegistry.getApiInfoFromRequest(request))
 				.request(request)
@@ -115,7 +115,7 @@ public class RequestHandler extends MagicController {
 				.forEach(paths::add);
 		Object bodyValue = readRequestBody(requestEntity.getRequest());
 		requestEntity.setRequestBody(bodyValue);
-		String scriptName = requestMagicDynamicRegistry.getMagicResourceStorage().buildScriptName(info);
+		String scriptName = MagicConfiguration.getMagicResourceService().getScriptName(info);
 		MagicScriptContext context = createMagicScriptContext(scriptName, requestEntity);
 		requestEntity.setMagicScriptContext(context);
 		try {
@@ -174,7 +174,7 @@ public class RequestHandler extends MagicController {
 				if (context instanceof MagicScriptDebugContext) {
 					WebSocketSessionManager.addMagicScriptContext(sessionAndScriptId, (MagicScriptDebugContext) context);
 				}
-				MagicLoggerContext.SESSION.set(sessionId);
+				MagicLoggerContext.SESSION.set(clientId);
 				return invokeRequest(requestEntity);
 			} finally {
 				MagicLoggerContext.remove();

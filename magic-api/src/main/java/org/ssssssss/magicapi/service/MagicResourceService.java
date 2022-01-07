@@ -2,6 +2,7 @@ package org.ssssssss.magicapi.service;
 
 import org.ssssssss.magicapi.adapter.Resource;
 import org.ssssssss.magicapi.model.*;
+import org.ssssssss.magicapi.utils.PathUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -107,6 +108,17 @@ public interface MagicResourceService {
 	public String getGroupPath(String groupId);
 
 	public String getGroupName(String groupId);
+
+	default String getScriptName(MagicEntity entity){
+		String fullName;
+		if(entity instanceof PathMagicEntity){
+			PathMagicEntity pme = (PathMagicEntity) entity;
+			fullName = String.format("/%s/%s(/%s/%s)", getGroupName(pme.getGroupId()), pme.getName(), getGroupPath(pme.getGroupId()), pme.getPath());
+		} else {
+			fullName = String.format("/%s/%s", getGroupName(entity.getGroupId()), entity.getName());
+		}
+		return PathUtils.replaceSlash(fullName);
+	}
 
 
 }

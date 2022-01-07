@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.service.impl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
+import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.event.FileEvent;
 import org.ssssssss.magicapi.event.GroupEvent;
 import org.ssssssss.magicapi.model.FunctionInfo;
@@ -30,7 +31,7 @@ public class FunctionMagicDynamicRegistry extends AbstractMagicDynamicRegistry<F
 	private Object lookupLambdaFunction(MagicScriptContext context, String path) {
 		FunctionInfo functionInfo = getMapping(path);
 		if (functionInfo != null) {
-			String scriptName = magicResourceStorage.buildScriptName(functionInfo);
+			String scriptName = MagicConfiguration.getMagicResourceService().getScriptName(functionInfo);
 			List<Parameter> parameters = functionInfo.getParameters();
 			return (Function<Object[], Object>) objects -> {
 				MagicScriptContext functionContext = new MagicScriptContext(context.getRootVariables());

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.config.CronTask;
+import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.event.FileEvent;
 import org.ssssssss.magicapi.event.GroupEvent;
 import org.ssssssss.magicapi.model.TaskInfo;
@@ -37,20 +38,35 @@ public class TaskMagicDynamicRegistry extends AbstractMagicDynamicRegistry<TaskI
 	}
 
 	@Override
+	public boolean register(TaskInfo entity) {
+		unregister(entity);
+		return super.register(entity);
+	}
+
+	@Override
 	protected boolean register(MappingNode<TaskInfo> mappingNode) {
 		TaskInfo info = mappingNode.getEntity();
 		CronTask cronTask = new CronTask(() -> {
-			try {
-				ScriptManager.executeScript(info.getScript(), new MagicScriptContext());
-			} catch (Exception e) {
-				logger.error("定时任务执行出错", e);
+			TaskInfo entity = mappingNode.getEntity();
+			String scriptName = MagicConfiguration.getMagicResourceService().getScriptName(entity);
+			if(entity.isEnabled()){
+				try {
+					logger.info("定时任务:[{}]开始执行", scriptName);
+					MagicScriptContext magicScriptContext = new MagicScriptContext();
+					magicScriptContext.setScriptName(scriptName);
+					ScriptManager.executeScript(entity.getScript(), magicScriptContext);
+				} catch (Exception e) {
+					logger.error("定时任务执行出错", e);
+				} finally {
+					logger.info("定时任务:[{}]执行完毕", scriptName);
+				}
 			}
 		}, info.getCron());
 		mappingNode.setMappingData(taskScheduler.schedule(cronTask.getRunnable(), cronTask.getTrigger()));
 		if(taskScheduler != null){
-			logger.debug("注册定时任务:[{}, {}, {}]", info.getName(), info.getPath(), info.getCron());
+			logger.debug("注册定时任务:[{},{}]", MagicConfiguration.getMagicResourceService().getScriptName(info), info.getCron());
 		} else {
-			logger.debug("注册定时任务失败:[{}, {}, {}]， 当前 TaskScheduler 为空", info.getName(), info.getPath(), info.getCron());
+			logger.debug("注册定时任务失败:[{}, {}]， 当前 TaskScheduler 为空", MagicConfiguration.getMagicResourceService().getScriptName(info), info.getCron());
 		}
 
 		return true;
