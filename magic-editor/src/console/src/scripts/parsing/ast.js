@@ -149,6 +149,21 @@ class MemberAccess extends Node {
         let javaType = await this.target.getJavaType(env);
 
         let clazz = await JavaClass.loadClass(javaType);
+        let attributes = clazz?.attributes;
+        const name = this.member.getText()
+        if(attributes) {
+            const attribute = attributes.find(it => it.name === name)
+            if(attribute){
+                return JavaClass.getWrapperClass(attribute.type)
+            }
+        }
+        let enums = clazz?.enums;
+        if(enums) {
+            const e = enums.find(it => it.name === name)
+            if(e){
+                return JavaClass.getWrapperClass(e.type)
+            }
+        }
         let methods = clazz.methods;
         if (methods) {
             for (let i = 0, len = methods.length; i < len; i++) {
