@@ -1,11 +1,10 @@
 package org.ssssssss.magicapi.utils;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +24,14 @@ public class JsonUtils {
 	static {
 		MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		MAPPER.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+		SimpleModule simpleModule = new SimpleModule();
+		simpleModule.addSerializer(Logger.class, new JsonSerializer<Logger>() {
+			@Override
+			public void serialize(Logger value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+				gen.writeString(value.toString());
+			}
+		});
+		MAPPER.registerModule(simpleModule);
 	}
 
 	public static String toJsonString(Object target) {
