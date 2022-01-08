@@ -75,6 +75,8 @@ public interface JsonCodeConstants {
 
 	JsonCode SIGN_IS_INVALID = new JsonCode(0, "签名验证失败,请检查秘钥是否正确");
 
+	JsonCode BACKUP_NOT_ENABLED = new JsonCode(0, "未启用备份，无法操作");
+
 	JsonCode API_NOT_FOUND = new JsonCode(1001, "api not found");
 
 	default void notNull(Object value, JsonCode jsonCode) {

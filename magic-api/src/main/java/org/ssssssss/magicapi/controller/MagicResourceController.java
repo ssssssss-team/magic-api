@@ -77,7 +77,7 @@ public class MagicResourceController extends MagicController implements MagicExc
 		// 自动保存的代码，和旧版代码对比，如果一致，则不保存，直接返回。
 		if(entity.getId() != null && "1".equals(auto)){
 			MagicEntity oldInfo = service.file(entity.getId());
-			if(oldInfo != null && Objects.equals(oldInfo.getScript(), entity.getScript())){
+			if(oldInfo != null && Objects.equals(oldInfo, entity)){
 				return new JsonBean<>(entity.getId());
 			}
 		}

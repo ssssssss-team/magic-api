@@ -6,6 +6,7 @@ import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.utils.JsonUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 接口信息
@@ -53,11 +54,6 @@ public class ApiInfo extends PathMagicEntity {
 	private String description;
 
 	/**
-	 * 接口选项json
-	 */
-	private transient JsonNode jsonNode;
-
-	/**
 	 * 请求体属性
 	 */
 	private BaseDefinition requestBodyDefinition;
@@ -100,16 +96,8 @@ public class ApiInfo extends PathMagicEntity {
 	}
 
 	public Map<String, String> options() {
-		Map<String, String> map = new HashMap<>();
-		if (this.jsonNode == null) {
-			return null;
-		} else if (this.jsonNode.isArray()) {
-			for (JsonNode node : this.jsonNode) {
-				map.put(node.get("name").asText(), node.get("value").asText());
-			}
-		} else {
-			this.jsonNode.fieldNames().forEachRemaining(it -> map.put(it, this.jsonNode.get(it).asText()));
-		}
+		Map<String, String> map = this.options.stream()
+				.collect(Collectors.toMap(BaseDefinition::getName, it -> String.valueOf(it.getValue()), (o, n) -> n));
 		MagicConfiguration.getMagicResourceService().getGroupsByFileId(this.groupId)
 				.stream()
 				.flatMap(it -> it.getOptions().stream())
@@ -229,7 +217,7 @@ public class ApiInfo extends PathMagicEntity {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, method, path, script, name, groupId, parameters, options, requestBody, headers, responseBody, description, requestBodyDefinition, responseBodyDefinition);
+		return Objects.hash(id, method, path, script, name, groupId, parameters, options, requestBody, headers, description, requestBodyDefinition, responseBodyDefinition);
 	}
 
 	@Override
@@ -238,8 +226,8 @@ public class ApiInfo extends PathMagicEntity {
 		copyTo(info);
 		info.setMethod(this.method);
 		info.setParameters(this.parameters);
-		info.jsonNode = this.jsonNode;
 		info.setRequestBody(this.requestBody);
+		info.setOption(this.options);
 		info.setHeaders(this.headers);
 		info.setResponseBody(this.responseBody);
 		info.setDescription(this.description);

@@ -12,6 +12,7 @@ import org.ssssssss.magicapi.utils.WebUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 public class MagicBackupController extends MagicController implements MagicExceptionHandler{
@@ -26,12 +27,16 @@ public class MagicBackupController extends MagicController implements MagicExcep
 	@GetMapping("/backups")
 	@ResponseBody
 	public JsonBean<List<Backup>> backups(Long timestamp) {
+		if(service == null){
+			return new JsonBean<>(Collections.emptyList());
+		}
 		return new JsonBean<>(service.backupList(timestamp == null ? System.currentTimeMillis() : timestamp));
 	}
 
 	@GetMapping("/backup/rollback")
 	@ResponseBody
 	public JsonBean<Boolean> rollback(String id, Long timestamp) throws IOException {
+		notNull(service, BACKUP_NOT_ENABLED);
 		Backup backup = service.backupInfo(id, timestamp);
 		if("full".equals(id)){
 			service.doBackupAll("还原全量备份前，系统自动全量备份", WebUtils.currentUserName());
@@ -57,6 +62,7 @@ public class MagicBackupController extends MagicController implements MagicExcep
 	@GetMapping("/backup")
 	@ResponseBody
 	public JsonBean<String> backup(Long timestamp, String id) {
+		notNull(service, BACKUP_NOT_ENABLED);
 		notBlank(id, PARAMETER_INVALID);
 		notNull(timestamp, PARAMETER_INVALID);
 		Backup backup = service.backupInfo(id, timestamp);
@@ -67,6 +73,7 @@ public class MagicBackupController extends MagicController implements MagicExcep
 	@PostMapping("/backup/full")
 	@ResponseBody
 	public JsonBean<Boolean> doBackup() throws IOException {
+		notNull(service, BACKUP_NOT_ENABLED);
 		service.doBackupAll("主动全量备份", WebUtils.currentUserName());
 		return new JsonBean<>(true);
 	}
