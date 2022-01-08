@@ -14,11 +14,7 @@ public class MybatisParser {
 
 	private static final Pattern ESCAPE_LT_PATTERN = Pattern.compile("<([\\d'\"\\s=>#$?(])");
 
-	private static final Pattern ESCAPE_GT_PATTERN = Pattern.compile("([})\\s<\\d])>");
-
 	private static final String ESCAPE_LT_REPLACEMENT = "&lt;$1";
-
-	private static final String ESCAPE_GT_REPLACEMENT = "$1&gt;";
 
 	public static SqlNode parse(String xml) {
 		try {
@@ -34,7 +30,7 @@ public class MybatisParser {
 	}
 
 	private static String escapeXml(String xml) {
-		return ESCAPE_GT_PATTERN.matcher(ESCAPE_LT_PATTERN.matcher(xml).replaceAll(ESCAPE_LT_REPLACEMENT)).replaceAll(ESCAPE_GT_REPLACEMENT);
+		return ESCAPE_LT_PATTERN.matcher(xml).replaceAll(ESCAPE_LT_REPLACEMENT);
 	}
 
 	private static void parseNodeList(SqlNode sqlNode, NodeList nodeList) {
