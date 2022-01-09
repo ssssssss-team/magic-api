@@ -3,6 +3,8 @@ package org.ssssssss.magicapi.controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.ssssssss.magicapi.adapter.Resource;
+import org.ssssssss.magicapi.adapter.resource.FileResource;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.config.Valid;
 import org.ssssssss.magicapi.interceptor.Authorization;
@@ -73,6 +75,10 @@ public class MagicGroupController extends MagicController implements MagicExcept
 	@Valid(readonly = false)
 	public JsonBean<String> createGroup(HttpServletRequest request, @RequestBody Group group) {
 		isTrue(allowVisit(request, Authorization.SAVE, group), PERMISSION_INVALID);
+		Resource resource = configuration.getWorkspace();
+		if(resource instanceof FileResource){
+			isTrue(resource.exists(), FILE_PATH_NOT_EXISTS);
+		}
 		return new JsonBean<>(magicAPIService.createGroup(group));
 	}
 
