@@ -1,6 +1,8 @@
 package org.ssssssss.magicapi.controller;
 
 import org.springframework.web.bind.annotation.*;
+import org.ssssssss.magicapi.adapter.Resource;
+import org.ssssssss.magicapi.adapter.resource.FileResource;
 import org.ssssssss.magicapi.config.MagicConfiguration;
 import org.ssssssss.magicapi.exception.InvalidArgumentException;
 import org.ssssssss.magicapi.interceptor.Authorization;
@@ -10,6 +12,7 @@ import org.ssssssss.magicapi.service.MagicResourceService;
 import org.ssssssss.magicapi.utils.IoUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +21,7 @@ import java.util.function.Function;
 
 public class MagicResourceController extends MagicController implements MagicExceptionHandler {
 
-	private MagicResourceService service;
+	private final MagicResourceService service;
 
 	public MagicResourceController(MagicConfiguration configuration) {
 		super(configuration);
@@ -29,6 +32,10 @@ public class MagicResourceController extends MagicController implements MagicExc
 	@ResponseBody
 	public JsonBean<String> saveFolder(@RequestBody Group group, HttpServletRequest request) {
 		isTrue(allowVisit(request, Authorization.SAVE, group), PERMISSION_INVALID);
+		Resource resource = service.getResource();
+		if(resource instanceof FileResource){
+			isTrue(resource.exists(), FILE_PATH_NOT_EXISTS);
+		}
 		if (service.saveGroup(group)) {
 			return new JsonBean<>(group.getId());
 		}
