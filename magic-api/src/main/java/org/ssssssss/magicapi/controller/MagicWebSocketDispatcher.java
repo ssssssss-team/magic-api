@@ -91,11 +91,14 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 		return null;
 	}
 
-	public static void processMessageReceived(String sessionId, String payload) {
-		MagicConsoleSession session = WebSocketSessionManager.findSession(sessionId);
+	public static void processMessageReceived(String clientId, String payload) {
+		MagicConsoleSession session = WebSocketSessionManager.findSession(clientId);
 		if (session != null) {
 			findHandleAndInvoke(session, payload);
 		}
+	}
+	public static void processWebSocketEventMessage(String payload) {
+		findHandleAndInvoke(null, payload);
 	}
 
 	@Override

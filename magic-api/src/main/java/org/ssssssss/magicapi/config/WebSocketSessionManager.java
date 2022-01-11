@@ -65,7 +65,7 @@ public class WebSocketSessionManager {
 
 	private static void sendToAll(String content) {
 		SESSIONS.values().stream().filter(MagicConsoleSession::writeable).forEach(session -> sendBySession(session, content));
-		sendToMachine(null, content);
+		sendToMachineByClientId(null, content);
 	}
 
 	public static void sendLogs(String sessionId, String message) {
@@ -102,7 +102,7 @@ public class WebSocketSessionManager {
 		if (session != null && session.writeable()) {
 			sendBySession(session, content);
 		} else {
-			sendToMachine(clientId, content);
+			sendToMachineByClientId(clientId, content);
 		}
 	}
 
@@ -112,13 +112,20 @@ public class WebSocketSessionManager {
 				.filter(MagicConsoleSession::writeable)
 				.filter(it -> !it.getClientId().equals(excludeClientId))
 				.forEach(session -> sendBySession(session, content));
-		sendToMachine(null, content);
+		sendToMachineByClientId(null, content);
 	}
 
-	private static void sendToMachine(String clientId, String content) {
+	public static void sendToMachineByClientId(String clientId, String content) {
 		if (magicNotifyService != null) {
 			// 通知其他机器去发送消息
 			magicNotifyService.sendNotify(new MagicNotify(instanceId, EventAction.WS_S_C, clientId, content));
+		}
+	}
+
+	public static void sendToMachine(MessageType messageType, Object ... args) {
+		if (magicNotifyService != null) {
+			// 通知其他机器去发送消息
+			magicNotifyService.sendNotify(new MagicNotify(instanceId, EventAction.WS_S_S, null, buildMessage(messageType, args)));
 		}
 	}
 

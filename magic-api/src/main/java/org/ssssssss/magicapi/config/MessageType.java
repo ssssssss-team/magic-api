@@ -31,8 +31,11 @@ public enum MessageType {
 	RESUME_BREAKPOINT,
 	/* 登录 */
 	LOGIN,
-	/* 获取当前在线用户 */
-	GET_ONLINE,
 	/* 设置当前所在文件 */
-	SET_FILE_ID
+	SET_FILE_ID,
+
+	/* S <-> S -> C message*/
+	/* 获取当前在线用户 */
+	SEND_ONLINE
+
 }

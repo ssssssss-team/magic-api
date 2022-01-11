@@ -41,6 +41,11 @@ public class MagicWorkbenchHandler {
 				session.setClientId(clientId);
 				WebSocketSessionManager.add(session);
 				WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "1", session.getAttributes()));
+				List<Map<String, Object>> messages = getOnlineUsers();
+				if(!messages.isEmpty()){
+					WebSocketSessionManager.sendByClientId(session.getClientId(), WebSocketSessionManager.buildMessage(MessageType.ONLINE_USERS, messages));
+				}
+				WebSocketSessionManager.sendToMachine(MessageType.SEND_ONLINE, session.getClientId());
 				WebSocketSessionManager.sendToOther(session.getClientId(), MessageType.USER_LOGIN, session.getAttributes());
 			}
 		} catch (MagicLoginException ignored) {
@@ -48,15 +53,17 @@ public class MagicWorkbenchHandler {
 		}
 	}
 
-	@Message(MessageType.GET_ONLINE)
-	public boolean getOnline(MagicConsoleSession session) {
-		List<MagicConsoleSession> sessions = WebSocketSessionManager.getSessions();
-		if(sessions.size() > 0){
-			List<Map<String, Object>> messages = sessions.stream()
-					.map(MagicConsoleSession::getAttributes)
-					.collect(Collectors.toList());
-			WebSocketSessionManager.sendByClientId(session.getClientId(), WebSocketSessionManager.buildMessage(MessageType.ONLINE_USERS, messages));
+	@Message(MessageType.SEND_ONLINE)
+	public void sendOnline(String clientId){
+		List<Map<String, Object>> messages = getOnlineUsers();
+		if(!messages.isEmpty()){
+			WebSocketSessionManager.sendToMachineByClientId(clientId, WebSocketSessionManager.buildMessage(MessageType.ONLINE_USERS, messages));
 		}
-		return false;
+	}
+
+	private List<Map<String, Object>> getOnlineUsers(){
+		return WebSocketSessionManager.getSessions().stream()
+				.map(MagicConsoleSession::getAttributes)
+				.collect(Collectors.toList());
 	}
 }
