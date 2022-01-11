@@ -1,10 +1,10 @@
 package org.ssssssss.magicapi.model;
 
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MagicConsoleSession {
@@ -13,9 +13,11 @@ public class MagicConsoleSession {
 
 	private String clientId;
 
-	private final WebSocketSession webSocketSession;
+	private WebSocketSession webSocketSession;
 
 	private final Map<String, Object> attributes = new HashMap<>();
+
+	private long activateTime = System.currentTimeMillis();
 
 	public MagicConsoleSession(WebSocketSession webSocketSession) {
 		this.webSocketSession = webSocketSession;
@@ -61,5 +63,25 @@ public class MagicConsoleSession {
 	public void setClientId(String clientId) {
 		this.clientId = clientId;
 		setAttribute(Constants.WEBSOCKET_ATTRIBUTE_CLIENT_ID, clientId);
+	}
+
+	public long getActivateTime() {
+		return activateTime;
+	}
+
+	public void setActivateTime(long activateTime) {
+		this.activateTime = activateTime;
+	}
+
+	public void close(){
+		if(this.webSocketSession != null){
+			remove(this.webSocketSession);
+			try {
+				this.webSocketSession.close(CloseStatus.SESSION_NOT_RELIABLE);
+			} catch (Exception ignored) {
+
+			}
+			this.webSocketSession = null;
+		}
 	}
 }

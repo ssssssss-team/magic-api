@@ -39,7 +39,14 @@ public class MagicWorkbenchHandler {
 				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_IP, ip);
 				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_NAME, user.getUsername());
 				session.setClientId(clientId);
-				WebSocketSessionManager.add(session);
+				session.setActivateTime(System.currentTimeMillis());
+				synchronized (MagicWorkbenchHandler.class){
+					if(WebSocketSessionManager.getConsoleSession(clientId) != null){
+						WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "-1"));
+						return;
+					}
+					WebSocketSessionManager.add(session);
+				}
 				WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "1", session.getAttributes()));
 				List<Map<String, Object>> messages = getOnlineUsers();
 				if(!messages.isEmpty()){
@@ -59,6 +66,13 @@ public class MagicWorkbenchHandler {
 		if(!messages.isEmpty()){
 			WebSocketSessionManager.sendToMachineByClientId(clientId, WebSocketSessionManager.buildMessage(MessageType.ONLINE_USERS, messages));
 		}
+	}
+
+	@Message(MessageType.PING)
+	public void ping(MagicConsoleSession session){
+		long activateTime = System.currentTimeMillis();
+		session.setActivateTime(activateTime);
+		WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.PONG, activateTime));
 	}
 
 	private List<Map<String, Object>> getOnlineUsers(){

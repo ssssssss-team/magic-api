@@ -11,11 +11,7 @@ import org.ssssssss.magicapi.provider.MagicNotifyService;
 import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.script.MagicScriptDebugContext;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -39,13 +35,19 @@ public class WebSocketSessionManager {
 		SESSIONS.put(session.getClientId(), session);
 	}
 
-	static{
-		// 1秒1次发送日志
-		new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-send-log-task")).scheduleAtFixedRate(WebSocketSessionManager::flushLog, 1, 1, TimeUnit.SECONDS);
+	public static MagicConsoleSession getConsoleSession(String clientId) {
+		return SESSIONS.get(clientId);
 	}
 
-	public static List<MagicConsoleSession> getSessions() {
-		return new ArrayList<>(SESSIONS.values());
+	static {
+		// 1秒1次发送日志
+		new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-send-log-task")).scheduleAtFixedRate(WebSocketSessionManager::flushLog, 1, 1, TimeUnit.SECONDS);
+		// 25秒检测一次是否在线
+		new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-websocket-clean-task")).scheduleAtFixedRate(WebSocketSessionManager::checkSession, 25, 25, TimeUnit.SECONDS);
+	}
+
+	public static Collection<MagicConsoleSession> getSessions() {
+		return SESSIONS.values();
 	}
 
 	public static void remove(MagicConsoleSession session) {
@@ -64,7 +66,7 @@ public class WebSocketSessionManager {
 	}
 
 	private static void sendToAll(String content) {
-		SESSIONS.values().stream().filter(MagicConsoleSession::writeable).forEach(session -> sendBySession(session, content));
+		getSessions().stream().filter(MagicConsoleSession::writeable).forEach(session -> sendBySession(session, content));
 		sendToMachineByClientId(null, content);
 	}
 
@@ -92,7 +94,7 @@ public class WebSocketSessionManager {
 				}
 			});
 		} catch (Exception e) {
-			logger.warn("发生日志失败", e);
+			logger.warn("发送日志失败", e);
 		}
 	}
 
@@ -108,7 +110,7 @@ public class WebSocketSessionManager {
 
 	public static void sendToOther(String excludeClientId, MessageType messageType, Object... values) {
 		String content = buildMessage(messageType, values);
-		SESSIONS.values().stream()
+		getSessions().stream()
 				.filter(MagicConsoleSession::writeable)
 				.filter(it -> !it.getClientId().equals(excludeClientId))
 				.forEach(session -> sendBySession(session, content));
@@ -122,7 +124,7 @@ public class WebSocketSessionManager {
 		}
 	}
 
-	public static void sendToMachine(MessageType messageType, Object ... args) {
+	public static void sendToMachine(MessageType messageType, Object... args) {
 		if (magicNotifyService != null) {
 			// 通知其他机器去发送消息
 			magicNotifyService.sendNotify(new MagicNotify(instanceId, EventAction.WS_S_S, null, buildMessage(messageType, args)));
@@ -163,13 +165,13 @@ public class WebSocketSessionManager {
 					session.getWebSocketSession().sendMessage(new TextMessage(content));
 				}
 			}
-		} catch (IOException e) {
-			logger.error("发送WebSocket消息失败", e);
+		} catch (Exception e) {
+			logger.warn("发送WebSocket消息失败: {}", e.getMessage());
 		}
 	}
 
 	public static MagicConsoleSession findSession(String clientId) {
-		return SESSIONS.values().stream()
+		return getSessions().stream()
 				.filter(it -> Objects.equals(clientId, it.getClientId()))
 				.findFirst()
 				.orElse(null);
@@ -193,6 +195,22 @@ public class WebSocketSessionManager {
 
 	public static void removeMagicScriptContext(String sessionAndScriptId) {
 		CONTEXTS.remove(sessionAndScriptId);
+	}
+
+	private static void checkSession() {
+		try {
+			long activateTime = System.currentTimeMillis() - 20 * 1000;
+			SESSIONS.entrySet().stream()
+					.filter(it -> it.getValue().getActivateTime() < activateTime)
+					.collect(Collectors.toList())
+					.forEach(entry -> {
+						MagicConsoleSession session = entry.getValue();
+						SESSIONS.remove(entry.getKey());
+						session.close();
+						sendToAll(MessageType.USER_LOGOUT, session.getAttributes());
+					});
+		} catch (Exception ignored) {
+		}
 	}
 
 }
