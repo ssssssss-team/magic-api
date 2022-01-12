@@ -372,16 +372,17 @@ class UnaryOperation extends Node {
 }
 
 class TryStatement extends Node {
-    constructor(span, exceptionVarNode, tryBlock, catchBlock, finallyBlock) {
+    constructor(span, exceptionVarNode, tryBlock, tryResources, catchBlock, finallyBlock) {
         super(span)
         this.exceptionVarNode = exceptionVarNode;
         this.tryBlock = tryBlock;
+        this.tryResources = tryResources;
         this.catchBlock = catchBlock;
         this.finallyBlock = finallyBlock;
     }
 
     expressions() {
-        return [...this.tryBlock, ...this.catchBlock, ...this.finallyBlock]
+        return [...this.tryBlock, ...this.tryResources, ...this.catchBlock, ...this.finallyBlock]
     }
 }
 

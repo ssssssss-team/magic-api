@@ -128,7 +128,7 @@ export class Parser {
         let result = null;
         if (this.stream.match("import", false)) {
             result = this.parseImport();
-        } else if (this.stream.match(["var", "let", "const"], false)) {
+        } else if (this.matchVarDefine()) {
             result = this.parseVarDefine();
         } else if (this.stream.match("if", false)) {
             result = this.parseIfStatement();
@@ -154,7 +154,7 @@ export class Parser {
             result = this.parseAssert();
         } else {
             let index = this.stream.makeIndex();
-            if (this.stream.match(TokenType.Identifier, true) && this.stream.match(TokenType.Identifier, false)) {
+            if (this.matchTypeDefine()) {
                 this.stream.resetIndex(index);
                 result = this.parseVarDefine();
             }
@@ -167,6 +167,14 @@ export class Parser {
 
         }
         return result;
+    }
+
+    matchTypeDefine() {
+        return this.stream.match(TokenType.Identifier, true) && this.stream.match(TokenType.Identifier, false);
+    }
+
+    matchVarDefine() {
+        return this.stream.match(["var", "let", "const"], false);
     }
 
     checkKeyword(span) {
@@ -350,6 +358,37 @@ export class Parser {
 
     parseTryStatement() {
         let opening = this.stream.expect("try");
+        let tryResources = [];
+        if (this.stream.match("(", true)) {
+            if (this.stream.match(")", false)) {
+                // 空的 try-with-resource
+            } else {
+                while (!this.stream.match(")", false)) {
+                    if (this.stream.match(";", true)) {
+                        continue;
+                    }
+                    let result = null;
+                    if (this.matchVarDefine()) {
+                        result = this.parseVarDefine();
+                    } else {
+                        if (this.stream.matchAny(keywords, false)) {
+                            throw new ParseException("try 括号中只允许写赋值语句", this.stream.consume().getSpan());
+                        }
+                        let index = this.stream.makeIndex();
+                        if (this.matchTypeDefine()) {
+                            this.stream.resetIndex(index);
+                            result = this.parseVarDefine();
+                        }
+                        if (result == null) {
+                            this.stream.resetIndex(index);
+                            throw new ParseException("try 括号中只允许写赋值语句", this.stream.consume().getSpan());
+                        }
+                    }
+                    tryResources.push(result);
+                }
+            }
+            this.stream.expect(")");
+        }
         let tryBlocks = this.parseFunctionBody();
         let catchBlocks = [];
         let finallyBlocks = [];
@@ -364,7 +403,7 @@ export class Parser {
         if (this.stream.match("finally", true)) {
             finallyBlocks = finallyBlocks.concat(this.parseFunctionBody());
         }
-        return new TryStatement(new Span(opening.getSpan(), this.stream.getPrev().getSpan()), exception, tryBlocks, catchBlocks, finallyBlocks);
+        return new TryStatement(new Span(opening.getSpan(), this.stream.getPrev().getSpan()), exception, tryBlocks, tryResources, catchBlocks, finallyBlocks);
     }
 
     parseWhileStatement() {
