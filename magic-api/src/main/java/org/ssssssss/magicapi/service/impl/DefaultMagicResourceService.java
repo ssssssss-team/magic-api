@@ -261,7 +261,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		Group newGroup = new Group();
 		newGroup.setType(srcGroup.getType());
 		newGroup.setParentId(groupId);
-		newGroup.setName(srcGroup.getName() + "(复制)");
+		newGroup.setName(srcGroup.getName() + "(Copy)");
 		newGroup.setPath(Objects.toString(srcGroup.getPath(), "") + "_copy");
 		newGroup.setOptions(srcGroup.getOptions());
 		newGroup.setPaths(srcGroup.getPaths());
