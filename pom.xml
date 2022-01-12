@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.ssssssss</groupId>
     <artifactId>magic-api-parent</artifactId>
-    <version>1.7.4</version>
+    <version>1.7.5</version>
     <packaging>pom</packaging>
     <name>magic-api-parent</name>
     <description>auto generate http api</description>
@@ -30,7 +30,7 @@
     </scm>
     <properties>
         <spring-boot.version>2.4.5</spring-boot.version>
-        <magic-script.version>1.6.3</magic-script.version>
+        <magic-script.version>1.6.4</magic-script.version>
         <commons-compress.version>1.21</commons-compress.version>
         <commons-io.version>2.7</commons-io.version>
         <commons-text.version>1.6</commons-text.version>
