@@ -41,7 +41,7 @@ public interface JsonCodeConstants {
 
 	JsonCode FILE_PATH_NOT_EXISTS = new JsonCode(1015, "配置的文件路径不存在，请检查");
 
-	JsonCode REQUEST_PATH_CONFLICT = new JsonCode(1016, "接口[{}({})]与应用冲突，无法注册");
+	JsonCode REQUEST_PATH_CONFLICT = new JsonCode(1016, "接口[%s(%s)]与应用冲突，无法注册");
 
 	JsonCode SCRIPT_REQUIRED = new JsonCode(1017, "脚本内容不能为空");
 

@@ -44,6 +44,15 @@ public class JsonUtils {
 		}
 	}
 
+	public static String toJsonStringWithoutPretty(Object target) {
+		try {
+			return MAPPER.writeValueAsString(target);
+		} catch (JsonProcessingException e) {
+			logger.error("json序列化失败", e);
+			return null;
+		}
+	}
+
 	public static String toJsonStringWithoutLog(Object target) {
 		try {
 			return MAPPER.writeValueAsString(target);
