@@ -3,9 +3,9 @@ package org.ssssssss.magicapi.utils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import org.ssssssss.magicapi.context.RequestContext;
-import org.ssssssss.magicapi.interceptor.MagicUser;
-import org.ssssssss.magicapi.model.Constants;
+import org.ssssssss.magicapi.core.context.RequestContext;
+import org.ssssssss.magicapi.core.config.Constants;
+import org.ssssssss.magicapi.core.context.MagicUser;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;

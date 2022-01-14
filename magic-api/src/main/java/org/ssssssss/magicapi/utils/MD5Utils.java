@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.utils;
 
-import org.ssssssss.magicapi.exception.MagicAPIException;
+import org.ssssssss.magicapi.core.exception.MagicAPIException;
 
 import java.security.MessageDigest;
 

@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.jdbc.DatabaseDriver;
-import org.ssssssss.magicapi.exception.MagicAPIException;
+import org.ssssssss.magicapi.core.exception.MagicAPIException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

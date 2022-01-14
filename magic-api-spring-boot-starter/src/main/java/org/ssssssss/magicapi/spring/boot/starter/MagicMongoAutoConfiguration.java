@@ -7,9 +7,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.ssssssss.magicapi.modules.MongoCollectionExtension;
-import org.ssssssss.magicapi.modules.MongoFindIterableExtension;
-import org.ssssssss.magicapi.modules.MongoModule;
+import org.ssssssss.magicapi.modules.mongo.MongoCollectionExtension;
+import org.ssssssss.magicapi.modules.mongo.MongoFindIterableExtension;
+import org.ssssssss.magicapi.modules.mongo.MongoModule;
 import org.ssssssss.script.reflection.JavaReflection;
 
 /**

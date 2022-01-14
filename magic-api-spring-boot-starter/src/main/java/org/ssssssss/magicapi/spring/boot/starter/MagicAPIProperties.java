@@ -3,7 +3,7 @@ package org.ssssssss.magicapi.spring.boot.starter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import org.ssssssss.magicapi.controller.RequestHandler;
+import org.ssssssss.magicapi.core.web.RequestHandler;
 
 import java.util.Arrays;
 import java.util.Collections;
