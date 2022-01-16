@@ -86,13 +86,7 @@ public class WebSocketSessionManager {
 				messages = MESSAGE_CACHE.stream().collect(Collectors.groupingBy(Pair::getFirst, Collectors.mapping(Pair::getSecond, Collectors.toList())));
 				MESSAGE_CACHE.clear();
 			}
-			messages.forEach((clientId, logs) -> {
-				if (logs.size() > 1) {
-					sendByClientId(clientId, MessageType.LOGS, logs);
-				} else {
-					sendByClientId(clientId, MessageType.LOG, logs.get(0));
-				}
-			});
+			messages.forEach((clientId, logs) -> sendByClientId(clientId, logs.size() > 1 ? MessageType.LOGS : MessageType.LOG, logs));
 		} catch (Exception e) {
 			logger.warn("发送日志失败", e);
 		}
