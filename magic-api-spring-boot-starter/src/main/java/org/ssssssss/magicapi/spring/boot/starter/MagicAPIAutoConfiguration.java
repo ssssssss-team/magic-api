@@ -115,7 +115,7 @@ import java.util.function.BiFunction;
 @Configuration
 @ConditionalOnClass({RequestMappingHandlerMapping.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
-@Import({MagicRedisAutoConfiguration.class, MagicElasticSearchAutoConfiguration.class, MagicMongoAutoConfiguration.class, MagicJsonAutoConfiguration.class, ApplicationUriPrinter.class})
+@Import({MagicRedisAutoConfiguration.class, MagicElasticSearchAutoConfiguration.class, MagicMongoAutoConfiguration.class, MagicSwaggerConfiguration.class, MagicJsonAutoConfiguration.class, ApplicationUriPrinter.class})
 @EnableWebSocket
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketConfigurer {
 

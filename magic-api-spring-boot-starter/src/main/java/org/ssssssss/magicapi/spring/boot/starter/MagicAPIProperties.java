@@ -148,6 +148,9 @@ public class MagicAPIProperties {
 	private DebugConfig debugConfig = new DebugConfig();
 
 	@NestedConfigurationProperty
+	private SwaggerConfig swaggerConfig = new SwaggerConfig();
+
+	@NestedConfigurationProperty
 	private ResourceConfig resource = new ResourceConfig();
 
 	@NestedConfigurationProperty
@@ -412,5 +415,13 @@ public class MagicAPIProperties {
 
 	public void setPersistenceResponseBody(boolean persistenceResponseBody) {
 		this.persistenceResponseBody = persistenceResponseBody;
+	}
+
+	public SwaggerConfig getSwaggerConfig() {
+		return swaggerConfig;
+	}
+
+	public void setSwaggerConfig(SwaggerConfig swaggerConfig) {
+		this.swaggerConfig = swaggerConfig;
 	}
 }

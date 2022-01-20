@@ -9,9 +9,11 @@ import org.ssssssss.magicapi.core.exception.MagicAPIException;
 import org.ssssssss.magicapi.core.model.MagicEntity;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public abstract class AbstractMagicDynamicRegistry<T extends MagicEntity> implements MagicDynamicRegistry<T> {
 
@@ -113,6 +115,10 @@ public abstract class AbstractMagicDynamicRegistry<T extends MagicEntity> implem
 
 	protected void unregister(MappingNode<T> mappingNode) {
 
+	}
+
+	public List<T> mappings(){
+		return this.mappings.values().stream().map(MappingNode::getEntity).collect(Collectors.toList());
 	}
 
 	protected MappingNode<T> buildMappingNode(T entity) {

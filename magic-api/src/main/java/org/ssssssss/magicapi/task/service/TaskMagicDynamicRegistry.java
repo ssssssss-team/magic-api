@@ -80,7 +80,9 @@ public class TaskMagicDynamicRegistry extends AbstractMagicDynamicRegistry<TaskI
 		if(scheduledFuture != null){
 			try {
 				scheduledFuture.cancel(true);
-			} catch (Exception ignored) {
+			} catch (Exception e) {
+				String scriptName = MagicConfiguration.getMagicResourceService().getScriptName(info);
+				logger.warn("定时任务:[{}]取消失败", scriptName, e);
 			}
 		}
 	}

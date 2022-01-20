@@ -36,6 +36,10 @@ public class Mapping {
 		this.prefix = StringUtils.defaultIfBlank(prefix, "");
 	}
 
+	public static Mapping create(RequestMappingHandlerMapping mapping) {
+		return create(mapping, null, null);
+	}
+
 	public static Mapping create(RequestMappingHandlerMapping mapping, String base, String prefix) {
 		if (HAS_GET_PATTERN_PARSER) {
 			RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
