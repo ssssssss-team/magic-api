@@ -22,7 +22,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
@@ -44,6 +43,7 @@ import org.ssssssss.magicapi.core.handler.MagicDebugHandler;
 import org.ssssssss.magicapi.core.handler.MagicWebSocketDispatcher;
 import org.ssssssss.magicapi.core.handler.MagicWorkbenchHandler;
 import org.ssssssss.magicapi.core.interceptor.*;
+import org.ssssssss.magicapi.core.model.Plugin;
 import org.ssssssss.magicapi.core.service.*;
 import org.ssssssss.magicapi.core.web.MagicResourceController;
 import org.ssssssss.magicapi.core.web.MagicWorkbenchController;
@@ -57,7 +57,6 @@ import org.ssssssss.magicapi.jsr223.JSR223LanguageProvider;
 import org.ssssssss.magicapi.jsr223.LanguageProvider;
 import org.ssssssss.magicapi.modules.db.ColumnMapperAdapter;
 import org.ssssssss.magicapi.modules.db.dialect.DialectAdapter;
-import org.ssssssss.magicapi.core.resource.Resource;
 import org.ssssssss.magicapi.core.resource.ResourceAdapter;
 import org.ssssssss.magicapi.core.resource.DatabaseResource;
 import org.ssssssss.magicapi.function.service.FunctionInfoMagicResourceStorage;
@@ -84,9 +83,6 @@ import org.ssssssss.magicapi.modules.servlet.RequestModule;
 import org.ssssssss.magicapi.modules.servlet.ResponseModule;
 import org.ssssssss.magicapi.modules.spring.EnvModule;
 import org.ssssssss.magicapi.core.service.impl.*;
-import org.ssssssss.magicapi.task.service.TaskInfoMagicResourceStorage;
-import org.ssssssss.magicapi.task.service.TaskMagicDynamicRegistry;
-import org.ssssssss.magicapi.task.web.MagicTaskController;
 import org.ssssssss.magicapi.utils.ClassScanner;
 import org.ssssssss.magicapi.utils.Mapping;
 import org.ssssssss.script.MagicResourceLoader;
@@ -106,6 +102,7 @@ import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 /**
  * magic-api自动配置类
@@ -115,7 +112,7 @@ import java.util.function.BiFunction;
 @Configuration
 @ConditionalOnClass({RequestMappingHandlerMapping.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
-@Import({MagicRedisAutoConfiguration.class, MagicElasticSearchAutoConfiguration.class, MagicMongoAutoConfiguration.class, MagicSwaggerConfiguration.class, MagicJsonAutoConfiguration.class, ApplicationUriPrinter.class})
+@Import({MagicJsonAutoConfiguration.class, ApplicationUriPrinter.class})
 @EnableWebSocket
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketConfigurer {
 
@@ -164,6 +161,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	 */
 	private final ObjectProvider<List<MagicFunction>> magicFunctionsProvider;
 
+	private final ObjectProvider<List<MagicPluginConfiguration>> magicPluginsProvider;
+
 	private final ObjectProvider<MagicNotifyService> magicNotifyServiceProvider;
 
 	private final ObjectProvider<List<MagicDynamicRegistry<? extends MagicEntity>>> magicDynamicRegistriesProvider;
@@ -204,6 +203,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 									 ObjectProvider<List<HttpMessageConverter<?>>> httpMessageConvertersProvider,
 									 ObjectProvider<List<ColumnMapperProvider>> columnMapperProvidersProvider,
 									 ObjectProvider<List<MagicFunction>> magicFunctionsProvider,
+									 ObjectProvider<List<MagicPluginConfiguration>> magicPluginsProvider,
 									 ObjectProvider<MagicNotifyService> magicNotifyServiceProvider,
 									 ObjectProvider<AuthorizationInterceptor> authorizationInterceptorProvider,
 									 ObjectProvider<List<NamedTableInterceptor>> namedTableInterceptorsProvider,
@@ -221,6 +221,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		this.httpMessageConvertersProvider = httpMessageConvertersProvider;
 		this.columnMapperProvidersProvider = columnMapperProvidersProvider;
 		this.magicFunctionsProvider = magicFunctionsProvider;
+		this.magicPluginsProvider = magicPluginsProvider;
 		this.magicNotifyServiceProvider = magicNotifyServiceProvider;
 		this.authorizationInterceptorProvider = authorizationInterceptorProvider;
 		this.namedTableInterceptorsProvider = namedTableInterceptorsProvider;
@@ -278,10 +279,10 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(Resource.class)
+	@ConditionalOnMissingBean(org.ssssssss.magicapi.core.resource.Resource.class)
 	@ConditionalOnProperty(prefix = "magic-api", name = "resource.type", havingValue = "database")
-	public Resource magicDatabaseResource(MagicDynamicDataSource magicDynamicDataSource) {
-		ResourceConfig resourceConfig = properties.getResource();
+	public org.ssssssss.magicapi.core.resource.Resource magicDatabaseResource(MagicDynamicDataSource magicDynamicDataSource) {
+		Resource resourceConfig = properties.getResource();
 		if (magicDynamicDataSource.isEmpty()) {
 			throw new MagicAPIException("当前未配置数据源，如已配置，请引入 spring-boot-starter-jdbc 后在试!");
 		}
@@ -290,18 +291,18 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(Resource.class)
+	@ConditionalOnMissingBean(org.ssssssss.magicapi.core.resource.Resource.class)
 	@ConditionalOnProperty(prefix = "magic-api", name = "resource.type", havingValue = "file", matchIfMissing = true)
-	public Resource magicResource() throws IOException {
-		ResourceConfig resourceConfig = properties.getResource();
+	public org.ssssssss.magicapi.core.resource.Resource magicResource() throws IOException {
+		Resource resourceConfig = properties.getResource();
 		return ResourceAdapter.getResource(resourceConfig.getLocation(), resourceConfig.isReadonly());
 	}
 
 	@Bean
 	@ConditionalOnMissingBean(MagicBackupService.class)
-	@ConditionalOnProperty(prefix = "magic-api", name = "backup-config.enable", havingValue = "true")
+	@ConditionalOnProperty(prefix = "magic-api", name = "backup.enable", havingValue = "true")
 	public MagicBackupService magicDatabaseBackupService(MagicDynamicDataSource magicDynamicDataSource) {
-		BackupConfig backupConfig = properties.getBackupConfig();
+		Backup backupConfig = properties.getBackup();
 		MagicDynamicDataSource.DataSourceNode dataSourceNode = magicDynamicDataSource.getDataSource(backupConfig.getDatasource());
 		return new MagicDatabaseBackupService(new JdbcTemplate(dataSourceNode.getDataSource()), backupConfig.getTableName());
 	}
@@ -350,7 +351,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	@Bean
 	@ConditionalOnMissingBean(PageProvider.class)
 	public PageProvider pageProvider() {
-		PageConfig pageConfig = properties.getPageConfig();
+		Page pageConfig = properties.getPage();
 		logger.info("未找到分页实现,采用默认分页实现,分页配置:(页码={},页大小={},默认首页={},默认页大小={})", pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize());
 		return new DefaultPageProvider(pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize());
 	}
@@ -370,14 +371,14 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	@Bean
 	@ConditionalOnMissingBean(SqlCache.class)
 	public SqlCache sqlCache() {
-		CacheConfig cacheConfig = properties.getCacheConfig();
+		Cache cacheConfig = properties.getCache();
 		logger.info("未找到SQL缓存实现，采用默认缓存实现(LRU+TTL)，缓存配置:(容量={},TTL={})", cacheConfig.getCapacity(), cacheConfig.getTtl());
 		return new DefaultSqlCache(cacheConfig.getCapacity(), cacheConfig.getTtl());
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
-	public MagicResourceService magicResourceService(Resource workspace) {
+	public MagicResourceService magicResourceService(org.ssssssss.magicapi.core.resource.Resource workspace) {
 		return new DefaultMagicResourceService(workspace, magicResourceStoragesProvider.getObject(), applicationContext);
 	}
 
@@ -417,23 +418,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		return new DataSourceMagicDynamicRegistry(dataSourceInfoMagicResourceStorage, magicDynamicDataSource);
 	}
 
-	@Bean
-	@ConditionalOnMissingBean
-	public TaskInfoMagicResourceStorage taskInfoMagicResourceStorage() {
-		return new TaskInfoMagicResourceStorage();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public TaskMagicDynamicRegistry taskMagicDynamicRegistry(TaskInfoMagicResourceStorage taskInfoMagicResourceStorage, TaskScheduler taskScheduler) {
-		return new TaskMagicDynamicRegistry(taskInfoMagicResourceStorage, taskScheduler);
-	}
-
 
 	@Bean
 	@ConditionalOnMissingBean(MagicNotifyService.class)
 	public MagicNotifyService magicNotifyService() {
-		logger.info("未配置集群通知服务，本实例不会推送通知，集群环境下可能会有问题，如需开启，请配置magic-api.cluster-config.enable=true，若开启后本提示还在，请检查 spring-boot-starter-data-redis 是否引入");
+		logger.info("未配置集群通知服务，本实例不会推送通知，集群环境下可能会有问题，如需开启，请引用magic-api-plugin-cluster插件");
 		return magicNotify -> {
 		};
 	}
@@ -444,7 +433,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	@Bean
 	@ConditionalOnMissingBean
 	public MagicAPIService magicAPIService(ResultProvider resultProvider, MagicResourceService magicResourceService, RequestMagicDynamicRegistry requestMagicDynamicRegistry, FunctionMagicDynamicRegistry functionMagicDynamicRegistry) {
-		return new DefaultMagicAPIService(resultProvider, properties.getClusterConfig().getInstanceId(), magicResourceService, requestMagicDynamicRegistry, functionMagicDynamicRegistry, properties.isThrowException(), applicationContext);
+		return new DefaultMagicAPIService(resultProvider, properties.getInstanceId(), magicResourceService, requestMagicDynamicRegistry, functionMagicDynamicRegistry, properties.isThrowException(), applicationContext);
 	}
 
 	/**
@@ -478,8 +467,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		DialectAdapter dialectAdapter = new DialectAdapter();
 		dialectsProvider.getIfAvailable(Collections::emptyList).forEach(dialectAdapter::add);
 		sqlModule.setDialectAdapter(dialectAdapter);
-		sqlModule.setLogicDeleteColumn(properties.getCrudConfig().getLogicDeleteColumn());
-		sqlModule.setLogicDeleteValue(properties.getCrudConfig().getLogicDeleteValue());
+		sqlModule.setLogicDeleteColumn(properties.getCrud().getLogicDeleteColumn());
+		sqlModule.setLogicDeleteValue(properties.getCrud().getLogicDeleteValue());
 		return sqlModule;
 	}
 
@@ -563,7 +552,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 												 SQLModule sqlModule,
 												 List<MagicModule> magicModules,
 												 List<LanguageProvider> languageProviders,
-												 Resource magicResource,
+												 org.ssssssss.magicapi.core.resource.Resource magicResource,
 												 ResultProvider resultProvider,
 												 MagicResourceService magicResourceService,
 												 MagicAPIService magicAPIService,
@@ -575,7 +564,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		DataType.DATE_PATTERNS = properties.getDatePattern();
 		MagicScript.setCompileCache(properties.getCompileCacheSize());
 		// 设置响应结果的code值
-		ResponseCodeConfig responseCodeConfig = properties.getResponseCodeConfig();
+		ResponseCode responseCodeConfig = properties.getResponseCode();
 		Constants.RESPONSE_CODE_SUCCESS = responseCodeConfig.getSuccess();
 		Constants.RESPONSE_CODE_INVALID = responseCodeConfig.getInvalid();
 		Constants.RESPONSE_CODE_EXCEPTION = responseCodeConfig.getException();
@@ -584,12 +573,12 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		MagicConfiguration configuration = new MagicConfiguration();
 		configuration.setMagicAPIService(magicAPIService);
 		configuration.setMagicNotifyService(magicNotifyService);
-		configuration.setInstanceId(properties.getClusterConfig().getInstanceId());
+		configuration.setInstanceId(properties.getInstanceId());
 		configuration.setMagicResourceService(magicResourceService);
 		configuration.setMagicDynamicRegistries(magicDynamicRegistriesProvider.getObject());
 		configuration.setMagicBackupService(magicBackupService);
-		SecurityConfig securityConfig = properties.getSecurityConfig();
-		configuration.setDebugTimeout(properties.getDebugConfig().getTimeout());
+		Security securityConfig = properties.getSecurityConfig();
+		configuration.setDebugTimeout(properties.getDebug().getTimeout());
 		configuration.setHttpMessageConverters(httpMessageConvertersProvider.getIfAvailable(Collections::emptyList));
 		configuration.setResultProvider(resultProvider);
 		configuration.setThrowException(properties.isThrowException());
@@ -602,17 +591,19 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		securityConfig.setUsername(null);
 		securityConfig.setPassword(null);
 		requestMagicDynamicRegistry.setHandler(new RequestHandler(configuration, requestMagicDynamicRegistry));
+		List<MagicPluginConfiguration> pluginConfigurations = magicPluginsProvider.getIfAvailable(Collections::emptyList);
+		List<Plugin> plugins = pluginConfigurations.stream().map(MagicPluginConfiguration::plugin).collect(Collectors.toList());
 		// 构建UI请求处理器
 		String base = properties.getWeb();
 		Mapping mapping = Mapping.create(requestMappingHandlerMapping, base, properties.getPrefix());
-		MagicWorkbenchController magicWorkbenchController = new MagicWorkbenchController(configuration, properties.getSecretKey());
+		MagicWorkbenchController magicWorkbenchController = new MagicWorkbenchController(configuration, plugins, properties.getSecretKey());
 		if (base != null) {
 			configuration.setEnableWeb(true);
 			mapping.registerController(magicWorkbenchController)
 					.registerController(new MagicResourceController(configuration))
 					.registerController(new MagicDataSourceController(configuration))
-					.registerController(new MagicTaskController(configuration))
 					.registerController(new MagicBackupController(configuration));
+			pluginConfigurations.forEach(it -> it.controllerRegister().register(mapping, configuration));
 		}
 		// 注册接收推送的接口
 		if (StringUtils.isNotBlank(properties.getSecretKey())) {
@@ -625,14 +616,14 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		});
 		// 打印banner
 		if (this.properties.isBanner()) {
-			configuration.printBanner();
+			configuration.printBanner(plugins.stream().map(Plugin::getName).collect(Collectors.toList()));
 		}
 		if (magicBackupService == null) {
 			logger.error("当前备份设置未配置，强烈建议配置备份设置，以免代码丢失。");
 		}
 		// 备份清理
-		if (properties.getBackupConfig().getMaxHistory() > 0 && magicBackupService != null) {
-			long interval = properties.getBackupConfig().getMaxHistory() * 86400000L;
+		if (properties.getBackup().isEnable() && properties.getBackup().getMaxHistory() > 0 && magicBackupService != null) {
+			long interval = properties.getBackup().getMaxHistory() * 86400000L;
 			// 1小时执行1次
 			new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-clean-task")).scheduleAtFixedRate(() -> {
 				try {
@@ -652,7 +643,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		if (defaultAuthorizationInterceptor != null) {
 			return defaultAuthorizationInterceptor;
 		}
-		SecurityConfig securityConfig = properties.getSecurityConfig();
+		Security securityConfig = properties.getSecurityConfig();
 		defaultAuthorizationInterceptor = new DefaultAuthorizationInterceptor(securityConfig.getUsername(), securityConfig.getPassword());
 		return defaultAuthorizationInterceptor;
 	}
@@ -679,7 +670,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		WebSocketSessionManager.setMagicNotifyService(magicNotifyService);
 		if (web != null && !registerWebsocket) {
 			registerWebsocket = true;
-			MagicWebSocketDispatcher dispatcher = new MagicWebSocketDispatcher(properties.getClusterConfig().getInstanceId(), magicNotifyService, Arrays.asList(
+			MagicWebSocketDispatcher dispatcher = new MagicWebSocketDispatcher(properties.getInstanceId(), magicNotifyService, Arrays.asList(
 					new MagicDebugHandler(),
 					new MagicCoordinationHandler(),
 					new MagicWorkbenchHandler(authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor))

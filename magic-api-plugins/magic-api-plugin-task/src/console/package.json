@@ -1,0 +1,18 @@
+{
+  "name": "magic-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "vite build"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vue": "^3.2.26",
+    "@vitejs/plugin-vue": "^2.0.1",
+    "vite-plugin-svg-icons": "^1.1.0",
+    "vite": "^2.7.10"
+  }
+}

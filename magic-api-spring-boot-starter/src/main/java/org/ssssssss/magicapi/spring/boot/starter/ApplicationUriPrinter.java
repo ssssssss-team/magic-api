@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.ssssssss.magicapi.core.config.MagicAPIProperties;
 import org.ssssssss.magicapi.utils.PathUtils;
 
 import java.net.InetAddress;
@@ -25,7 +26,7 @@ import java.util.Objects;
 @Order
 public class ApplicationUriPrinter implements CommandLineRunner {
 
-	@Value("${server.port:9999}")
+	@Value("${server.port:8080}")
 	private int port;
 
 	@Value("${server.servlet.context-path:}")

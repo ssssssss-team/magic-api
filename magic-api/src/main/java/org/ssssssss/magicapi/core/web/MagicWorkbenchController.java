@@ -47,14 +47,17 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicWorkbenchController.class);
 
-	private final String secretKey;
-
 	private static final Pattern SINGLE_LINE_COMMENT_TODO = Pattern.compile("((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n]+");
 
 	private static final Pattern MULTI_LINE_COMMENT_TODO = Pattern.compile("((TODO)|(todo)|(fixme)|(FIXME))[ \t]+[^\n(?!*/)]+");
 
-	public MagicWorkbenchController(MagicConfiguration configuration, String secretKey) {
+	private final String secretKey;
+
+	private final List<Plugin> plugins;
+
+	public MagicWorkbenchController(MagicConfiguration configuration, List<Plugin> plugins, String secretKey) {
 		super(configuration);
+		this.plugins = plugins;
 		this.secretKey = secretKey;
 		// 给前端添加代码提示
 		MagicScriptEngine.addScriptClass(SQLModule.class);
@@ -141,6 +144,13 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		// 发送更新通知
 		configuration.getMagicNotifyService().sendNotify(new MagicNotify(configuration.getInstanceId()));
 		return new JsonBean<>();
+	}
+
+	@GetMapping("/plugins")
+	@Valid(requireLogin = false)
+	@ResponseBody
+	public JsonBean<List<Plugin>> plugins(){
+		return new JsonBean<>(plugins);
 	}
 
 
