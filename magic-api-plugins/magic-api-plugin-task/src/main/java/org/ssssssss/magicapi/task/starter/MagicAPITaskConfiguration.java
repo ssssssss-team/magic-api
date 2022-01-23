@@ -14,7 +14,7 @@ import org.ssssssss.magicapi.task.web.MagicTaskController;
 
 @Configuration
 @EnableScheduling
-public class MagicAPITaskConfiguration implements MagicPluginConfiguration{
+public class MagicAPITaskConfiguration implements MagicPluginConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
@@ -30,7 +30,7 @@ public class MagicAPITaskConfiguration implements MagicPluginConfiguration{
 
 	@Override
 	public Plugin plugin() {
-		return new Plugin("定时任务", "magic-task.1.0.0.iife.js");
+		return new Plugin("定时任务", "MagicTask", "magic-task.1.0.0.iife.js");
 	}
 
 	@Override

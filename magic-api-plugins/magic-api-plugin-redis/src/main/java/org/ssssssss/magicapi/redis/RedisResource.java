@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.core.resource;
+package org.ssssssss.magicapi.redis;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,6 +6,8 @@ import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.ssssssss.magicapi.core.resource.KeyValueResource;
+import org.ssssssss.magicapi.core.resource.Resource;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;

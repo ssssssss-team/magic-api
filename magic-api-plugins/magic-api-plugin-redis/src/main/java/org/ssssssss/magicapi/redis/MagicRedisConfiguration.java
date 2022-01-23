@@ -10,7 +10,6 @@ import org.ssssssss.magicapi.core.config.MagicAPIProperties;
 import org.ssssssss.magicapi.core.config.MagicPluginConfiguration;
 import org.ssssssss.magicapi.core.config.Resource;
 import org.ssssssss.magicapi.core.model.Plugin;
-import org.ssssssss.magicapi.core.resource.RedisResource;
 
 @Configuration
 public class MagicRedisConfiguration implements MagicPluginConfiguration {

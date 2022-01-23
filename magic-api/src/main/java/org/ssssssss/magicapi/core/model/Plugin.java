@@ -5,15 +5,21 @@ public class Plugin {
 	/**
 	 * 插件名
 	 */
-	private String name;
+	private final String name;
+
+	/**
+	 * js全局变量名
+	 */
+	private String globalName;
 
 	/**
 	 * js文件名
 	 */
 	private String javascriptFilename;
 
-	public Plugin(String name, String javascriptFilename) {
+	public Plugin(String name, String globalName, String javascriptFilename) {
 		this.name = name;
+		this.globalName = globalName;
 		this.javascriptFilename = javascriptFilename;
 	}
 
@@ -25,15 +31,11 @@ public class Plugin {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-
 	public String getJavascriptFilename() {
 		return javascriptFilename;
 	}
 
-	public void setJavascriptFilename(String javascriptFilename) {
-		this.javascriptFilename = javascriptFilename;
+	public String getGlobalName() {
+		return globalName;
 	}
 }
