@@ -787,15 +787,6 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		}
 	}
 
-	private <R> void readLock(Runnable runnable) {
-		try {
-			lock.readLock().lock();
-			runnable.run();
-		} finally {
-			lock.readLock().unlock();
-		}
-	}
-
 	private <R> R writeLock(Supplier<R> supplier) {
 		try {
 			lock.writeLock().lock();

@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -18,13 +18,10 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
-import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -38,51 +35,34 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.ssssssss.magicapi.backup.service.MagicBackupService;
 import org.ssssssss.magicapi.backup.service.MagicDatabaseBackupService;
 import org.ssssssss.magicapi.backup.web.MagicBackupController;
+import org.ssssssss.magicapi.core.config.*;
+import org.ssssssss.magicapi.core.exception.MagicAPIException;
 import org.ssssssss.magicapi.core.handler.MagicCoordinationHandler;
 import org.ssssssss.magicapi.core.handler.MagicDebugHandler;
 import org.ssssssss.magicapi.core.handler.MagicWebSocketDispatcher;
 import org.ssssssss.magicapi.core.handler.MagicWorkbenchHandler;
 import org.ssssssss.magicapi.core.interceptor.*;
+import org.ssssssss.magicapi.core.logging.LoggerManager;
+import org.ssssssss.magicapi.core.model.DataType;
+import org.ssssssss.magicapi.core.model.MagicEntity;
 import org.ssssssss.magicapi.core.model.Plugin;
+import org.ssssssss.magicapi.core.resource.DatabaseResource;
+import org.ssssssss.magicapi.core.resource.ResourceAdapter;
 import org.ssssssss.magicapi.core.service.*;
+import org.ssssssss.magicapi.core.service.impl.DefaultMagicAPIService;
+import org.ssssssss.magicapi.core.service.impl.DefaultMagicResourceService;
+import org.ssssssss.magicapi.core.service.impl.RequestMagicDynamicRegistry;
 import org.ssssssss.magicapi.core.web.MagicResourceController;
 import org.ssssssss.magicapi.core.web.MagicWorkbenchController;
 import org.ssssssss.magicapi.core.web.RequestHandler;
 import org.ssssssss.magicapi.datasource.model.MagicDynamicDataSource;
 import org.ssssssss.magicapi.datasource.service.DataSourceEncryptProvider;
-import org.ssssssss.magicapi.datasource.service.DataSourceInfoMagicResourceStorage;
-import org.ssssssss.magicapi.datasource.service.DataSourceMagicDynamicRegistry;
 import org.ssssssss.magicapi.datasource.web.MagicDataSourceController;
-import org.ssssssss.magicapi.jsr223.JSR223LanguageProvider;
-import org.ssssssss.magicapi.jsr223.LanguageProvider;
-import org.ssssssss.magicapi.modules.db.ColumnMapperAdapter;
-import org.ssssssss.magicapi.modules.db.dialect.DialectAdapter;
-import org.ssssssss.magicapi.core.resource.ResourceAdapter;
-import org.ssssssss.magicapi.core.resource.DatabaseResource;
-import org.ssssssss.magicapi.function.service.FunctionInfoMagicResourceStorage;
 import org.ssssssss.magicapi.function.service.FunctionMagicDynamicRegistry;
-import org.ssssssss.magicapi.modules.db.inteceptor.DefaultSqlInterceptor;
-import org.ssssssss.magicapi.modules.db.inteceptor.NamedTableInterceptor;
-import org.ssssssss.magicapi.modules.db.inteceptor.SQLInterceptor;
-import org.ssssssss.magicapi.modules.db.SQLModule;
-import org.ssssssss.magicapi.modules.db.cache.DefaultSqlCache;
-import org.ssssssss.magicapi.modules.db.cache.SqlCache;
-import org.ssssssss.magicapi.core.config.*;
-import org.ssssssss.magicapi.modules.db.dialect.Dialect;
-import org.ssssssss.magicapi.core.exception.MagicAPIException;
-import org.ssssssss.magicapi.core.logging.LoggerManager;
-import org.ssssssss.magicapi.core.config.Constants;
-import org.ssssssss.magicapi.core.model.DataType;
-import org.ssssssss.magicapi.core.model.MagicEntity;
-import org.ssssssss.magicapi.core.model.Options;
-import org.ssssssss.magicapi.modules.db.provider.ColumnMapperProvider;
-import org.ssssssss.magicapi.modules.db.provider.DefaultPageProvider;
-import org.ssssssss.magicapi.modules.db.provider.PageProvider;
-import org.ssssssss.magicapi.modules.http.HttpModule;
+import org.ssssssss.magicapi.jsr223.LanguageProvider;
 import org.ssssssss.magicapi.modules.servlet.RequestModule;
 import org.ssssssss.magicapi.modules.servlet.ResponseModule;
 import org.ssssssss.magicapi.modules.spring.EnvModule;
-import org.ssssssss.magicapi.core.service.impl.*;
 import org.ssssssss.magicapi.utils.ClassScanner;
 import org.ssssssss.magicapi.utils.Mapping;
 import org.ssssssss.script.MagicResourceLoader;
@@ -95,9 +75,7 @@ import org.ssssssss.script.parsing.ast.statement.AsyncCall;
 import org.ssssssss.script.reflection.JavaReflection;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.sql.DataSource;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -112,8 +90,9 @@ import java.util.stream.Collectors;
 @Configuration
 @ConditionalOnClass({RequestMappingHandlerMapping.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
-@Import({MagicJsonAutoConfiguration.class, ApplicationUriPrinter.class})
+@Import({MagicJsonAutoConfiguration.class, ApplicationUriPrinter.class, MagicModuleConfiguration.class, MagicDynamicRegistryConfiguration.class})
 @EnableWebSocket
+@AutoConfigureAfter(MagicPluginConfiguration.class)
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketConfigurer {
 
 	private static final Logger logger = LoggerFactory.getLogger(MagicAPIAutoConfiguration.class);
@@ -123,15 +102,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	 */
 	private final ObjectProvider<List<RequestInterceptor>> requestInterceptorsProvider;
 
-	/**
-	 * SQL拦截器
-	 */
-	private final ObjectProvider<List<SQLInterceptor>> sqlInterceptorsProvider;
-
-	/**
-	 * 单表API拦截器
-	 */
-	private final ObjectProvider<List<NamedTableInterceptor>> namedTableInterceptorsProvider;
 
 	/**
 	 * 自定义的类型扩展
@@ -142,16 +112,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	 * 内置的消息转换
 	 */
 	private final ObjectProvider<List<HttpMessageConverter<?>>> httpMessageConvertersProvider;
-
-	/**
-	 * 自定义的方言
-	 */
-	private final ObjectProvider<List<Dialect>> dialectsProvider;
-
-	/**
-	 * 自定义的列名转换
-	 */
-	private final ObjectProvider<List<ColumnMapperProvider>> columnMapperProvidersProvider;
 
 
 	private final ObjectProvider<AuthorizationInterceptor> authorizationInterceptorProvider;
@@ -196,17 +156,13 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	private DefaultAuthorizationInterceptor defaultAuthorizationInterceptor;
 
 	public MagicAPIAutoConfiguration(MagicAPIProperties properties,
-									 ObjectProvider<List<Dialect>> dialectsProvider,
 									 ObjectProvider<List<RequestInterceptor>> requestInterceptorsProvider,
-									 ObjectProvider<List<SQLInterceptor>> sqlInterceptorsProvider,
 									 ObjectProvider<List<ExtensionMethod>> extensionMethodsProvider,
 									 ObjectProvider<List<HttpMessageConverter<?>>> httpMessageConvertersProvider,
-									 ObjectProvider<List<ColumnMapperProvider>> columnMapperProvidersProvider,
 									 ObjectProvider<List<MagicFunction>> magicFunctionsProvider,
 									 ObjectProvider<List<MagicPluginConfiguration>> magicPluginsProvider,
 									 ObjectProvider<MagicNotifyService> magicNotifyServiceProvider,
 									 ObjectProvider<AuthorizationInterceptor> authorizationInterceptorProvider,
-									 ObjectProvider<List<NamedTableInterceptor>> namedTableInterceptorsProvider,
 									 ObjectProvider<DataSourceEncryptProvider> dataSourceEncryptProvider,
 									 ObjectProvider<List<MagicDynamicRegistry<? extends MagicEntity>>> magicDynamicRegistriesProvider,
 									 ObjectProvider<List<MagicResourceStorage<? extends MagicEntity>>> magicResourceStoragesProvider,
@@ -214,17 +170,13 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 									 ApplicationContext applicationContext
 	) {
 		this.properties = properties;
-		this.dialectsProvider = dialectsProvider;
 		this.requestInterceptorsProvider = requestInterceptorsProvider;
-		this.sqlInterceptorsProvider = sqlInterceptorsProvider;
 		this.extensionMethodsProvider = extensionMethodsProvider;
 		this.httpMessageConvertersProvider = httpMessageConvertersProvider;
-		this.columnMapperProvidersProvider = columnMapperProvidersProvider;
 		this.magicFunctionsProvider = magicFunctionsProvider;
 		this.magicPluginsProvider = magicPluginsProvider;
 		this.magicNotifyServiceProvider = magicNotifyServiceProvider;
 		this.authorizationInterceptorProvider = authorizationInterceptorProvider;
-		this.namedTableInterceptorsProvider = namedTableInterceptorsProvider;
 		this.dataSourceEncryptProvider = dataSourceEncryptProvider;
 		this.magicDynamicRegistriesProvider = magicDynamicRegistriesProvider;
 		this.magicResourceStoragesProvider = magicResourceStoragesProvider;
@@ -255,27 +207,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			}
 		}
 		return allClassTxt;
-	}
-
-	@Bean
-	@ConditionalOnMissingBean(HttpModule.class)
-	public HttpModule magicHttpModule() {
-		return new HttpModule(createRestTemplate());
-	}
-
-	/**
-	 * 注入动态数据源
-	 */
-	@Bean
-	@ConditionalOnMissingBean(MagicDynamicDataSource.class)
-	public MagicDynamicDataSource magicDynamicDataSource(@Autowired(required = false) DataSource dataSource) {
-		MagicDynamicDataSource dynamicDataSource = new MagicDynamicDataSource();
-		if (dataSource != null) {
-			dynamicDataSource.put(dataSource);
-		} else {
-			logger.warn("当前数据源未配置");
-		}
-		return dynamicDataSource;
 	}
 
 	@Bean
@@ -349,73 +280,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(PageProvider.class)
-	public PageProvider pageProvider() {
-		Page pageConfig = properties.getPage();
-		logger.info("未找到分页实现,采用默认分页实现,分页配置:(页码={},页大小={},默认首页={},默认页大小={})", pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize());
-		return new DefaultPageProvider(pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize());
-	}
-
-	/**
-	 * 注入结果构建方法
-	 */
-	@Bean
-	@ConditionalOnMissingBean(ResultProvider.class)
-	public ResultProvider resultProvider() {
-		return new DefaultResultProvider(properties.getResponse());
-	}
-
-	/**
-	 * 注入SQL缓存实现
-	 */
-	@Bean
-	@ConditionalOnMissingBean(SqlCache.class)
-	public SqlCache sqlCache() {
-		Cache cacheConfig = properties.getCache();
-		logger.info("未找到SQL缓存实现，采用默认缓存实现(LRU+TTL)，缓存配置:(容量={},TTL={})", cacheConfig.getCapacity(), cacheConfig.getTtl());
-		return new DefaultSqlCache(cacheConfig.getCapacity(), cacheConfig.getTtl());
-	}
-
-	@Bean
 	@ConditionalOnMissingBean
 	public MagicResourceService magicResourceService(org.ssssssss.magicapi.core.resource.Resource workspace) {
 		return new DefaultMagicResourceService(workspace, magicResourceStoragesProvider.getObject(), applicationContext);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public ApiInfoMagicResourceStorage apiInfoMagicResourceStorage() {
-		return new ApiInfoMagicResourceStorage();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public RequestMagicDynamicRegistry magicRequestMagicDynamicRegistry(ApiInfoMagicResourceStorage apiInfoMagicResourceStorage) throws NoSuchMethodException {
-		return new RequestMagicDynamicRegistry(apiInfoMagicResourceStorage, Mapping.create(requestMappingHandlerMapping, properties.getWeb(), properties.getPrefix()), properties.isAllowOverride());
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public FunctionInfoMagicResourceStorage functionInfoMagicResourceStorage() {
-		return new FunctionInfoMagicResourceStorage();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public FunctionMagicDynamicRegistry functionMagicDynamicRegistry(FunctionInfoMagicResourceStorage functionInfoMagicResourceStorage) {
-		return new FunctionMagicDynamicRegistry(functionInfoMagicResourceStorage);
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public DataSourceInfoMagicResourceStorage dataSourceInfoMagicResourceStorage() {
-		return new DataSourceInfoMagicResourceStorage();
-	}
-
-	@Bean
-	@ConditionalOnMissingBean
-	public DataSourceMagicDynamicRegistry dataSourceMagicDynamicRegistry(DataSourceInfoMagicResourceStorage dataSourceInfoMagicResourceStorage, MagicDynamicDataSource magicDynamicDataSource) {
-		return new DataSourceMagicDynamicRegistry(dataSourceInfoMagicResourceStorage, magicDynamicDataSource);
 	}
 
 
@@ -437,47 +304,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	}
 
 	/**
-	 * 注入数据库查询模块
-	 */
-	@Bean
-	@ConditionalOnBean({MagicDynamicDataSource.class})
-	public SQLModule magicSqlModule(MagicDynamicDataSource dynamicDataSource,
-									ResultProvider resultProvider,
-									PageProvider pageProvider,
-									SqlCache sqlCache) {
-		SQLModule sqlModule = new SQLModule(dynamicDataSource);
-		if (!dynamicDataSource.isEmpty()) {
-			sqlModule.setDataSourceNode(dynamicDataSource.getDataSource());
-		}
-		sqlModule.setResultProvider(resultProvider);
-		sqlModule.setPageProvider(pageProvider);
-		List<SQLInterceptor> sqlInterceptors = sqlInterceptorsProvider.getIfAvailable(ArrayList::new);
-		if (properties.isShowSql()) {
-			sqlInterceptors.add(new DefaultSqlInterceptor());
-		}
-		sqlModule.setSqlInterceptors(sqlInterceptors);
-		sqlModule.setNamedTableInterceptors(namedTableInterceptorsProvider.getIfAvailable(Collections::emptyList));
-		ColumnMapperAdapter columnMapperAdapter = new ColumnMapperAdapter();
-		this.columnMapperProvidersProvider.getIfAvailable(Collections::emptyList).stream().filter(mapperProvider -> !"default".equals(mapperProvider.name())).forEach(columnMapperAdapter::add);
-		columnMapperAdapter.setDefault(properties.getSqlColumnCase());
-		sqlModule.setColumnMapperProvider(columnMapperAdapter);
-		sqlModule.setColumnMapRowMapper(columnMapperAdapter.getDefaultColumnMapRowMapper());
-		sqlModule.setRowMapColumnMapper(columnMapperAdapter.getDefaultRowMapColumnMapper());
-		sqlModule.setSqlCache(sqlCache);
-		DialectAdapter dialectAdapter = new DialectAdapter();
-		dialectsProvider.getIfAvailable(Collections::emptyList).forEach(dialectAdapter::add);
-		sqlModule.setDialectAdapter(dialectAdapter);
-		sqlModule.setLogicDeleteColumn(properties.getCrud().getLogicDeleteColumn());
-		sqlModule.setLogicDeleteValue(properties.getCrud().getLogicDeleteValue());
-		return sqlModule;
-	}
-
-	/**
 	 * 注册模块、类型扩展
 	 */
-	private void setupMagicModules(MagicDynamicDataSource dynamicDataSource,
-								   SQLModule sqlModule,
-								   ResultProvider resultProvider,
+	private void setupMagicModules(ResultProvider resultProvider,
 								   List<MagicModule> magicModules,
 								   List<ExtensionMethod> extensionMethods,
 								   List<LanguageProvider> languageProviders) {
@@ -521,13 +350,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
 			MagicResourceLoader.addModule(module.getModuleName(), module);
 		});
-		MagicResourceLoader.addModule(sqlModule.getModuleName(), new DynamicModuleImport(SQLModule.class, context -> {
-			String dataSourceKey = context.getString(Options.DEFAULT_DATA_SOURCE.getValue());
-			if (StringUtils.isEmpty(dataSourceKey)) return sqlModule;
-			SQLModule newSqlModule = sqlModule.cloneSQLModule();
-			newSqlModule.setDataSourceNode(dynamicDataSource.getDataSource(dataSourceKey));
-			return newSqlModule;
-		}));
 		MagicResourceLoader.getModuleNames().stream().filter(importModules::contains).forEach(moduleName -> {
 			logger.info("自动导入模块：{}", moduleName);
 			MagicScriptEngine.addDefaultImport(moduleName, MagicResourceLoader.loadModule(moduleName));
@@ -543,14 +365,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	}
 
 	@Bean
-	public JSR223LanguageProvider jsr223LanguageProvider() {
-		return new JSR223LanguageProvider();
-	}
-
-	@Bean
-	public MagicConfiguration magicConfiguration(MagicDynamicDataSource dynamicDataSource,
-												 SQLModule sqlModule,
-												 List<MagicModule> magicModules,
+	public MagicConfiguration magicConfiguration(List<MagicModule> magicModules,
 												 List<LanguageProvider> languageProviders,
 												 org.ssssssss.magicapi.core.resource.Resource magicResource,
 												 ResultProvider resultProvider,
@@ -569,7 +384,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		Constants.RESPONSE_CODE_INVALID = responseCodeConfig.getInvalid();
 		Constants.RESPONSE_CODE_EXCEPTION = responseCodeConfig.getException();
 		// 设置模块和扩展方法
-		setupMagicModules(dynamicDataSource, sqlModule, resultProvider, magicModules, extensionMethodsProvider.getIfAvailable(Collections::emptyList), languageProviders);
+		setupMagicModules(resultProvider, magicModules, extensionMethodsProvider.getIfAvailable(Collections::emptyList), languageProviders);
 		MagicConfiguration configuration = new MagicConfiguration();
 		configuration.setMagicAPIService(magicAPIService);
 		configuration.setMagicNotifyService(magicNotifyService);
@@ -646,21 +461,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		Security securityConfig = properties.getSecurityConfig();
 		defaultAuthorizationInterceptor = new DefaultAuthorizationInterceptor(securityConfig.getUsername(), securityConfig.getPassword());
 		return defaultAuthorizationInterceptor;
-	}
-
-	private RestTemplate createRestTemplate() {
-		RestTemplate restTemplate = new RestTemplate();
-		restTemplate.getMessageConverters().add(new StringHttpMessageConverter(StandardCharsets.UTF_8) {
-			{
-				setSupportedMediaTypes(Collections.singletonList(MediaType.ALL));
-			}
-
-			@Override
-			public boolean supports(Class<?> clazz) {
-				return true;
-			}
-		});
-		return restTemplate;
 	}
 
 	@Override
