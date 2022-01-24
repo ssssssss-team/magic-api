@@ -11,6 +11,7 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.ssssssss.magicapi.core.config.Constants;
+import org.ssssssss.magicapi.core.config.MagicAPIProperties;
 import org.ssssssss.magicapi.core.config.MagicConfiguration;
 import org.ssssssss.magicapi.core.config.Valid;
 import org.ssssssss.magicapi.core.model.*;
@@ -20,6 +21,7 @@ import org.ssssssss.magicapi.core.context.MagicUser;
 import org.ssssssss.magicapi.modules.servlet.ResponseModule;
 import org.ssssssss.magicapi.modules.db.SQLModule;
 import org.ssssssss.magicapi.core.service.MagicAPIService;
+import org.ssssssss.magicapi.utils.ClassScanner;
 import org.ssssssss.magicapi.utils.IoUtils;
 import org.ssssssss.magicapi.utils.SignUtils;
 import org.ssssssss.magicapi.utils.WebUtils;
@@ -55,13 +57,47 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	private final List<Plugin> plugins;
 
-	public MagicWorkbenchController(MagicConfiguration configuration, List<Plugin> plugins, String secretKey) {
+	private final MagicAPIProperties properties;
+
+	private String allClassTxt;
+
+
+	public MagicWorkbenchController(MagicConfiguration configuration, MagicAPIProperties properties, List<Plugin> plugins) {
 		super(configuration);
+		this.properties = properties;
 		this.plugins = plugins;
-		this.secretKey = secretKey;
+		this.secretKey = properties.getSecretKey();
 		// 给前端添加代码提示
 		MagicScriptEngine.addScriptClass(SQLModule.class);
 		MagicScriptEngine.addScriptClass(MagicAPIService.class);
+	}
+
+	@GetMapping({"", "/", "/index"})
+	public String redirectIndex(HttpServletRequest request) {
+		if (request.getRequestURI().endsWith("/")) {
+			return "redirect:./index.html";
+		}
+		return "redirect:" + properties.getWeb() + "/index.html";
+	}
+
+	@GetMapping("/config.json")
+	@ResponseBody
+	public MagicAPIProperties readConfig() {
+		return properties;
+	}
+
+	@GetMapping(value = "/classes.txt", produces = "text/plain")
+	@ResponseBody
+	private String readClass() {
+		if (allClassTxt == null) {
+			try {
+				allClassTxt = ClassScanner.compress(ClassScanner.scan());
+			} catch (Throwable t) {
+				logger.warn("扫描Class失败", t);
+				allClassTxt = "";
+			}
+		}
+		return allClassTxt;
 	}
 
 	/**

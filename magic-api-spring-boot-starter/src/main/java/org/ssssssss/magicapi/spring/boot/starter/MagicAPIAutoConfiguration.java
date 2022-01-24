@@ -21,7 +21,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -63,7 +62,6 @@ import org.ssssssss.magicapi.jsr223.LanguageProvider;
 import org.ssssssss.magicapi.modules.servlet.RequestModule;
 import org.ssssssss.magicapi.modules.servlet.ResponseModule;
 import org.ssssssss.magicapi.modules.spring.EnvModule;
-import org.ssssssss.magicapi.utils.ClassScanner;
 import org.ssssssss.magicapi.utils.Mapping;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScript;
@@ -74,7 +72,6 @@ import org.ssssssss.script.functions.ExtensionMethod;
 import org.ssssssss.script.parsing.ast.statement.AsyncCall;
 import org.ssssssss.script.reflection.JavaReflection;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -152,7 +149,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	@Autowired(required = false)
 	private MultipartResolver multipartResolver;
 
-	private String allClassTxt;
 	private DefaultAuthorizationInterceptor defaultAuthorizationInterceptor;
 
 	public MagicAPIAutoConfiguration(MagicAPIProperties properties,
@@ -182,31 +178,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		this.magicResourceStoragesProvider = magicResourceStoragesProvider;
 		this.environment = environment;
 		this.applicationContext = applicationContext;
-	}
-
-	private String redirectIndex(HttpServletRequest request) {
-		if (request.getRequestURI().endsWith("/")) {
-			return "redirect:./index.html";
-		}
-		return "redirect:" + properties.getWeb() + "/index.html";
-	}
-
-	@ResponseBody
-	private MagicAPIProperties readConfig() {
-		return properties;
-	}
-
-	@ResponseBody
-	private String readClass() {
-		if (allClassTxt == null) {
-			try {
-				allClassTxt = ClassScanner.compress(ClassScanner.scan());
-			} catch (Throwable t) {
-				logger.warn("扫描Class失败", t);
-				allClassTxt = "";
-			}
-		}
-		return allClassTxt;
 	}
 
 	@Bean
@@ -247,16 +218,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			LoggerManager.createMagicAppender();
 			// 配置静态资源路径
 			registry.addResourceHandler(web + "/**").addResourceLocations("classpath:/magic-editor/");
-			try {
-				Mapping mapping = Mapping.create(requestMappingHandlerMapping, web, properties.getPrefix());
-				// 默认首页设置
-				mapping.register(mapping.paths(web).build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("redirectIndex", HttpServletRequest.class));
-				// 读取配置
-				mapping.register("GET", web + "/config.json", this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readConfig"));
-				// 读取配置
-				mapping.register(mapping.paths(web + "/classes.txt").methods(RequestMethod.GET).produces("text/plain").build(), this, MagicAPIAutoConfiguration.class.getDeclaredMethod("readClass"));
-			} catch (NoSuchMethodException ignored) {
-			}
 		}
 	}
 
@@ -411,7 +372,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		// 构建UI请求处理器
 		String base = properties.getWeb();
 		Mapping mapping = Mapping.create(requestMappingHandlerMapping, base, properties.getPrefix());
-		MagicWorkbenchController magicWorkbenchController = new MagicWorkbenchController(configuration, plugins, properties.getSecretKey());
+		MagicWorkbenchController magicWorkbenchController = new MagicWorkbenchController(configuration, properties, plugins);
 		if (base != null) {
 			configuration.setEnableWeb(true);
 			mapping.registerController(magicWorkbenchController)
