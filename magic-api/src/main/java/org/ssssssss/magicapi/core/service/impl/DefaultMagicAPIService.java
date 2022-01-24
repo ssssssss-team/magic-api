@@ -185,7 +185,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		if (magicNotify == null || instanceId.equals(magicNotify.getFrom())) {
 			return false;
 		}
-		logger.info("收到通知消息:{}", magicNotify);
+		logger.debug("收到通知消息:{}", magicNotify);
 		switch (magicNotify.getAction()) {
 			case WS_C_S:
 				return processWebSocketMessageReceived(magicNotify.getClientId(), magicNotify.getContent());

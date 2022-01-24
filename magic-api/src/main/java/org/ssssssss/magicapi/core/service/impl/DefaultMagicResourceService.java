@@ -68,6 +68,10 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		if (Constants.EVENT_TYPE_FILE.equals(notify.getType())) {
 			return processFileNotify(notify.getId(), notify.getAction());
 		}
+		if (notify.getAction() == EventAction.CLEAR) {
+			this.read(false);
+			return true;
+		}
 		return processGroupNotify(notify.getId(), notify.getAction());
 	}
 
@@ -106,7 +110,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		return false;
 	}
 
-	private void init(){
+	private void init() {
 		groupMappings.clear();
 		groupCache.clear();
 		fileMappings.clear();
@@ -131,9 +135,11 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		});
 	}
 
-	private void read(){
+	private void read(boolean triggerEvent) {
 		writeLock(() -> {
-			publisher.publishEvent(new MagicEvent("clear", EventAction.CLEAR));
+			if (triggerEvent) {
+				publisher.publishEvent(new MagicEvent("clear", EventAction.CLEAR));
+			}
 			this.init();
 			this.root.readAll();
 			storages.forEach((key, registry) -> refreshGroup(root.getDirectory(key), registry));
@@ -147,8 +153,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	@Override
 	public void refresh() {
-		publisher.publishEvent(new MagicEvent("clear", EventAction.CLEAR));
-		this.read();
+		this.read(true);
 	}
 
 	@Override
@@ -194,7 +199,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 			GroupEvent event = new GroupEvent(group.getType(), group.getId() == null ? EventAction.CREATE : EventAction.SAVE, group);
 			if (group.getId() == null || !groupCache.containsKey(group.getId())) {
 				// 添加分组
-				if(group.getId() == null){
+				if (group.getId() == null) {
 					group.setId(UUID.randomUUID().toString().replace("-", ""));
 				}
 				groupResource = resource.getDirectory(group.getName());
@@ -455,7 +460,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 			// 获取修改前的信息
 			Resource fileResource = groupResource.getResource(filename);
 			if (action == EventAction.CREATE) {
-				if(entity.getId() == null){
+				if (entity.getId() == null) {
 					isTrue(!fileResource.exists(), FILE_SAVE_FAILURE);
 					// 新增操作赋值
 					entity.setId(UUID.randomUUID().toString().replace("-", ""));
@@ -648,8 +653,8 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 			Set<Group> groups = new LinkedHashSet<>();
 			Set<MagicEntity> entities = new LinkedHashSet<>();
 			return writeLock(() -> {
-				readAllResource(zipResource, groups, entities,  !full);
-				if(full){
+				readAllResource(zipResource, groups, entities, !full);
+				if (full) {
 					// 全量模式先删除处理。
 					root.delete();
 					this.init();
@@ -669,40 +674,40 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	}
 
-	private void readAllResource(Resource root, Set<Group> groups, Set<MagicEntity> entities, boolean checked){
+	private void readAllResource(Resource root, Set<Group> groups, Set<MagicEntity> entities, boolean checked) {
 		readAllResource(root, null, groups, entities, null, "/", checked);
 	}
 
-	private void readAllResource(Resource root, MagicResourceStorage<? extends MagicEntity> storage, Set<Group> groups, Set<MagicEntity> entities, Set<String> mappingKeys, String path, boolean checked){
+	private void readAllResource(Resource root, MagicResourceStorage<? extends MagicEntity> storage, Set<Group> groups, Set<MagicEntity> entities, Set<String> mappingKeys, String path, boolean checked) {
 		storage = storage == null ? storages.get(root.name()) : storage;
-		if(storage != null){
+		if (storage != null) {
 			mappingKeys = mappingKeys == null ? new HashSet<>() : mappingKeys;
-			if(!storage.allowRoot()){
+			if (!storage.allowRoot()) {
 				Resource resource = root.getResource(Constants.GROUP_METABASE);
 				// 分组信息不存在时，直接返回不处理
-				if(resource.exists()){
+				if (resource.exists()) {
 					// 读取分组信息
 					Group group = JsonUtils.readValue(resource.read(), Group.class);
 					group.setType(mappingV1Type(group.getType()));
 					groups.add(group);
-					if(storage.requirePath()){
+					if (storage.requirePath()) {
 						path = path + Objects.toString(group.getPath(), "") + "/";
 					}
 				}
 
 			}
-			for(Resource file : root.files(storage.suffix())){
+			for (Resource file : root.files(storage.suffix())) {
 				MagicEntity entity = storage.read(file.read());
-				if(storage.allowRoot()){
+				if (storage.allowRoot()) {
 					entity.setGroupId(storage.folder() + ":0");
 				}
 				String mappingKey;
-				if(storage instanceof AbstractPathMagicResourceStorage){
+				if (storage instanceof AbstractPathMagicResourceStorage) {
 					mappingKey = ((AbstractPathMagicResourceStorage) storage).buildMappingKey((PathMagicEntity) entity, path);
-				}else{
+				} else {
 					mappingKey = storage.buildKey(entity);
 				}
-				if(checked){
+				if (checked) {
 					String groupId = entity.getGroupId();
 					// 名字和路径冲突检查
 					fileCache.values().stream()
@@ -727,10 +732,10 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 	/**
 	 * 兼容1.x版本
 	 */
-	private String mappingV1Type(String type){
-		if("1".equals(type)){
+	private String mappingV1Type(String type) {
+		if ("1".equals(type)) {
 			return "api";
-		} else if ("2".equals(type)){
+		} else if ("2".equals(type)) {
 			return "function";
 		}
 		return type;
@@ -799,7 +804,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 	@Override
 	public void onApplicationEvent(ApplicationStartedEvent applicationStartedEvent) {
 		try {
-			this.read();
+			this.read(false);
 		} catch (Exception e) {
 			logger.error("启动过程中发生异常", e);
 		}

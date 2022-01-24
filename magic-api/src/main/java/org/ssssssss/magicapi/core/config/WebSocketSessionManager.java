@@ -143,7 +143,7 @@ public class WebSocketSessionManager {
 
 	public static void sendByClientId(String clientId, String content) {
 		if (clientId == null) {
-			sendToAll(content);
+			getSessions().stream().filter(MagicConsoleSession::writeable).forEach(session -> sendBySession(session, content));
 		} else {
 			MagicConsoleSession session = findSession(clientId);
 			if (session != null) {
