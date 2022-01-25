@@ -1,7 +1,7 @@
 package org.ssssssss.magicapi.modules.spring;
 
 import org.springframework.core.env.Environment;
-import org.ssssssss.magicapi.core.config.MagicModule;
+import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.script.annotation.Comment;
 
 /**
@@ -9,22 +9,18 @@ import org.ssssssss.script.annotation.Comment;
  *
  * @author mxd
  */
-public class EnvModule implements MagicModule {
+@MagicModule("env")
+public class EnvModule {
 
 	private final Environment environment;
-
-	public EnvModule(Environment environment) {
-		this.environment = environment;
-	}
-
-	@Override
-	public String getModuleName() {
-		return "env";
-	}
 
 	@Comment("获取配置")
 	public String get(@Comment(name = "key", value = "配置项") String key) {
 		return environment.getProperty(key);
+	}
+
+	public EnvModule(Environment environment) {
+		this.environment = environment;
 	}
 
 	@Comment("获取配置")

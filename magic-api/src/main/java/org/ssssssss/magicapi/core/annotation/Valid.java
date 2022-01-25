@@ -1,4 +1,4 @@
-package org.ssssssss.magicapi.core.config;
+package org.ssssssss.magicapi.core.annotation;
 
 import org.ssssssss.magicapi.core.interceptor.Authorization;
 

@@ -8,12 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartResolver;
 import org.ssssssss.magicapi.core.config.Cache;
 import org.ssssssss.magicapi.core.config.MagicAPIProperties;
 import org.ssssssss.magicapi.core.config.Page;
+import org.ssssssss.magicapi.core.interceptor.DefaultResultProvider;
 import org.ssssssss.magicapi.core.interceptor.ResultProvider;
 import org.ssssssss.magicapi.core.model.Options;
 import org.ssssssss.magicapi.datasource.model.MagicDynamicDataSource;
@@ -31,6 +34,9 @@ import org.ssssssss.magicapi.modules.db.provider.ColumnMapperProvider;
 import org.ssssssss.magicapi.modules.db.provider.DefaultPageProvider;
 import org.ssssssss.magicapi.modules.db.provider.PageProvider;
 import org.ssssssss.magicapi.modules.http.HttpModule;
+import org.ssssssss.magicapi.modules.servlet.RequestModule;
+import org.ssssssss.magicapi.modules.servlet.ResponseModule;
+import org.ssssssss.magicapi.modules.spring.EnvModule;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.functions.DynamicModuleImport;
 
@@ -67,15 +73,23 @@ public class MagicModuleConfiguration {
 	 */
 	private final ObjectProvider<List<ColumnMapperProvider>> columnMapperProvidersProvider;
 
+	private final Environment environment;
+
+	@Autowired(required = false)
+	private MultipartResolver multipartResolver;
+
 	public MagicModuleConfiguration(MagicAPIProperties properties,
 									ObjectProvider<List<SQLInterceptor>> sqlInterceptorsProvider,
 									ObjectProvider<List<NamedTableInterceptor>> namedTableInterceptorsProvider,
-									ObjectProvider<List<Dialect>> dialectsProvider, ObjectProvider<List<ColumnMapperProvider>> columnMapperProvidersProvider) {
+									ObjectProvider<List<Dialect>> dialectsProvider,
+									ObjectProvider<List<ColumnMapperProvider>> columnMapperProvidersProvider,
+									Environment environment) {
 		this.properties = properties;
 		this.sqlInterceptorsProvider = sqlInterceptorsProvider;
 		this.namedTableInterceptorsProvider = namedTableInterceptorsProvider;
 		this.dialectsProvider = dialectsProvider;
 		this.columnMapperProvidersProvider = columnMapperProvidersProvider;
+		this.environment = environment;
 	}
 
 	/**
@@ -145,7 +159,7 @@ public class MagicModuleConfiguration {
 		sqlModule.setDialectAdapter(dialectAdapter);
 		sqlModule.setLogicDeleteColumn(properties.getCrud().getLogicDeleteColumn());
 		sqlModule.setLogicDeleteValue(properties.getCrud().getLogicDeleteValue());
-		MagicResourceLoader.addModule(sqlModule.getModuleName(), new DynamicModuleImport(SQLModule.class, context -> {
+		MagicResourceLoader.addModule("db", new DynamicModuleImport(SQLModule.class, context -> {
 			String dataSourceKey = context.getString(Options.DEFAULT_DATA_SOURCE.getValue());
 			if (StringUtils.isEmpty(dataSourceKey)) return sqlModule;
 			SQLModule newSqlModule = sqlModule.cloneSQLModule();
@@ -166,6 +180,34 @@ public class MagicModuleConfiguration {
 		return new HttpModule(createRestTemplate());
 	}
 
+	@Bean
+	@ConditionalOnMissingBean
+	public EnvModule magicEnvModule(){
+		return new EnvModule(environment);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean
+	public RequestModule magicRequestModule(){
+		return new RequestModule(multipartResolver);
+	}
+
+	/**
+	 * 注入结果构建方法
+	 */
+	@Bean
+	@ConditionalOnMissingBean(ResultProvider.class)
+	public ResultProvider resultProvider() {
+		return new DefaultResultProvider(properties.getResponse());
+	}
+
+
+	@Bean
+	@ConditionalOnMissingBean
+	public ResponseModule magicResponseModule(ResultProvider resultProvider){
+		return new ResponseModule(resultProvider);
+	}
+
 	private RestTemplate createRestTemplate() {
 		RestTemplate restTemplate = new RestTemplate();
 		restTemplate.getMessageConverters().add(new StringHttpMessageConverter(StandardCharsets.UTF_8) {
@@ -180,4 +222,5 @@ public class MagicModuleConfiguration {
 		});
 		return restTemplate;
 	}
+
 }

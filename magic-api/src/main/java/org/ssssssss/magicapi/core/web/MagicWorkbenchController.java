@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.MagicAPIProperties;
 import org.ssssssss.magicapi.core.config.MagicConfiguration;
-import org.ssssssss.magicapi.core.config.Valid;
+import org.ssssssss.magicapi.core.annotation.Valid;
 import org.ssssssss.magicapi.core.model.*;
 import org.ssssssss.magicapi.core.exception.MagicLoginException;
 import org.ssssssss.magicapi.core.interceptor.Authorization;

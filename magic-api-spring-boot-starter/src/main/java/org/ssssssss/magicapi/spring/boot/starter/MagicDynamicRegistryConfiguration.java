@@ -71,12 +71,4 @@ public class MagicDynamicRegistryConfiguration {
 		return new DataSourceMagicDynamicRegistry(dataSourceInfoMagicResourceStorage, magicDynamicDataSource);
 	}
 
-	/**
-	 * 注入结果构建方法
-	 */
-	@Bean
-	@ConditionalOnMissingBean(ResultProvider.class)
-	public ResultProvider resultProvider() {
-		return new DefaultResultProvider(properties.getResponse());
-	}
 }

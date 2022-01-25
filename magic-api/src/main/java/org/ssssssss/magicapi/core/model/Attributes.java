@@ -1,7 +1,6 @@
 package org.ssssssss.magicapi.core.model;
 
-import org.ssssssss.script.annotation.UnableCall;
-
+import java.beans.Transient;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +20,7 @@ public class Attributes<T> {
 	 * @param key   key
 	 * @param value value
 	 */
-	@UnableCall
+	@Transient
 	public void setAttribute(String key, T value) {
 		properties.put(key, value);
 	}
@@ -31,17 +30,17 @@ public class Attributes<T> {
 	 *
 	 * @param key key
 	 */
-	@UnableCall
+	@Transient
 	public Object getAttribute(String key) {
 		return properties.get(key);
 	}
 
-	@UnableCall
+	@Transient
 	public Map<String, T> getProperties() {
 		return properties;
 	}
 
-	@UnableCall
+	@Transient
 	public void setProperties(Map<String, T> properties) {
 		this.properties = properties;
 	}

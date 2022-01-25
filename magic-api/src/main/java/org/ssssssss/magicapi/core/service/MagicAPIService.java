@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.core.service;
 
-import org.ssssssss.magicapi.core.config.MagicModule;
+import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.magicapi.core.model.*;
 
 import java.io.IOException;
@@ -12,7 +12,7 @@ import java.util.Map;
 /**
  * API调用接口
  */
-public interface MagicAPIService extends MagicModule {
+public interface MagicAPIService {
 
 	/**
 	 * 执行MagicAPI中的接口,原始内容，不包含code以及message信息

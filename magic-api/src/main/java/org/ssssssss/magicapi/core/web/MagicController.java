@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.JsonCodeConstants;
 import org.ssssssss.magicapi.core.config.MagicConfiguration;
-import org.ssssssss.magicapi.core.config.Valid;
+import org.ssssssss.magicapi.core.annotation.Valid;
 import org.ssssssss.magicapi.core.model.*;
 import org.ssssssss.magicapi.core.exception.InvalidArgumentException;
 import org.ssssssss.magicapi.core.exception.MagicLoginException;

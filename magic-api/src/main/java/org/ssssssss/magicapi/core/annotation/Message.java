@@ -1,4 +1,6 @@
-package org.ssssssss.magicapi.core.config;
+package org.ssssssss.magicapi.core.annotation;
+
+import org.ssssssss.magicapi.core.config.MessageType;
 
 import java.lang.annotation.*;
 

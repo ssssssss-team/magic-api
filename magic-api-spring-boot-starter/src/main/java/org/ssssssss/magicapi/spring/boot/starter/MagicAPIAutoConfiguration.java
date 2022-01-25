@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
-import org.springframework.core.env.Environment;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -34,6 +33,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import org.ssssssss.magicapi.backup.service.MagicBackupService;
 import org.ssssssss.magicapi.backup.service.MagicDatabaseBackupService;
 import org.ssssssss.magicapi.backup.web.MagicBackupController;
+import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.magicapi.core.config.*;
 import org.ssssssss.magicapi.core.exception.MagicAPIException;
 import org.ssssssss.magicapi.core.handler.MagicCoordinationHandler;
@@ -128,8 +128,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 
 	private final ObjectProvider<DataSourceEncryptProvider> dataSourceEncryptProvider;
 
-	private final Environment environment;
-
 	private final MagicCorsFilter magicCorsFilter = new MagicCorsFilter();
 
 	private final MagicAPIProperties properties;
@@ -146,9 +144,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	@Lazy
 	private RequestMappingHandlerMapping requestMappingHandlerMapping;
 
-	@Autowired(required = false)
-	private MultipartResolver multipartResolver;
-
 	private DefaultAuthorizationInterceptor defaultAuthorizationInterceptor;
 
 	public MagicAPIAutoConfiguration(MagicAPIProperties properties,
@@ -162,7 +157,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 									 ObjectProvider<DataSourceEncryptProvider> dataSourceEncryptProvider,
 									 ObjectProvider<List<MagicDynamicRegistry<? extends MagicEntity>>> magicDynamicRegistriesProvider,
 									 ObjectProvider<List<MagicResourceStorage<? extends MagicEntity>>> magicResourceStoragesProvider,
-									 Environment environment,
 									 ApplicationContext applicationContext
 	) {
 		this.properties = properties;
@@ -176,7 +170,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		this.dataSourceEncryptProvider = dataSourceEncryptProvider;
 		this.magicDynamicRegistriesProvider = magicDynamicRegistriesProvider;
 		this.magicResourceStoragesProvider = magicResourceStoragesProvider;
-		this.environment = environment;
 		this.applicationContext = applicationContext;
 	}
 
@@ -267,10 +260,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	/**
 	 * 注册模块、类型扩展
 	 */
-	private void setupMagicModules(ResultProvider resultProvider,
-								   List<MagicModule> magicModules,
-								   List<ExtensionMethod> extensionMethods,
-								   List<LanguageProvider> languageProviders) {
+	private void setupMagicModules(List<ExtensionMethod> extensionMethods, List<LanguageProvider> languageProviders) {
 		// 设置脚本import时 class加载策略
 		MagicResourceLoader.setClassLoader((className) -> {
 			try {
@@ -301,15 +291,10 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		logger.info("注册模块:{} -> {}", "log", Logger.class);
 		MagicResourceLoader.addModule("log", new DynamicModuleImport(Logger.class, context -> LoggerFactory.getLogger(Objects.toString(context.getScriptName(), "Unknown"))));
 		List<String> importModules = properties.getAutoImportModuleList();
-		logger.info("注册模块:{} -> {}", "env", EnvModule.class);
-		MagicResourceLoader.addModule("env", new EnvModule(environment));
-		logger.info("注册模块:{} -> {}", "request", RequestModule.class);
-		MagicResourceLoader.addModule("request", new RequestModule(multipartResolver));
-		logger.info("注册模块:{} -> {}", "response", ResponseModule.class);
-		MagicResourceLoader.addModule("response", new ResponseModule(resultProvider));
-		magicModules.forEach(module -> {
-			logger.info("注册模块:{} -> {}", module.getModuleName(), module.getClass());
-			MagicResourceLoader.addModule(module.getModuleName(), module);
+		applicationContext.getBeansWithAnnotation(MagicModule.class).values().forEach(module -> {
+			String moduleName = module.getClass().getAnnotation(MagicModule.class).value();
+			logger.info("注册模块:{} -> {}", moduleName, module.getClass());
+			MagicResourceLoader.addModule(moduleName, module);
 		});
 		MagicResourceLoader.getModuleNames().stream().filter(importModules::contains).forEach(moduleName -> {
 			logger.info("自动导入模块：{}", moduleName);
@@ -326,8 +311,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	}
 
 	@Bean
-	public MagicConfiguration magicConfiguration(List<MagicModule> magicModules,
-												 List<LanguageProvider> languageProviders,
+	public MagicConfiguration magicConfiguration(List<LanguageProvider> languageProviders,
 												 org.ssssssss.magicapi.core.resource.Resource magicResource,
 												 ResultProvider resultProvider,
 												 MagicResourceService magicResourceService,
@@ -345,7 +329,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		Constants.RESPONSE_CODE_INVALID = responseCodeConfig.getInvalid();
 		Constants.RESPONSE_CODE_EXCEPTION = responseCodeConfig.getException();
 		// 设置模块和扩展方法
-		setupMagicModules(resultProvider, magicModules, extensionMethodsProvider.getIfAvailable(Collections::emptyList), languageProviders);
+		setupMagicModules(extensionMethodsProvider.getIfAvailable(Collections::emptyList), languageProviders);
 		MagicConfiguration configuration = new MagicConfiguration();
 		configuration.setMagicAPIService(magicAPIService);
 		configuration.setMagicNotifyService(magicNotifyService);

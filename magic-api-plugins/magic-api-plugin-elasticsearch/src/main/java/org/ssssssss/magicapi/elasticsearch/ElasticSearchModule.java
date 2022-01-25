@@ -1,10 +1,11 @@
 package org.ssssssss.magicapi.elasticsearch;
 
 import org.elasticsearch.client.RestClient;
-import org.ssssssss.magicapi.core.config.MagicModule;
+import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.script.annotation.Comment;
 
-public class ElasticSearchModule implements MagicModule {
+@MagicModule("elasticsearch")
+public class ElasticSearchModule {
 
 	private static final String DOC = "_doc";
 
@@ -21,10 +22,5 @@ public class ElasticSearchModule implements MagicModule {
 
 	public ElasticSearchIndex index(String indexName){
 		return new ElasticSearchIndex(this.restClient, indexName, DOC);
-	}
-
-	@Override
-	public String getModuleName() {
-		return "elasticsearch";
 	}
 }

@@ -4,10 +4,9 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.MagicCorsFilter;
-import org.ssssssss.magicapi.core.config.Valid;
+import org.ssssssss.magicapi.core.annotation.Valid;
 import org.ssssssss.magicapi.core.web.MagicController;
 import org.ssssssss.magicapi.core.exception.MagicLoginException;
-import org.ssssssss.magicapi.core.interceptor.AuthorizationInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

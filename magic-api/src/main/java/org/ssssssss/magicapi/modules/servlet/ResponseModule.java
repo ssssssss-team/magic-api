@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.magicapi.core.context.RequestContext;
 import org.ssssssss.magicapi.core.interceptor.ResultProvider;
 import org.ssssssss.script.annotation.Comment;
@@ -26,6 +27,7 @@ import java.util.Map;
  *
  * @author mxd
  */
+@MagicModule("response")
 public class ResponseModule {
 
 	private final ResultProvider resultProvider;

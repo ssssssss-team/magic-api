@@ -9,14 +9,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.ssssssss.magicapi.core.config.Constants;
-import org.ssssssss.magicapi.core.config.MagicModule;
+import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.script.convert.ClassImplicitConvert;
+import org.ssssssss.script.functions.DynamicAttribute;
 import org.ssssssss.script.reflection.JavaInvoker;
 import org.ssssssss.script.reflection.JavaReflection;
 import org.ssssssss.script.runtime.Variables;
 
+import java.beans.Transient;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -24,7 +25,8 @@ import java.util.Map;
  *
  * @author mxd
  */
-public class MongoModule extends HashMap<String, MongoModule.MongoDataBaseGetter> implements MagicModule, ClassImplicitConvert {
+@MagicModule("mongo")
+public class MongoModule implements ClassImplicitConvert, DynamicAttribute<MongoModule.MongoDataBaseGetter, MongoModule.MongoDataBaseGetter> {
 
 	private static final Logger logger = LoggerFactory.getLogger(MongoModule.class);
 
@@ -54,21 +56,17 @@ public class MongoModule extends HashMap<String, MongoModule.MongoDataBaseGetter
 	}
 
 	@Override
-	public MongoDataBaseGetter get(Object databaseName) {
+	@Transient
+	public MongoDataBaseGetter getDynamicAttribute(String databaseName) {
 		try {
 			if (databaseName == null) {
 				return null;
 			}
-			MongoDatabase database = (MongoDatabase) invoker.invoke0(factory, null, new Object[]{databaseName.toString()});
+			MongoDatabase database = (MongoDatabase) invoker.invoke0(factory, null, new Object[]{databaseName});
 			return new MongoDataBaseGetter(database);
 		} catch (Throwable e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	@Override
-	public String getModuleName() {
-		return "mongo";
 	}
 
 	@Override
@@ -81,7 +79,7 @@ public class MongoModule extends HashMap<String, MongoModule.MongoDataBaseGetter
 		return new Document((Map<String, Object>) source);
 	}
 
-	public static class MongoDataBaseGetter extends HashMap<String, MongoCollection<Document>> {
+	public static class MongoDataBaseGetter implements DynamicAttribute<MongoCollection<Document>, MongoCollection<Document>> {
 
 		MongoDatabase database;
 
@@ -90,8 +88,9 @@ public class MongoModule extends HashMap<String, MongoModule.MongoDataBaseGetter
 		}
 
 		@Override
-		public MongoCollection<Document> get(Object key) {
-			return database.getCollection(key.toString());
+		@Transient
+		public MongoCollection<Document> getDynamicAttribute(String key) {
+			return database.getCollection(key);
 		}
 	}
 }

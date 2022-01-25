@@ -5,7 +5,7 @@ import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.ssssssss.magicapi.core.config.MagicModule;
+import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.script.annotation.Comment;
 
 import java.util.HashMap;
@@ -19,7 +19,8 @@ import java.util.stream.Collectors;
  * @author mxd
  * @since 1.1.0
  */
-public class HttpModule implements MagicModule {
+@MagicModule("http")
+public class HttpModule {
 
 	private final RestTemplate template;
 	private final HttpHeaders httpHeaders = new HttpHeaders();
@@ -39,11 +40,6 @@ public class HttpModule implements MagicModule {
 	public HttpModule(RestTemplate template, String url) {
 		this.template = template;
 		this.url = url;
-	}
-
-	@Override
-	public String getModuleName() {
-		return "http";
 	}
 
 	@Comment("创建连接")

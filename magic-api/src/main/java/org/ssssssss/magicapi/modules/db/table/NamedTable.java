@@ -11,9 +11,9 @@ import org.ssssssss.magicapi.modules.db.SQLModule;
 import org.ssssssss.magicapi.modules.db.model.Page;
 import org.ssssssss.magicapi.modules.db.model.SqlMode;
 import org.ssssssss.script.annotation.Comment;
-import org.ssssssss.script.annotation.UnableCall;
 import org.ssssssss.script.runtime.RuntimeContext;
 
+import java.beans.Transient;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.Function;
@@ -515,7 +515,7 @@ public class NamedTable extends Attributes<Object> {
 	 *
 	 * @return 表名
 	 */
-	@UnableCall
+	@Transient
 	public String getTableName() {
 		return tableName;
 	}
@@ -525,7 +525,7 @@ public class NamedTable extends Attributes<Object> {
 	 *
 	 * @param tableName 表名
 	 */
-	@UnableCall
+	@Transient
 	public void setTableName(String tableName) {
 		this.tableName = tableName;
 	}
@@ -533,7 +533,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取SQL模块
 	 */
-	@UnableCall
+	@Transient
 	public SQLModule getSqlModule() {
 		return sqlModule;
 	}
@@ -541,7 +541,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取主键列
 	 */
-	@UnableCall
+	@Transient
 	public String getPrimary() {
 		return primary;
 	}
@@ -549,7 +549,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取逻辑删除列
 	 */
-	@UnableCall
+	@Transient
 	public String getLogicDeleteColumn() {
 		return logicDeleteColumn;
 	}
@@ -557,7 +557,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取逻辑删除值
 	 */
-	@UnableCall
+	@Transient
 	public Object getLogicDeleteValue() {
 		return logicDeleteValue;
 	}
@@ -565,7 +565,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取设置的columns
 	 */
-	@UnableCall
+	@Transient
 	public Map<String, Object> getColumns() {
 		return columns;
 	}
@@ -573,7 +573,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 设置columns
 	 */
-	@UnableCall
+	@Transient
 	public void setColumns(Map<String, Object> columns) {
 		this.columns = columns;
 	}
@@ -581,7 +581,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取设置的fields
 	 */
-	@UnableCall
+	@Transient
 	public List<String> getFields() {
 		return fields;
 	}
@@ -589,7 +589,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 设置 fields
 	 */
-	@UnableCall
+	@Transient
 	public void setFields(List<String> fields) {
 		this.fields = fields;
 	}
@@ -597,7 +597,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取设置的group
 	 */
-	@UnableCall
+	@Transient
 	public List<String> getGroups() {
 		return groups;
 	}
@@ -605,7 +605,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 设置 group
 	 */
-	@UnableCall
+	@Transient
 	public void setGroups(List<String> groups) {
 		this.groups = groups;
 	}
@@ -613,7 +613,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取设置的order
 	 */
-	@UnableCall
+	@Transient
 	public List<String> getOrders() {
 		return orders;
 	}
@@ -621,7 +621,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 设置 order
 	 */
-	@UnableCall
+	@Transient
 	public void setOrders(List<String> orders) {
 		this.orders = orders;
 	}
@@ -629,7 +629,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取设置的排除的列
 	 */
-	@UnableCall
+	@Transient
 	public Set<String> getExcludeColumns() {
 		return excludeColumns;
 	}
@@ -637,7 +637,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 设置排除的列
 	 */
-	@UnableCall
+	@Transient
 	public void setExcludeColumns(Set<String> excludeColumns) {
 		this.excludeColumns = excludeColumns;
 	}
@@ -647,7 +647,7 @@ public class NamedTable extends Attributes<Object> {
 	 *
 	 * @return
 	 */
-	@UnableCall
+	@Transient
 	public Object getDefaultPrimaryValue() {
 		return defaultPrimaryValue;
 	}
@@ -655,7 +655,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 是否设逻辑了逻辑删除
 	 */
-	@UnableCall
+	@Transient
 	public boolean isUseLogic() {
 		return useLogic;
 	}
@@ -663,7 +663,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 设置是否使用逻辑删除
 	 */
-	@UnableCall
+	@Transient
 	public void setUseLogic(boolean useLogic) {
 		this.useLogic = useLogic;
 	}
@@ -671,7 +671,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取是否不过滤空参数
 	 */
-	@UnableCall
+	@Transient
 	public boolean isWithBlank() {
 		return withBlank;
 	}
@@ -679,7 +679,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 设置是否不过滤空参数
 	 */
-	@UnableCall
+	@Transient
 	public void setWithBlank(boolean withBlank) {
 		this.withBlank = withBlank;
 	}
@@ -687,7 +687,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取where
 	 */
-	@UnableCall
+	@Transient
 	public Where getWhere() {
 		return where;
 	}
@@ -695,7 +695,7 @@ public class NamedTable extends Attributes<Object> {
 	/**
 	 * 获取RequestEntity
 	 */
-	@UnableCall
+	@Transient
 	public RequestEntity getRequestEntity() {
 		return RequestContext.getRequestEntity();
 	}

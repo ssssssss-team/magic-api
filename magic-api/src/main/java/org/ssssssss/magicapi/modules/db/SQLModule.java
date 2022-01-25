@@ -6,7 +6,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.ssssssss.magicapi.modules.db.dialect.DialectAdapter;
 import org.ssssssss.magicapi.datasource.model.MagicDynamicDataSource;
 import org.ssssssss.magicapi.datasource.model.MagicDynamicDataSource.DataSourceNode;
-import org.ssssssss.magicapi.core.config.MagicModule;
+import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.magicapi.core.context.RequestContext;
 import org.ssssssss.magicapi.core.context.RequestEntity;
 import org.ssssssss.magicapi.modules.db.cache.SqlCache;
@@ -19,11 +19,12 @@ import org.ssssssss.magicapi.modules.db.table.NamedTable;
 import org.ssssssss.magicapi.core.interceptor.ResultProvider;
 import org.ssssssss.magicapi.utils.ScriptManager;
 import org.ssssssss.script.annotation.Comment;
-import org.ssssssss.script.annotation.UnableCall;
+import org.ssssssss.script.functions.DynamicAttribute;
 import org.ssssssss.script.parsing.ast.statement.ClassConverter;
 import org.ssssssss.script.reflection.JavaReflection;
 import org.ssssssss.script.runtime.RuntimeContext;
 
+import java.beans.Transient;
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.*;
@@ -36,8 +37,8 @@ import java.util.stream.Stream;
  *
  * @author mxd
  */
-public class SQLModule extends HashMap<String, SQLModule> implements MagicModule {
-
+@MagicModule("db")
+public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
 	static {
 		try {
 			Field[] fields = Types.class.getFields();
@@ -86,32 +87,32 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		this.dynamicDataSource = dynamicDataSource;
 	}
 
-	@UnableCall
+	@Transient
 	public void setPageProvider(PageProvider pageProvider) {
 		this.pageProvider = pageProvider;
 	}
 
-	@UnableCall
+	@Transient
 	public void setResultProvider(ResultProvider resultProvider) {
 		this.resultProvider = resultProvider;
 	}
 
-	@UnableCall
+	@Transient
 	public void setColumnMapperProvider(ColumnMapperAdapter columnMapperAdapter) {
 		this.columnMapperAdapter = columnMapperAdapter;
 	}
 
-	@UnableCall
+	@Transient
 	public void setDialectAdapter(DialectAdapter dialectAdapter) {
 		this.dialectAdapter = dialectAdapter;
 	}
 
-	@UnableCall
+	@Transient
 	public void setColumnMapRowMapper(RowMapper<Map<String, Object>> columnMapRowMapper) {
 		this.columnMapRowMapper = columnMapRowMapper;
 	}
 
-	@UnableCall
+	@Transient
 	public void setRowMapColumnMapper(Function<String, String> rowMapColumnMapper) {
 		this.rowMapColumnMapper = rowMapColumnMapper;
 	}
@@ -120,17 +121,17 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		this.dynamicDataSource = dynamicDataSource;
 	}
 
-	@UnableCall
+	@Transient
 	public void setSqlInterceptors(List<SQLInterceptor> sqlInterceptors) {
 		this.sqlInterceptors = sqlInterceptors;
 	}
 
-	@UnableCall
+	@Transient
 	public void setNamedTableInterceptors(List<NamedTableInterceptor> namedTableInterceptors) {
 		this.namedTableInterceptors = namedTableInterceptors;
 	}
 
-	@UnableCall
+	@Transient
 	public void setDataSourceNode(DataSourceNode dataSourceNode) {
 		this.dataSourceNode = dataSourceNode;
 	}
@@ -151,22 +152,22 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		this.ttl = ttl;
 	}
 
-	@UnableCall
+	@Transient
 	public String getLogicDeleteColumn() {
 		return logicDeleteColumn;
 	}
 
-	@UnableCall
+	@Transient
 	public void setLogicDeleteColumn(String logicDeleteColumn) {
 		this.logicDeleteColumn = logicDeleteColumn;
 	}
 
-	@UnableCall
+	@Transient
 	public String getLogicDeleteValue() {
 		return logicDeleteValue;
 	}
 
-	@UnableCall
+	@Transient
 	public void setLogicDeleteValue(String logicDeleteValue) {
 		this.logicDeleteValue = logicDeleteValue;
 	}
@@ -175,12 +176,12 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return sqlCache;
 	}
 
-	@UnableCall
+	@Transient
 	public void setSqlCache(SqlCache sqlCache) {
 		this.sqlCache = sqlCache;
 	}
 
-	@UnableCall
+	@Transient
 	public SQLModule cloneSQLModule() {
 		SQLModule sqlModule = new SQLModule();
 		sqlModule.setDynamicDataSource(this.dynamicDataSource);
@@ -289,20 +290,22 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return sqlModule;
 	}
 
+
+
 	/**
 	 * 数据源切换
 	 */
 	@Override
-	public SQLModule get(Object key) {
+	@Transient
+	public SQLModule getDynamicAttribute(String key) {
 		SQLModule sqlModule = cloneSQLModule();
 		if (key == null) {
 			sqlModule.setDataSourceNode(dynamicDataSource.getDataSource());
 		} else {
-			sqlModule.setDataSourceNode(dynamicDataSource.getDataSource(key.toString()));
+			sqlModule.setDataSourceNode(dynamicDataSource.getDataSource(key));
 		}
 		return sqlModule;
 	}
-
 
 	/**
 	 * 查询List
@@ -323,7 +326,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return select(new BoundSql(runtimeContext, sqlOrXml, params, this));
 	}
 
-	@UnableCall
+	@Transient
 	public List<Map<String, Object>> select(BoundSql boundSql) {
 		assertDatasourceNotNull();
 		return boundSql.execute(this.sqlInterceptors, () -> queryForList(boundSql));
@@ -362,7 +365,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return update(new BoundSql(runtimeContext, sqlOrXml, params, this));
 	}
 
-	@UnableCall
+	@Transient
 	public int update(BoundSql boundSql) {
 		assertDatasourceNotNull();
 		RequestEntity requestEntity = RequestContext.getRequestEntity();
@@ -482,7 +485,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return Arrays.stream(values).sum();
 	}
 
-	@UnableCall
+	@Transient
 	public Object insert(BoundSql boundSql, String primary) {
 		MagicKeyHolder keyHolder = new MagicKeyHolder(primary);
 		RequestEntity requestEntity = RequestContext.getRequestEntity();
@@ -538,13 +541,13 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return page(boundSql, new Page(limit, offset));
 	}
 
-	@UnableCall
+	@Transient
 	public Object page(BoundSql boundSql) {
 		Page page = pageProvider.getPage(boundSql.getRuntimeContext());
 		return page(boundSql, page);
 	}
 
-	@UnableCall
+	@Transient
 	public String getDataSourceName() {
 		return this.dataSourceNode == null ? "unknown" : dataSourceNode.getName();
 	}
@@ -586,7 +589,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return resultProvider.buildPageResult(requestEntity, page, count, list);
 	}
 
-	@UnableCall
+	@Transient
 	public Object page(BoundSql boundSql, Page page) {
 		assertDatasourceNotNull();
 		Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
@@ -614,7 +617,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return selectInt(new BoundSql(runtimeContext, sqlOrXml, params, this));
 	}
 
-	@UnableCall
+	@Transient
 	public Integer selectInt(BoundSql boundSql) {
 		assertDatasourceNotNull();
 		return boundSql.execute(this.sqlInterceptors, () -> dataSourceNode.getJdbcTemplate().query(boundSql.getSql(), new SingleRowResultSetExtractor<>(Integer.class), boundSql.getParameters()));
@@ -639,7 +642,7 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 		return selectOne(new BoundSql(runtimeContext, sqlOrXml, params, this));
 	}
 
-	@UnableCall
+	@Transient
 	public Map<String, Object> selectOne(BoundSql boundSql) {
 		assertDatasourceNotNull();
 		return boundSql.execute(this.sqlInterceptors, () -> {
@@ -680,12 +683,6 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	private BoundSql buildPageBoundSql(Dialect dialect, BoundSql boundSql, long offset, long limit) {
 		String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, offset, limit);
 		return boundSql.copy(pageSql);
-	}
-
-	@UnableCall
-	@Override
-	public String getModuleName() {
-		return "db";
 	}
 
 	static class MagicKeyHolder extends GeneratedKeyHolder {

@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.JsonCodeConstants;
 import org.ssssssss.magicapi.core.config.WebSocketSessionManager;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+@MagicModule("magic")
 public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstants {
 
 	private final static Logger logger = LoggerFactory.getLogger(DefaultMagicAPIService.class);
@@ -202,11 +204,6 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	@Override
 	public String copyGroup(String src, String target) {
 		return null;
-	}
-
-	@Override
-	public String getModuleName() {
-		return "magic";
 	}
 
 	private boolean processWebSocketSendMessage(String clientId, String content) {

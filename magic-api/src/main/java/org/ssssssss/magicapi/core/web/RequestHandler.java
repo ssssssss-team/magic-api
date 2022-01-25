@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.MagicConfiguration;
-import org.ssssssss.magicapi.core.config.Valid;
+import org.ssssssss.magicapi.core.annotation.Valid;
 import org.ssssssss.magicapi.core.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.core.context.CookieContext;
 import org.ssssssss.magicapi.core.context.RequestContext;

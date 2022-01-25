@@ -3,6 +3,7 @@ package org.ssssssss.magicapi.modules.servlet;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartRequest;
 import org.springframework.web.multipart.MultipartResolver;
+import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.script.annotation.Comment;
 
 import javax.servlet.http.HttpServletRequest;
@@ -17,6 +18,7 @@ import java.util.stream.Collectors;
  *
  * @author mxd
  */
+@MagicModule("request")
 public class RequestModule {
 
 	private static MultipartResolver resolver;

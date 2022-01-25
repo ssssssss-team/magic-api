@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.core.handler;
 
-import org.ssssssss.magicapi.core.config.Message;
+import org.ssssssss.magicapi.core.annotation.Message;
 import org.ssssssss.magicapi.core.config.MessageType;
 import org.ssssssss.magicapi.core.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.core.config.Constants;

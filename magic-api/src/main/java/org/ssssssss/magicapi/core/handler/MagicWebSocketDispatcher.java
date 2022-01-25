@@ -6,7 +6,7 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import org.ssssssss.magicapi.core.config.Message;
+import org.ssssssss.magicapi.core.annotation.Message;
 import org.ssssssss.magicapi.core.config.MessageType;
 import org.ssssssss.magicapi.core.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.core.event.EventAction;

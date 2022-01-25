@@ -3,7 +3,7 @@ package org.ssssssss.magicapi.redis;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.ssssssss.magicapi.core.config.MagicModule;
+import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.script.functions.DynamicMethod;
 
 import java.util.*;
@@ -13,17 +13,13 @@ import java.util.*;
  *
  * @author mxd
  */
-public class RedisModule implements MagicModule, DynamicMethod {
+@MagicModule("redis")
+public class RedisModule implements DynamicMethod {
 
 	private final StringRedisTemplate redisTemplate;
 
 	public RedisModule(RedisConnectionFactory connectionFactory) {
 		this.redisTemplate = new StringRedisTemplate(connectionFactory);
-	}
-
-	@Override
-	public String getModuleName() {
-		return "redis";
 	}
 
 	/**
