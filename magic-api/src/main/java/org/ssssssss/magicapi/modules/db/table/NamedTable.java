@@ -330,6 +330,30 @@ public class NamedTable extends Attributes<Object> {
 		return this.save(runtimeContext, data, false);
 	}
 
+	@Comment("批量插入")
+	public int batchInsert(@Comment(name = "collection", value = "各项列和值") Collection<Map<String, Object>> collection, @Comment("batchSize") int batchSize) {
+		Set<String> keys = collection.stream().flatMap(it -> it.keySet().stream()).collect(Collectors.toSet());
+		if (keys.isEmpty()) {
+			throw new MagicAPIException("要插入的列不能为空");
+		}
+		StringBuilder builder = new StringBuilder();
+		builder.append("insert into ");
+		builder.append(tableName);
+		builder.append("(");
+		builder.append(StringUtils.join(keys.stream().map(rowMapColumnMapper).collect(Collectors.toList()), ","));
+		builder.append(") values (");
+		builder.append(StringUtils.join(Collections.nCopies(keys.size(), "?"), ","));
+		builder.append(")");
+		return this.sqlModule.batchInsert(builder.toString(), batchSize, collection.stream()
+				.map(it -> keys.stream().map(it::get).toArray())
+				.collect(Collectors.toList()));
+	}
+
+	@Comment("批量插入")
+	public int batchInsert(@Comment(name = "collection", value = "各项列和值") Collection<Map<String, Object>> collection) {
+		return batchInsert(collection, 100);
+	}
+
 
 	@Comment("执行`select`查询")
 	public List<Map<String, Object>> select(RuntimeContext runtimeContext) {

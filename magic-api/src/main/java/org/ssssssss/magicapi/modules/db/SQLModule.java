@@ -1,9 +1,7 @@
 package org.ssssssss.magicapi.modules.db;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.jdbc.core.ArgumentPreparedStatementSetter;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.SqlParameterValue;
+import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.ssssssss.magicapi.modules.db.dialect.DialectAdapter;
 import org.ssssssss.magicapi.datasource.model.MagicDynamicDataSource;
@@ -434,20 +432,54 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	/**
 	 * 插入并返回主键
 	 */
-	@Comment("批量执行insert操作，返回插入主键数组")
-	public int[] batchInsert(@Comment(name = "sql", value = "`SQL`语句") String sql,
-							 @Comment(name = "list", value = "参数") List<Object[]> list) {
+	@Comment("批量执行insert操作，返回插入数量")
+	public int batchInsert(String sql, List<Object[]> args) {
 		assertDatasourceNotNull();
-		return dataSourceNode.getJdbcTemplate().batchUpdate(sql, list);
+		int[] values =  dataSourceNode.getJdbcTemplate().batchUpdate(sql, args);
+		if (this.cacheName != null) {
+			this.sqlCache.delete(this.cacheName);
+		}
+		return Arrays.stream(values).sum();
 	}
 
 	/**
 	 * 插入并返回主键
 	 */
-	@Comment("批量执行insert操作，返回插入主键数组")
-	public int[] batchInsert(@Comment(name = "sqls", value = "`SQL`语句") String[] sqls) {
+	@Comment("批量执行insert操作，返回插入数量")
+	public int batchInsert(String sql, int batchSize, List<Object[]> args) {
 		assertDatasourceNotNull();
-		return dataSourceNode.getJdbcTemplate().batchUpdate(sqls);
+		int[][] values = dataSourceNode.getJdbcTemplate().batchUpdate(sql, args, batchSize, (ps, arguments) -> {
+			int colIndex = 1;
+			for (Object value : arguments) {
+				if (value instanceof SqlParameterValue) {
+					SqlParameterValue paramValue = (SqlParameterValue) value;
+					StatementCreatorUtils.setParameterValue(ps, colIndex++, paramValue, paramValue.getValue());
+				} else {
+					StatementCreatorUtils.setParameterValue(ps, colIndex++, StatementCreatorUtils.javaTypeToSqlParameterType(value == null ? null : value.getClass()), value);
+				}
+			}
+		});
+		if (this.cacheName != null) {
+			this.sqlCache.delete(this.cacheName);
+		}
+		int count = 0;
+		for (int[] value : values) {
+			count += Arrays.stream(value).sum();
+		}
+		return count;
+	}
+
+	/**
+	 * 插入并返回主键
+	 */
+	@Comment("批量执行insert操作，返回插入数量")
+	public int batchInsert(@Comment(name = "sqls", value = "`SQL`语句") List<String> sqls) {
+		assertDatasourceNotNull();
+		int[] values = dataSourceNode.getJdbcTemplate().batchUpdate(sqls.toArray(new String[0]));
+		if (this.cacheName != null) {
+			this.sqlCache.delete(this.cacheName);
+		}
+		return Arrays.stream(values).sum();
 	}
 
 	@UnableCall
