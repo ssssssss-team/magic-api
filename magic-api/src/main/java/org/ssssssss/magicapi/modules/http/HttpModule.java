@@ -161,6 +161,30 @@ public class HttpModule implements MagicModule {
 		return this.execute();
 	}
 
+	@Comment("发送`HEAD`请求")
+	public ResponseEntity<?> head() {
+		this.method(HttpMethod.HEAD);
+		return this.execute();
+	}
+
+	@Comment("发送`OPTIONS`请求")
+	public ResponseEntity<?> options() {
+		this.method(HttpMethod.OPTIONS);
+		return this.execute();
+	}
+
+	@Comment("发送`TRACE`请求")
+	public ResponseEntity<?> trace() {
+		this.method(HttpMethod.TRACE);
+		return this.execute();
+	}
+
+	@Comment("发送`PATCH`请求")
+	public ResponseEntity<?> patch() {
+		this.method(HttpMethod.PATCH);
+		return this.execute();
+	}
+
 	@Comment("执行请求")
 	public ResponseEntity<?> execute() {
 		if (!this.params.isEmpty()) {
