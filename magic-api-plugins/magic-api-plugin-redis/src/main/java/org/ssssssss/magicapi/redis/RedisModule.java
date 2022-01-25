@@ -6,8 +6,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.ssssssss.magicapi.core.config.MagicModule;
 import org.ssssssss.script.functions.DynamicMethod;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * redis模块
@@ -40,19 +39,25 @@ public class RedisModule implements MagicModule, DynamicMethod {
 	/**
 	 * 反序列化
 	 */
+	@SuppressWarnings("unchecked")
 	private Object deserialize(Object value) {
 		if (value != null) {
 			if (value instanceof byte[]) {
 				return this.redisTemplate.getStringSerializer().deserialize((byte[]) value);
 			}
 			if (value instanceof List) {
-				@SuppressWarnings("unchecked")
 				List<Object> valueList = (List<Object>) value;
 				List<Object> resultList = new ArrayList<>(valueList.size());
 				for (Object val : valueList) {
 					resultList.add(deserialize(val));
 				}
 				return resultList;
+			}
+			if(value instanceof Map){
+				Map<Object, Object> map = (Map<Object, Object>) value;
+				LinkedHashMap<Object, Object> newMap = new LinkedHashMap<>(map.size());
+				map.forEach((key, val) -> newMap.put(deserialize(key), deserialize(val)));
+				return newMap;
 			}
 		}
 		return value;
