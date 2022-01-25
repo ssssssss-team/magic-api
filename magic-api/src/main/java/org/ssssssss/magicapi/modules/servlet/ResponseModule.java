@@ -218,6 +218,27 @@ public class ResponseModule {
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, mime).body(value);
 	}
 
+	/**
+	 * 输出文本
+	 *
+	 * @param text 文本内容
+	 */
+	@Comment("输出文本")
+	public ResponseEntity text(@Comment(name = "text", value = "文本内容") String text) {
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE).body(text);
+	}
+
+	/**
+	 * 重定向
+	 *
+	 * @param url 目标网址
+	 */
+	@Comment("重定向")
+	public NullValue redirect(@Comment(name = "url", value = "目标网址") String url) throws IOException {
+		getResponse().sendRedirect(url);
+		return NullValue.INSTANCE;
+	}
+
 	public static class NullValue {
 		static final NullValue INSTANCE = new NullValue();
 	}
