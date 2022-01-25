@@ -73,6 +73,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	}
 
 	@GetMapping({"", "/", "/index"})
+	@Valid(requireLogin = false)
 	public String redirectIndex(HttpServletRequest request) {
 		if (request.getRequestURI().endsWith("/")) {
 			return "redirect:./index.html";
@@ -81,6 +82,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	}
 
 	@GetMapping("/config.json")
+	@Valid(requireLogin = false)
 	@ResponseBody
 	public MagicAPIProperties readConfig() {
 		return properties;
@@ -88,6 +90,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 
 	@GetMapping(value = "/classes.txt", produces = "text/plain")
 	@ResponseBody
+	@Valid(requireLogin = false)
 	private String readClass() {
 		if (allClassTxt == null) {
 			try {
