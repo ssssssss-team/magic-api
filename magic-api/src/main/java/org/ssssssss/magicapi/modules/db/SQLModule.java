@@ -432,8 +432,8 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	/**
 	 * 插入并返回主键
 	 */
-	@Comment("批量执行insert操作，返回插入数量")
-	public int batchInsert(String sql, List<Object[]> args) {
+	@Comment("批量执行操作，返回受影响的行数")
+	public int batchUpdate(String sql, List<Object[]> args) {
 		assertDatasourceNotNull();
 		int[] values =  dataSourceNode.getJdbcTemplate().batchUpdate(sql, args);
 		if (this.cacheName != null) {
@@ -445,8 +445,8 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	/**
 	 * 插入并返回主键
 	 */
-	@Comment("批量执行insert操作，返回插入数量")
-	public int batchInsert(String sql, int batchSize, List<Object[]> args) {
+	@Comment("批量执行操作，返回受影响的行数")
+	public int batchUpdate(String sql, int batchSize, List<Object[]> args) {
 		assertDatasourceNotNull();
 		int[][] values = dataSourceNode.getJdbcTemplate().batchUpdate(sql, args, batchSize, (ps, arguments) -> {
 			int colIndex = 1;
@@ -472,8 +472,8 @@ public class SQLModule extends HashMap<String, SQLModule> implements MagicModule
 	/**
 	 * 插入并返回主键
 	 */
-	@Comment("批量执行insert操作，返回插入数量")
-	public int batchInsert(@Comment(name = "sqls", value = "`SQL`语句") List<String> sqls) {
+	@Comment("批量执行操作，返回受影响的行数")
+	public int batchUpdate(@Comment(name = "sqls", value = "`SQL`语句") List<String> sqls) {
 		assertDatasourceNotNull();
 		int[] values = dataSourceNode.getJdbcTemplate().batchUpdate(sqls.toArray(new String[0]));
 		if (this.cacheName != null) {

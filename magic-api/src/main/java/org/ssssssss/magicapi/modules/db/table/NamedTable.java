@@ -344,7 +344,7 @@ public class NamedTable extends Attributes<Object> {
 		builder.append(") values (");
 		builder.append(StringUtils.join(Collections.nCopies(keys.size(), "?"), ","));
 		builder.append(")");
-		return this.sqlModule.batchInsert(builder.toString(), batchSize, collection.stream()
+		return this.sqlModule.batchUpdate(builder.toString(), batchSize, collection.stream()
 				.map(it -> keys.stream().map(it::get).toArray())
 				.collect(Collectors.toList()));
 	}
@@ -352,6 +352,40 @@ public class NamedTable extends Attributes<Object> {
 	@Comment("批量插入")
 	public int batchInsert(@Comment(name = "collection", value = "各项列和值") Collection<Map<String, Object>> collection) {
 		return batchInsert(collection, 100);
+	}
+
+	@Comment("批量修改")
+	public int batchUpdate(@Comment(name = "collection", value = "各项列和值") Collection<Map<String, Object>> collection, @Comment("batchSize") int batchSize) {
+		if (StringUtils.isBlank(this.primary)) {
+			throw new MagicAPIException("请设置主键");
+		}
+		List<String> keys = collection.stream().peek(it -> {
+			if(StringUtils.isBlank(Objects.toString(it.get(this.primary), ""))){
+				throw new MagicAPIException("主键值不能为空");
+			}
+		}).flatMap(it -> it.keySet().stream()).filter(it -> !it.equals(this.primary)).distinct().collect(Collectors.toList());
+		if (keys.isEmpty()) {
+			throw new MagicAPIException("要修改的列不能为空");
+		}
+		StringBuilder builder = new StringBuilder();
+		builder.append("update ");
+		builder.append(tableName);
+		builder.append(" set ");
+		for (int i = 0, size = keys.size(); i < size; i++) {
+			builder.append(keys.get(i)).append(" = ?");
+			if (i + 1 < size) {
+				builder.append(",");
+			}
+		}
+		builder.append(" where ").append(this.primary).append(" = ?");
+		return this.sqlModule.batchUpdate(builder.toString(), batchSize, collection.stream()
+				.map(it -> keys.stream().map(it::get).toArray())
+				.collect(Collectors.toList()));
+	}
+
+	@Comment("批量修改")
+	public int batchUpdate(@Comment(name = "collection", value = "各项列和值") Collection<Map<String, Object>> collection) {
+		return batchUpdate(collection, 100);
 	}
 
 
