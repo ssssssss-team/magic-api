@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.modules.servlet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartRequest;
 import org.springframework.web.multipart.MultipartResolver;
@@ -7,11 +8,9 @@ import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.script.annotation.Comment;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * request 模块
@@ -22,6 +21,8 @@ import java.util.stream.Collectors;
 public class RequestModule {
 
 	private static MultipartResolver resolver;
+
+	private static final String[] DEFAULT_IP_HEADER = new String[]{"X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"};
 
 	public RequestModule(MultipartResolver resolver) {
 		RequestModule.resolver = resolver;
@@ -100,6 +101,46 @@ public class RequestModule {
 			return headers == null ? null : Collections.list(headers);
 		}
 		return null;
+	}
+
+	@Comment("获取客户端IP")
+	public String getClientIP(String... otherHeaderNames) {
+		HttpServletRequest request = get();
+		if (request == null) {
+			return null;
+		}
+		String ip = null;
+		List<String> headers = Stream.concat(Stream.of(DEFAULT_IP_HEADER), Stream.of(otherHeaderNames)).collect(Collectors.toList());
+		for (String header : headers) {
+			if((ip = processIp(request.getHeader(header))) != null){
+				break;
+			}
+		}
+		return ip == null ? processIp(request.getRemoteAddr()) : ip;
+	}
+
+	private String processIp(String ip) {
+		if (ip != null) {
+			ip = ip.trim();
+			if (isUnknown(ip)) {
+				return null;
+			}
+			if (ip.contains(",")) {
+				String[] ips = ip.split(",");
+				for (String subIp : ips) {
+					ip = processIp(subIp);
+					if (ip != null) {
+						return ip;
+					}
+				}
+			}
+			return ip;
+		}
+		return null;
+	}
+
+	private boolean isUnknown(String ip) {
+		return StringUtils.isBlank(ip) || "unknown".equalsIgnoreCase(ip.trim());
 	}
 
 }
