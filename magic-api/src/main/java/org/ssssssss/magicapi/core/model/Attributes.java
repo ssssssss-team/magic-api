@@ -20,7 +20,6 @@ public class Attributes<T> {
 	 * @param key   key
 	 * @param value value
 	 */
-	@Transient
 	public void setAttribute(String key, T value) {
 		properties.put(key, value);
 	}
@@ -30,17 +29,14 @@ public class Attributes<T> {
 	 *
 	 * @param key key
 	 */
-	@Transient
 	public Object getAttribute(String key) {
 		return properties.get(key);
 	}
 
-	@Transient
 	public Map<String, T> getProperties() {
 		return properties;
 	}
 
-	@Transient
 	public void setProperties(Map<String, T> properties) {
 		this.properties = properties;
 	}
