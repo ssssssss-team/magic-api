@@ -46,24 +46,24 @@ public class TaskMagicDynamicRegistry extends AbstractMagicDynamicRegistry<TaskI
 	@Override
 	protected boolean register(MappingNode<TaskInfo> mappingNode) {
 		TaskInfo info = mappingNode.getEntity();
-		CronTask cronTask = new CronTask(() -> {
-			TaskInfo entity = mappingNode.getEntity();
-			String scriptName = MagicConfiguration.getMagicResourceService().getScriptName(entity);
-			if(entity.isEnabled()){
-				try {
-					logger.info("定时任务:[{}]开始执行", scriptName);
-					MagicScriptContext magicScriptContext = new MagicScriptContext();
-					magicScriptContext.setScriptName(scriptName);
-					ScriptManager.executeScript(entity.getScript(), magicScriptContext);
-				} catch (Exception e) {
-					logger.error("定时任务执行出错", e);
-				} finally {
-					logger.info("定时任务:[{}]执行完毕", scriptName);
-				}
-			}
-		}, info.getCron());
-		mappingNode.setMappingData(taskScheduler.schedule(cronTask.getRunnable(), cronTask.getTrigger()));
 		if(taskScheduler != null){
+			CronTask cronTask = new CronTask(() -> {
+				TaskInfo entity = mappingNode.getEntity();
+				String scriptName = MagicConfiguration.getMagicResourceService().getScriptName(entity);
+				if(entity.isEnabled()){
+					try {
+						logger.info("定时任务:[{}]开始执行", scriptName);
+						MagicScriptContext magicScriptContext = new MagicScriptContext();
+						magicScriptContext.setScriptName(scriptName);
+						ScriptManager.executeScript(entity.getScript(), magicScriptContext);
+					} catch (Exception e) {
+						logger.error("定时任务执行出错", e);
+					} finally {
+						logger.info("定时任务:[{}]执行完毕", scriptName);
+					}
+				}
+			}, info.getCron());
+			mappingNode.setMappingData(taskScheduler.schedule(cronTask.getRunnable(), cronTask.getTrigger()));
 			logger.debug("注册定时任务:[{},{}]", MagicConfiguration.getMagicResourceService().getScriptName(info), info.getCron());
 		} else {
 			logger.debug("注册定时任务失败:[{}, {}]， 当前 TaskScheduler 为空", MagicConfiguration.getMagicResourceService().getScriptName(info), info.getCron());
