@@ -72,7 +72,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		MagicScriptEngine.addScriptClass(MagicAPIService.class);
 	}
 
-	@GetMapping({"", "/", "/index"})
+	@GetMapping({"", "/"})
 	@Valid(requireLogin = false)
 	public String redirectIndex(HttpServletRequest request) {
 		if (request.getRequestURI().endsWith("/")) {
