@@ -9,6 +9,11 @@ import java.time.Duration;
 public class MagicTaskConfig {
 
 	/**
+	 * 是否启用定时任务
+	 */
+	private boolean enable = true;
+
+	/**
 	 * 线程池相关配置
 	 */
 	private final Pool pool = new Pool();
@@ -37,6 +42,14 @@ public class MagicTaskConfig {
 
 	public void setThreadNamePrefix(String threadNamePrefix) {
 		this.threadNamePrefix = threadNamePrefix;
+	}
+
+	public boolean isEnable() {
+		return enable;
+	}
+
+	public void setEnable(boolean enable) {
+		this.enable = enable;
 	}
 
 	public static class Pool {

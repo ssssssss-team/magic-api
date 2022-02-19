@@ -46,11 +46,11 @@ public class TaskMagicDynamicRegistry extends AbstractMagicDynamicRegistry<TaskI
 	@Override
 	protected boolean register(MappingNode<TaskInfo> mappingNode) {
 		TaskInfo info = mappingNode.getEntity();
-		if(taskScheduler != null){
+		if (taskScheduler != null) {
 			CronTask cronTask = new CronTask(() -> {
 				TaskInfo entity = mappingNode.getEntity();
 				String scriptName = MagicConfiguration.getMagicResourceService().getScriptName(entity);
-				if(entity.isEnabled()){
+				if (entity.isEnabled()) {
 					try {
 						logger.info("定时任务:[{}]开始执行", scriptName);
 						MagicScriptContext magicScriptContext = new MagicScriptContext();
@@ -65,8 +65,6 @@ public class TaskMagicDynamicRegistry extends AbstractMagicDynamicRegistry<TaskI
 			}, info.getCron());
 			mappingNode.setMappingData(taskScheduler.schedule(cronTask.getRunnable(), cronTask.getTrigger()));
 			logger.debug("注册定时任务:[{},{}]", MagicConfiguration.getMagicResourceService().getScriptName(info), info.getCron());
-		} else {
-			logger.debug("注册定时任务失败:[{}, {}]， 当前 TaskScheduler 为空", MagicConfiguration.getMagicResourceService().getScriptName(info), info.getCron());
 		}
 
 		return true;
@@ -74,10 +72,13 @@ public class TaskMagicDynamicRegistry extends AbstractMagicDynamicRegistry<TaskI
 
 	@Override
 	protected void unregister(MappingNode<TaskInfo> mappingNode) {
+		if (taskScheduler == null) {
+			return;
+		}
 		TaskInfo info = mappingNode.getEntity();
 		logger.debug("取消注册定时任务:[{}, {}, {}]", info.getName(), info.getPath(), info.getCron());
 		ScheduledFuture<?> scheduledFuture = (ScheduledFuture<?>) mappingNode.getMappingData();
-		if(scheduledFuture != null){
+		if (scheduledFuture != null) {
 			try {
 				scheduledFuture.cancel(true);
 			} catch (Exception e) {

@@ -32,14 +32,17 @@ public class MagicAPITaskConfiguration implements MagicPluginConfiguration {
 	@ConditionalOnMissingBean
 	public TaskMagicDynamicRegistry taskMagicDynamicRegistry(TaskInfoMagicResourceStorage taskInfoMagicResourceStorage) {
 		MagicTaskConfig.Shutdown shutdown = config.getShutdown();
-		ThreadPoolTaskScheduler poolTaskScheduler = new ThreadPoolTaskScheduler();
-		poolTaskScheduler.setPoolSize(config.getPool().getSize());
-		poolTaskScheduler.setWaitForTasksToCompleteOnShutdown(shutdown.isAwaitTermination());
-		if(shutdown.getAwaitTerminationPeriod() != null){
-			poolTaskScheduler.setAwaitTerminationSeconds((int) shutdown.getAwaitTerminationPeriod().getSeconds());
+		ThreadPoolTaskScheduler poolTaskScheduler = null;
+		if(config.isEnable()){
+			poolTaskScheduler = new ThreadPoolTaskScheduler();
+			poolTaskScheduler.setPoolSize(config.getPool().getSize());
+			poolTaskScheduler.setWaitForTasksToCompleteOnShutdown(shutdown.isAwaitTermination());
+			if(shutdown.getAwaitTerminationPeriod() != null){
+				poolTaskScheduler.setAwaitTerminationSeconds((int) shutdown.getAwaitTerminationPeriod().getSeconds());
+			}
+			poolTaskScheduler.setThreadNamePrefix(config.getThreadNamePrefix());
+			poolTaskScheduler.initialize();
 		}
-		poolTaskScheduler.setThreadNamePrefix(config.getThreadNamePrefix());
-		poolTaskScheduler.initialize();
 		return new TaskMagicDynamicRegistry(taskInfoMagicResourceStorage, poolTaskScheduler);
 	}
 
