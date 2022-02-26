@@ -77,18 +77,26 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	private boolean processGroupNotify(String id, EventAction action) {
 		Group group = groupCache.get(id);
-		TreeNode<Group> treeNode = tree(group.getType()).findTreeNode(it -> it.getId().equals(group.getId()));
+		if(group == null){
+			// create
+			this.readAll();
+			group = groupCache.get(id);
+		}
+		TreeNode<Group> treeNode = tree(group.getType()).findTreeNode(it -> it.getId().equals(id));
 		if (treeNode != null) {
 			GroupEvent event = new GroupEvent(group.getType(), action, group);
 			event.setSource(Constants.EVENT_SOURCE_NOTIFY);
-			if (action != EventAction.CREATE) {
+			if (event.getAction() == EventAction.DELETE) {
+				event.setEntities(deleteGroup(id));
+			} else if (action != EventAction.CREATE) {
+				// 刷新分组缓存
+				refreshGroup(groupMappings.get(id), storages.get(group.getType()));
 				event.setEntities(treeNode
 						.flat()
 						.stream()
 						.flatMap(g -> listFiles(g.getId()).stream())
 						.collect(Collectors.toList()));
 			}
-			refresh();
 			publisher.publishEvent(event);
 			return true;
 		}
@@ -97,12 +105,25 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	private boolean processFileNotify(String id, EventAction action) {
 		MagicEntity entity = fileCache.get(id);
+		if(entity == null){	// create
+			this.readAll();
+			entity = fileCache.get(id);
+		}
 		if (entity != null) {
 			Group group = groupCache.get(entity.getGroupId());
 			if (group != null) {
-				refresh();
-				if (action != EventAction.DELETE) {
-					entity = fileCache.get(id);
+				MagicResourceStorage<? extends MagicEntity> storage = storages.get(group.getType());
+				Map<String, String> pathCacheMap = storage.requirePath() ? pathCache.get(storage.folder()) : null;
+				if (action == EventAction.DELETE) {
+					fileMappings.remove(id);
+					entity = fileCache.remove(id);
+					if (pathCacheMap != null) {
+						pathCacheMap.remove(id);
+					}
+				} else {
+					Resource resource = fileMappings.get(id);
+					entity = storage.read(resource.read());
+					putFile(storage, entity, resource);
 				}
 				publisher.publishEvent(new FileEvent(group.getType(), action, entity, Constants.EVENT_SOURCE_NOTIFY));
 			}
@@ -140,13 +161,20 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 			if (triggerEvent) {
 				publisher.publishEvent(new MagicEvent("clear", EventAction.CLEAR));
 			}
-			this.init();
-			this.root.readAll();
-			storages.forEach((key, registry) -> refreshGroup(root.getDirectory(key), registry));
+			this.readAll();
 			fileCache.values().forEach(entity -> {
 				Group group = groupCache.get(entity.getGroupId());
 				publisher.publishEvent(new FileEvent(group.getType(), EventAction.LOAD, entity));
 			});
+			return null;
+		});
+	}
+
+	private void readAll(){
+		writeLock(() -> {
+			this.init();
+			this.root.readAll();
+			storages.forEach((key, registry) -> refreshGroup(root.getDirectory(key), registry));
 			return null;
 		});
 	}
@@ -487,6 +515,33 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		});
 	}
 
+	private List<MagicEntity> deleteGroup(String id) {
+		Group group = groupCache.get(id);
+		List<MagicEntity> entities = new ArrayList<>();
+		// 递归删除分组和文件
+		tree(group.getType())
+				.findTreeNode(it -> it.getId().equals(id))
+				.flat()
+				.forEach(g -> {
+					groupCache.remove(g.getId());
+					groupMappings.remove(g.getId());
+					fileCache.values().stream()
+							.filter(f -> f.getGroupId().equals(g.getId())).peek(entities::add)
+							.collect(Collectors.toList())
+							.forEach(file -> {
+								fileCache.remove(file.getId());
+								fileMappings.remove(file.getId());
+								Map<String, String> map = pathCache.get(g.getType());
+								if (map != null) {
+									map.remove(file.getId());
+								}
+							});
+				});
+		groupMappings.remove(id);
+		groupCache.remove(id);
+		return entities;
+	}
+
 	@Override
 	public boolean delete(String id) {
 		return writeLock(() -> {
@@ -496,29 +551,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 				if (resource.exists() && resource.delete()) {
 					Group group = groupCache.get(id);
 					GroupEvent event = new GroupEvent(groupCache.get(group.getId()).getType(), EventAction.DELETE, group);
-					List<MagicEntity> entities = new ArrayList<>();
-					// 递归删除分组和文件
-					tree(group.getType())
-							.findTreeNode(it -> it.getId().equals(id))
-							.flat()
-							.forEach(g -> {
-								groupCache.remove(g.getId());
-								groupMappings.remove(g.getId());
-								fileCache.values().stream()
-										.filter(f -> f.getGroupId().equals(g.getId())).peek(entities::add)
-										.collect(Collectors.toList())
-										.forEach(file -> {
-											fileCache.remove(file.getId());
-											fileMappings.remove(file.getId());
-											Map<String, String> map = pathCache.get(g.getType());
-											if (map != null) {
-												map.remove(file.getId());
-											}
-										});
-							});
-					groupMappings.remove(id);
-					groupCache.remove(id);
-					event.setEntities(entities);
+					event.setEntities(deleteGroup(id));
 					publisher.publishEvent(event);
 					return true;
 				}
