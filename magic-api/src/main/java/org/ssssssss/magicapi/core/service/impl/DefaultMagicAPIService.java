@@ -110,36 +110,6 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	}
 
 	@Override
-	public boolean save(Group group) {
-		return resourceService.saveGroup(group);
-	}
-
-	@Override
-	public boolean delete(String src) {
-		return resourceService.delete(src);
-	}
-
-	@Override
-	public Map<String, TreeNode<Object>> resources() {
-		return null;
-	}
-
-	@Override
-	public Group getGroup(String id) {
-		return null;
-	}
-
-	@Override
-	public <T extends MagicEntity> T getDetail(String id) {
-		return null;
-	}
-
-	@Override
-	public boolean move(String src, String groupId) {
-		return resourceService.move(src, groupId);
-	}
-
-	@Override
 	public boolean upload(InputStream inputStream, String mode) throws IOException {
 		return resourceService.upload(inputStream, Constants.UPLOAD_MODE_FULL.equals(mode));
 	}
@@ -199,11 +169,6 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 				publisher.publishEvent(new MagicEvent("clear", EventAction.CLEAR, Constants.EVENT_SOURCE_NOTIFY));
 		}
 		return resourceService.processNotify(magicNotify);
-	}
-
-	@Override
-	public String copyGroup(String src, String target) {
-		return null;
 	}
 
 	private boolean processWebSocketSendMessage(String clientId, String content) {
