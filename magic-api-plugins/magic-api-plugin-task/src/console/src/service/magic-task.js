@@ -1,9 +1,10 @@
 export default function (bus, constants, $i, Message, request) {
     return {
         // svg text
-        getIcon: item => 'task',
+        getIcon: item => ['TASK', '#9012FE'],
         // 任务名称
         name: $i('task.name'),
+        language: 'magicscript',
         // 执行测试的逻辑
         doTest: (opened) => {
             opened.running = true
