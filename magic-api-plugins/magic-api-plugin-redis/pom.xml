@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.ssssssss</groupId>
+        <artifactId>magic-api-plugins</artifactId>
+        <version>2.0.0-beta.1</version>
+    </parent>
+    <artifactId>magic-api-plugin-redis</artifactId>
+    <packaging>jar</packaging>
+    <name>magic-api-plugin-redis</name>
+    <description>magic-api-plugin-redis</description>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+    </dependencies>
+</project>

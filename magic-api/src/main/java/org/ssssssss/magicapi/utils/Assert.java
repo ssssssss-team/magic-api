@@ -1,7 +1,7 @@
 package org.ssssssss.magicapi.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.ssssssss.magicapi.exception.MagicAPIException;
+import org.ssssssss.magicapi.core.exception.MagicAPIException;
 
 /**
  * 断言辅助类

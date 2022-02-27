@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.ssssssss</groupId>
+        <artifactId>magic-api-parent</artifactId>
+        <version>2.0.0-beta.1</version>
+    </parent>
+    <artifactId>magic-api-plugins</artifactId>
+    <version>2.0.0-beta.1</version>
+    <packaging>pom</packaging>
+    <name>magic-api-plugins</name>
+    <description>auto generate http api</description>
+    <modules>
+        <module>magic-api-plugin-task</module>
+        <module>magic-api-plugin-swagger</module>
+        <module>magic-api-plugin-redis</module>
+        <module>magic-api-plugin-mongo</module>
+        <module>magic-api-plugin-elasticsearch</module>
+        <module>magic-api-plugin-cluster</module>
+    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ssssssss</groupId>
+            <artifactId>magic-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.ssssssss</groupId>
+            <artifactId>magic-script</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>
