@@ -77,7 +77,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	private boolean processGroupNotify(String id, EventAction action) {
 		Group group = groupCache.get(id);
-		if(group == null){
+		if (group == null) {
 			// create
 			this.readAll();
 			group = groupCache.get(id);
@@ -105,7 +105,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	private boolean processFileNotify(String id, EventAction action) {
 		MagicEntity entity = fileCache.get(id);
-		if(entity == null){	// create
+		if (entity == null) {    // create
 			this.readAll();
 			entity = fileCache.get(id);
 		}
@@ -170,7 +170,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		});
 	}
 
-	private void readAll(){
+	private void readAll() {
 		writeLock(() -> {
 			this.init();
 			this.root.readAll();
@@ -205,6 +205,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	@Override
 	public boolean saveGroup(Group group) {
+		isTrue(!root.readonly(), IS_READ_ONLY);
 		// 类型校验
 		isTrue(storages.containsKey(group.getType()), NOT_SUPPORTED_GROUP_TYPE);
 		// 名字校验
@@ -268,6 +269,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	@Override
 	public boolean move(String src, String groupId) {
+		isTrue(!root.readonly(), IS_READ_ONLY);
 		Group group = groupCache.get(groupId);
 		isTrue("0".equals(groupId) || group != null, GROUP_NOT_FOUND);
 		isTrue(!Objects.equals(src, groupId), MOVE_NAME_CONFLICT);
@@ -289,6 +291,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	@Override
 	public String copyGroup(String src, String groupId) {
+		isTrue(!root.readonly(), IS_READ_ONLY);
 		Group group = groupCache.get(groupId);
 		isTrue("0".equals(groupId) || group != null, GROUP_NOT_FOUND);
 		isTrue(!Objects.equals(src, groupId), SRC_GROUP_CONFLICT);
@@ -318,6 +321,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 	 * @param target 目标分组ID
 	 */
 	private boolean moveGroup(Group src, String target) {
+		isTrue(!root.readonly(), IS_READ_ONLY);
 		MagicResourceStorage<?> storage = storages.get(src.getType());
 		Resource targetResource = Constants.ROOT_ID.equals(target) ? this.root.getDirectory(storage.folder()) : groupMappings.get(target);
 		// 校验分组名称是否有冲突
@@ -369,6 +373,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 	 * @param group  目标分组
 	 */
 	private <T extends MagicEntity> boolean moveFile(T entity, Group group) {
+		isTrue(!root.readonly(), IS_READ_ONLY);
 		// 判断是否被锁定
 		isTrue(!Constants.LOCK.equals(entity.getLock()), RESOURCE_LOCKED);
 		// 设置新的分组ID
@@ -452,6 +457,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	@Override
 	public <T extends MagicEntity> boolean saveFile(T entity) {
+		isTrue(!root.readonly(), IS_READ_ONLY);
 		// 校验必填信息
 		notNull(entity.getGroupId(), GROUP_ID_REQUIRED);
 		// 校验名字
@@ -516,6 +522,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 	}
 
 	private List<MagicEntity> deleteGroup(String id) {
+		isTrue(!root.readonly(), IS_READ_ONLY);
 		Group group = groupCache.get(id);
 		List<MagicEntity> entities = new ArrayList<>();
 		// 递归删除分组和文件
@@ -544,6 +551,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	@Override
 	public boolean delete(String id) {
+		isTrue(!root.readonly(), IS_READ_ONLY);
 		return writeLock(() -> {
 			Resource resource = getGroupResource(id);
 			if (resource != null) {
@@ -655,6 +663,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 	}
 
 	private boolean doLockResource(String id, String lockState) {
+		isTrue(!root.readonly(), IS_READ_ONLY);
 		return writeLock(() -> {
 			MagicEntity entity = fileCache.get(id);
 			Resource resource = fileMappings.get(id);
@@ -681,6 +690,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 
 	@Override
 	public boolean upload(InputStream inputStream, boolean full) throws IOException {
+		isTrue(!root.readonly(), IS_READ_ONLY);
 		try {
 			ZipResource zipResource = new ZipResource(inputStream);
 			Set<Group> groups = new LinkedHashSet<>();
