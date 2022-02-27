@@ -1,5 +1,7 @@
 package org.ssssssss.magicapi.core.handler;
 
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
 import org.ssssssss.magicapi.core.annotation.Message;
 import org.ssssssss.magicapi.core.config.MessageType;
 import org.ssssssss.magicapi.core.config.WebSocketSessionManager;
@@ -8,9 +10,12 @@ import org.ssssssss.magicapi.core.interceptor.AuthorizationInterceptor;
 import org.ssssssss.magicapi.core.context.MagicUser;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.context.MagicConsoleSession;
+import org.ssssssss.magicapi.modules.servlet.RequestModule;
+import org.ssssssss.magicapi.utils.IpUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -35,8 +40,10 @@ public class MagicWorkbenchHandler {
 			MagicUser user = guest;
 			if (!authorizationInterceptor.requireLogin() || (user = authorizationInterceptor.getUserByToken(token)) != null) {
 				String ip = Optional.ofNullable(session.getWebSocketSession().getRemoteAddress()).map(it -> it.getAddress().getHostAddress()).orElse("unknown");
+				HttpHeaders headers = session.getWebSocketSession().getHandshakeHeaders();
+				ip = IpUtils.getRealIP(ip, headers::getFirst, null);
 				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_ID, user.getId());
-				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_IP, ip);
+				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_IP, StringUtils.defaultIfBlank(ip, "unknown"));
 				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_NAME, user.getUsername());
 				session.setClientId(clientId);
 				session.setActivateTime(System.currentTimeMillis());

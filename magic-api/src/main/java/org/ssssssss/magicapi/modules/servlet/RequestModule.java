@@ -1,10 +1,10 @@
 package org.ssssssss.magicapi.modules.servlet;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartRequest;
 import org.springframework.web.multipart.MultipartResolver;
 import org.ssssssss.magicapi.core.annotation.MagicModule;
+import org.ssssssss.magicapi.utils.IpUtils;
 import org.ssssssss.script.annotation.Comment;
 
 import javax.servlet.http.HttpServletRequest;
@@ -109,38 +109,6 @@ public class RequestModule {
 		if (request == null) {
 			return null;
 		}
-		String ip = null;
-		List<String> headers = Stream.concat(Stream.of(DEFAULT_IP_HEADER), Stream.of(otherHeaderNames)).collect(Collectors.toList());
-		for (String header : headers) {
-			if((ip = processIp(request.getHeader(header))) != null){
-				break;
-			}
-		}
-		return ip == null ? processIp(request.getRemoteAddr()) : ip;
+		return IpUtils.getRealIP(request.getRemoteAddr(), request::getHeader, otherHeaderNames);
 	}
-
-	private String processIp(String ip) {
-		if (ip != null) {
-			ip = ip.trim();
-			if (isUnknown(ip)) {
-				return null;
-			}
-			if (ip.contains(",")) {
-				String[] ips = ip.split(",");
-				for (String subIp : ips) {
-					ip = processIp(subIp);
-					if (ip != null) {
-						return ip;
-					}
-				}
-			}
-			return ip;
-		}
-		return null;
-	}
-
-	private boolean isUnknown(String ip) {
-		return StringUtils.isBlank(ip) || "unknown".equalsIgnoreCase(ip.trim());
-	}
-
 }
