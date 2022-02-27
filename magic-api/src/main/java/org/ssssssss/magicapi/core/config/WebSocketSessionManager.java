@@ -42,8 +42,8 @@ public class WebSocketSessionManager {
 	static {
 		// 1秒1次发送日志
 		new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-send-log-task")).scheduleAtFixedRate(WebSocketSessionManager::flushLog, 1, 1, TimeUnit.SECONDS);
-		// 25秒检测一次是否在线
-		new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-websocket-clean-task")).scheduleAtFixedRate(WebSocketSessionManager::checkSession, 25, 25, TimeUnit.SECONDS);
+		// 60秒检测一次是否在线
+		new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-websocket-clean-task")).scheduleAtFixedRate(WebSocketSessionManager::checkSession, 60, 60, TimeUnit.SECONDS);
 	}
 
 	public static Collection<MagicConsoleSession> getSessions() {
