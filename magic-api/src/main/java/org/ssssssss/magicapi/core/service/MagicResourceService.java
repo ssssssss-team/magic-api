@@ -92,22 +92,39 @@ public interface MagicResourceService {
 	 */
 	<T extends MagicEntity> List<T> files(String type);
 
+	/**
+	 * 获取文件详情
+	 */
 	<T extends MagicEntity> T file(String id);
 
+	/**
+	 * 获取分组详情
+	 */
 	Group getGroup(String id);
 
 	void export(String groupId, List<SelectedResource> resources, OutputStream os) throws IOException;
 
+	/**
+	 * 锁定资源
+	 */
 	boolean lock(String id);
 
+	/**
+	 * 解锁资源
+	 */
 	boolean unlock(String id);
 
 	boolean upload(InputStream inputStream, boolean full) throws IOException;
 
+	/**
+	 * 获取完整分组路径
+	 */
+	String getGroupPath(String groupId);
 
-	public String getGroupPath(String groupId);
-
-	public String getGroupName(String groupId);
+	/**
+	 * 获取完整分组名称
+	 */
+	String getGroupName(String groupId);
 
 	default String getScriptName(MagicEntity entity){
 		String fullName;
