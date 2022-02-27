@@ -11,11 +11,11 @@ public class IpUtils {
 
 	private static final String[] DEFAULT_IP_HEADER = new String[]{"X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"};
 
-	public static String getRealIP(String remoteAddr, Function<String, String> getHeader, String ... otherHeaderNames){
+	public static String getRealIP(String remoteAddr, Function<String, String> getHeader, String... otherHeaderNames) {
 		String ip = null;
-		List<String> headers = Stream.concat(Stream.of(DEFAULT_IP_HEADER), Stream.of(otherHeaderNames)).collect(Collectors.toList());
+		List<String> headers = Stream.concat(Stream.of(DEFAULT_IP_HEADER), Stream.of(otherHeaderNames == null ? new String[0] : otherHeaderNames)).collect(Collectors.toList());
 		for (String header : headers) {
-			if((ip = processIp(getHeader.apply(header))) != null){
+			if ((ip = processIp(getHeader.apply(header))) != null) {
 				break;
 			}
 		}
@@ -42,7 +42,7 @@ public class IpUtils {
 		return null;
 	}
 
-	private static  boolean isUnknown(String ip) {
+	private static boolean isUnknown(String ip) {
 		return StringUtils.isBlank(ip) || "unknown".equalsIgnoreCase(ip.trim());
 	}
 }
