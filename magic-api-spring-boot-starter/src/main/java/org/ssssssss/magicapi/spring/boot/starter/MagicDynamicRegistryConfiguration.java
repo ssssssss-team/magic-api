@@ -38,13 +38,13 @@ public class MagicDynamicRegistryConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public ApiInfoMagicResourceStorage apiInfoMagicResourceStorage() {
-		return new ApiInfoMagicResourceStorage();
+		return new ApiInfoMagicResourceStorage(properties.getPrefix());
 	}
 
 	@Bean
 	@ConditionalOnMissingBean
 	public RequestMagicDynamicRegistry magicRequestMagicDynamicRegistry(ApiInfoMagicResourceStorage apiInfoMagicResourceStorage) throws NoSuchMethodException {
-		return new RequestMagicDynamicRegistry(apiInfoMagicResourceStorage, Mapping.create(requestMappingHandlerMapping, properties.getWeb(), properties.getPrefix()), properties.isAllowOverride());
+		return new RequestMagicDynamicRegistry(apiInfoMagicResourceStorage, Mapping.create(requestMappingHandlerMapping, properties.getWeb()), properties.isAllowOverride());
 	}
 
 	@Bean

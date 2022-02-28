@@ -21,26 +21,21 @@ public class Mapping {
 
 	private final String base;
 
-	private final String prefix;
-
 	private final RequestMappingInfo.BuilderConfiguration config;
-
-	private Map<String, RequestMappingInfo> cached = new HashMap<>();
 
 	private static final boolean HAS_GET_PATTERN_PARSER = JavaReflection.getMethod(RequestMappingHandlerMapping.class, "getPatternParser") != null;
 
-	private Mapping(AbstractHandlerMethodMapping<RequestMappingInfo> methodMapping, RequestMappingInfo.BuilderConfiguration config, String base, String prefix) {
+	private Mapping(AbstractHandlerMethodMapping<RequestMappingInfo> methodMapping, RequestMappingInfo.BuilderConfiguration config, String base) {
 		this.methodMapping = methodMapping;
 		this.config = config;
 		this.base = StringUtils.defaultIfBlank(base, "");
-		this.prefix = StringUtils.defaultIfBlank(prefix, "");
 	}
 
 	public static Mapping create(RequestMappingHandlerMapping mapping) {
-		return create(mapping, null, null);
+		return create(mapping, null);
 	}
 
-	public static Mapping create(RequestMappingHandlerMapping mapping, String base, String prefix) {
+	public static Mapping create(RequestMappingHandlerMapping mapping, String base) {
 		if (HAS_GET_PATTERN_PARSER) {
 			RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
 			config.setTrailingSlashMatch(mapping.useTrailingSlashMatch());
@@ -50,9 +45,9 @@ public class Mapping {
 			} else {
 				config.setPathMatcher(mapping.getPathMatcher());
 			}
-			return new Mapping(mapping, config, base, prefix);
+			return new Mapping(mapping, config, base);
 		}
-		return new Mapping(mapping, null, base, prefix);
+		return new Mapping(mapping, null, base);
 	}
 
 	public RequestMappingInfo.Builder paths(String ... paths){

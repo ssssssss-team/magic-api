@@ -355,7 +355,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		List<Plugin> plugins = pluginConfigurations.stream().map(MagicPluginConfiguration::plugin).collect(Collectors.toList());
 		// 构建UI请求处理器
 		String base = properties.getWeb();
-		Mapping mapping = Mapping.create(requestMappingHandlerMapping, base, properties.getPrefix());
+		Mapping mapping = Mapping.create(requestMappingHandlerMapping, base);
 		MagicWorkbenchController magicWorkbenchController = new MagicWorkbenchController(configuration, properties, plugins);
 		if (base != null) {
 			configuration.setEnableWeb(true);

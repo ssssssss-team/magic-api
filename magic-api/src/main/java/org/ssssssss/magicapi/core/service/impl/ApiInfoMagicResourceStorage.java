@@ -1,9 +1,17 @@
 package org.ssssssss.magicapi.core.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.ssssssss.magicapi.core.model.ApiInfo;
 import org.ssssssss.magicapi.core.service.AbstractPathMagicResourceStorage;
+import org.ssssssss.magicapi.utils.PathUtils;
 
 public class ApiInfoMagicResourceStorage extends AbstractPathMagicResourceStorage<ApiInfo> {
+
+	private String prefix;
+
+	public ApiInfoMagicResourceStorage(String prefix) {
+		this.prefix = StringUtils.defaultIfBlank(prefix, "") + "/";
+	}
 
 	@Override
 	public String folder() {
@@ -17,7 +25,7 @@ public class ApiInfoMagicResourceStorage extends AbstractPathMagicResourceStorag
 
 	@Override
 	public String buildMappingKey(ApiInfo info) {
-		return info.getMethod().toUpperCase() + ":" + buildMappingKey(info, magicResourceService.getGroupPath(info.getGroupId()));
+		return info.getMethod().toUpperCase() + ":" + PathUtils.replaceSlash(this.prefix + buildMappingKey(info, magicResourceService.getGroupPath(info.getGroupId())));
 	}
 
 	@Override
