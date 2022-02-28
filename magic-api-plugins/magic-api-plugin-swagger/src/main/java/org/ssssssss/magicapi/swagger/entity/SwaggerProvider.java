@@ -46,13 +46,15 @@ public class SwaggerProvider {
 	private final String basePath;
 	private final SwaggerEntity.Info info;
 	private final boolean persistenceResponseBody;
+	private final String prefix;
 
-	public SwaggerProvider(RequestMagicDynamicRegistry requestMagicDynamicRegistry, MagicResourceService magicResourceService, String basePath, SwaggerEntity.Info info, boolean persistenceResponseBody) {
+	public SwaggerProvider(RequestMagicDynamicRegistry requestMagicDynamicRegistry, MagicResourceService magicResourceService, String basePath, SwaggerEntity.Info info, boolean persistenceResponseBody, String prefix) {
 		this.requestMagicDynamicRegistry = requestMagicDynamicRegistry;
 		this.magicResourceService = magicResourceService;
 		this.basePath = basePath;
 		this.info = info;
 		this.persistenceResponseBody = persistenceResponseBody;
+		this.prefix = StringUtils.defaultIfBlank(prefix, "") + "/";
 	}
 
 	@ResponseBody
@@ -64,7 +66,7 @@ public class SwaggerProvider {
 		swaggerEntity.setBasePath(this.basePath);
 		for (ApiInfo info : infos) {
 			String groupName = magicResourceService.getGroupName(info.getGroupId()).replace("/", "-");
-			String requestPath = PathUtils.replaceSlash("/" + magicResourceService.getGroupPath(info.getGroupId()) + "/" + info.getPath());
+			String requestPath = PathUtils.replaceSlash(this.prefix + magicResourceService.getGroupPath(info.getGroupId()) + "/" + info.getPath());
 			SwaggerEntity.Path path = new SwaggerEntity.Path(info.getId());
 			path.addTag(groupName);
 			boolean hasBody = false;

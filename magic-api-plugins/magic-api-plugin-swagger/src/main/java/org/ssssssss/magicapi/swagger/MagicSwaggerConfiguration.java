@@ -59,7 +59,7 @@ public class MagicSwaggerConfiguration implements MagicPluginConfiguration {
 		SwaggerEntity.License license = new SwaggerEntity.License("MIT", "https://gitee.com/ssssssss-team/magic-api/blob/master/LICENSE");
 		SwaggerEntity.Info info = new SwaggerEntity.Info(swaggerConfig.getDescription(), swaggerConfig.getVersion(), swaggerConfig.getTitle(), license, swaggerConfig.getConcat());
 		// 构建文档信息
-		SwaggerProvider swaggerProvider = new SwaggerProvider(requestMagicDynamicRegistry, magicResourceService, servletContext.getContextPath(), info, properties.isPersistenceResponseBody());
+		SwaggerProvider swaggerProvider = new SwaggerProvider(requestMagicDynamicRegistry, magicResourceService, servletContext.getContextPath(), info, properties.isPersistenceResponseBody(), properties.getPrefix());
 
 
 		// 注册swagger.json
