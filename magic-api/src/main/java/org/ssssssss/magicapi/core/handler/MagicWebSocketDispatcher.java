@@ -104,7 +104,9 @@ public class MagicWebSocketDispatcher extends TextWebSocketHandler {
 		MagicConsoleSession mcsession = MagicConsoleSession.from(session);
 		WebSocketSessionManager.remove(mcsession);
 		MagicConsoleSession.remove(session);
-		WebSocketSessionManager.sendToAll(MessageType.USER_LOGOUT, mcsession.getAttributes());
+		if(mcsession.getClientId() != null && mcsession.getAttributes() != null && !mcsession.getAttributes().isEmpty()){
+			WebSocketSessionManager.sendToAll(MessageType.USER_LOGOUT, mcsession.getAttributes());
+		}
 	}
 
 	@Override

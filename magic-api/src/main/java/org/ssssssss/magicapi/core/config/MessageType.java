@@ -23,8 +23,9 @@ public enum MessageType {
 	ONLINE_USERS,
 	/* 通知客户端，他人进入文件*/
 	INTO_FILE_ID,
-	/* PONG */
-	PONG,
+	/* ping */
+	PING,
+
 
 	/* C -> S message */
 	/* 设置断点 */
@@ -35,8 +36,9 @@ public enum MessageType {
 	LOGIN,
 	/* 设置当前所在文件 */
 	SET_FILE_ID,
-	/* ping */
-	PING,
+	/* PONG */
+	PONG,
+
 
 	/* S <-> S -> C message*/
 	/* 获取当前在线用户 */

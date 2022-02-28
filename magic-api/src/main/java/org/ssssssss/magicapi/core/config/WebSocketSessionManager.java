@@ -29,6 +29,10 @@ public class WebSocketSessionManager {
 
 	private static String instanceId;
 
+	private static final int CHECK_INTERVAL = 20;
+
+	private static final int KEEPALIVE_TIMEOUT = 60 * 1000;
+
 	private static final List<Pair<String, String>> MESSAGE_CACHE = new ArrayList<>(200);
 
 	public static void add(MagicConsoleSession session) {
@@ -43,7 +47,7 @@ public class WebSocketSessionManager {
 		// 1秒1次发送日志
 		new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-send-log-task")).scheduleAtFixedRate(WebSocketSessionManager::flushLog, 1, 1, TimeUnit.SECONDS);
 		// 60秒检测一次是否在线
-		new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-websocket-clean-task")).scheduleAtFixedRate(WebSocketSessionManager::checkSession, 60, 60, TimeUnit.SECONDS);
+		new ScheduledThreadPoolExecutor(1, r -> new Thread(r, "magic-api-websocket-clean-task")).scheduleAtFixedRate(WebSocketSessionManager::checkSession, CHECK_INTERVAL, CHECK_INTERVAL, TimeUnit.SECONDS);
 	}
 
 	public static Collection<MagicConsoleSession> getSessions() {
@@ -193,8 +197,9 @@ public class WebSocketSessionManager {
 
 	private static void checkSession() {
 		try {
-			long activateTime = System.currentTimeMillis() - 20 * 1000;
+			long activateTime = System.currentTimeMillis() - KEEPALIVE_TIMEOUT;
 			SESSIONS.entrySet().stream()
+					.peek(it -> WebSocketSessionManager.sendBySession(it.getValue(), WebSocketSessionManager.buildMessage(MessageType.PING)))
 					.filter(it -> it.getValue().getActivateTime() < activateTime)
 					.collect(Collectors.toList())
 					.forEach(entry -> {

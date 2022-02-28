@@ -75,11 +75,9 @@ public class MagicWorkbenchHandler {
 		}
 	}
 
-	@Message(MessageType.PING)
-	public void ping(MagicConsoleSession session){
-		long activateTime = System.currentTimeMillis();
-		session.setActivateTime(activateTime);
-		WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.PONG, activateTime));
+	@Message(MessageType.PONG)
+	public void pong(MagicConsoleSession session){
+		session.setActivateTime(System.currentTimeMillis());
 	}
 
 	private List<Map<String, Object>> getOnlineUsers(){
