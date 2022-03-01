@@ -2,6 +2,9 @@ package org.ssssssss.magicapi.core.service;
 
 import org.ssssssss.magicapi.core.model.MagicEntity;
 
+import java.util.Collections;
+import java.util.List;
+
 public interface MagicDynamicRegistry<T extends MagicEntity> {
 
 	/**
@@ -20,6 +23,10 @@ public interface MagicDynamicRegistry<T extends MagicEntity> {
 	 * 资源存储器
 	 */
 	MagicResourceStorage<T> getMagicResourceStorage();
+
+	default List<T> defaultMappings() {
+		return Collections.emptyList();
+	}
 
 
 }

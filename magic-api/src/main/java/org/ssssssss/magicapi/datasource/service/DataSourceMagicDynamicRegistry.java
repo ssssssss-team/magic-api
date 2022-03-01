@@ -21,7 +21,9 @@ import org.ssssssss.magicapi.core.service.MagicResourceStorage;
 
 import javax.sql.DataSource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DataSourceMagicDynamicRegistry extends AbstractMagicDynamicRegistry<DataSourceInfo> {
 
@@ -105,5 +107,13 @@ public class DataSourceMagicDynamicRegistry extends AbstractMagicDynamicRegistry
 		return null;
 	}
 
-
+	@Override
+	public List<DataSourceInfo> defaultMappings() {
+		return magicDynamicDataSource.datasourceNodes().stream().filter(it -> it.getId() == null).map(it -> {
+			DataSourceInfo dataSourceInfo = new DataSourceInfo();
+			dataSourceInfo.setName(StringUtils.defaultIfBlank(it.getName(), StringUtils.defaultIfBlank(it.getKey(), "默认数据源")));
+			dataSourceInfo.setKey(it.getKey());
+			return dataSourceInfo;
+		}).collect(Collectors.toList());
+	}
 }

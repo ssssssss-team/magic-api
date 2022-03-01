@@ -2,12 +2,12 @@ package org.ssssssss.magicapi.core.web;
 
 import org.springframework.web.bind.annotation.*;
 import org.ssssssss.magicapi.core.config.Constants;
-import org.ssssssss.magicapi.core.resource.Resource;
-import org.ssssssss.magicapi.core.resource.FileResource;
 import org.ssssssss.magicapi.core.config.MagicConfiguration;
-import org.ssssssss.magicapi.core.model.*;
 import org.ssssssss.magicapi.core.exception.InvalidArgumentException;
 import org.ssssssss.magicapi.core.interceptor.Authorization;
+import org.ssssssss.magicapi.core.model.*;
+import org.ssssssss.magicapi.core.resource.FileResource;
+import org.ssssssss.magicapi.core.resource.Resource;
 import org.ssssssss.magicapi.core.service.MagicDynamicRegistry;
 import org.ssssssss.magicapi.core.service.MagicResourceService;
 import org.ssssssss.magicapi.utils.IoUtils;
@@ -15,6 +15,7 @@ import org.ssssssss.magicapi.utils.IoUtils;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -143,7 +144,23 @@ public class MagicResourceController extends MagicController implements MagicExc
 	public JsonBean<Map<String, TreeNode<Attributes<Object>>>> resources(HttpServletRequest request) {
 		Map<String, TreeNode<Group>> tree = service.tree();
 		Map<String, TreeNode<Attributes<Object>>> result = new HashMap<>();
-		tree.forEach((key, value) -> result.put(key, process(value, request)));
+		tree.forEach((key, value) -> {
+			TreeNode<Attributes<Object>> node = process(value, request);
+			List<TreeNode<Attributes<Object>>> groups = node.getChildren();
+			if(groups.size() > 0){
+				List<TreeNode<Attributes<Object>>> nodes = groups.get(0).getChildren();
+				configuration.getMagicDynamicRegistries().stream()
+						.filter(it -> it.getMagicResourceStorage().folder().equals(key))
+						.findFirst()
+						.map(MagicDynamicRegistry::defaultMappings)
+						.ifPresent(mappings -> {
+							for (MagicEntity mapping : mappings) {
+								nodes.add(new TreeNode<>(mapping));
+							}
+						});
+			}
+			result.put(key, node);
+		});
 		return new JsonBean<>(result);
 	}
 
