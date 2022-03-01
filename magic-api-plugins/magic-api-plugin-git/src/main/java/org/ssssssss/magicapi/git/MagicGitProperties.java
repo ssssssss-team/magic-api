@@ -3,7 +3,7 @@ package org.ssssssss.magicapi.git;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "magic-api.resource.git")
-public class GitStoreProperties {
+public class MagicGitProperties {
     /**
      * git仓库地址
      */

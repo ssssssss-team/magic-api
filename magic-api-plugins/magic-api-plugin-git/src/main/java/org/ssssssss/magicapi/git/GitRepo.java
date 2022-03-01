@@ -30,10 +30,10 @@ public class GitRepo {
      */
     private String rootPath;
     private String gitFilePath;
-    private GitStoreProperties properties;
+    private MagicGitProperties properties;
     private Git git;
 
-    public GitRepo(String rootPath, GitStoreProperties properties) {
+    public GitRepo(String rootPath, MagicGitProperties properties) {
         this.rootPath = rootPath;
         this.gitFilePath = rootPath + File.separator + ".git";
         this.properties = properties;
@@ -154,7 +154,7 @@ public class GitRepo {
         return true;
     }
 
-    public GitStoreProperties getProperties() {
+    public MagicGitProperties getProperties() {
         return properties;
     }
 }

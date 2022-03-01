@@ -10,20 +10,19 @@ import org.ssssssss.magicapi.core.config.MagicAPIProperties;
 import org.ssssssss.magicapi.core.config.MagicPluginConfiguration;
 import org.ssssssss.magicapi.core.config.Resource;
 import org.ssssssss.magicapi.core.model.Plugin;
-import org.ssssssss.magicapi.git.GitStoreProperties;
 
 import java.io.IOException;
 
 @Configuration
-@EnableConfigurationProperties(GitStoreProperties.class)
+@EnableConfigurationProperties(MagicGitProperties.class)
 public class MagicGitConfiguration implements MagicPluginConfiguration {
 
 	private final MagicAPIProperties properties;
-	private final GitStoreProperties gitStoreProperties;
+	private final MagicGitProperties gitProperties;
 
-	public MagicGitConfiguration(MagicAPIProperties properties, GitStoreProperties gitStoreProperties) {
+	public MagicGitConfiguration(MagicAPIProperties properties, MagicGitProperties gitProperties) {
 		this.properties = properties;
-		this.gitStoreProperties = gitStoreProperties;
+		this.gitProperties = gitProperties;
 	}
 
 	/**
@@ -37,7 +36,7 @@ public class MagicGitConfiguration implements MagicPluginConfiguration {
 	@ConditionalOnProperty(prefix = "magic-api", name = "resource.type", havingValue = "git")
 	public org.ssssssss.magicapi.core.resource.Resource magicGitResource() throws IOException, GitAPIException {
 		Resource resourceConfig = properties.getResource();
-		return GitResource.of(resourceConfig, this.gitStoreProperties);
+		return GitResource.of(resourceConfig, this.gitProperties);
 	}
 
 

@@ -3,8 +3,6 @@ package org.ssssssss.magicapi.git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.ssssssss.magicapi.core.resource.FileResource;
 import org.ssssssss.magicapi.core.resource.Resource;
-import org.ssssssss.magicapi.core.resource.ResourceAdapter;
-import org.ssssssss.magicapi.git.GitStoreProperties;
 import org.ssssssss.magicapi.utils.IoUtils;
 
 import java.io.File;
@@ -20,9 +18,9 @@ import java.util.stream.Collectors;
  * @author mxd
  */
 public class GitResource extends FileResource {
-	private GitRepo gitRepo;
+	private final GitRepo gitRepo;
 
-	public static GitResource of(org.ssssssss.magicapi.core.config.Resource config, GitStoreProperties properties) throws IOException, GitAPIException {
+	public static GitResource of(org.ssssssss.magicapi.core.config.Resource config, MagicGitProperties properties) throws IOException, GitAPIException {
 		File file = new File(config.getLocation());
 		GitRepo gitRepo = new GitRepo(file.getAbsolutePath(), properties);
 		GitResource gitResource = new GitResource(config.isReadonly(), file,
