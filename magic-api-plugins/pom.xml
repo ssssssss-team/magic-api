@@ -20,7 +20,7 @@
         <module>magic-api-plugin-mongo</module>
         <module>magic-api-plugin-elasticsearch</module>
         <module>magic-api-plugin-cluster</module>
-        <module>magic-api-plugin-git-store</module>
+        <module>magic-api-plugin-git</module>
     </modules>
     <dependencies>
         <dependency>

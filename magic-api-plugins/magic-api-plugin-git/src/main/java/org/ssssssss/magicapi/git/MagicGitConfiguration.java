@@ -16,12 +16,12 @@ import java.io.IOException;
 
 @Configuration
 @EnableConfigurationProperties(GitStoreProperties.class)
-public class MagicGitStoreConfiguration implements MagicPluginConfiguration {
+public class MagicGitConfiguration implements MagicPluginConfiguration {
 
 	private final MagicAPIProperties properties;
 	private final GitStoreProperties gitStoreProperties;
 
-	public MagicGitStoreConfiguration(MagicAPIProperties properties, GitStoreProperties gitStoreProperties) {
+	public MagicGitConfiguration(MagicAPIProperties properties, GitStoreProperties gitStoreProperties) {
 		this.properties = properties;
 		this.gitStoreProperties = gitStoreProperties;
 	}

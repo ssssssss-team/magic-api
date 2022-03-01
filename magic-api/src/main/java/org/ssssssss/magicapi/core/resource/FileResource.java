@@ -19,8 +19,8 @@ import java.util.zip.ZipOutputStream;
 public class FileResource implements Resource {
 
 	private final boolean readonly;
-	private File file;
-	private String rootPath;
+	protected File file;
+	protected String rootPath;
 
 	public FileResource(File file, boolean readonly, String rootPath) {
 		this.file = file;

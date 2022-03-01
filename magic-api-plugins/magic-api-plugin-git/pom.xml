@@ -6,12 +6,12 @@
     <parent>
         <groupId>org.ssssssss</groupId>
         <artifactId>magic-api-plugins</artifactId>
-        <version>2.0.0-alpha.4</version>
+        <version>2.0.0-beta.1</version>
     </parent>
-    <artifactId>magic-api-plugin-git-store</artifactId>
+    <artifactId>magic-api-plugin-git</artifactId>
     <packaging>jar</packaging>
-    <name>magic-api-plugin-git-store</name>
-    <description>magic-api-plugin-git-store</description>
+    <name>magic-api-plugin-git</name>
+    <description>magic-api-plugin-git</description>
     <properties>
         <jgit.version>5.13.0.202109080827-r</jgit.version>
     </properties>
