@@ -4,7 +4,10 @@ export default function (bus, constants, $i, Message, request) {
         getIcon: item => ['TASK', '#9012FE'],
         // 任务名称
         name: $i('task.name'),
+        // 脚本语言
         language: 'magicscript',
+        // 默认脚本
+        defaultScript: `return 'Hello magic-api-task'`,
         // 执行测试的逻辑
         doTest: (opened) => {
             opened.running = true
