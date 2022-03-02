@@ -337,7 +337,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		configuration.setMagicResourceService(magicResourceService);
 		configuration.setMagicDynamicRegistries(magicDynamicRegistriesProvider.getObject());
 		configuration.setMagicBackupService(magicBackupService);
-		Security securityConfig = properties.getSecurityConfig();
+		Security security = properties.getSecurity();
 		configuration.setDebugTimeout(properties.getDebug().getTimeout());
 		configuration.setHttpMessageConverters(httpMessageConvertersProvider.getIfAvailable(Collections::emptyList));
 		configuration.setResultProvider(resultProvider);
@@ -348,8 +348,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		// 注册函数
 		this.magicFunctionsProvider.getIfAvailable(Collections::emptyList).forEach(JavaReflection::registerFunction);
 		// 向页面传递配置信息时不传递用户名密码，增强安全性
-		securityConfig.setUsername(null);
-		securityConfig.setPassword(null);
+		security.setUsername(null);
+		security.setPassword(null);
 		requestMagicDynamicRegistry.setHandler(new RequestHandler(configuration, requestMagicDynamicRegistry));
 		List<MagicPluginConfiguration> pluginConfigurations = magicPluginsProvider.getIfAvailable(Collections::emptyList);
 		List<Plugin> plugins = pluginConfigurations.stream().map(MagicPluginConfiguration::plugin).collect(Collectors.toList());
@@ -403,8 +403,8 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		if (defaultAuthorizationInterceptor != null) {
 			return defaultAuthorizationInterceptor;
 		}
-		Security securityConfig = properties.getSecurityConfig();
-		defaultAuthorizationInterceptor = new DefaultAuthorizationInterceptor(securityConfig.getUsername(), securityConfig.getPassword());
+		Security security = properties.getSecurity();
+		defaultAuthorizationInterceptor = new DefaultAuthorizationInterceptor(security.getUsername(), security.getPassword());
 		return defaultAuthorizationInterceptor;
 	}
 
