@@ -142,7 +142,7 @@ public class MagicAPIProperties {
 	private String instanceId = UUID.randomUUID().toString();
 
 	@NestedConfigurationProperty
-	private Security securityConfig = new Security();
+	private Security security = new Security();
 
 	@NestedConfigurationProperty
 	private Page page = new Page();
@@ -353,12 +353,12 @@ public class MagicAPIProperties {
 		this.instanceId = instanceId;
 	}
 
-	public Security getSecurityConfig() {
-		return securityConfig;
+	public Security getSecurity() {
+		return security;
 	}
 
-	public void setSecurityConfig(Security securityConfig) {
-		this.securityConfig = securityConfig;
+	public void setSecurity(Security security) {
+		this.security = security;
 	}
 
 	public Page getPage() {
