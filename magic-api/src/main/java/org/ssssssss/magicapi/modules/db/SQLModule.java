@@ -117,7 +117,8 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
 		this.rowMapColumnMapper = rowMapColumnMapper;
 	}
 
-	private void setDynamicDataSource(MagicDynamicDataSource dynamicDataSource) {
+	@Transient
+	public void setDynamicDataSource(MagicDynamicDataSource dynamicDataSource) {
 		this.dynamicDataSource = dynamicDataSource;
 	}
 
@@ -136,19 +137,23 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
 		this.dataSourceNode = dataSourceNode;
 	}
 
-	protected String getCacheName() {
+	@Transient
+	public String getCacheName() {
 		return cacheName;
 	}
 
-	private void setCacheName(String cacheName) {
+	@Transient
+	public void setCacheName(String cacheName) {
 		this.cacheName = cacheName;
 	}
 
-	protected long getTtl() {
+	@Transient
+	public long getTtl() {
 		return ttl;
 	}
 
-	private void setTtl(long ttl) {
+	@Transient
+	public void setTtl(long ttl) {
 		this.ttl = ttl;
 	}
 
@@ -172,7 +177,8 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
 		this.logicDeleteValue = logicDeleteValue;
 	}
 
-	protected SqlCache getSqlCache() {
+	@Transient
+	public SqlCache getSqlCache() {
 		return sqlCache;
 	}
 
@@ -291,7 +297,6 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
 	}
 
 
-
 	/**
 	 * 数据源切换
 	 */
@@ -371,9 +376,7 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
 		RequestEntity requestEntity = RequestContext.getRequestEntity();
 		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql, requestEntity));
 		Object value = dataSourceNode.getJdbcTemplate().update(boundSql.getSql(), boundSql.getParameters());
-		if (this.cacheName != null) {
-			this.sqlCache.delete(this.cacheName);
-		}
+		deleteCache(this.cacheName);
 		for (SQLInterceptor sqlInterceptor : sqlInterceptors) {
 			value = sqlInterceptor.postHandle(boundSql, value, requestEntity);
 		}
@@ -427,9 +430,7 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
 			new ArgumentPreparedStatementSetter(boundSql.getParameters()).setValues(ps);
 			return ps;
 		}, keyHolder);
-		if (this.cacheName != null) {
-			this.sqlCache.delete(this.cacheName);
-		}
+		deleteCache(this.cacheName);
 	}
 
 	/**
@@ -438,12 +439,25 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
 	@Comment("批量执行操作，返回受影响的行数")
 	public int batchUpdate(String sql, List<Object[]> args) {
 		assertDatasourceNotNull();
-		int[] values =  dataSourceNode.getJdbcTemplate().batchUpdate(sql, args);
-		if (this.cacheName != null) {
-			this.sqlCache.delete(this.cacheName);
-		}
+		int[] values = dataSourceNode.getJdbcTemplate().batchUpdate(sql, args);
+		deleteCache(this.cacheName);
 		return Arrays.stream(values).sum();
 	}
+
+	@Transient
+	public JdbcTemplate getJdbcTemplate() {
+		assertDatasourceNotNull();
+		return dataSourceNode.getJdbcTemplate();
+	}
+
+	@Comment("删除`SQL`缓存")
+	public SQLModule deleteCache(@Comment("缓存名称") String name) {
+		if (StringUtils.isNotBlank(name)) {
+			sqlCache.delete(name);
+		}
+		return this;
+	}
+
 
 	/**
 	 * 插入并返回主键
@@ -462,9 +476,7 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
 				}
 			}
 		});
-		if (this.cacheName != null) {
-			this.sqlCache.delete(this.cacheName);
-		}
+		deleteCache(this.cacheName);
 		int count = 0;
 		for (int[] value : values) {
 			count += Arrays.stream(value).sum();
@@ -479,9 +491,7 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
 	public int batchUpdate(@Comment(name = "sqls", value = "`SQL`语句") List<String> sqls) {
 		assertDatasourceNotNull();
 		int[] values = dataSourceNode.getJdbcTemplate().batchUpdate(sqls.toArray(new String[0]));
-		if (this.cacheName != null) {
-			this.sqlCache.delete(this.cacheName);
-		}
+		deleteCache(this.cacheName);
 		return Arrays.stream(values).sum();
 	}
 
