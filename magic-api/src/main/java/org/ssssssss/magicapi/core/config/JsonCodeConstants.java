@@ -34,6 +34,8 @@ public interface JsonCodeConstants {
 
 	JsonCode MOVE_PATH_CONFLICT = new JsonCode(1011, "移动后路径会冲突,请换一个路径在试");
 
+	JsonCode SAVE_GROUP_PATH_CONFLICT = new JsonCode(1036, "保存后路径会冲突,请换一个路径在试");
+
 	JsonCode REQUEST_METHOD_REQUIRED = new JsonCode(1012, "请求方法不能为空");
 
 	JsonCode REQUEST_PATH_REQUIRED = new JsonCode(1013, "请求路径不能为空");

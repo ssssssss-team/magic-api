@@ -213,6 +213,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 		notNull(IoUtils.validateFileName(group.getName()), NAME_INVALID);
 		// 需要填写parentId
 		notNull(group.getParentId(), GROUP_ID_REQUIRED);
+		MagicResourceStorage<? extends MagicEntity> storage = storages.get(group.getType());
 		return writeLock(() -> {
 			Resource resource;
 			// 判断是否要保存到根节点下
@@ -237,11 +238,33 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 				// 创建文件夹
 				groupResource.mkdir();
 			} else {
+				Group oldGroup = groupCache.get(group.getId());
+				if(storage.requirePath() && !Objects.equals(oldGroup.getPath(), group.getPath())){
+					TreeNode<Group> treeNode = tree(group.getType());
+					String oldPath = oldGroup.getPath();
+					oldGroup.setPath(group.getPath());
+					// 递归找出该组下的文件
+					List<MagicEntity> entities = treeNode.findTreeNode(it -> it.getId().equals(group.getId()))
+							.flat()
+							.stream()
+							.flatMap(it -> fileCache.values().stream().filter(f -> f.getGroupId().equals(it.getId())))
+							.collect(Collectors.toList());
+					for (MagicEntity entity : entities) {
+						String newMappingKey = storage.buildKey(entity);
+						if (pathCache.get(group.getType()).entrySet().stream().anyMatch(entry -> entry.getValue().equals(newMappingKey) && !entry.getKey().equals(entity.getId()))) {
+							// 还原path
+							oldGroup.setPath(oldPath);
+							throw new InvalidArgumentException(SAVE_GROUP_PATH_CONFLICT);
+						}
+					}
+				}
 				Resource oldResource = getGroupResource(group.getId());
 				groupResource = resource.getDirectory(group.getName());
 				isTrue(oldResource != null && oldResource.exists(), GROUP_NOT_FOUND);
 				// 名字不一样时重命名
-				if (!oldResource.getFilePath().equals(resource.getFilePath())) {
+				if (!Objects.equals(oldGroup.getName(), group.getName())) {
+					// 判断分组文件夹需要不存在
+					isTrue(!groupResource.exists(), FILE_SAVE_FAILURE);
 					isTrue(oldResource.renameTo(groupResource), FILE_SAVE_FAILURE);
 				}
 			}
@@ -249,7 +272,6 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 			if (groupResource.getResource(Constants.GROUP_METABASE).write(JsonUtils.toJsonString(group))) {
 				putGroup(group, groupResource);
 				TreeNode<Group> treeNode = tree(group.getType()).findTreeNode(it -> it.getId().equals(group.getId()));
-				MagicResourceStorage<? extends MagicEntity> storage = storages.get(group.getType());
 				// 刷新分组缓存
 				refreshGroup(groupResource, storage);
 				if (event.getAction() != EventAction.CREATE) {
