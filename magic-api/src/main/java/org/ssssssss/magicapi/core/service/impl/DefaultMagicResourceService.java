@@ -239,7 +239,7 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 				groupResource.mkdir();
 			} else {
 				Group oldGroup = groupCache.get(group.getId());
-				if(storage.requirePath() && !Objects.equals(oldGroup.getPath(), group.getPath())){
+				if (storage.requirePath() && !Objects.equals(oldGroup.getPath(), group.getPath())) {
 					TreeNode<Group> treeNode = tree(group.getType());
 					String oldPath = oldGroup.getPath();
 					oldGroup.setPath(group.getPath());
@@ -740,7 +740,15 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 	}
 
 	private void readAllResource(Resource root, Set<Group> groups, Set<MagicEntity> entities, boolean checked) {
-		readAllResource(root, null, groups, entities, null, "/", checked);
+		Resource resource = root.getResource(Constants.GROUP_METABASE);
+		MagicResourceStorage<? extends MagicEntity> storage = null;
+		if (resource.exists()) {
+			Group group = JsonUtils.readValue(resource.read(), Group.class);
+			group.setType(mappingV1Type(group.getType()));
+			storage = storages.get(group.getType());
+			notNull(storage, NOT_SUPPORTED_GROUP_TYPE);
+		}
+		readAllResource(root, storage, groups, entities, null, "/", checked);
 	}
 
 	private void readAllResource(Resource root, MagicResourceStorage<? extends MagicEntity> storage, Set<Group> groups, Set<MagicEntity> entities, Set<String> mappingKeys, String path, boolean checked) {
