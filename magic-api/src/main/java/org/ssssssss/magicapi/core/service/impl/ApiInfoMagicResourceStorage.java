@@ -24,6 +24,11 @@ public class ApiInfoMagicResourceStorage extends AbstractPathMagicResourceStorag
 	}
 
 	@Override
+	public String buildMappingKey(ApiInfo info, String path) {
+		return info.getMethod().toUpperCase() + ":" + super.buildMappingKey(info, path);
+	}
+
+	@Override
 	public String buildMappingKey(ApiInfo info) {
 		return info.getMethod().toUpperCase() + ":" + PathUtils.replaceSlash(this.prefix + buildMappingKey(info, magicResourceService.getGroupPath(info.getGroupId())));
 	}
