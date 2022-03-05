@@ -5,6 +5,8 @@ import org.ssssssss.magicapi.core.model.ApiInfo;
 import org.ssssssss.magicapi.core.service.AbstractPathMagicResourceStorage;
 import org.ssssssss.magicapi.utils.PathUtils;
 
+import java.util.Objects;
+
 public class ApiInfoMagicResourceStorage extends AbstractPathMagicResourceStorage<ApiInfo> {
 
 	private String prefix;
@@ -30,7 +32,7 @@ public class ApiInfoMagicResourceStorage extends AbstractPathMagicResourceStorag
 
 	@Override
 	public String buildMappingKey(ApiInfo info) {
-		return info.getMethod().toUpperCase() + ":" + PathUtils.replaceSlash(this.prefix + buildMappingKey(info, magicResourceService.getGroupPath(info.getGroupId())));
+		return PathUtils.replaceSlash(buildMappingKey(info, this.prefix + Objects.toString(magicResourceService.getGroupPath(info.getGroupId()), "")));
 	}
 
 	@Override
