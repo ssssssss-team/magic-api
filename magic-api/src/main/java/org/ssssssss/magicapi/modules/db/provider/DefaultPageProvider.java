@@ -24,22 +24,24 @@ public class DefaultPageProvider implements PageProvider {
 	/**
 	 * 默认分页大小
 	 */
-	private long defaultPageSize = 10;
+	private final long defaultPageSize;
 
 	/**
 	 * 默认页数
 	 */
-	private long defaultPage = 1;
+	private final long defaultPage;
 
-	public DefaultPageProvider(String pageName, String pageSize) {
-		this(pageName, pageSize, 1, 10);
-	}
+	/**
+	 * 最大页数
+	 */
+	private final long maxPageSize;
 
-	public DefaultPageProvider(String pageName, String pageSize, long defaultPage, long defaultPageSize) {
+	public DefaultPageProvider(String pageName, String pageSize, long defaultPage, long defaultPageSize, long maxPageSize) {
 		this.pageName = pageName;
 		this.pageSize = pageSize;
 		this.defaultPageSize = defaultPageSize;
 		this.defaultPage = defaultPage;
+		this.maxPageSize = maxPageSize;
 	}
 
 
@@ -48,6 +50,9 @@ public class DefaultPageProvider implements PageProvider {
 		// 改为从脚本中获取
 		long page = NumberUtils.toLong(Objects.toString(context.eval(this.pageName), null), this.defaultPage);
 		long pageSize = NumberUtils.toLong(Objects.toString(context.eval(this.pageSize), null), this.defaultPageSize);
+		if(maxPageSize > 0){
+			pageSize = Math.min(pageSize, this.maxPageSize);
+		}
 		// 计算limit以及offset
 		return new Page(pageSize, (page - 1) * pageSize);
 

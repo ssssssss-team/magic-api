@@ -27,6 +27,11 @@ public class Page {
 	 */
 	private long defaultSize = 10;
 
+	/**
+	 * 最大页大小， -1 为不限制
+	 */
+	private long maxPageSize = -1;
+
 	public String getPage() {
 		return page;
 	}
@@ -57,5 +62,13 @@ public class Page {
 
 	public void setDefaultSize(long defaultSize) {
 		this.defaultSize = defaultSize;
+	}
+
+	public long getMaxPageSize() {
+		return maxPageSize;
+	}
+
+	public void setMaxPageSize(long maxPageSize) {
+		this.maxPageSize = maxPageSize;
 	}
 }

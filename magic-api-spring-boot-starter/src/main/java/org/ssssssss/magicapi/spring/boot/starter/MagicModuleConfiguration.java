@@ -111,8 +111,8 @@ public class MagicModuleConfiguration {
 	@ConditionalOnMissingBean(PageProvider.class)
 	public PageProvider pageProvider() {
 		Page pageConfig = properties.getPage();
-		logger.info("未找到分页实现,采用默认分页实现,分页配置:(页码={},页大小={},默认首页={},默认页大小={})", pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize());
-		return new DefaultPageProvider(pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize());
+		logger.info("未找到分页实现,采用默认分页实现,分页配置:(页码={},页大小={},默认首页={},默认页大小={},最大页大小={})", pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize(), pageConfig.getMaxPageSize());
+		return new DefaultPageProvider(pageConfig.getPage(), pageConfig.getSize(), pageConfig.getDefaultPage(), pageConfig.getDefaultSize(), pageConfig.getMaxPageSize());
 	}
 
 	/**
