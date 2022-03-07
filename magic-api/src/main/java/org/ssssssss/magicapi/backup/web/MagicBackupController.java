@@ -1,6 +1,8 @@
 package org.ssssssss.magicapi.backup.web;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.backup.model.Backup;
@@ -35,6 +37,15 @@ public class MagicBackupController extends MagicController implements MagicExcep
 			return new JsonBean<>(Collections.emptyList());
 		}
 		return new JsonBean<>(service.backupList(timestamp == null ? System.currentTimeMillis() : timestamp));
+	}
+
+	@GetMapping("/backup/{id}")
+	@ResponseBody
+	public JsonBean<List<Backup>> backups(@PathVariable("id") String id) {
+		if(service == null || StringUtils.isBlank(id)){
+			return new JsonBean<>(Collections.emptyList());
+		}
+		return new JsonBean<>(service.backupById(id));
 	}
 
 	@GetMapping("/backup/rollback")
