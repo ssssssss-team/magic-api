@@ -5,6 +5,7 @@ import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.functions.StreamExtension;
 import org.ssssssss.script.runtime.RuntimeContext;
 
+import java.beans.Transient;
 import java.util.*;
 import java.util.function.Function;
 
@@ -417,12 +418,14 @@ public class Where {
 		return namedTable.exists(runtimeContext);
 	}
 
-	void appendAnd() {
+	@Transient
+	public void appendAnd() {
 		remove();
 		tokens.add("and");
 	}
 
-	void appendOr() {
+	@Transient
+	public void appendOr() {
 		remove();
 		tokens.add("or");
 	}
@@ -457,8 +460,15 @@ public class Where {
 		return tokens.isEmpty();
 	}
 
-	void append(String value) {
+	@Transient
+	public void append(String value) {
 		tokens.add(value);
+	}
+
+	@Transient
+	public void append(String sql, Object value) {
+		tokens.add(sql);
+		params.add(value);
 	}
 
 	String getSql() {
