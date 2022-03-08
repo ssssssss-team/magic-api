@@ -32,20 +32,20 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.6.0</version>
                 <executions>
-<!--                    <execution>-->
-<!--                        <id>exec-npm-install</id>-->
-<!--                        <phase>generate-resources</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>exec</goal>-->
-<!--                        </goals>-->
-<!--                        <configuration>-->
-<!--                            <executable>npm</executable>-->
-<!--                            <arguments>-->
-<!--                                <argument>install</argument>-->
-<!--                            </arguments>-->
-<!--                            <workingDirectory>${basedir}/src/console</workingDirectory>-->
-<!--                        </configuration>-->
-<!--                    </execution>-->
+                    <execution>
+                        <id>exec-npm-install</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>npm</executable>
+                            <arguments>
+                                <argument>install</argument>
+                            </arguments>
+                            <workingDirectory>${basedir}/src/console</workingDirectory>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>exec-npm-run-build</id>
                         <phase>generate-resources</phase>
