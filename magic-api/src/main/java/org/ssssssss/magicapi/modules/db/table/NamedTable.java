@@ -258,7 +258,11 @@ public class NamedTable extends Attributes<Object> {
 		builder.append(") values (");
 		builder.append(StringUtils.join(Collections.nCopies(entries.size(), "?"), ","));
 		builder.append(")");
-		return sqlModule.insert(new BoundSql(runtimeContext, builder.toString(), entries.stream().map(Map.Entry::getValue).collect(Collectors.toList()), sqlModule), this.primary);
+		Object value = sqlModule.insert(new BoundSql(runtimeContext, builder.toString(), entries.stream().map(Map.Entry::getValue).collect(Collectors.toList()), sqlModule), this.primary);
+		if(value == null && StringUtils.isNotBlank(this.primary)){
+			return this.columns.get(this.primary);
+		}
+		return value;
 	}
 
 	@Comment("执行delete语句")
