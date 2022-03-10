@@ -3,7 +3,6 @@ package org.ssssssss.magicapi.modules.db.mybatis;
 import org.ssssssss.magicapi.core.exception.MagicAPIException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -22,7 +21,7 @@ public class MybatisParser {
 			DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			Document document = documentBuilder.parse(new ByteArrayInputStream(xml.getBytes()));
 			SqlNode sqlNode = new TextSqlNode("");
-			parseNodeList(sqlNode, document.getDocumentElement().getChildNodes());
+			parseNodeList(sqlNode, new NodeStream(document.getDocumentElement().getChildNodes()));
 			return sqlNode;
 		} catch (Exception e) {
 			throw new MagicAPIException("SQL解析错误", e);
@@ -33,72 +32,90 @@ public class MybatisParser {
 		return ESCAPE_LT_PATTERN.matcher(xml).replaceAll(ESCAPE_LT_REPLACEMENT);
 	}
 
-	private static void parseNodeList(SqlNode sqlNode, NodeList nodeList) {
-		for (int i = 0, len = nodeList.getLength(); i < len; i++) {
-			Node node = nodeList.item(i);
-			if (node.getNodeType() == Node.TEXT_NODE) {
-				sqlNode.addChildNode(new TextSqlNode(node.getNodeValue().trim()));
-			} else if (node.getNodeType() != Node.COMMENT_NODE) {
-				String nodeName = node.getNodeName();
-				SqlNode childNode;
-				if ("foreach".equalsIgnoreCase(nodeName)) {
-					childNode = parseForeachSqlNode(node);
-				} else if ("if".equalsIgnoreCase(nodeName)) {
-					childNode = new IfSqlNode(getNodeAttributeValue(node, "test"));
-				} else if ("trim".equalsIgnoreCase(nodeName)) {
-					childNode = parseTrimSqlNode(node);
-				} else if ("set".equalsIgnoreCase(nodeName)) {
-					childNode = parseSetSqlNode();
-				} else if ("where".equalsIgnoreCase(nodeName)) {
-					childNode = parseWhereSqlNode();
+	private static void parseNodeList(SqlNode sqlNode, NodeStream stream) {
+		while (stream.hasMore()) {
+			SqlNode childNode;
+			if (stream.match(Node.TEXT_NODE)) {
+				childNode = new TextSqlNode(stream.consume().getNodeValue().trim());
+			} else {
+				if (stream.match("foreach")) {
+					childNode = parseForeachSqlNode(stream);
+				} else if (stream.match("if")) {
+					childNode = parseIfSqlNode(stream);
+				} else if (stream.match("trim")) {
+					childNode = parseTrimSqlNode(stream);
+				} else if (stream.match("set")) {
+					childNode = parseSetSqlNode(stream);
+				} else if (stream.match("where")) {
+					childNode = parseWhereSqlNode(stream);
 				} else {
-					throw new UnsupportedOperationException("Unsupported tags :" + nodeName);
-				}
-				sqlNode.addChildNode(childNode);
-				if (node.hasChildNodes()) {
-					parseNodeList(childNode, node.getChildNodes());
+					throw new UnsupportedOperationException("Unsupported tags :" + stream.consume().getNodeName());
 				}
 			}
+			sqlNode.addChildNode(childNode);
 		}
+	}
+
+	private static IfSqlNode parseIfSqlNode(NodeStream stream) {
+		Node ifNode = stream.consume();
+		String test = getNodeAttributeValue(ifNode, "test");
+		SqlNode nextNode = null;
+		if (stream.match("else")) {
+			nextNode = new TextSqlNode("");
+			parseNodeList(nextNode, new NodeStream(stream.consume().getChildNodes()));
+		} else if (stream.match("elseif")) {
+			nextNode = parseIfSqlNode(stream);
+		}
+		return processChildren(new IfSqlNode(test, nextNode), ifNode);
+	}
+
+	private static <T extends SqlNode> T processChildren(T sqlNode, Node node) {
+		if (node.hasChildNodes()) {
+			parseNodeList(sqlNode, new NodeStream(node.getChildNodes()));
+		}
+		return sqlNode;
 	}
 
 	/**
 	 * 解析foreach节点
 	 */
-	private static ForeachSqlNode parseForeachSqlNode(Node node) {
+	private static ForeachSqlNode parseForeachSqlNode(NodeStream stream) {
+		Node node = stream.consume();
 		ForeachSqlNode foreachSqlNode = new ForeachSqlNode();
 		foreachSqlNode.setCollection(getNodeAttributeValue(node, "collection"));
 		foreachSqlNode.setSeparator(getNodeAttributeValue(node, "separator"));
 		foreachSqlNode.setClose(getNodeAttributeValue(node, "close"));
 		foreachSqlNode.setOpen(getNodeAttributeValue(node, "open"));
 		foreachSqlNode.setItem(getNodeAttributeValue(node, "item"));
-		return foreachSqlNode;
+		foreachSqlNode.setIndex(getNodeAttributeValue(node, "index"));
+		return processChildren(foreachSqlNode, node);
 	}
 
 	/**
 	 * 解析trim节点
 	 */
-	private static TrimSqlNode parseTrimSqlNode(Node node) {
+	private static TrimSqlNode parseTrimSqlNode(NodeStream stream) {
+		Node node = stream.consume();
 		TrimSqlNode trimSqlNode = new TrimSqlNode();
 		trimSqlNode.setPrefix(getNodeAttributeValue(node, "prefix"));
 		trimSqlNode.setPrefixOverrides(getNodeAttributeValue(node, "prefixOverrides"));
 		trimSqlNode.setSuffix(getNodeAttributeValue(node, "suffix"));
 		trimSqlNode.setSuffixOverrides(getNodeAttributeValue(node, "suffixOverrides"));
-		return trimSqlNode;
+		return processChildren(trimSqlNode, node);
 	}
 
 	/**
 	 * 解析set节点
 	 */
-	private static SetSqlNode parseSetSqlNode() {
-		return new SetSqlNode();
+	private static SetSqlNode parseSetSqlNode(NodeStream stream) {
+		return processChildren(new SetSqlNode(), stream.consume());
 	}
 
 	/**
 	 * 解析where节点
 	 */
-	private static WhereSqlNode parseWhereSqlNode() {
-		return new WhereSqlNode();
+	private static WhereSqlNode parseWhereSqlNode(NodeStream stream) {
+		return processChildren(new WhereSqlNode(), stream.consume());
 	}
 
 	private static String getNodeAttributeValue(Node node, String attributeKey) {

@@ -36,6 +36,11 @@ public class ForeachSqlNode extends SqlNode {
 	 */
 	private String separator;
 
+	/**
+	 * 序号
+	 */
+	private String index;
+
 	public void setCollection(String collection) {
 		this.collection = collection;
 	}
@@ -56,6 +61,10 @@ public class ForeachSqlNode extends SqlNode {
 		this.separator = separator;
 	}
 
+	public void setIndex(String index) {
+		this.index = index;
+	}
+
 	@Override
 	public String getSql(Map<String, Object> paramMap, List<Object> parameters) {
 		// 提取集合
@@ -74,11 +83,15 @@ public class ForeachSqlNode extends SqlNode {
 		}
 		// 开始拼接SQL,
 		StringBuilder sqlBuilder = new StringBuilder(StringUtils.defaultString(this.open));
+		boolean hasIndex = index != null && index.length() > 0;
 		// 获取数组长度
 		int len = Array.getLength(value);
 		for (int i = 0; i < len; i++) {
 			// 存入item对象
 			paramMap.put(this.item, Array.get(value, i));
+			if (hasIndex) {
+				paramMap.put(this.index, i);
+			}
 			// 拼接子节点
 			sqlBuilder.append(executeChildren(paramMap, parameters));
 			// 拼接分隔符
