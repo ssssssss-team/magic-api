@@ -587,9 +587,8 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 				}
 			}
 			resource = fileMappings.get(id);
-			notNull(resource, FILE_NOT_FOUND);
 			// 删除文件
-			if (resource.exists() && resource.delete()) {
+			if (resource != null && resource.exists() && resource.delete()) {
 				MagicEntity entity = fileCache.remove(id);
 				String type = groupCache.get(entity.getGroupId()).getType();
 				publisher.publishEvent(new FileEvent(type, EventAction.DELETE, entity));
@@ -599,9 +598,9 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 				if (map != null) {
 					map.remove(id);
 				}
-				return true;
+
 			}
-			return false;
+			return true;
 		});
 	}
 
