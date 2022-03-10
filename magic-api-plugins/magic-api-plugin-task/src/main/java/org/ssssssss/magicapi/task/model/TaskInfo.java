@@ -18,6 +18,12 @@ public class TaskInfo extends PathMagicEntity {
 	private boolean enabled;
 
 
+	/**
+	 * 定时任务描述
+	 */
+	private String description;
+
+
 	public String getCron() {
 		return cron;
 	}
@@ -34,11 +40,20 @@ public class TaskInfo extends PathMagicEntity {
 		this.enabled = enabled;
 	}
 
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	public TaskInfo copy() {
 		TaskInfo info = new TaskInfo();
 		super.copyTo(info);
 		info.setCron(this.cron);
 		info.setEnabled(this.enabled);
+		info.setDescription(this.description);
 		return info;
 	}
 
@@ -60,11 +75,12 @@ public class TaskInfo extends PathMagicEntity {
 				Objects.equals(script, taskInfo.script) &&
 				Objects.equals(name, taskInfo.name) &&
 				Objects.equals(cron, taskInfo.cron) &&
+				Objects.equals(description, taskInfo.description) &&
 				Objects.equals(enabled, taskInfo.enabled);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, path, script, name, groupId, cron, enabled);
+		return Objects.hash(id, path, script, name, groupId, cron, enabled, description);
 	}
 }
