@@ -9,7 +9,7 @@ import java.util.Objects;
 
 public class ApiInfoMagicResourceStorage extends AbstractPathMagicResourceStorage<ApiInfo> {
 
-	private String prefix;
+	private final String prefix;
 
 	public ApiInfoMagicResourceStorage(String prefix) {
 		this.prefix = StringUtils.defaultIfBlank(prefix, "") + "/";

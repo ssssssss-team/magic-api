@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.core.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -15,6 +16,7 @@ import org.ssssssss.magicapi.core.model.ApiInfo;
 import org.ssssssss.magicapi.core.service.AbstractMagicDynamicRegistry;
 import org.ssssssss.magicapi.core.service.MagicResourceStorage;
 import org.ssssssss.magicapi.utils.Mapping;
+import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.magicapi.utils.ScriptManager;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScriptContext;
@@ -43,10 +45,13 @@ public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<Ap
 
 	private final boolean allowOverride;
 
-	public RequestMagicDynamicRegistry(MagicResourceStorage<ApiInfo> magicResourceStorage, Mapping mapping, boolean allowOverride) throws NoSuchMethodException {
+	private final String prefix;
+
+	public RequestMagicDynamicRegistry(MagicResourceStorage<ApiInfo> magicResourceStorage, Mapping mapping, boolean allowOverride, String prefix) throws NoSuchMethodException {
 		super(magicResourceStorage);
 		this.mapping = mapping;
 		this.allowOverride = allowOverride;
+		this.prefix = StringUtils.defaultIfBlank(prefix, "") + "/";
 		MagicResourceLoader.addFunctionLoader(this::lookupLambdaFunction);
 	}
 
@@ -55,7 +60,7 @@ public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<Ap
 		if (index > -1) {
 			String method = name.substring(0, index);
 			String path = name.substring(index + 1);
-			ApiInfo info = getMapping(method.toUpperCase() + ":" + path);
+			ApiInfo info = getMapping(method.toUpperCase() + ":" + PathUtils.replaceSlash(this.prefix + path));
 			if (info != null) {
 				String scriptName = MagicConfiguration.getMagicResourceService().getScriptName(info);
 				return (MagicScriptLambdaFunction) (variables, args) -> {

@@ -44,7 +44,7 @@ public class MagicDynamicRegistryConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public RequestMagicDynamicRegistry magicRequestMagicDynamicRegistry(ApiInfoMagicResourceStorage apiInfoMagicResourceStorage) throws NoSuchMethodException {
-		return new RequestMagicDynamicRegistry(apiInfoMagicResourceStorage, Mapping.create(requestMappingHandlerMapping, properties.getWeb()), properties.isAllowOverride());
+		return new RequestMagicDynamicRegistry(apiInfoMagicResourceStorage, Mapping.create(requestMappingHandlerMapping, properties.getWeb()), properties.isAllowOverride(), properties.getPrefix());
 	}
 
 	@Bean
