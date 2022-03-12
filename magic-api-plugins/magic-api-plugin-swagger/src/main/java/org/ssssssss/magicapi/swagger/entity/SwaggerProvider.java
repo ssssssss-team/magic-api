@@ -193,7 +193,7 @@ public class SwaggerProvider {
 				result.put("items", Collections.emptyList());
 			}
 			result.put("type", target.getDataType().getJavascriptType());
-		} else if (DataType.Object == target.getDataType()) {
+		} else if (DataType.Object == target.getDataType() || DataType.Any == target.getDataType()) {
 			String voName = groupName + "«" + info.getPath().replaceFirst("/", "").replaceAll("/", "_") + (StringUtils.equals("response", definitionType) ? "«response«" : "«request«") + parentName + target.getName() + "»»»";
 
 			Map<String, Object> definition = new HashMap<>(4);

@@ -224,6 +224,9 @@ public class RequestHandler extends MagicController {
 			removeUnknownKey(parameters, validateParameters);
 		}
 		for (BaseDefinition parameter : validateParameters) {
+			if (parameter.getDataType() == DataType.Any) {
+				continue;
+			}
 			// 针对requestBody多层级的情况
 			if (DataType.Object == parameter.getDataType()) {
 				if (doValidateBody(comment, parameter, parameters, jsonCode, Map.class)) {

@@ -28,6 +28,11 @@ public enum DataType {
 	Array("array"),
 
 	/**
+	 * 任意类型
+	 */
+	Any("object"),
+
+	/**
 	 * Boolean类型
 	 */
 	Boolean(false, findInvoker(Boolean.class, "valueOf", new Class<?>[]{String.class}), false, true, "boolean"),
