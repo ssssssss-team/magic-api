@@ -149,7 +149,7 @@ public class SwaggerProvider {
 				parameter.put("schema", schema);
 				parameters.add(parameter);
 			} else {
-				Object object = JsonUtils.readValue(info.getRequestBody(), Object.class);
+				Object object = JsonUtils.readValue(Objects.toString(info.getResponseBody(), BODY_EMPTY), Object.class);
 				boolean isListOrMap = (object instanceof List || object instanceof Map);
 				if (isListOrMap && BooleanLiteral.isTrue(object)) {
 					parameters.add(SwaggerEntity.createParameter(false, VAR_NAME_REQUEST_BODY, VAR_NAME_REQUEST_BODY, object instanceof List ? VAR_NAME_REQUEST_BODY_VALUE_TYPE_ARRAY : VAR_NAME_REQUEST_BODY_VALUE_TYPE_OBJECT, null, object));
