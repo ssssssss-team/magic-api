@@ -38,6 +38,7 @@ public class MagicWorkbenchHandler {
 	public void onLogin(MagicConsoleSession session, String token, String clientId) {
 		try {
 			MagicUser user = guest;
+			session.setClientId(clientId);
 			if (!authorizationInterceptor.requireLogin() || (user = authorizationInterceptor.getUserByToken(token)) != null) {
 				String ip = Optional.ofNullable(session.getWebSocketSession().getRemoteAddress()).map(it -> it.getAddress().getHostAddress()).orElse("unknown");
 				HttpHeaders headers = session.getWebSocketSession().getHandshakeHeaders();
@@ -45,7 +46,6 @@ public class MagicWorkbenchHandler {
 				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_ID, user.getId());
 				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_IP, StringUtils.defaultIfBlank(ip, "unknown"));
 				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_NAME, user.getUsername());
-				session.setClientId(clientId);
 				session.setActivateTime(System.currentTimeMillis());
 				synchronized (MagicWorkbenchHandler.class){
 					if(WebSocketSessionManager.getConsoleSession(clientId) != null){
