@@ -3,19 +3,16 @@ package org.ssssssss.magicapi.core.handler;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.ssssssss.magicapi.core.annotation.Message;
+import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.MessageType;
 import org.ssssssss.magicapi.core.config.WebSocketSessionManager;
-import org.ssssssss.magicapi.core.exception.MagicLoginException;
-import org.ssssssss.magicapi.core.interceptor.AuthorizationInterceptor;
-import org.ssssssss.magicapi.core.context.MagicUser;
-import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.context.MagicConsoleSession;
-import org.ssssssss.magicapi.modules.servlet.RequestModule;
+import org.ssssssss.magicapi.core.context.MagicUser;
+import org.ssssssss.magicapi.core.interceptor.AuthorizationInterceptor;
 import org.ssssssss.magicapi.utils.IpUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -36,33 +33,38 @@ public class MagicWorkbenchHandler {
 
 	@Message(MessageType.LOGIN)
 	public void onLogin(MagicConsoleSession session, String token, String clientId) {
+		session.setClientId(clientId);
+		MagicUser user = null;
 		try {
-			MagicUser user = guest;
-			session.setClientId(clientId);
-			if (!authorizationInterceptor.requireLogin() || (user = authorizationInterceptor.getUserByToken(token)) != null) {
-				String ip = Optional.ofNullable(session.getWebSocketSession().getRemoteAddress()).map(it -> it.getAddress().getHostAddress()).orElse("unknown");
-				HttpHeaders headers = session.getWebSocketSession().getHandshakeHeaders();
-				ip = IpUtils.getRealIP(ip, headers::getFirst, null);
-				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_ID, user.getId());
-				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_IP, StringUtils.defaultIfBlank(ip, "unknown"));
-				session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_NAME, user.getUsername());
-				session.setActivateTime(System.currentTimeMillis());
-				synchronized (MagicWorkbenchHandler.class){
-					if(WebSocketSessionManager.getConsoleSession(clientId) != null){
-						WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "-1"));
-						return;
-					}
-					WebSocketSessionManager.add(session);
-				}
-				WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "1", session.getAttributes()));
-				List<Map<String, Object>> messages = getOnlineUsers();
-				if(!messages.isEmpty()){
-					WebSocketSessionManager.sendByClientId(session.getClientId(), WebSocketSessionManager.buildMessage(MessageType.ONLINE_USERS, messages));
-				}
-				WebSocketSessionManager.sendToMachine(MessageType.SEND_ONLINE, session.getClientId());
-				WebSocketSessionManager.sendToOther(session.getClientId(), MessageType.USER_LOGIN, session.getAttributes());
+			user = authorizationInterceptor.getUserByToken(token);
+		} catch (Exception e) {
+			if(!authorizationInterceptor.requireLogin()){
+				user = guest;
 			}
-		} catch (MagicLoginException ignored) {
+		}
+		if (user != null) {
+			String ip = Optional.ofNullable(session.getWebSocketSession().getRemoteAddress()).map(it -> it.getAddress().getHostAddress()).orElse("unknown");
+			HttpHeaders headers = session.getWebSocketSession().getHandshakeHeaders();
+			ip = IpUtils.getRealIP(ip, headers::getFirst, null);
+			session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_ID, user.getId());
+			session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_IP, StringUtils.defaultIfBlank(ip, "unknown"));
+			session.setAttribute(Constants.WEBSOCKET_ATTRIBUTE_USER_NAME, user.getUsername());
+			session.setActivateTime(System.currentTimeMillis());
+			synchronized (MagicWorkbenchHandler.class){
+				if(WebSocketSessionManager.getConsoleSession(clientId) != null){
+					WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "-1"));
+					return;
+				}
+				WebSocketSessionManager.add(session);
+			}
+			WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "1", session.getAttributes()));
+			List<Map<String, Object>> messages = getOnlineUsers();
+			if(!messages.isEmpty()){
+				WebSocketSessionManager.sendByClientId(session.getClientId(), WebSocketSessionManager.buildMessage(MessageType.ONLINE_USERS, messages));
+			}
+			WebSocketSessionManager.sendToMachine(MessageType.SEND_ONLINE, session.getClientId());
+			WebSocketSessionManager.sendToOther(session.getClientId(), MessageType.USER_LOGIN, session.getAttributes());
+		} else {
 			WebSocketSessionManager.sendBySession(session, WebSocketSessionManager.buildMessage(MessageType.LOGIN_RESPONSE, "0"));
 		}
 	}
