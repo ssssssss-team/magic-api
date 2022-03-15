@@ -232,6 +232,8 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 				if (group.getId() == null) {
 					group.setId(UUID.randomUUID().toString().replace("-", ""));
 				}
+				group.setCreateTime(System.currentTimeMillis());
+				group.setCreateBy(WebUtils.currentUserName());
 				groupResource = resource.getDirectory(group.getName());
 				// 判断分组文件夹需要不存在
 				isTrue(!groupResource.exists(), FILE_SAVE_FAILURE);
@@ -261,6 +263,9 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 				Resource oldResource = getGroupResource(group.getId());
 				groupResource = resource.getDirectory(group.getName());
 				isTrue(oldResource != null && oldResource.exists(), GROUP_NOT_FOUND);
+				// 设置修改时间，修改人
+				group.setUpdateBy(WebUtils.currentUserName());
+				group.setUpdateTime(System.currentTimeMillis());
 				// 名字不一样时重命名
 				if (!Objects.equals(oldGroup.getName(), group.getName())) {
 					// 判断分组文件夹需要不存在
@@ -368,6 +373,9 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 				}
 			}
 		}
+		// 设置修改时间，修改人
+		src.setUpdateBy(WebUtils.currentUserName());
+		src.setUpdateTime(System.currentTimeMillis());
 		Resource oldResource = groupMappings.get(src.getId());
 		if (oldResource.renameTo(targetResource)) {
 			Resource resource = targetResource.getResource(Constants.GROUP_METABASE);

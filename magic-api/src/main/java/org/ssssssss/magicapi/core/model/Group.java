@@ -21,6 +21,14 @@ public class Group extends Attributes<Object> {
 
 	private String path;
 
+	private Long createTime;
+
+	private Long updateTime;
+
+	private String createBy;
+
+	private String updateBy;
+
 	/**
 	 * 路径变量
 	 */
@@ -108,20 +116,48 @@ public class Group extends Attributes<Object> {
 		return group;
 	}
 
+	public Long getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(Long createTime) {
+		this.createTime = createTime;
+	}
+
+	public Long getUpdateTime() {
+		return updateTime;
+	}
+
+	public void setUpdateTime(Long updateTime) {
+		this.updateTime = updateTime;
+	}
+
+	public String getCreateBy() {
+		return createBy;
+	}
+
+	public void setCreateBy(String createBy) {
+		this.createBy = createBy;
+	}
+
+	public String getUpdateBy() {
+		return updateBy;
+	}
+
+	public void setUpdateBy(String updateBy) {
+		this.updateBy = updateBy;
+	}
+
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (!(o instanceof Group)) {
-			return false;
-		}
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
 		Group group = (Group) o;
-		return Objects.equals(id, group.id) && Objects.equals(name, group.name) && Objects.equals(type, group.type) && Objects.equals(parentId, group.parentId) && Objects.equals(path, group.path);
+		return Objects.equals(id, group.id) && Objects.equals(name, group.name) && Objects.equals(type, group.type) && Objects.equals(parentId, group.parentId) && Objects.equals(path, group.path) && Objects.equals(createTime, group.createTime) && Objects.equals(updateTime, group.updateTime) && Objects.equals(createBy, group.createBy) && Objects.equals(updateBy, group.updateBy) && Objects.equals(paths, group.paths) && Objects.equals(options, group.options);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, name, type, parentId, path);
+		return Objects.hash(id, name, type, parentId, path, createTime, updateTime, createBy, updateBy, paths, options);
 	}
 }
