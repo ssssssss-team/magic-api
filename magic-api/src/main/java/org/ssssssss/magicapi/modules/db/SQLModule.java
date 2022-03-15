@@ -3,6 +3,8 @@ package org.ssssssss.magicapi.modules.db;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.ssssssss.magicapi.core.model.Options;
+import org.ssssssss.magicapi.modules.DynamicModule;
 import org.ssssssss.magicapi.modules.db.dialect.DialectAdapter;
 import org.ssssssss.magicapi.datasource.model.MagicDynamicDataSource;
 import org.ssssssss.magicapi.datasource.model.MagicDynamicDataSource.DataSourceNode;
@@ -18,6 +20,7 @@ import org.ssssssss.magicapi.modules.db.provider.PageProvider;
 import org.ssssssss.magicapi.modules.db.table.NamedTable;
 import org.ssssssss.magicapi.core.interceptor.ResultProvider;
 import org.ssssssss.magicapi.utils.ScriptManager;
+import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.functions.DynamicAttribute;
 import org.ssssssss.script.parsing.ast.statement.ClassConverter;
@@ -38,7 +41,7 @@ import java.util.stream.Stream;
  * @author mxd
  */
 @MagicModule("db")
-public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
+public class SQLModule implements DynamicAttribute<SQLModule, SQLModule>, DynamicModule<SQLModule> {
 	static {
 		try {
 			Field[] fields = Types.class.getFields();
@@ -693,6 +696,16 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule> {
 	private BoundSql buildPageBoundSql(Dialect dialect, BoundSql boundSql, long offset, long limit) {
 		String pageSql = dialect.getPageSql(boundSql.getSql(), boundSql, offset, limit);
 		return boundSql.copy(pageSql);
+	}
+
+	@Transient
+	@Override
+	public SQLModule getDynamicModule(MagicScriptContext context) {
+		String dataSourceKey = context.getString(Options.DEFAULT_DATA_SOURCE.getValue());
+		if (StringUtils.isEmpty(dataSourceKey)) return this;
+		SQLModule newSqlModule = cloneSQLModule();
+		newSqlModule.setDataSourceNode(dynamicDataSource.getDataSource(dataSourceKey));
+		return newSqlModule;
 	}
 
 	static class MagicKeyHolder extends GeneratedKeyHolder {

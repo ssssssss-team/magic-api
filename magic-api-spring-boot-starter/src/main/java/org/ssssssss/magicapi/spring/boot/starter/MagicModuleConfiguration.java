@@ -1,6 +1,5 @@
 package org.ssssssss.magicapi.spring.boot.starter;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -18,7 +17,6 @@ import org.ssssssss.magicapi.core.config.MagicAPIProperties;
 import org.ssssssss.magicapi.core.config.Page;
 import org.ssssssss.magicapi.core.interceptor.DefaultResultProvider;
 import org.ssssssss.magicapi.core.interceptor.ResultProvider;
-import org.ssssssss.magicapi.core.model.Options;
 import org.ssssssss.magicapi.datasource.model.MagicDynamicDataSource;
 import org.ssssssss.magicapi.jsr223.JSR223LanguageProvider;
 import org.ssssssss.magicapi.modules.db.ColumnMapperAdapter;
@@ -37,8 +35,6 @@ import org.ssssssss.magicapi.modules.http.HttpModule;
 import org.ssssssss.magicapi.modules.servlet.RequestModule;
 import org.ssssssss.magicapi.modules.servlet.ResponseModule;
 import org.ssssssss.magicapi.modules.spring.EnvModule;
-import org.ssssssss.script.MagicResourceLoader;
-import org.ssssssss.script.functions.DynamicModuleImport;
 
 import javax.sql.DataSource;
 import java.nio.charset.StandardCharsets;
@@ -159,13 +155,6 @@ public class MagicModuleConfiguration {
 		sqlModule.setDialectAdapter(dialectAdapter);
 		sqlModule.setLogicDeleteColumn(properties.getCrud().getLogicDeleteColumn());
 		sqlModule.setLogicDeleteValue(properties.getCrud().getLogicDeleteValue());
-		MagicResourceLoader.addModule("db", new DynamicModuleImport(SQLModule.class, context -> {
-			String dataSourceKey = context.getString(Options.DEFAULT_DATA_SOURCE.getValue());
-			if (StringUtils.isEmpty(dataSourceKey)) return sqlModule;
-			SQLModule newSqlModule = sqlModule.cloneSQLModule();
-			newSqlModule.setDataSourceNode(dynamicDataSource.getDataSource(dataSourceKey));
-			return newSqlModule;
-		}));
 		return sqlModule;
 	}
 

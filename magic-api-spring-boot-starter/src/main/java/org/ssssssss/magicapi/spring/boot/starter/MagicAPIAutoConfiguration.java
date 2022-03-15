@@ -59,6 +59,7 @@ import org.ssssssss.magicapi.datasource.service.DataSourceEncryptProvider;
 import org.ssssssss.magicapi.datasource.web.MagicDataSourceController;
 import org.ssssssss.magicapi.function.service.FunctionMagicDynamicRegistry;
 import org.ssssssss.magicapi.jsr223.LanguageProvider;
+import org.ssssssss.magicapi.modules.DynamicModule;
 import org.ssssssss.magicapi.utils.Mapping;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScript;
@@ -291,7 +292,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		applicationContext.getBeansWithAnnotation(MagicModule.class).values().forEach(module -> {
 			String moduleName = AnnotationUtils.findAnnotation(module.getClass(), MagicModule.class).value();
 			logger.info("注册模块:{} -> {}", moduleName, module.getClass());
-			MagicResourceLoader.addModule(moduleName, module);
+			if(module instanceof DynamicModule){
+				MagicResourceLoader.addModule(moduleName, new DynamicModuleImport(module.getClass(), ((DynamicModule<?>) module)::getDynamicModule));
+			} else {
+				MagicResourceLoader.addModule(moduleName, module);
+			}
 		});
 		MagicResourceLoader.getModuleNames().stream().filter(importModules::contains).forEach(moduleName -> {
 			logger.info("自动导入模块：{}", moduleName);
