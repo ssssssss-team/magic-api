@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.core.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -10,6 +11,9 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.JsonCodeConstants;
@@ -47,6 +51,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	private final ApplicationEventPublisher publisher;
 	private final RequestMagicDynamicRegistry requestMagicDynamicRegistry;
 	private final FunctionMagicDynamicRegistry functionMagicDynamicRegistry;
+	private final String prefix;
 
 	public DefaultMagicAPIService(ResultProvider resultProvider,
 								  String instanceId,
@@ -54,6 +59,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 								  RequestMagicDynamicRegistry requestMagicDynamicRegistry,
 								  FunctionMagicDynamicRegistry functionMagicDynamicRegistry,
 								  boolean throwException,
+								  String prefix,
 								  ApplicationEventPublisher publisher) {
 		this.resultProvider = resultProvider;
 		this.requestMagicDynamicRegistry = requestMagicDynamicRegistry;
@@ -61,10 +67,12 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		this.throwException = throwException;
 		this.resourceService = resourceService;
 		this.instanceId = instanceId;
+		this.prefix = StringUtils.defaultIfBlank(prefix, "");
 		this.publisher = publisher;
 	}
 
-	private Object execute(PathMagicEntity info, Map<String, Object> context) {
+	@SuppressWarnings({"unchecked"})
+	private <T> T execute(RequestEntity requestEntity, PathMagicEntity info, Map<String, Object> context) {
 
 		MagicScriptContext scriptContext = new MagicScriptContext();
 		String fullGroupName = resourceService.getGroupName(info.getGroupId());
@@ -72,26 +80,38 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		String scriptName = PathUtils.replaceSlash(String.format("/%s/%s(/%s/%s)", fullGroupName, info.getName(), fullGroupPath, info.getPath()));
 		scriptContext.setScriptName(scriptName);
 		scriptContext.putMapIntoContext(context);
-		return ScriptManager.executeScript(info.getScript(), scriptContext);
+		if(requestEntity != null){
+			requestEntity.setMagicScriptContext(scriptContext);
+		}
+		return (T) ScriptManager.executeScript(info.getScript(), scriptContext);
 	}
 
 	@Override
 	public <T> T execute(String method, String path, Map<String, Object> context) {
-		String mappingKey = Objects.toString(method, "GET").toUpperCase() + ":" + PathUtils.replaceSlash("/" + Objects.toString(path, ""));
+		return execute(null, method, path, context);
+	}
+
+	private <T> T execute(RequestEntity requestEntity, String method, String path, Map<String, Object> context){
+		String mappingKey = Objects.toString(method, "GET").toUpperCase() + ":" + PathUtils.replaceSlash(this.prefix + "/" + Objects.toString(path, ""));
 		ApiInfo info = requestMagicDynamicRegistry.getMapping(mappingKey);
 		if (info == null) {
 			throw new MagicAPIException(String.format("找不到对应接口 [%s:%s]", method, path));
 		}
-		return (T) execute(info, context);
+		context.put("apiInfo", info);
+		return execute(requestEntity, info, context);
 	}
 
+	@SuppressWarnings({"unchecked"})
 	@Override
 	public <T> T call(String method, String path, Map<String, Object> context) {
 		RequestEntity requestEntity = RequestEntity.create();
 		try {
-			return (T) resultProvider.buildResult(requestEntity, (Object) execute(method, path, context));
-		} catch (MagicResourceNotFoundException e) {
-			return null;    //找不到对应接口
+			RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+			if (requestAttributes instanceof ServletRequestAttributes) {
+				requestEntity.request(((ServletRequestAttributes) requestAttributes).getRequest())
+						.response(((ServletRequestAttributes) requestAttributes).getResponse());
+			}
+			return (T) resultProvider.buildResult(requestEntity, (Object) execute(requestEntity, method, path, context));
 		} catch (Throwable root) {
 			if (throwException) {
 				throw root;
@@ -100,13 +120,14 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		}
 	}
 
+	@SuppressWarnings({"unchecked"})
 	@Override
 	public <T> T invoke(String path, Map<String, Object> context) {
 		FunctionInfo functionInfo = functionMagicDynamicRegistry.getMapping(path);
 		if (functionInfo == null) {
 			throw new MagicAPIException(String.format("找不到对应函数 [%s]", path));
 		}
-		return (T) execute(functionInfo, context);
+		return (T) execute(null, functionInfo, context);
 	}
 
 	@Override
