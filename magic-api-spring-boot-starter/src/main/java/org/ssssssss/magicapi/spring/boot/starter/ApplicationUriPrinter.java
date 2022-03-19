@@ -51,7 +51,7 @@ public class ApplicationUriPrinter implements CommandLineRunner {
 		System.out.printf(
 				"服务启动成功，magic-api已内置启动! Access URLs:" +
 				"\n\t接口本地地址: \t\t%s" +
-				"\n\t接口外部访问地址: \t\t%s\n"
+				"\n\t接口外部地址: \t\t%s\n"
 				, localUrl
 				, externUrl
 		);
