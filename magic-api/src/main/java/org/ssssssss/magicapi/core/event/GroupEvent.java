@@ -11,7 +11,7 @@ public class GroupEvent extends MagicEvent {
 	/**
 	 * 分组信息
 	 */
-	private final Group group;
+	private Group group;
 
 	/**
 	 * 子分组
@@ -31,6 +31,10 @@ public class GroupEvent extends MagicEvent {
 
 	public Group getGroup() {
 		return group;
+	}
+
+	public void setGroup(Group group) {
+		this.group = group;
 	}
 
 	public List<MagicEntity> getEntities() {

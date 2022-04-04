@@ -89,8 +89,16 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 			if (event.getAction() == EventAction.DELETE) {
 				event.setEntities(deleteGroup(id));
 			} else if (action != EventAction.CREATE) {
-				// 刷新分组缓存
-				refreshGroup(groupMappings.get(id), storages.get(group.getType()));
+				Resource folder = groupMappings.get(id);
+				folder.readAll();
+				if (folder.exists()) {
+					// 刷新分组缓存
+					refreshGroup(folder, storages.get(group.getType()));
+				} else {
+					this.readAll();
+					treeNode = tree(group.getType()).findTreeNode(it -> it.getId().equals(id));
+				}
+				event.setGroup(groupCache.get(id));
 				event.setEntities(treeNode
 						.flat()
 						.stream()
@@ -122,8 +130,14 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 					}
 				} else {
 					Resource resource = fileMappings.get(id);
-					entity = storage.read(resource.read());
-					putFile(storage, entity, resource);
+					resource.readAll();
+					if (resource.exists()) {
+						entity = storage.read(resource.read());
+						putFile(storage, entity, resource);
+					} else {
+						this.readAll();
+						entity = fileCache.get(id);
+					}
 				}
 				publisher.publishEvent(new FileEvent(group.getType(), action, entity, Constants.EVENT_SOURCE_NOTIFY));
 			}
