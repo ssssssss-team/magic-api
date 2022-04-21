@@ -28,6 +28,7 @@ public class DialectAdapter {
 		add(new SQLServerDialect());
 		add(new SQLServer2005Dialect());
 		add(new DmDialect());
+		add(new ImpalaDialect());
 		add(new KingbaseSQLDialect());
 	}
 
