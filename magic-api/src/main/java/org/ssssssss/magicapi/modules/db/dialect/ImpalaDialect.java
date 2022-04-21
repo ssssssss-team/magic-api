@@ -15,8 +15,8 @@ public class ImpalaDialect implements Dialect {
 
     @Override
     public String getPageSql(String sql, BoundSql boundSql, long offset, long limit) {
-        boundSql.addParameter(offset);
         boundSql.addParameter(limit);
+        boundSql.addParameter(offset);
         return sql + " order by null limit ? offset ?";
     }
 }
