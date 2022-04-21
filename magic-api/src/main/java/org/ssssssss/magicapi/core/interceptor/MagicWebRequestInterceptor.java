@@ -19,36 +19,34 @@ import java.util.Optional;
  */
 public class MagicWebRequestInterceptor implements HandlerInterceptor {
 
-    private final MagicCorsFilter magicCorsFilter;
+	private final MagicCorsFilter magicCorsFilter;
 
-    private final AuthorizationInterceptor authorizationInterceptor;
+	private final AuthorizationInterceptor authorizationInterceptor;
 
-    public MagicWebRequestInterceptor(MagicCorsFilter magicCorsFilter, AuthorizationInterceptor authorizationInterceptor) {
-        this.magicCorsFilter = magicCorsFilter;
-        this.authorizationInterceptor = authorizationInterceptor;
-    }
+	public MagicWebRequestInterceptor(MagicCorsFilter magicCorsFilter, AuthorizationInterceptor authorizationInterceptor) {
+		this.magicCorsFilter = magicCorsFilter;
+		this.authorizationInterceptor = authorizationInterceptor;
+	}
 
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws MagicLoginException {
-        HandlerMethod handlerMethod;
-        if (handler instanceof HandlerMethod) {
-            handlerMethod = (HandlerMethod) handler;
-            handler = handlerMethod.getBean();
-            if (handler instanceof MagicController) {
-                if (magicCorsFilter != null) {
-                    magicCorsFilter.process(request, response);
-                }
-                Valid valid = handlerMethod.getMethodAnnotation(Valid.class);
-                boolean validRequiredLogin = (valid == null || valid.requireLogin());
-                if (validRequiredLogin) {
-                    Optional.ofNullable(authorizationInterceptor.getUserByToken(
-                            request.getHeader(Constants.MAGIC_TOKEN_HEADER))).ifPresent(it ->
-                            request.setAttribute(Constants.ATTRIBUTE_MAGIC_USER, it)
-                    );
-                }
-                ((MagicController) handler).doValid(request, valid);
-            }
-        }
-        return true;
-    }
+	@Override
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws MagicLoginException {
+		HandlerMethod handlerMethod;
+		if (handler instanceof HandlerMethod) {
+			handlerMethod = (HandlerMethod) handler;
+			handler = handlerMethod.getBean();
+			if (handler instanceof MagicController) {
+				if (magicCorsFilter != null) {
+					magicCorsFilter.process(request, response);
+				}
+				Valid valid = handlerMethod.getMethodAnnotation(Valid.class);
+				boolean validRequiredLogin = (valid == null || valid.requireLogin());
+				if (validRequiredLogin) {
+                    Optional.ofNullable(authorizationInterceptor.getUserByToken(request.getHeader(Constants.MAGIC_TOKEN_HEADER)))
+                            .ifPresent(it -> request.setAttribute(Constants.ATTRIBUTE_MAGIC_USER, it));
+				}
+				((MagicController) handler).doValid(request, valid);
+			}
+		}
+		return true;
+	}
 }
