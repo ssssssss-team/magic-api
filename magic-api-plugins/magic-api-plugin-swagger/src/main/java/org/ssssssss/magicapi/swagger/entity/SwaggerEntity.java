@@ -17,6 +17,10 @@ public class SwaggerEntity {
 
 	private Info info;
 
+	private final Map<String, Object> securityDefinitions = new HashMap<>();
+
+	private final List<Map<String, Object>> security = new ArrayList<>();
+
 	private final Set<Tag> tags = new TreeSet<>(Comparator.comparing(Tag::getName));
 
 	private final Map<String, Object> definitions = new HashMap<>();
@@ -140,6 +144,22 @@ public class SwaggerEntity {
 
 	public Map<String, Map<String, Path>> getPaths() {
 		return paths;
+	}
+
+	public Map<String, Object> getSecurityDefinitions() {
+		return securityDefinitions;
+	}
+
+	public List<Map<String, Object>> getSecurity() {
+		return security;
+	}
+
+	public void addSecurityDefinitions(Map<String, Object> map) {
+		securityDefinitions.putAll(map);
+	}
+
+	public void addSecurity(Map<String, Object> map) {
+		security.add(map);
 	}
 
 	public static class Concat {
@@ -479,7 +499,6 @@ public class SwaggerEntity {
 		}
 	}
 
-
 	public static class License {
 
 		private String name;
@@ -505,6 +524,114 @@ public class SwaggerEntity {
 
 		public void setUrl(String url) {
 			this.url = url;
+		}
+	}
+
+	public static class BasicAuth {
+
+		public final static String KEY_NAME = "BasicAuth";
+
+		/**
+		 * 类型,默认值
+		 */
+		private String type = "basic";
+
+		public String getType() {
+			return type;
+		}
+
+		public void setType(String type) {
+			this.type = type;
+		}
+	}
+
+	public static class ApiKeyAuth {
+
+		public final static String KEY_NAME = "ApiKeyAuth";
+
+		private String type = "apiKey";
+
+		private String name = "header";
+
+		private String in = "X-API-Key";
+
+		public String getType() {
+			return type;
+		}
+
+		public void setType(String type) {
+			this.type = type;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public String getIn() {
+			return in;
+		}
+
+		public void setIn(String in) {
+			this.in = in;
+		}
+	}
+
+	public static class OAuth2 {
+
+		public final static String KEY_NAME = "OAuth2";
+
+		private String type = "oauth2";
+
+		private String flow;
+
+		private String authorizationUrl;
+
+		private String tokenUrl;
+
+		private Map<String, String> scopes;
+
+		public String getType() {
+			return type;
+		}
+
+		public void setType(String type) {
+			this.type = type;
+		}
+
+		public String getFlow() {
+			return flow;
+		}
+
+		public void setFlow(String flow) {
+			this.flow = flow;
+		}
+
+		public String getAuthorizationUrl() {
+			return authorizationUrl;
+		}
+
+		public void setAuthorizationUrl(String authorizationUrl) {
+			this.authorizationUrl = authorizationUrl;
+		}
+
+		public String getTokenUrl() {
+			return tokenUrl;
+		}
+
+		public void setTokenUrl(String tokenUrl) {
+			this.tokenUrl = tokenUrl;
+		}
+
+		public Map<String, String> getScopes() {
+			return scopes;
+		}
+
+		public void setScopes(Map<String, String> scopes) {
+			this.scopes = scopes;
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package org.ssssssss.magicapi.swagger;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -23,9 +22,7 @@ import springfox.documentation.swagger.web.SwaggerResource;
 import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
 import javax.servlet.ServletContext;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Configuration
 @EnableConfigurationProperties(SwaggerConfig.class)
@@ -58,8 +55,37 @@ public class MagicSwaggerConfiguration implements MagicPluginConfiguration {
 		RequestMappingInfo requestMappingInfo = mapping.paths(swaggerConfig.getLocation()).build();
 		SwaggerEntity.License license = new SwaggerEntity.License("MIT", "https://gitee.com/ssssssss-team/magic-api/blob/master/LICENSE");
 		SwaggerEntity.Info info = new SwaggerEntity.Info(swaggerConfig.getDescription(), swaggerConfig.getVersion(), swaggerConfig.getTitle(), license, swaggerConfig.getConcat());
+
+		//具体参考：https://swagger.io/docs/specification/2-0/authentication/
+		Map<String, Object> securityDefinitionMap = new HashMap<>();
+		Map<String, Object> securityMap = new HashMap<>();
+
+		if (swaggerConfig.getBasicAuth() != null) {
+			securityDefinitionMap.put(SwaggerEntity.BasicAuth.KEY_NAME, swaggerConfig.getBasicAuth());
+
+			//the Basic and API key security items use an empty array instead.
+			securityMap.put(SwaggerEntity.BasicAuth.KEY_NAME, new String[]{});
+		}
+		if (swaggerConfig.getApiKeyAuth() != null) {
+			securityDefinitionMap.put(SwaggerEntity.ApiKeyAuth.KEY_NAME, swaggerConfig.getApiKeyAuth());
+
+			//the Basic and API key security items use an empty array instead.
+			securityMap.put(SwaggerEntity.ApiKeyAuth.KEY_NAME, new String[]{});
+		}
+		if (swaggerConfig.getOauth2() != null) {
+			SwaggerEntity.OAuth2 oAuth2 = swaggerConfig.getOauth2();
+			securityDefinitionMap.put(SwaggerEntity.OAuth2.KEY_NAME, oAuth2);
+
+			Map<String, String> scopes = oAuth2.getScopes();
+			if (scopes != null) {
+				Set<String> strings = scopes.keySet();
+				securityMap.put(SwaggerEntity.OAuth2.KEY_NAME, strings);
+			}
+		}
+
 		// 构建文档信息
-		SwaggerProvider swaggerProvider = new SwaggerProvider(requestMagicDynamicRegistry, magicResourceService, servletContext.getContextPath(), info, properties.isPersistenceResponseBody(), properties.getPrefix());
+		SwaggerProvider swaggerProvider = new SwaggerProvider(requestMagicDynamicRegistry, magicResourceService, servletContext.getContextPath(),
+				info, properties.isPersistenceResponseBody(), properties.getPrefix(), securityDefinitionMap, securityMap);
 
 
 		// 注册swagger.json
