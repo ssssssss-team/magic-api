@@ -484,13 +484,13 @@ public class NamedTable extends Attributes<Object> {
 		}
 		builder.append(" from ").append(tableName);
 		List<Object> params = buildWhere(builder);
+        if (!groups.isEmpty()) {
+			builder.append(" group by ");
+			builder.append(String.join(",", groups));
+		}
 		if (!orders.isEmpty()) {
 			builder.append(" order by ");
 			builder.append(String.join(",", orders));
-		}
-		if (!groups.isEmpty()) {
-			builder.append(" group by ");
-			builder.append(String.join(",", groups));
 		}
 		BoundSql boundSql = new BoundSql(runtimeContext, builder.toString(), params, sqlModule);
 		boundSql.setExcludeColumns(excludeColumns);
