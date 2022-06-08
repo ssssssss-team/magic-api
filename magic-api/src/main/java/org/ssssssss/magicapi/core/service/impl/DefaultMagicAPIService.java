@@ -36,6 +36,7 @@ import org.ssssssss.magicapi.utils.SignUtils;
 import org.ssssssss.script.MagicScriptContext;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,7 +81,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		String scriptName = PathUtils.replaceSlash(String.format("/%s/%s(/%s/%s)", fullGroupName, info.getName(), fullGroupPath, info.getPath()));
 		scriptContext.setScriptName(scriptName);
 		scriptContext.putMapIntoContext(context);
-		if(requestEntity != null){
+		if (requestEntity != null) {
 			requestEntity.setMagicScriptContext(scriptContext);
 		}
 		return (T) ScriptManager.executeScript(info.getScript(), scriptContext);
@@ -91,11 +92,14 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		return execute(null, method, path, context);
 	}
 
-	private <T> T execute(RequestEntity requestEntity, String method, String path, Map<String, Object> context){
+	private <T> T execute(RequestEntity requestEntity, String method, String path, Map<String, Object> context) {
 		String mappingKey = Objects.toString(method, "GET").toUpperCase() + ":" + PathUtils.replaceSlash(this.prefix + "/" + Objects.toString(path, ""));
 		ApiInfo info = requestMagicDynamicRegistry.getMapping(mappingKey);
 		if (info == null) {
 			throw new MagicAPIException(String.format("找不到对应接口 [%s:%s]", method, path));
+		}
+		if (context == null) {
+			context = new HashMap<>();
 		}
 		context.put("apiInfo", info);
 		return execute(requestEntity, info, context);
@@ -201,6 +205,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		MagicWebSocketDispatcher.processMessageReceived(clientId, content);
 		return true;
 	}
+
 	private boolean processWebSocketEventMessage(String content) {
 		MagicWebSocketDispatcher.processWebSocketEventMessage(content);
 		return true;
