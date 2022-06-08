@@ -1,7 +1,6 @@
 package org.ssssssss.magicapi.swagger;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.ssssssss.magicapi.swagger.entity.SwaggerEntity;
 
@@ -35,6 +34,24 @@ public class SwaggerConfig {
 
 	@NestedConfigurationProperty
 	private SwaggerEntity.Concat concat = new SwaggerEntity.Concat();
+
+	/**
+	 * 基本认证
+	 */
+	@NestedConfigurationProperty
+	private SwaggerEntity.BasicAuth basicAuth;
+
+	/**
+	 * api密钥认证
+	 */
+	@NestedConfigurationProperty
+	private SwaggerEntity.ApiKeyAuth apiKeyAuth;
+
+	/**
+	 * oauth2认证
+	 */
+	@NestedConfigurationProperty
+	private SwaggerEntity.OAuth2 oauth2;
 
 	/**
 	 * 文档版本
@@ -87,5 +104,29 @@ public class SwaggerConfig {
 
 	public void setConcat(SwaggerEntity.Concat concat) {
 		this.concat = concat;
+	}
+
+	public SwaggerEntity.ApiKeyAuth getApiKeyAuth() {
+		return apiKeyAuth;
+	}
+
+	public void setApiKeyAuth(SwaggerEntity.ApiKeyAuth apiKeyAuth) {
+		this.apiKeyAuth = apiKeyAuth;
+	}
+
+	public SwaggerEntity.BasicAuth getBasicAuth() {
+		return basicAuth;
+	}
+
+	public void setBasicAuth(SwaggerEntity.BasicAuth basicAuth) {
+		this.basicAuth = basicAuth;
+	}
+
+	public SwaggerEntity.OAuth2 getOauth2() {
+		return oauth2;
+	}
+
+	public void setOauth2(SwaggerEntity.OAuth2 oauth2) {
+		this.oauth2 = oauth2;
 	}
 }
