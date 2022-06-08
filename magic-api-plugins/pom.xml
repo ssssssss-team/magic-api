@@ -15,6 +15,7 @@
     <description>auto generate http api</description>
     <modules>
         <module>magic-api-plugin-task</module>
+        <module>magic-api-plugin-component</module>
         <module>magic-api-plugin-swagger</module>
         <module>magic-api-plugin-redis</module>
         <module>magic-api-plugin-mongo</module>
