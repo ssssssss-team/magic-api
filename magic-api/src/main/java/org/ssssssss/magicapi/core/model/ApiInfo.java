@@ -97,7 +97,7 @@ public class ApiInfo extends PathMagicEntity {
 	public Map<String, String> options() {
 		Map<String, String> map = this.options.stream()
 				.collect(Collectors.toMap(BaseDefinition::getName, it -> String.valueOf(it.getValue()), (o, n) -> n));
-		MagicConfiguration.getMagicResourceService().getGroupsByFileId(this.groupId)
+		MagicConfiguration.getMagicResourceService().getGroupsByFileId(this.id)
 				.stream()
 				.flatMap(it -> it.getOptions().stream())
 				.forEach(option -> {
