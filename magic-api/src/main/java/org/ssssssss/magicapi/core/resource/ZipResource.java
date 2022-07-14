@@ -1,11 +1,13 @@
 package org.ssssssss.magicapi.core.resource;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +38,8 @@ public class ZipResource implements Resource {
 				while ((len = zis.read(buf, 0, buf.length)) != -1) {
 					os.write(buf, 0, len);
 				}
-				cachedContent.put(entry.getName(), os.toByteArray());
+			    String charset = ((ZipArchiveEntry) entry).getGeneralPurposeBit().usesUTF8ForNames() ? StandardCharsets.UTF_8.name() : "GBK";
+				cachedContent.put(new String(((ZipArchiveEntry) entry).getRawName(),  charset), os.toByteArray());
 			}
 		}
 	}
