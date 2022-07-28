@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.nio.charset.StandardCharsets;
 
 /**
  * IO工具包
@@ -122,7 +123,7 @@ public class IoUtils {
 		if (content == null) {
 			return false;
 		}
-		return write(file, content.getBytes());
+		return write(file, content.getBytes(StandardCharsets.UTF_8));
 	}
 
 	public static boolean delete(File file) {
