@@ -44,7 +44,7 @@ public interface Dialect {
 	 * @return 分页 count SQL
 	 */
 	default String getCountSql(String sql) {
-		return "select count(1) from (" + REPLACE_ORDER_BY.matcher(sql).replaceAll("") + ") count_";
+		return "select count(1) from ( \n" + REPLACE_ORDER_BY.matcher(sql).replaceAll("") + "\n ) count_";
 	}
 
 	/**

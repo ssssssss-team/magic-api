@@ -19,6 +19,6 @@ public class MySQLDialect implements Dialect {
 	public String getPageSql(String sql, BoundSql boundSql, long offset, long limit) {
 		boundSql.addParameter(offset);
 		boundSql.addParameter(limit);
-		return sql + " limit ?,?";
+		return sql + "\n limit ?,?";
 	}
 }

@@ -19,8 +19,8 @@ public class DmDialect implements Dialect {
 		limit = (offset >= 1) ? (offset + limit) : limit;
 		boundSql.addParameter(limit);
 		boundSql.addParameter(offset);
-		return "SELECT * FROM ( SELECT TMP.*, ROWNUM ROW_ID FROM ( " +
-				sql + " ) TMP WHERE ROWNUM <= ? ) WHERE ROW_ID > ?";
+		return "SELECT * FROM ( SELECT TMP.*, ROWNUM ROW_ID FROM ( \n" +
+				sql + "\n ) TMP WHERE ROWNUM <= ? ) WHERE ROW_ID > ?";
 	}
 }
 
