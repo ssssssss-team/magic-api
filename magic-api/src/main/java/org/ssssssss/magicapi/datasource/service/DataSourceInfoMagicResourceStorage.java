@@ -46,7 +46,7 @@ public class DataSourceInfoMagicResourceStorage implements MagicResourceStorage<
 
 	@Override
 	public String buildMappingKey(DataSourceInfo info) {
-		return info.getKey();
+		return String.format("%s-%s", info.getKey(), info.getUpdateTime());
 	}
 
 	@Override
