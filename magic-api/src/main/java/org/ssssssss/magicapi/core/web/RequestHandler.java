@@ -159,7 +159,7 @@ public class RequestHandler extends MagicController {
 		} catch (ValidateException e) {
 			return afterCompletion(requestEntity, resultProvider.buildResult(requestEntity, RESPONSE_CODE_INVALID, e.getMessage()));
 		} catch (Throwable root) {
-			return afterCompletion(requestEntity, processException(requestEntity, root), root);
+			return processException(requestEntity, root);
 		}
 		RequestContext.setRequestEntity(requestEntity);
 		Object value;
@@ -342,7 +342,7 @@ public class RequestHandler extends MagicController {
 			// 对返回结果包装处理
 			return afterCompletion(requestEntity, response(requestEntity, result));
 		} catch (Throwable root) {
-			return afterCompletion(requestEntity, processException(requestEntity, root), root);
+			return processException(requestEntity, root);
 		} finally {
 			RequestContext.remove();
 		}
@@ -354,7 +354,7 @@ public class RequestHandler extends MagicController {
 		do {
 			if (parent instanceof MagicScriptAssertException) {
 				MagicScriptAssertException sae = (MagicScriptAssertException) parent;
-				return resultProvider.buildResult(requestEntity, sae.getCode(), sae.getMessage());
+				return afterCompletion(requestEntity, resultProvider.buildResult(requestEntity, sae.getCode(), sae.getMessage()), root);
 			}
 			if (parent instanceof MagicScriptException) {
 				se = (MagicScriptException) parent;
@@ -369,10 +369,11 @@ public class RequestHandler extends MagicController {
 			));
 		}
 		if (configuration.isThrowException()) {
+			afterCompletion(requestEntity, null, root);
 			throw root;
 		}
 		logger.error("接口{}请求出错", requestEntity.getRequest().getRequestURI(), root);
-		return resultProvider.buildException(requestEntity, root);
+		return afterCompletion(requestEntity, resultProvider.buildException(requestEntity, root), root);
 	}
 
 	/**
