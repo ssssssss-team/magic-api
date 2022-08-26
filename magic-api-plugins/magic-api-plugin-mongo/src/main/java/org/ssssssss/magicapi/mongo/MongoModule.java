@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.annotation.MagicModule;
+import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.convert.ClassImplicitConvert;
 import org.ssssssss.script.functions.DynamicAttribute;
 import org.ssssssss.script.reflection.JavaInvoker;
@@ -55,6 +56,11 @@ public class MongoModule implements ClassImplicitConvert, DynamicAttribute<Mongo
 		JavaReflection.registerImplicitConvert(this);
 	}
 
+	@Comment("获取`database`")
+	public MongoDataBaseGetter database(String databaseName){
+		return getDynamicAttribute(databaseName);
+	}
+
 	@Override
 	@Transient
 	public MongoDataBaseGetter getDynamicAttribute(String databaseName) {
@@ -91,6 +97,12 @@ public class MongoModule implements ClassImplicitConvert, DynamicAttribute<Mongo
 		@Transient
 		public MongoCollection<Document> getDynamicAttribute(String key) {
 			return database.getCollection(key);
+		}
+
+
+		@Comment("获取`Collection`")
+		public MongoCollection<Document> collection(String key){
+			return  getDynamicAttribute(key);
 		}
 	}
 }
