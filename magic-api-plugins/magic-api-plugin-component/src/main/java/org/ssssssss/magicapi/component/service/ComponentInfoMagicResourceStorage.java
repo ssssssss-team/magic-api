@@ -28,9 +28,4 @@ public class ComponentInfoMagicResourceStorage extends AbstractPathMagicResource
 		return buildMappingKey(info, magicResourceService.getGroupPath(info.getGroupId()));
 	}
 
-	@Override
-	public boolean requirePath() {
-		return false;
-	}
-
 }
