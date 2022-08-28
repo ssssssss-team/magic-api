@@ -28,4 +28,9 @@ public class MagicMongoConfiguration implements MagicPluginConfiguration {
 		JavaReflection.registerMethodExtension(FindIterable.class, new MongoFindIterableExtension());
 		return new MongoModule(mongoTemplate);
 	}
+
+	@Bean
+	public MongoFunction mongoFunction(){
+		return new MongoFunction();
+	}
 }
