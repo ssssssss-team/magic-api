@@ -139,7 +139,9 @@ public class DatabaseResource extends KeyValueResource {
 	public boolean renameTo(Map<String, String> renameKeys) {
 		List<Object[]> args = renameKeys.entrySet().stream().map(entry -> new Object[]{entry.getValue(), entry.getKey()}).collect(Collectors.toList());
 		String sql = String.format("update %s set file_path = ? where file_path = ?", tableName);
-		if (Arrays.stream(template.batchUpdate(sql, args)).sum() > 0) {
+		int affectedRows = Arrays.stream(template.batchUpdate(sql, args)).sum() ;
+		//oracle 执行更新操作成功会返回-2
+		if (affectedRows > 0 || affectedRows == -2) {
 			renameKeys.forEach((oldKey, newKey) -> this.cachedContent.put(newKey, this.cachedContent.remove(oldKey)));
 			return true;
 		}
