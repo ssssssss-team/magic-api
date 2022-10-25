@@ -612,6 +612,28 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule>, Dynami
 	}
 
 	/**
+	 * 查询总条目数
+	 */
+	@Comment("查询总条目数")
+	public Integer count(RuntimeContext runtimeContext,
+							 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml) {
+		return count(runtimeContext, sqlOrXml, null);
+	}
+
+	/**
+	 * 查询总条目数
+	 */
+	@Comment("查询总条目数，并传入变量信息")
+	public Integer count(RuntimeContext runtimeContext,
+							 @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+							 @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
+		BoundSql boundSql = new BoundSql(runtimeContext, sqlOrXml, params, this);
+		Dialect dialect = dataSourceNode.getDialect(dialectAdapter);
+		BoundSql countBoundSql = boundSql.copy(dialect.getCountSql(boundSql.getSql()));
+		return selectInt(countBoundSql);
+	}
+
+	/**
 	 * 查询int值
 	 */
 	@Comment("查询int值，适合单行单列int的结果")
