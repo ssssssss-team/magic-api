@@ -589,6 +589,20 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule>, Dynami
 		return page(count, boundSql, page, null);
 	}
 
+	/**
+	 * 分页查询（手动传入count）
+	 */
+	@Comment("执行分页查询，并传入变量信息，分页`SQL`count")
+	public Object page(RuntimeContext runtimeContext,
+					   @Comment(name = "count", value = "总条数") int count,
+					   @Comment(name = "sqlOrXml", value = "查询语句") String sqlOrXml,
+					   @Comment(name = "limit", value = "限制条数") long limit,
+					   @Comment(name = "offset", value = "跳过条数") long offset,
+					   @Comment(name = "params", value = "变量信息") Map<String, Object> params) {
+		BoundSql boundSql = new BoundSql(runtimeContext, sqlOrXml, params, this);
+		return page(count, boundSql, new Page(limit, offset), null);
+	}
+
 	private Object page(int count, BoundSql boundSql, Page page, Dialect dialect) {
 		List<Map<String, Object>> list = null;
 		if (count > 0) {
