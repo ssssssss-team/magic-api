@@ -52,7 +52,7 @@ public class GitRepo {
     }
 
     /**
-     * 设置ssh秘钥或者账号密码
+     * 设置ssh秘钥或者账号密码或者使用OAuth2进行认证
      *
      * @param transportCommand
      * @return
@@ -87,6 +87,13 @@ public class GitRepo {
             transportCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider(
                     properties.getUsername(),
                     properties.getPassword()));
+        } else if (StringUtils.isNotBlank(properties.getUrl()) && properties.getUrl().contains("oauth2:")) {
+            //采取OAuth2进行认证 面向gitlab api场景 Heaven96 @ 2022年11月30日13:27:38 开始
+            final String url = properties.getUrl();
+            int start = url.indexOf("oauth2:") + 7;
+            int end = url.indexOf("@");
+            transportCommand.setCredentialsProvider(new UsernamePasswordCredentialsProvider("oauth2",url.substring(start,end)));
+            //采取OAuth2进行认证 面向gitlab api场景 Heaven96 @ 2022年11月30日13:27:38 结束
         }
     }
 
