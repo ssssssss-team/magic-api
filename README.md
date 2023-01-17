@@ -11,10 +11,10 @@
     <a target="_blank" href='https://gitee.com/ssssssss-team/magic-api'><img src="https://gitee.com/ssssssss-team/magic-api/badge/ star.svg?theme=white" /></a>
     <a target="_blank" href='https://github.com/ssssssss-team/magic-api'><img src="https://img.shields.io/github/stars/ssssssss-team/ magic-api.svg?style=social"/></a>
     <a target="_blank" href="LICENSE"><img src="https://img.shields.io/:license-MIT-blue.svg"></a>
-    <a target="_blank" href=https://qm.qq.com/cgi-bin/qm/qr?k=Q6dLmVS8cHwoaaP18A3tteK_o0244e6B&jump_from=webapi"><img src="https://img.shields.io/badge /QQ group-739235910-blue"></a>
+    <a target="_blank" href=https://qm.qq.com/cgi-bin/qm/qr?k=Q6dLmVS8cHwoaaP18A3tteK_o0244e6B&jump_from=webapi"><img src="https://img.shields.io/badge/QQgroup-739235910-blue"></a>
 </p>
 
-[Features](./#Features) | [Quick Start](./#Quick Start) | [Documentation/Demo](./#Documentation/Demo) | [Example Project](./#Example Project) | <a target="_blank" href="http ://ssssssss.org/changelog.html">Changelog</a> | [Project Screenshots](./#Project Screenshots)
+<a target="_blank" href="http://ssssssss.org/changelog.html">Changelog</a>
 
 # Introduction
 
@@ -78,11 +78,19 @@ Visit `http://localhost:9999/magic/web` to operate
 - [magic-api-example](https://gitee.com/ssssssss-team/magic-api-example)
 
 # Project Screenshots
-- Overall Screenshot ![Overall Screenshot](https://images.gitee.com/uploads/images/2021/0711/105714_c1cacf2c_297689.png "Overall Screenshot")
-- Code Tips ![Code Tips](https://images.gitee.com/uploads/images/2021/0711/110448_11b6626b_297689.gif "Code Tips")
-- DEBUG ![DEBUG](https://images.gitee.com/uploads/images/2021/0711/110515_755f178a_297689.gif "DEBUG")
-- Parameter Prompt ![Parameter Prompt](https://images.gitee.com/uploads/images/2021/0711/110322_9dd6d149_297689.gif "Parameter Prompt")
-- Remote Push ![Remote Push](https://images.gitee.com/uploads/images/2021/0711/105803_b53e0d7e_297689.png "Remote Push")
-- History ![History](https://images.gitee.com/uploads/images/2021/0711/105910_f2440ea4_297689.png "History")
-- Data Source ![Data Source](https://images.gitee.com/uploads/images/2021/0711/105846_7ec51a50_297689.png "Data Source")
-- Global Search ![Global Search](https://images.gitee.com/uploads/images/2021/0711/105823_ac18ada7_297689.png "Global Search")
+- Overall Screenshot<br/>
+![Overall Screenshot](https://images.gitee.com/uploads/images/2021/0711/105714_c1cacf2c_297689.png "Overall Screenshot")
+- Code Tips<br/>
+![Code Tips](https://images.gitee.com/uploads/images/2021/0711/110448_11b6626b_297689.gif "Code Tips")
+- DEBUG<br/>
+![DEBUG](https://images.gitee.com/uploads/images/2021/0711/110515_755f178a_297689.gif "DEBUG")
+- Parameter Prompt<br/>
+![Parameter Prompt](https://images.gitee.com/uploads/images/2021/0711/110322_9dd6d149_297689.gif "Parameter Prompt")
+- Remote Push<br/>
+![Remote Push](https://images.gitee.com/uploads/images/2021/0711/105803_b53e0d7e_297689.png "Remote Push")
+- History<br/>
+![History](https://images.gitee.com/uploads/images/2021/0711/105910_f2440ea4_297689.png "History")
+- Data Source<br/>
+![Data Source](https://images.gitee.com/uploads/images/2021/0711/105846_7ec51a50_297689.png "Data Source")
+- Global Search<br/>
+![Global Search](https://images.gitee.com/uploads/images/2021/0711/105823_ac18ada7_297689.png "Global Search")
