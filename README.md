@@ -1,4 +1,3 @@
-HTT...
 <p align="center">
     <img src="https://www.ssssssss.org/images/logo-magic-api.png" width="256">
 </p>
@@ -15,7 +14,7 @@ HTT...
     <a target="_blank" href=https://qm.qq.com/cgi-bin/qm/qr?k=Q6dLmVS8cHwoaaP18A3tteK_o0244e6B&jump_from=webapi"><img src="https://img.shields.io/badge /QQ group-739235910-blue"></a>
 </p>
 
-[features] (#features) | [quickstart] (#quickstart) | [documentation/demo] (#documentation demo) | [example project] (#example project) | <a target="_blank" href="http ://ssssssss.org/changelog.html">Changelog</a> | [project screenshot](#project screenshot)
+[Features](./#Features) | [Quick Start](./#Quick Start) | [Documentation/Demo](./#Documentation/Demo) | [Example Project](./#Example Project) | <a target="_blank" href="http ://ssssssss.org/changelog.html">Changelog</a> | [Project Screenshots](./#Project Screenshots)
 
 # Introduction
 
@@ -45,15 +44,15 @@ magic-api is a Java-based interface rapid development framework, the writing int
 - Support online debugging
 - Supports custom operations such as custom tool classes, custom module packages, custom type extensions, custom dialects, and custom column name conversions
 
-# quick start
+# Quick Start
 
-## maven import
+## Maven Import
 ```xml
 <!-- Referenced by spring-boot-starter -->
 <dependency>
 	<groupId>org.ssssssss</groupId>
-    <artifactId>magic-api-spring-boot-starter</artifactId>
-    <version>2.0.1</version>
+	<artifactId>magic-api-spring-boot-starter</artifactId>
+	<version>2.0.1</version>
 </dependency>
 ```
 ## Modify application.properties
@@ -74,13 +73,16 @@ Visit `http://localhost:9999/magic/web` to operate
 - Document address: [https://ssssssss.org](https://ssssssss.org)
 - Online demo: [https://magic-api.ssssssss.org](https://magic-api.ssssssss.org)
 
-# example project
+# Example Project
 
 - [magic-api-example](https://gitee.com/ssssssss-team/magic-api-example)
 
-# project screenshot
-| ![Overall Screenshot](https://images.gitee.com/uploads/images/2021/0711/105714_c1cacf2c_297689.png "Overall Screenshot") | ![Code Tips](https://images.gitee.com/ uploads/images/2021/0711/110448_11b6626b_297689.gif "Code Hint") |
-|---|---|
-| ![DEBUG](https://images.gitee.com/uploads/images/2021/0711/110515_755f178a_297689.gif "DEBUG") | ![Parameter prompt](https://images.gitee.com/uploads/ images/2021/0711/110322_9dd6d149_297689.gif "Parameter Prompt") |
-| ![Remote Push](https://images.gitee.com/uploads/images/2021/0711/105803_b53e0d7e_297689.png "Remote Push") | ![History](https://images.gitee.com/ uploads/images/2021/0711/105910_f2440ea4_297689.png "History") |
-| ![Data Source](https://images.gitee.com/uploads/images/2021/0711/105846_7ec51a50_297689.png "Data Source") | ![Global Search](https://images.gitee.com/ uploads/images/2021/0711/105823_ac18ada7_297689.png "Global Search") |
+# Project Screenshots
+- Overall Screenshot ![Overall Screenshot](https://images.gitee.com/uploads/images/2021/0711/105714_c1cacf2c_297689.png "Overall Screenshot")
+- Code Tips ![Code Tips](https://images.gitee.com/uploads/images/2021/0711/110448_11b6626b_297689.gif "Code Tips")
+- DEBUG ![DEBUG](https://images.gitee.com/uploads/images/2021/0711/110515_755f178a_297689.gif "DEBUG")
+- Parameter Prompt ![Parameter Prompt](https://images.gitee.com/uploads/images/2021/0711/110322_9dd6d149_297689.gif "Parameter Prompt")
+- Remote Push ![Remote Push](https://images.gitee.com/uploads/images/2021/0711/105803_b53e0d7e_297689.png "Remote Push")
+- History ![History](https://images.gitee.com/uploads/images/2021/0711/105910_f2440ea4_297689.png "History")
+- Data Source ![Data Source](https://images.gitee.com/uploads/images/2021/0711/105846_7ec51a50_297689.png "Data Source")
+- Global Search ![Global Search](https://images.gitee.com/uploads/images/2021/0711/105823_ac18ada7_297689.png "Global Search")
