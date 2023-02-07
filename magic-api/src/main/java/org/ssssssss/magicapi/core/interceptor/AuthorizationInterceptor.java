@@ -5,7 +5,7 @@ import org.ssssssss.magicapi.core.exception.MagicLoginException;
 import org.ssssssss.magicapi.core.model.Group;
 import org.ssssssss.magicapi.core.model.MagicEntity;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * UI权限拦截器

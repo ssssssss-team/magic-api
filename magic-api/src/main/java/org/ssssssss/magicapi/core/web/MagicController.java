@@ -15,7 +15,7 @@ import org.ssssssss.magicapi.core.service.MagicAPIService;
 import org.ssssssss.magicapi.backup.service.MagicBackupService;
 import org.ssssssss.magicapi.core.service.MagicResourceService;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;

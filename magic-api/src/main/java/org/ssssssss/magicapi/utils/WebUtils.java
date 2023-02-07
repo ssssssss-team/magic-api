@@ -7,7 +7,7 @@ import org.ssssssss.magicapi.core.context.RequestContext;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.context.MagicUser;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.Optional;
 

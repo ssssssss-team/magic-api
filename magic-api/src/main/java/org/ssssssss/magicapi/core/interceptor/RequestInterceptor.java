@@ -4,8 +4,8 @@ import org.ssssssss.magicapi.core.model.ApiInfo;
 import org.ssssssss.magicapi.core.context.RequestEntity;
 import org.ssssssss.script.MagicScriptContext;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 请求拦截器

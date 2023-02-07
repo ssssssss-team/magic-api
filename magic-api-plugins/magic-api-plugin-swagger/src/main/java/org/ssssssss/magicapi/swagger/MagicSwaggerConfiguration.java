@@ -21,7 +21,7 @@ import org.ssssssss.magicapi.utils.Mapping;
 import springfox.documentation.swagger.web.SwaggerResource;
 import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
-import javax.servlet.ServletContext;
+import jakarta.servlet.ServletContext;
 import java.util.*;
 
 @Configuration

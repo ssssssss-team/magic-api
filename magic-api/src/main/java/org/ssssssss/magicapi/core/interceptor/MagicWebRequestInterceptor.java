@@ -8,8 +8,8 @@ import org.ssssssss.magicapi.core.annotation.Valid;
 import org.ssssssss.magicapi.core.web.MagicController;
 import org.ssssssss.magicapi.core.exception.MagicLoginException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * /magic/web相关接口的拦截器

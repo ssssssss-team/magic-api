@@ -13,7 +13,7 @@ import org.ssssssss.magicapi.core.web.MagicExceptionHandler;
 import org.ssssssss.magicapi.utils.ScriptManager;
 import org.ssssssss.script.MagicScriptDebugContext;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public class MagicTaskController extends MagicController implements MagicExceptionHandler {
 

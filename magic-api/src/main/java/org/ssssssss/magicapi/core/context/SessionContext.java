@@ -1,6 +1,6 @@
 package org.ssssssss.magicapi.core.context;
 
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import java.util.HashMap;
 
 /**

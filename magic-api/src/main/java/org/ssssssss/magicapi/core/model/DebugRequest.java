@@ -5,7 +5,7 @@ import org.ssssssss.magicapi.utils.JsonUtils;
 import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

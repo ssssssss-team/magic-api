@@ -31,8 +31,8 @@ import org.ssssssss.script.ScriptClass;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.Tokenizer;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;

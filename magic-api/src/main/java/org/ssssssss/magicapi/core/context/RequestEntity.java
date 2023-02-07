@@ -4,8 +4,8 @@ import org.ssssssss.magicapi.core.model.ApiInfo;
 import org.ssssssss.magicapi.core.model.DebugRequest;
 import org.ssssssss.script.MagicScriptContext;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.UUID;
 

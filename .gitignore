@@ -7,3 +7,6 @@ out/
 .settings
 bin/
 .myeclipse
+node_modules/
+dist/
+package-lock.json

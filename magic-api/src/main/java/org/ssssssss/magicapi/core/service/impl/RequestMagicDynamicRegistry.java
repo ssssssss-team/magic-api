@@ -24,8 +24,8 @@ import org.ssssssss.script.exception.MagicExitException;
 import org.ssssssss.script.runtime.ExitValue;
 import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
