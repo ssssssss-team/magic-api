@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.source.MapConfigurationProper
 import org.springframework.boot.jdbc.DatabaseDriver;
 import org.springframework.context.event.EventListener;
 import org.springframework.util.ClassUtils;
+import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.datasource.model.MagicDynamicDataSource;
 import org.ssssssss.magicapi.core.event.FileEvent;
 import org.ssssssss.magicapi.datasource.model.DataSourceInfo;
@@ -57,6 +58,9 @@ public class DataSourceMagicDynamicRegistry extends AbstractMagicDynamicRegistry
 	protected boolean register(MappingNode<DataSourceInfo> mappingNode) {
 		DataSourceInfo info = mappingNode.getEntity();
 		Map<String, Object> properties = new HashMap<>(info.getProperties());
+		if(Constants.ES_DRIVER.equals(info.getDriverClassName())){
+			properties.put("defaultReadOnly", true);
+		}
 		properties.put("url", info.getUrl());
 		properties.put("username", info.getUsername());
 		properties.put("password", info.getPassword());
