@@ -13,6 +13,9 @@ public class MagicUser {
 
 	private String token;
 
+	public MagicUser() {
+	}
+
 	public MagicUser(String id, String username, String token) {
 		this.id = id;
 		this.username = username;
@@ -46,4 +49,5 @@ public class MagicUser {
 	public void setToken(String token) {
 		this.token = token;
 	}
+
 }
