@@ -1,7 +1,8 @@
 package org.ssssssss.magicapi.core.context;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
+import org.ssssssss.magicapi.core.servlet.MagicCookie;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
+
 import java.util.HashMap;
 
 /**
@@ -11,16 +12,16 @@ import java.util.HashMap;
  */
 public class CookieContext extends HashMap<String, String> {
 
-	private final Cookie[] cookies;
+	private final MagicCookie[] cookies;
 
-	public CookieContext(HttpServletRequest request) {
-		this.cookies = request.getCookies();
+	public CookieContext(MagicHttpServletRequest request) {
+		 this.cookies = request.getCookies();
 	}
 
 	@Override
 	public String get(Object key) {
 		if (cookies != null) {
-			for (Cookie cookie : cookies) {
+			for (MagicCookie cookie : cookies) {
 				if (cookie.getName().equalsIgnoreCase("" + key)) {
 					return cookie.getValue();
 				}

@@ -2,20 +2,22 @@ package org.ssssssss.magicapi.core.web;
 
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.ssssssss.magicapi.backup.service.MagicBackupService;
+import org.ssssssss.magicapi.core.annotation.Valid;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.JsonCodeConstants;
 import org.ssssssss.magicapi.core.config.MagicConfiguration;
-import org.ssssssss.magicapi.core.annotation.Valid;
-import org.ssssssss.magicapi.core.model.*;
+import org.ssssssss.magicapi.core.context.MagicUser;
 import org.ssssssss.magicapi.core.exception.InvalidArgumentException;
 import org.ssssssss.magicapi.core.exception.MagicLoginException;
 import org.ssssssss.magicapi.core.interceptor.Authorization;
-import org.ssssssss.magicapi.core.context.MagicUser;
+import org.ssssssss.magicapi.core.model.Group;
+import org.ssssssss.magicapi.core.model.JsonBean;
+import org.ssssssss.magicapi.core.model.MagicEntity;
 import org.ssssssss.magicapi.core.service.MagicAPIService;
-import org.ssssssss.magicapi.backup.service.MagicBackupService;
 import org.ssssssss.magicapi.core.service.MagicResourceService;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -37,7 +39,7 @@ public class MagicController implements JsonCodeConstants {
 		this.magicBackupService = configuration.getMagicBackupService();
 	}
 
-	public void doValid(HttpServletRequest request, Valid valid) {
+	public void doValid(MagicHttpServletRequest request, Valid valid) {
 		if (valid != null) {
 			if (!valid.readonly() && configuration.getWorkspace().readonly()) {
 				throw new InvalidArgumentException(IS_READ_ONLY);
@@ -51,7 +53,7 @@ public class MagicController implements JsonCodeConstants {
 	/**
 	 * 判断是否有权限访问按钮
 	 */
-	boolean allowVisit(HttpServletRequest request, Authorization authorization) {
+	boolean allowVisit(MagicHttpServletRequest request, Authorization authorization) {
 		if (authorization == null) {
 			return true;
 		}
@@ -59,7 +61,7 @@ public class MagicController implements JsonCodeConstants {
 		return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization);
 	}
 
-	boolean allowVisit(HttpServletRequest request, Authorization authorization, MagicEntity entity) {
+	boolean allowVisit(MagicHttpServletRequest request, Authorization authorization, MagicEntity entity) {
 		if (authorization == null) {
 			return true;
 		}
@@ -67,7 +69,7 @@ public class MagicController implements JsonCodeConstants {
 		return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization, entity);
 	}
 
-	boolean allowVisit(HttpServletRequest request, Authorization authorization, Group group) {
+	boolean allowVisit(MagicHttpServletRequest request, Authorization authorization, Group group) {
 		if (authorization == null) {
 			return true;
 		}
@@ -75,7 +77,7 @@ public class MagicController implements JsonCodeConstants {
 		return configuration.getAuthorizationInterceptor().allowVisit(magicUser, request, authorization, group);
 	}
 
-	List<MagicEntity> entities(HttpServletRequest request, Authorization authorization) {
+	List<MagicEntity> entities(MagicHttpServletRequest request, Authorization authorization) {
 		MagicResourceService service = configuration.getMagicResourceService();
 		return service.tree()
 				.values()

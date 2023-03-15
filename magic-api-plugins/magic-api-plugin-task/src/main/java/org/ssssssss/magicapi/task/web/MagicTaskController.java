@@ -8,12 +8,12 @@ import org.ssssssss.magicapi.core.logging.MagicLoggerContext;
 import org.ssssssss.magicapi.core.model.DebugRequest;
 import org.ssssssss.magicapi.core.model.JsonBean;
 import org.ssssssss.magicapi.core.model.MagicEntity;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
 import org.ssssssss.magicapi.core.web.MagicController;
 import org.ssssssss.magicapi.core.web.MagicExceptionHandler;
 import org.ssssssss.magicapi.utils.ScriptManager;
 import org.ssssssss.script.MagicScriptDebugContext;
 
-import javax.servlet.http.HttpServletRequest;
 
 public class MagicTaskController extends MagicController implements MagicExceptionHandler {
 
@@ -23,7 +23,7 @@ public class MagicTaskController extends MagicController implements MagicExcepti
 
 	@PostMapping("/task/execute")
 	@ResponseBody
-	public JsonBean<Object> execute(String id, HttpServletRequest request){
+	public JsonBean<Object> execute(String id, MagicHttpServletRequest request){
 		MagicEntity entity = MagicConfiguration.getMagicResourceService().file(id);
 		notNull(entity, FILE_NOT_FOUND);
 		String script = entity.getScript();

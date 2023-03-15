@@ -7,30 +7,31 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedCaseInsensitiveMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.ssssssss.magicapi.core.annotation.Valid;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.MagicConfiguration;
-import org.ssssssss.magicapi.core.annotation.Valid;
 import org.ssssssss.magicapi.core.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.core.context.CookieContext;
 import org.ssssssss.magicapi.core.context.RequestContext;
 import org.ssssssss.magicapi.core.context.RequestEntity;
 import org.ssssssss.magicapi.core.context.SessionContext;
-import org.ssssssss.magicapi.core.model.*;
 import org.ssssssss.magicapi.core.exception.ValidateException;
 import org.ssssssss.magicapi.core.interceptor.RequestInterceptor;
-import org.ssssssss.magicapi.core.logging.MagicLoggerContext;
-import org.ssssssss.magicapi.modules.servlet.ResponseModule;
 import org.ssssssss.magicapi.core.interceptor.ResultProvider;
-import org.ssssssss.magicapi.utils.ScriptManager;
+import org.ssssssss.magicapi.core.logging.MagicLoggerContext;
+import org.ssssssss.magicapi.core.model.*;
 import org.ssssssss.magicapi.core.service.impl.RequestMagicDynamicRegistry;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletResponse;
+import org.ssssssss.magicapi.modules.servlet.ResponseModule;
 import org.ssssssss.magicapi.utils.PatternUtils;
+import org.ssssssss.magicapi.utils.ScriptManager;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.MagicScriptDebugContext;
 import org.ssssssss.script.exception.MagicScriptAssertException;
@@ -40,8 +41,6 @@ import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 import org.ssssssss.script.reflection.JavaInvoker;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -49,8 +48,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpHeaders.*;
-import static org.ssssssss.magicapi.core.config.MessageType.EXCEPTION;
 import static org.ssssssss.magicapi.core.config.Constants.*;
+import static org.ssssssss.magicapi.core.config.MessageType.EXCEPTION;
 
 /**
  * 请求入口处理
@@ -86,7 +85,7 @@ public class RequestHandler extends MagicController {
 	 */
 	@ResponseBody
 	@Valid(requireLogin = false)
-	public Object invoke(HttpServletRequest request, HttpServletResponse response,
+	public Object invoke(MagicHttpServletRequest request, MagicHttpServletResponse response,
 						 @PathVariable(required = false) Map<String, Object> pathVariables,
 						 @RequestHeader(required = false) Map<String, Object> defaultHeaders,
 						 @RequestParam(required = false) Map<String, Object> parameters) throws Throwable {
@@ -379,14 +378,14 @@ public class RequestHandler extends MagicController {
 	/**
 	 * 读取RequestBody
 	 */
-	private Object readRequestBody(HttpServletRequest request) throws IOException {
+	private Object readRequestBody(MagicHttpServletRequest request) throws IOException {
 		if (configuration.getHttpMessageConverters() != null && request.getContentType() != null) {
 			MediaType mediaType = MediaType.valueOf(request.getContentType());
 			Class clazz = Object.class;
 			try {
 				for (HttpMessageConverter<?> converter : configuration.getHttpMessageConverters()) {
 					if (converter.canRead(clazz, mediaType)) {
-						return converter.read(clazz, new ServletServerHttpRequest(request));
+						return converter.read(clazz, request.getHttpInputMessage());
 					}
 				}
 			} catch (HttpMessageNotReadableException ignored) {
@@ -457,7 +456,7 @@ public class RequestHandler extends MagicController {
 			exposeHeaders.addAll(((ResponseEntity<?>) returnValue).getHeaders().keySet());
 		}
 		if (requestEntity.isRequestedFromTest()) {
-			HttpServletResponse response = requestEntity.getResponse();
+			MagicHttpServletResponse response = requestEntity.getResponse();
 			exposeHeaders.addAll(response.getHeaderNames());
 			exposeHeaders.addAll(DEFAULT_ALLOW_READ_RESPONSE_HEADERS);
 		}

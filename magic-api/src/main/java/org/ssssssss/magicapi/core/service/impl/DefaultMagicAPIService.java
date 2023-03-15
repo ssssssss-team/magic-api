@@ -11,27 +11,24 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.JsonCodeConstants;
 import org.ssssssss.magicapi.core.config.WebSocketSessionManager;
 import org.ssssssss.magicapi.core.context.RequestEntity;
-import org.ssssssss.magicapi.core.handler.MagicWebSocketDispatcher;
-import org.ssssssss.magicapi.core.model.*;
 import org.ssssssss.magicapi.core.event.EventAction;
 import org.ssssssss.magicapi.core.event.MagicEvent;
 import org.ssssssss.magicapi.core.exception.MagicAPIException;
-import org.ssssssss.magicapi.core.exception.MagicResourceNotFoundException;
-import org.ssssssss.magicapi.function.model.FunctionInfo;
-import org.ssssssss.magicapi.core.service.MagicAPIService;
+import org.ssssssss.magicapi.core.handler.MagicWebSocketDispatcher;
 import org.ssssssss.magicapi.core.interceptor.ResultProvider;
-import org.ssssssss.magicapi.utils.ScriptManager;
+import org.ssssssss.magicapi.core.model.*;
+import org.ssssssss.magicapi.core.service.MagicAPIService;
 import org.ssssssss.magicapi.core.service.MagicResourceService;
+import org.ssssssss.magicapi.core.servlet.MagicRequestContextHolder;
+import org.ssssssss.magicapi.function.model.FunctionInfo;
 import org.ssssssss.magicapi.function.service.FunctionMagicDynamicRegistry;
 import org.ssssssss.magicapi.utils.PathUtils;
+import org.ssssssss.magicapi.utils.ScriptManager;
 import org.ssssssss.magicapi.utils.SignUtils;
 import org.ssssssss.script.MagicScriptContext;
 
@@ -53,6 +50,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	private final RequestMagicDynamicRegistry requestMagicDynamicRegistry;
 	private final FunctionMagicDynamicRegistry functionMagicDynamicRegistry;
 	private final String prefix;
+	private final MagicRequestContextHolder magicRequestHolder;
 
 	public DefaultMagicAPIService(ResultProvider resultProvider,
 								  String instanceId,
@@ -61,6 +59,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 								  FunctionMagicDynamicRegistry functionMagicDynamicRegistry,
 								  boolean throwException,
 								  String prefix,
+								  MagicRequestContextHolder magicRequestHolder,
 								  ApplicationEventPublisher publisher) {
 		this.resultProvider = resultProvider;
 		this.requestMagicDynamicRegistry = requestMagicDynamicRegistry;
@@ -69,6 +68,7 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 		this.resourceService = resourceService;
 		this.instanceId = instanceId;
 		this.prefix = StringUtils.defaultIfBlank(prefix, "");
+		this.magicRequestHolder = magicRequestHolder;
 		this.publisher = publisher;
 	}
 
@@ -110,11 +110,8 @@ public class DefaultMagicAPIService implements MagicAPIService, JsonCodeConstant
 	public <T> T call(String method, String path, Map<String, Object> context) {
 		RequestEntity requestEntity = RequestEntity.create();
 		try {
-			RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-			if (requestAttributes instanceof ServletRequestAttributes) {
-				requestEntity.request(((ServletRequestAttributes) requestAttributes).getRequest())
-						.response(((ServletRequestAttributes) requestAttributes).getResponse());
-			}
+
+			requestEntity.request(magicRequestHolder.getRequest()).response(magicRequestHolder.getResponse());
 			return (T) resultProvider.buildResult(requestEntity, (Object) execute(requestEntity, method, path, context));
 		} catch (Throwable root) {
 			if (throwException) {

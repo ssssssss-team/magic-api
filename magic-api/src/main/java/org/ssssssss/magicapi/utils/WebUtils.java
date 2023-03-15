@@ -1,13 +1,10 @@
 package org.ssssssss.magicapi.utils;
 
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import org.ssssssss.magicapi.core.context.RequestContext;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.context.MagicUser;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
+import org.ssssssss.magicapi.core.servlet.MagicRequestContextHolder;
 
-import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
 import java.util.Optional;
 
@@ -18,19 +15,13 @@ import java.util.Optional;
  */
 public class WebUtils {
 
-	public static Optional<HttpServletRequest> getRequest() {
-		RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-		if (requestAttributes instanceof ServletRequestAttributes) {
-			return Optional.of(((ServletRequestAttributes) requestAttributes).getRequest());
-		}
-		return Optional.ofNullable(RequestContext.getHttpServletRequest());
-	}
+	public static MagicRequestContextHolder magicRequestContextHolder;
 
 	public static String currentUserName() {
-		Optional<HttpServletRequest> request = getRequest();
+		Optional<MagicHttpServletRequest> request = Optional.ofNullable(magicRequestContextHolder.getRequest());
 		return request.map(r -> (MagicUser) r.getAttribute(Constants.ATTRIBUTE_MAGIC_USER))
 				.map(MagicUser::getUsername)
-				.orElseGet(() -> request.map(HttpServletRequest::getUserPrincipal)
+				.orElseGet(() -> request.map(MagicHttpServletRequest::getUserPrincipal)
 						.map(Principal::getName)
 						.orElse(null)
 				);

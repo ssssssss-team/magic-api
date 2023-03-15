@@ -4,8 +4,7 @@ import org.ssssssss.magicapi.core.context.MagicUser;
 import org.ssssssss.magicapi.core.exception.MagicLoginException;
 import org.ssssssss.magicapi.core.model.Group;
 import org.ssssssss.magicapi.core.model.MagicEntity;
-
-import javax.servlet.http.HttpServletRequest;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
 
 /**
  * UI权限拦截器
@@ -64,7 +63,7 @@ public interface AuthorizationInterceptor {
 	 * @param authorization 鉴权方法
 	 * @return true 有权限访问， false 无权限访问
 	 */
-	default boolean allowVisit(MagicUser magicUser, HttpServletRequest request, Authorization authorization) {
+	default boolean allowVisit(MagicUser magicUser, MagicHttpServletRequest request, Authorization authorization) {
 		return true;
 	}
 
@@ -77,7 +76,7 @@ public interface AuthorizationInterceptor {
 	 * @param entity        接口、函数、数据源信息
 	 * @return true 有权限访问， false 无权限访问
 	 */
-	default boolean allowVisit(MagicUser magicUser, HttpServletRequest request, Authorization authorization, MagicEntity entity) {
+	default boolean allowVisit(MagicUser magicUser, MagicHttpServletRequest request, Authorization authorization, MagicEntity entity) {
 		return allowVisit(magicUser, request, authorization);
 	}
 
@@ -91,7 +90,7 @@ public interface AuthorizationInterceptor {
 	 * @param group         分组信息
 	 * @return true 有权限访问， false 无权限访问
 	 */
-	default boolean allowVisit(MagicUser magicUser, HttpServletRequest request, Authorization authorization, Group group) {
+	default boolean allowVisit(MagicUser magicUser, MagicHttpServletRequest request, Authorization authorization, Group group) {
 		return allowVisit(magicUser, request, authorization);
 	}
 

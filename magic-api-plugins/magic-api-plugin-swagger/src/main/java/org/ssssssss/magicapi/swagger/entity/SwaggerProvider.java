@@ -89,7 +89,7 @@ public class SwaggerProvider {
 				if (this.persistenceResponseBody) {
 					baseDefinition = info.getResponseBodyDefinition();
 					if (baseDefinition != null) {
-						Map responseMap = parseResponse(info);
+						Map<String, Object> responseMap = parseResponse(info);
 						if (!responseMap.isEmpty()) {
 							path.setResponses(responseMap);
 							doProcessDefinition(baseDefinition, info, groupName, "root_" + baseDefinition.getName(), "response", 0);
@@ -114,9 +114,9 @@ public class SwaggerProvider {
 		}
 
 		if (this.DEFINITION_MAP.size() > 0) {
-			Set<Map.Entry> entries = ((Map) this.DEFINITION_MAP).entrySet();
-			for (Map.Entry entry : entries) {
-				swaggerEntity.addDefinitions(Objects.toString(entry.getKey()), entry.getValue());
+			Set<Map.Entry<String, Object>> entries =this.DEFINITION_MAP.entrySet();
+			for (Map.Entry<String, Object> entry : entries) {
+				swaggerEntity.addDefinitions(entry.getKey(), entry.getValue());
 			}
 		}
 

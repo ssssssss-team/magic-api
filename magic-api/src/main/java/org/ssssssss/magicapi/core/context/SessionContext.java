@@ -1,6 +1,7 @@
 package org.ssssssss.magicapi.core.context;
 
-import javax.servlet.http.HttpSession;
+import org.ssssssss.magicapi.core.servlet.MagicHttpSession;
+
 import java.util.HashMap;
 
 /**
@@ -10,9 +11,9 @@ import java.util.HashMap;
  */
 public class SessionContext extends HashMap<String, Object> {
 
-	private final HttpSession session;
+	private final MagicHttpSession session;
 
-	public SessionContext(HttpSession session) {
+	public SessionContext(MagicHttpSession session) {
 		this.session = session;
 	}
 

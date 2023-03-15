@@ -2,15 +2,17 @@ package org.ssssssss.magicapi.modules.servlet;
 
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartRequest;
-import org.springframework.web.multipart.MultipartResolver;
 import org.ssssssss.magicapi.core.annotation.MagicModule;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
+import org.ssssssss.magicapi.core.servlet.MagicRequestContextHolder;
 import org.ssssssss.magicapi.utils.IpUtils;
 import org.ssssssss.script.annotation.Comment;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * request 模块
@@ -20,12 +22,11 @@ import java.util.stream.Stream;
 @MagicModule("request")
 public class RequestModule {
 
-	private static MultipartResolver resolver;
+	private static MagicRequestContextHolder magicRequestContextHolder;
 
-	private static final String[] DEFAULT_IP_HEADER = new String[]{"X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "HTTP_X_FORWARDED_FOR"};
 
-	public RequestModule(MultipartResolver resolver) {
-		RequestModule.resolver = resolver;
+	public RequestModule(MagicRequestContextHolder magicRequestContextHolder) {
+		RequestModule.magicRequestContextHolder = magicRequestContextHolder;
 	}
 
 	/**
@@ -61,14 +62,14 @@ public class RequestModule {
 	 * 获取原生HttpServletRequest对象
 	 */
 	@Comment("获取原生HttpServletRequest对象")
-	public static HttpServletRequest get() {
-		return org.ssssssss.magicapi.utils.WebUtils.getRequest().orElse(null);
+	public static MagicHttpServletRequest get() {
+		return magicRequestContextHolder.getRequest();
 	}
 
 	private static MultipartRequest getMultipartHttpServletRequest() {
-		HttpServletRequest request = get();
-		if (request != null && resolver.isMultipart(request)) {
-			return resolver.resolveMultipart(request);
+		MagicHttpServletRequest request = get();
+		if (request != null && request.isMultipart()) {
+			return request.resolveMultipart();
 		}
 		return null;
 	}
@@ -80,7 +81,7 @@ public class RequestModule {
 	 */
 	@Comment("根据请求参数名获取值")
 	public List<String> getValues(@Comment(name = "name", value = "参数名") String name) {
-		HttpServletRequest request = get();
+		MagicHttpServletRequest request = get();
 		if (request != null) {
 			String[] values = request.getParameterValues(name);
 			return values == null ? null : Arrays.asList(values);
@@ -95,7 +96,7 @@ public class RequestModule {
 	 */
 	@Comment("根据header名获取值")
 	public List<String> getHeaders(@Comment(name = "name", value = "header名") String name) {
-		HttpServletRequest request = get();
+		MagicHttpServletRequest request = get();
 		if (request != null) {
 			Enumeration<String> headers = request.getHeaders(name);
 			return headers == null ? null : Collections.list(headers);
@@ -105,7 +106,7 @@ public class RequestModule {
 
 	@Comment("获取客户端IP")
 	public String getClientIP(String... otherHeaderNames) {
-		HttpServletRequest request = get();
+		MagicHttpServletRequest request = get();
 		if (request == null) {
 			return null;
 		}

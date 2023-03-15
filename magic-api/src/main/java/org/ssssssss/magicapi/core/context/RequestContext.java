@@ -1,7 +1,8 @@
 package org.ssssssss.magicapi.core.context;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletResponse;
+
 
 /**
  * 请求上下文
@@ -12,12 +13,12 @@ public class RequestContext {
 
 	private static final ThreadLocal<RequestEntity> REQUEST_ENTITY_THREAD_LOCAL = new InheritableThreadLocal<>();
 
-	public static HttpServletRequest getHttpServletRequest() {
+	public static MagicHttpServletRequest getHttpServletRequest() {
 		RequestEntity requestEntity = REQUEST_ENTITY_THREAD_LOCAL.get();
 		return requestEntity == null ? null : requestEntity.getRequest();
 	}
 
-	public static HttpServletResponse getHttpServletResponse() {
+	public static MagicHttpServletResponse getHttpServletResponse() {
 		RequestEntity requestEntity = REQUEST_ENTITY_THREAD_LOCAL.get();
 		return requestEntity == null ? null : requestEntity.getResponse();
 	}

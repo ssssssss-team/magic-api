@@ -1,11 +1,11 @@
 package org.ssssssss.magicapi.core.interceptor;
 
-import org.ssssssss.magicapi.core.model.ApiInfo;
 import org.ssssssss.magicapi.core.context.RequestEntity;
+import org.ssssssss.magicapi.core.model.ApiInfo;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletResponse;
 import org.ssssssss.script.MagicScriptContext;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * 请求拦截器
@@ -34,7 +34,7 @@ public interface RequestInterceptor {
 	 * @return 当返回对象时，直接将此对象返回到页面，返回null时，继续执行后续操作
 	 * @throws Exception 处理失败时抛出的异常
 	 */
-	default Object preHandle(ApiInfo info, MagicScriptContext context, HttpServletRequest request, HttpServletResponse response) throws Exception {
+	default Object preHandle(ApiInfo info, MagicScriptContext context, MagicHttpServletRequest request, MagicHttpServletResponse response) throws Exception {
 		return null;
 	}
 
@@ -50,7 +50,7 @@ public interface RequestInterceptor {
 	 * @return 返回到页面的对象, 当返回null时执行后续拦截器，否则直接返回该值，不执行后续拦截器
 	 * @throws Exception 处理失败时抛出的异常
 	 */
-	default Object postHandle(ApiInfo info, MagicScriptContext context, Object returnValue, HttpServletRequest request, HttpServletResponse response) throws Exception {
+	default Object postHandle(ApiInfo info, MagicScriptContext context, Object returnValue, MagicHttpServletRequest request, MagicHttpServletResponse response) throws Exception {
 		return null;
 	}
 
@@ -86,7 +86,7 @@ public interface RequestInterceptor {
 	 * @param response    HttpServletResponse
 	 * @param throwable   异常对象
 	 */
-	default void afterCompletion(ApiInfo info, MagicScriptContext context, Object returnValue, HttpServletRequest request, HttpServletResponse response, Throwable throwable) {
+	default void afterCompletion(ApiInfo info, MagicScriptContext context, Object returnValue, MagicHttpServletRequest request, MagicHttpServletResponse response, Throwable throwable) {
 
 	}
 

@@ -4,17 +4,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.ssssssss.magicapi.core.annotation.MagicModule;
 import org.ssssssss.magicapi.core.context.RequestContext;
 import org.ssssssss.magicapi.core.interceptor.ResultProvider;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletResponse;
 import org.ssssssss.script.annotation.Comment;
-import org.ssssssss.script.functions.ObjectConvertExtension;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
@@ -79,7 +74,7 @@ public class ResponseModule {
 	public ResponseModule addHeader(@Comment(name = "key", value = "header名") String key,
 									@Comment(name = "value", value = "header值") String value) {
 		if (StringUtils.isNotBlank(key)) {
-			HttpServletResponse response = getResponse();
+			MagicHttpServletResponse response = getResponse();
 			if (response != null) {
 				response.addHeader(key, value);
 			}
@@ -94,47 +89,12 @@ public class ResponseModule {
 	public ResponseModule setHeader(@Comment(name = "key", value = "header名") String key,
 									@Comment(name = "value", value = "header值") String value) {
 		if (StringUtils.isNotBlank(key)) {
-			HttpServletResponse response = getResponse();
+			MagicHttpServletResponse response = getResponse();
 			if (response != null) {
 				response.setHeader(key, value);
 			}
 		}
 		return this;
-	}
-
-	/**
-	 * 添加cookie
-	 */
-	@Comment("添加Cookie")
-	public ResponseModule addCookie(@Comment(name = "name", value = "cookie名") String name,
-									@Comment(name = "value", value = "cookie值") String value) {
-		if (StringUtils.isNotBlank(name)) {
-			addCookie(new Cookie(name, value));
-		}
-		return this;
-	}
-
-	/**
-	 * 批量添加cookie
-	 */
-	@Comment("批量添加Cookie")
-	public ResponseModule addCookies(@Comment(name = "cookies", value = "Cookies") Map<String, String> cookies,
-									 @Comment(name = "options", value = "Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
-		if (cookies != null) {
-			for (Map.Entry<String, String> entry : cookies.entrySet()) {
-				addCookie(entry.getKey(), entry.getValue(), options);
-			}
-		}
-		return this;
-	}
-
-	/**
-	 * 批量添加cookie
-	 */
-	@Comment("批量添加Cookie")
-	public ResponseModule addCookies(@Comment(name = "cookies", value = "Cookies") Map<String, String> cookies) {
-		return addCookies(cookies, null);
-
 	}
 
 	/**
@@ -144,67 +104,17 @@ public class ResponseModule {
 	 */
 	@Comment("获取OutputStream")
 	public OutputStream getOutputStream() throws IOException {
-		HttpServletResponse response = getResponse();
+		MagicHttpServletResponse response = getResponse();
 		return response.getOutputStream();
 	}
 
-	/**
-	 * 添加cookie
-	 */
-	@Comment("添加Cookie")
-	public ResponseModule addCookie(@Comment(name = "name", value = "Cookie名") String name,
-									@Comment(name = "value", value = "Cookie值") String value,
-									@Comment(name = "options", value = "Cookie选项，如`path`、`httpOnly`、`domain`、`maxAge`") Map<String, Object> options) {
-		if (StringUtils.isNotBlank(name)) {
-			Cookie cookie = new Cookie(name, value);
-			if (options != null) {
-				Object path = options.get("path");
-				if (path != null) {
-					cookie.setPath(path.toString());
-				}
-				Object httpOnly = options.get("httpOnly");
-				if (httpOnly != null) {
-					cookie.setHttpOnly("true".equalsIgnoreCase(httpOnly.toString()));
-				}
-				Object domain = options.get("domain");
-				if (domain != null) {
-					cookie.setDomain(domain.toString());
-				}
-				Object maxAge = options.get("maxAge");
-				int age;
-				if (maxAge != null && (age = ObjectConvertExtension.asInt(maxAge, Integer.MIN_VALUE)) != Integer.MIN_VALUE) {
-					cookie.setMaxAge(age);
-				}
-			}
-			addCookie(cookie);
-		}
-		return this;
-	}
 
 	@Comment("终止输出，执行此方法后不会对结果进行任何输出及处理")
 	public NullValue end() {
 		return NullValue.INSTANCE;
 	}
 
-	/**
-	 * 添加cookie
-	 */
-	@Comment("添加Cookie")
-	public ResponseModule addCookie(@Comment(name = "cookie", value = "Cookie对象") Cookie cookie) {
-		if (cookie != null) {
-			HttpServletResponse response = getResponse();
-			if (response != null) {
-				response.addCookie(cookie);
-			}
-		}
-		return this;
-	}
-
-	private HttpServletResponse getResponse() {
-		RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-		if (requestAttributes instanceof ServletRequestAttributes) {
-			return ((ServletRequestAttributes) requestAttributes).getResponse();
-		}
+	private MagicHttpServletResponse getResponse() {
 		return RequestContext.getHttpServletResponse();
 	}
 

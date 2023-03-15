@@ -1,2 +1,1 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  org.ssssssss.magicapi.git.MagicGitConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=org.ssssssss.magicapi.git.MagicGitConfiguration

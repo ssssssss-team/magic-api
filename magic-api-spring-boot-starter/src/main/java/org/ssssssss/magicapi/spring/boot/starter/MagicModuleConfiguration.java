@@ -17,6 +17,7 @@ import org.ssssssss.magicapi.core.config.MagicAPIProperties;
 import org.ssssssss.magicapi.core.config.Page;
 import org.ssssssss.magicapi.core.interceptor.DefaultResultProvider;
 import org.ssssssss.magicapi.core.interceptor.ResultProvider;
+import org.ssssssss.magicapi.core.servlet.MagicRequestContextHolder;
 import org.ssssssss.magicapi.datasource.model.MagicDynamicDataSource;
 import org.ssssssss.magicapi.jsr223.JSR223LanguageProvider;
 import org.ssssssss.magicapi.modules.db.ColumnMapperAdapter;
@@ -177,8 +178,8 @@ public class MagicModuleConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public RequestModule magicRequestModule(){
-		return new RequestModule(multipartResolver);
+	public RequestModule magicRequestModule(MagicRequestContextHolder magicRequestContextHolder){
+		return new RequestModule(magicRequestContextHolder);
 	}
 
 	/**

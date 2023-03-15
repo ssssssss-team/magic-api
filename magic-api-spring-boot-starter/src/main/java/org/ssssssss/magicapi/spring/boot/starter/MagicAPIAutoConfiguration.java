@@ -10,19 +10,16 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -40,7 +37,10 @@ import org.ssssssss.magicapi.core.handler.MagicCoordinationHandler;
 import org.ssssssss.magicapi.core.handler.MagicDebugHandler;
 import org.ssssssss.magicapi.core.handler.MagicWebSocketDispatcher;
 import org.ssssssss.magicapi.core.handler.MagicWorkbenchHandler;
-import org.ssssssss.magicapi.core.interceptor.*;
+import org.ssssssss.magicapi.core.interceptor.AuthorizationInterceptor;
+import org.ssssssss.magicapi.core.interceptor.DefaultAuthorizationInterceptor;
+import org.ssssssss.magicapi.core.interceptor.RequestInterceptor;
+import org.ssssssss.magicapi.core.interceptor.ResultProvider;
 import org.ssssssss.magicapi.core.logging.LoggerManager;
 import org.ssssssss.magicapi.core.model.DataType;
 import org.ssssssss.magicapi.core.model.MagicEntity;
@@ -51,6 +51,7 @@ import org.ssssssss.magicapi.core.service.*;
 import org.ssssssss.magicapi.core.service.impl.DefaultMagicAPIService;
 import org.ssssssss.magicapi.core.service.impl.DefaultMagicResourceService;
 import org.ssssssss.magicapi.core.service.impl.RequestMagicDynamicRegistry;
+import org.ssssssss.magicapi.core.servlet.MagicRequestContextHolder;
 import org.ssssssss.magicapi.core.web.MagicResourceController;
 import org.ssssssss.magicapi.core.web.MagicWorkbenchController;
 import org.ssssssss.magicapi.core.web.RequestHandler;
@@ -61,6 +62,7 @@ import org.ssssssss.magicapi.function.service.FunctionMagicDynamicRegistry;
 import org.ssssssss.magicapi.jsr223.LanguageProvider;
 import org.ssssssss.magicapi.modules.DynamicModule;
 import org.ssssssss.magicapi.utils.Mapping;
+import org.ssssssss.magicapi.utils.WebUtils;
 import org.ssssssss.script.MagicResourceLoader;
 import org.ssssssss.script.MagicScript;
 import org.ssssssss.script.MagicScriptEngine;
@@ -85,7 +87,7 @@ import java.util.stream.Collectors;
 @Configuration
 @ConditionalOnClass({RequestMappingHandlerMapping.class})
 @EnableConfigurationProperties(MagicAPIProperties.class)
-@Import({MagicJsonAutoConfiguration.class, ApplicationUriPrinter.class, MagicModuleConfiguration.class, MagicDynamicRegistryConfiguration.class})
+@Import({MagicServletConfiguration.class, MagicJsonAutoConfiguration.class, ApplicationUriPrinter.class, MagicModuleConfiguration.class, MagicDynamicRegistryConfiguration.class})
 @EnableWebSocket
 @AutoConfigureAfter(MagicPluginConfiguration.class)
 public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketConfigurer {
@@ -126,23 +128,17 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 
 	private final ObjectProvider<DataSourceEncryptProvider> dataSourceEncryptProvider;
 
-	private final MagicCorsFilter magicCorsFilter = new MagicCorsFilter();
-
 	private final MagicAPIProperties properties;
 
 	private final ApplicationContext applicationContext;
 
 	private boolean registerMapping = false;
 
-	private boolean registerInterceptor = false;
-
 	private boolean registerWebsocket = false;
 
 	@Autowired
 	@Lazy
 	private RequestMappingHandlerMapping requestMappingHandlerMapping;
-
-	private DefaultAuthorizationInterceptor defaultAuthorizationInterceptor;
 
 	public MagicAPIAutoConfiguration(MagicAPIProperties properties,
 									 ObjectProvider<List<RequestInterceptor>> requestInterceptorsProvider,
@@ -212,25 +208,6 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		}
 	}
 
-	@Override
-	public void addInterceptors(InterceptorRegistry registry) {
-		if (!registerInterceptor) {
-			registerInterceptor = true;
-			registry.addInterceptor(new MagicWebRequestInterceptor(properties.isSupportCrossDomain() ? magicCorsFilter : null, authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor)))
-					.addPathPatterns("/**");
-		}
-	}
-
-	@Bean
-	@ConditionalOnProperty(prefix = "magic-api", value = "support-cross-domain", havingValue = "true", matchIfMissing = true)
-	public FilterRegistrationBean<MagicCorsFilter> magicCorsFilterRegistrationBean() {
-		FilterRegistrationBean<MagicCorsFilter> registration = new FilterRegistrationBean<>(magicCorsFilter);
-		registration.addUrlPatterns("/*");
-		registration.setName("Magic Cors Filter");
-		registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
-		return registration;
-	}
-
 	@Bean
 	@ConditionalOnMissingBean
 	public MagicResourceService magicResourceService(org.ssssssss.magicapi.core.resource.Resource workspace) {
@@ -251,8 +228,9 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 	 */
 	@Bean
 	@ConditionalOnMissingBean
-	public MagicAPIService magicAPIService(ResultProvider resultProvider, MagicResourceService magicResourceService, RequestMagicDynamicRegistry requestMagicDynamicRegistry, FunctionMagicDynamicRegistry functionMagicDynamicRegistry) {
-		return new DefaultMagicAPIService(resultProvider, properties.getInstanceId(), magicResourceService, requestMagicDynamicRegistry, functionMagicDynamicRegistry, properties.isThrowException(), properties.getPrefix() ,applicationContext);
+	public MagicAPIService magicAPIService(ResultProvider resultProvider, MagicResourceService magicResourceService, MagicRequestContextHolder magicRequestContextHolder, RequestMagicDynamicRegistry requestMagicDynamicRegistry, FunctionMagicDynamicRegistry functionMagicDynamicRegistry) {
+		WebUtils.magicRequestContextHolder = magicRequestContextHolder;
+		return new DefaultMagicAPIService(resultProvider, properties.getInstanceId(), magicResourceService, requestMagicDynamicRegistry, functionMagicDynamicRegistry, properties.isThrowException(), properties.getPrefix() ,magicRequestContextHolder, applicationContext);
 	}
 
 	/**
@@ -346,7 +324,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		configuration.setThrowException(properties.isThrowException());
 		configuration.setEditorConfig(properties.getEditorConfig());
 		configuration.setWorkspace(magicResource);
-		configuration.setAuthorizationInterceptor(authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor));
+		configuration.setAuthorizationInterceptor(authorizationInterceptorProvider.getObject());
 		// 注册函数
 		this.magicFunctionsProvider.getIfAvailable(Collections::emptyList).forEach(JavaReflection::registerFunction);
 		// 向页面传递配置信息时不传递用户名密码，增强安全性
@@ -401,13 +379,11 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 		return configuration;
 	}
 
-	public AuthorizationInterceptor createAuthorizationInterceptor() {
-		if (defaultAuthorizationInterceptor != null) {
-			return defaultAuthorizationInterceptor;
-		}
+	@Bean
+	@ConditionalOnMissingBean
+	public AuthorizationInterceptor authorizationInterceptor(MagicAPIProperties properties){
 		Security security = properties.getSecurity();
-		defaultAuthorizationInterceptor = new DefaultAuthorizationInterceptor(security.getUsername(), security.getPassword());
-		return defaultAuthorizationInterceptor;
+		return new DefaultAuthorizationInterceptor(security.getUsername(), security.getPassword());
 	}
 
 	@Override
@@ -420,7 +396,7 @@ public class MagicAPIAutoConfiguration implements WebMvcConfigurer, WebSocketCon
 			MagicWebSocketDispatcher dispatcher = new MagicWebSocketDispatcher(properties.getInstanceId(), magicNotifyService, Arrays.asList(
 					new MagicDebugHandler(),
 					new MagicCoordinationHandler(),
-					new MagicWorkbenchHandler(authorizationInterceptorProvider.getIfAvailable(this::createAuthorizationInterceptor))
+					new MagicWorkbenchHandler(authorizationInterceptorProvider.getObject())
 			));
 			WebSocketHandlerRegistration registration = webSocketHandlerRegistry.addHandler(dispatcher, web + "/console");
 			if (properties.isSupportCrossDomain()) {

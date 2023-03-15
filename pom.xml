@@ -45,8 +45,9 @@
 	<modules>
 		<module>magic-api</module>
         <module>magic-editor</module>
-		<module>magic-api-spring-boot-starter</module>
-		<module>magic-api-plugins</module>
+        <module>magic-api-servlet</module>
+        <module>magic-api-plugins</module>
+        <module>magic-api-spring-boot-starter</module>
     </modules>
     <dependencyManagement>
         <dependencies>
@@ -60,6 +61,21 @@
             <dependency>
                 <groupId>org.ssssssss</groupId>
                 <artifactId>magic-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ssssssss</groupId>
+                <artifactId>magic-api-servlet</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ssssssss</groupId>
+                <artifactId>magic-api-servlet-javaee</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ssssssss</groupId>
+                <artifactId>magic-api-servlet-jakarta</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

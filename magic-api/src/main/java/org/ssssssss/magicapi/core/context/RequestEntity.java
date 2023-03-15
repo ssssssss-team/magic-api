@@ -2,10 +2,10 @@ package org.ssssssss.magicapi.core.context;
 
 import org.ssssssss.magicapi.core.model.ApiInfo;
 import org.ssssssss.magicapi.core.model.DebugRequest;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletResponse;
 import org.ssssssss.script.MagicScriptContext;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.UUID;
 
@@ -19,8 +19,8 @@ public class RequestEntity {
 	private final Long requestTime = System.currentTimeMillis();
 	private final String requestId = UUID.randomUUID().toString().replace("-", "");
 	private ApiInfo apiInfo;
-	private HttpServletRequest request;
-	private HttpServletResponse response;
+	private MagicHttpServletRequest request;
+	private MagicHttpServletResponse response;
 	private boolean requestedFromTest;
 	private Map<String, Object> parameters;
 	private Map<String, Object> pathVariables;
@@ -47,21 +47,21 @@ public class RequestEntity {
 		return this;
 	}
 
-	public HttpServletRequest getRequest() {
+	public MagicHttpServletRequest getRequest() {
 		return request;
 	}
 
-	public RequestEntity request(HttpServletRequest request) {
+	public RequestEntity request(MagicHttpServletRequest request) {
 		this.request = request;
 		this.debugRequest = DebugRequest.create(request);
 		return this;
 	}
 
-	public HttpServletResponse getResponse() {
+	public MagicHttpServletResponse getResponse() {
 		return response;
 	}
 
-	public RequestEntity response(HttpServletResponse response) {
+	public RequestEntity response(MagicHttpServletResponse response) {
 		this.response = response;
 		return this;
 	}

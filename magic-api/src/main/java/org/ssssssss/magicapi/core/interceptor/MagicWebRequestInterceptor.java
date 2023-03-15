@@ -1,22 +1,16 @@
 package org.ssssssss.magicapi.core.interceptor;
 
 import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.HandlerInterceptor;
+import org.ssssssss.magicapi.core.annotation.Valid;
 import org.ssssssss.magicapi.core.config.Constants;
 import org.ssssssss.magicapi.core.config.MagicCorsFilter;
-import org.ssssssss.magicapi.core.annotation.Valid;
-import org.ssssssss.magicapi.core.web.MagicController;
 import org.ssssssss.magicapi.core.exception.MagicLoginException;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletResponse;
+import org.ssssssss.magicapi.core.web.MagicController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-/**
- * /magic/web相关接口的拦截器
- *
- * @author mxd
- */
-public class MagicWebRequestInterceptor implements HandlerInterceptor {
+public abstract class MagicWebRequestInterceptor {
 
 	private final MagicCorsFilter magicCorsFilter;
 
@@ -27,8 +21,7 @@ public class MagicWebRequestInterceptor implements HandlerInterceptor {
 		this.authorizationInterceptor = authorizationInterceptor;
 	}
 
-	@Override
-	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws MagicLoginException {
+	public void handle(Object handler, MagicHttpServletRequest request, MagicHttpServletResponse response) throws MagicLoginException {
 		HandlerMethod handlerMethod;
 		if (handler instanceof HandlerMethod) {
 			handlerMethod = (HandlerMethod) handler;
@@ -46,6 +39,5 @@ public class MagicWebRequestInterceptor implements HandlerInterceptor {
 				((MagicController) handler).doValid(request, valid);
 			}
 		}
-		return true;
 	}
 }

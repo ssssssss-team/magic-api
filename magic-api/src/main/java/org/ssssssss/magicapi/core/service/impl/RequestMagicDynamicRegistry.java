@@ -7,7 +7,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
-import org.ssssssss.magicapi.core.web.RequestHandler;
 import org.ssssssss.magicapi.core.config.MagicConfiguration;
 import org.ssssssss.magicapi.core.event.FileEvent;
 import org.ssssssss.magicapi.core.event.GroupEvent;
@@ -15,6 +14,9 @@ import org.ssssssss.magicapi.core.exception.InvalidArgumentException;
 import org.ssssssss.magicapi.core.model.ApiInfo;
 import org.ssssssss.magicapi.core.service.AbstractMagicDynamicRegistry;
 import org.ssssssss.magicapi.core.service.MagicResourceStorage;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
+import org.ssssssss.magicapi.core.servlet.MagicHttpServletResponse;
+import org.ssssssss.magicapi.core.web.RequestHandler;
 import org.ssssssss.magicapi.utils.Mapping;
 import org.ssssssss.magicapi.utils.PathUtils;
 import org.ssssssss.magicapi.utils.ScriptManager;
@@ -24,8 +26,6 @@ import org.ssssssss.script.exception.MagicExitException;
 import org.ssssssss.script.runtime.ExitValue;
 import org.ssssssss.script.runtime.function.MagicScriptLambdaFunction;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -39,7 +39,7 @@ public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<Ap
 
 	private Object handler;
 
-	private final Method method = RequestHandler.class.getDeclaredMethod("invoke", HttpServletRequest.class, HttpServletResponse.class, Map.class, Map.class, Map.class);
+	private final Method method = RequestHandler.class.getDeclaredMethod("invoke", MagicHttpServletRequest.class, MagicHttpServletResponse.class, Map.class, Map.class, Map.class);
 
 	private static final Logger logger = LoggerFactory.getLogger(RequestMagicDynamicRegistry.class);
 
@@ -94,7 +94,7 @@ public class RequestMagicDynamicRegistry extends AbstractMagicDynamicRegistry<Ap
 		processEvent(event);
 	}
 
-	public ApiInfo getApiInfoFromRequest(HttpServletRequest request) {
+	public ApiInfo getApiInfoFromRequest(MagicHttpServletRequest request) {
 		String mappingKey = Objects.toString(request.getMethod(), "GET").toUpperCase() + ":" + request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
 		return getMapping(mappingKey);
 	}
