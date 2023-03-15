@@ -1,6 +1,9 @@
 package org.ssssssss.magicapi.utils;
 
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 
 import java.io.Closeable;
@@ -11,6 +14,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -23,19 +27,44 @@ import java.util.zip.ZipInputStream;
  */
 public class ClassScanner {
 
-	public static List<String> scan() throws URISyntaxException {
-		ClassLoader loader = Thread.currentThread().getContextClassLoader();
+	public static List<String> scan() throws URISyntaxException, IOException {
 		Set<String> classes = new HashSet<>();
-		do {
-			if (loader instanceof URLClassLoader) {
-				classes.addAll(scan(((URLClassLoader) loader).getURLs()));
-			}
-		} while ((loader = loader.getParent()) != null);
+		if (Double.parseDouble(System.getProperty("java.specification.version")) >= 11) {
+			classes.addAll(latestJdkScan());
+		} else {
+			ClassLoader loader = Thread.currentThread().getContextClassLoader();
+			do {
+				if (loader instanceof URLClassLoader) {
+					classes.addAll(scan(((URLClassLoader) loader).getURLs()));
+				}
+			} while ((loader = loader.getParent()) != null);
+		}
 		classes.addAll(addJavaLibrary());
 		return new ArrayList<>(classes);
 	}
 
-	public static String compress(List<String> classes){
+	public static List<String> latestJdkScan() throws IOException {
+		ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+		Resource[] resources = resourcePatternResolver.getResources("classpath*:**/**.class");
+		return Arrays.asList(resources).parallelStream().map(it -> {
+			try {
+				if (isClass(it.getURL().getPath())) {
+					if ("\"classes\"".contains(it.getURL().getPath())) {
+						return it.getURL().getPath().split("classes")[1].substring(1).replace(".class", "").replaceAll("\\/", ".");
+					} else if (it.getURL().getPath().split("!").length > 1) {
+						return it.getURL().getPath().split("!")[1].substring(1).replace(".class", "").replaceAll("\\/", ".");
+					} else {
+						return null;
+					}
+				}
+			} catch (IOException e) {
+				return null;
+			}
+			return null;
+		}).filter(Objects::nonNull).distinct().sorted(Comparator.comparing(Objects::toString)).collect(Collectors.toList());
+	}
+
+	public static String compress(List<String> classes) {
 		Collections.sort(classes);
 		String currentPackage = "";
 		StringBuffer buf = new StringBuffer();
@@ -48,7 +77,7 @@ public class ClassScanner {
 				className = fullName.substring(index + 1);
 				packageName = fullName.substring(0, index);
 			}
-			if(className.equals("package-info")){
+			if (className.equals("package-info")) {
 				continue;
 			}
 			if (currentPackage.equals(packageName)) {
@@ -59,7 +88,7 @@ public class ClassScanner {
 				classCount++;
 			} else {
 				currentPackage = packageName;
-				if(buf.length() > 0){
+				if (buf.length() > 0) {
 					buf.append("\n");
 				}
 				buf.append(packageName);
@@ -200,9 +229,5 @@ public class ClassScanner {
 
 	private static boolean isClass(String className) {
 		return className.endsWith(".class") && !className.contains("$");
-	}
-
-	public static void main(String[] args) throws URISyntaxException {
-		List<String> classes = scan();
 	}
 }
