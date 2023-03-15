@@ -131,5 +131,10 @@ public class Constants {
 	 */
 	public static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
 
+	/**
+	 * The Es driver.
+	 */
+	public static final String ES_DRIVER = "org.elasticsearch.xpack.sql.jdbc.EsDriver";
+
 
 }
