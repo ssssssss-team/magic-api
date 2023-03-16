@@ -167,7 +167,7 @@ public class NamedTable extends Attributes<Object> {
 	@Comment("设置要排除的列")
 	public NamedTable exclude(@Comment(name = "property", value = "排除的列") String property) {
 		if (property != null) {
-			excludeColumns.add(rowMapColumnMapper.apply(property));
+			excludeColumns.add(property);
 		}
 		return this;
 	}
@@ -175,7 +175,7 @@ public class NamedTable extends Attributes<Object> {
 	@Comment("设置要排除的列")
 	public NamedTable excludes(@Comment(name = "properties", value = "排除的列") String... properties) {
 		if (columns != null) {
-			excludeColumns.addAll(Arrays.stream(properties).map(rowMapColumnMapper).collect(Collectors.toList()));
+			excludeColumns.addAll(Arrays.asList(properties));
 		}
 		return this;
 	}
@@ -183,7 +183,7 @@ public class NamedTable extends Attributes<Object> {
 	@Comment("设置要排除的列")
 	public NamedTable excludes(@Comment(name = "properties", value = "排除的列") List<String> properties) {
 		if (columns != null) {
-			excludeColumns.addAll(properties.stream().map(rowMapColumnMapper).collect(Collectors.toList()));
+			excludeColumns.addAll(properties);
 		}
 		return this;
 	}
