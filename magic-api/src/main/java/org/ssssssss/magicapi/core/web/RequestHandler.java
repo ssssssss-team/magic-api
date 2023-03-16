@@ -98,7 +98,8 @@ public class RequestHandler extends MagicController {
 				.request(request)
 				.response(response)
 				.requestedFromTest(requestedFromTest)
-				.pathVariables(pathVariables)
+				// 兼容 spring boot 3.0
+				.pathVariables(new HashMap<>(pathVariables))
 				.parameters(parameters);
 		ApiInfo info = requestEntity.getApiInfo();
 		if (info == null) {
