@@ -1,5 +1,6 @@
 package org.ssssssss.magicapi.servlet.jakarta;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpInputMessage;
@@ -83,7 +84,11 @@ public class MagicJakartaHttpServletRequest implements MagicHttpServletRequest {
 
 	@Override
 	public MagicCookie[] getCookies() {
-		return Arrays.stream(request.getCookies()).map(MagicJakartaCookie::new).toArray(MagicJakartaCookie[]::new);
+		Cookie[] cookies = request.getCookies();
+		if(cookies == null){
+			return new MagicCookie[0];
+		}
+		return Arrays.stream(cookies).map(MagicJakartaCookie::new).toArray(MagicJakartaCookie[]::new);
 	}
 
 	@Override
