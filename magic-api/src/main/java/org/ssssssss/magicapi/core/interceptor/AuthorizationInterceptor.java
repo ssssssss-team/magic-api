@@ -94,4 +94,12 @@ public interface AuthorizationInterceptor {
 		return allowVisit(magicUser, request, authorization);
 	}
 
+	/**
+	 * 刷新 token, 重新赋值对象内的token和timeout
+	 * @param user
+	 * @return
+	 */
+	default void refreshToken(MagicUser user) {
+	}
+
 }

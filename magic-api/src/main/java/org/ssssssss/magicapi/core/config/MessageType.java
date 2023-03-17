@@ -15,6 +15,8 @@ public enum MessageType {
 	EXCEPTION,
 	/* 登录结果 */
 	LOGIN_RESPONSE,
+	/* 刷新token */
+	REFRESH_TOKEN,
 	/* 通知客户端，有用户上线 */
 	USER_LOGIN,
 	/* 通知客户端，有用户下线 */

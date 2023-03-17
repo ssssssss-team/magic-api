@@ -20,6 +20,10 @@ public class MagicConsoleSession {
 
 	private long activateTime = System.currentTimeMillis();
 
+	private MagicUser user;
+
+	private long timeout;
+
 	public MagicConsoleSession(WebSocketSession webSocketSession) {
 		this.webSocketSession = webSocketSession;
 	}
@@ -84,5 +88,21 @@ public class MagicConsoleSession {
 			}
 			this.webSocketSession = null;
 		}
+	}
+
+	public MagicUser getUser() {
+		return user;
+	}
+
+	public void setUser(MagicUser user) {
+		this.user = user;
+	}
+
+	public long getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(long timeout) {
+		this.timeout = timeout;
 	}
 }

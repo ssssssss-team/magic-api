@@ -13,6 +13,11 @@ public class MagicUser {
 
 	private String token;
 
+	/**
+	 * token 有效期，<=0 为永不过期
+	 */
+	private long timeout = -1;
+
 	public MagicUser() {
 	}
 
@@ -20,6 +25,13 @@ public class MagicUser {
 		this.id = id;
 		this.username = username;
 		this.token = token;
+	}
+
+	public MagicUser(String id, String username, String token, long timeout) {
+		this.id = id;
+		this.username = username;
+		this.token = token;
+		this.timeout = timeout;
 	}
 
 	public static MagicUser guest() {
@@ -50,4 +62,11 @@ public class MagicUser {
 		this.token = token;
 	}
 
+	public long getTimeout() {
+		return timeout;
+	}
+
+	public void setTimeout(long timeout) {
+		this.timeout = timeout;
+	}
 }
