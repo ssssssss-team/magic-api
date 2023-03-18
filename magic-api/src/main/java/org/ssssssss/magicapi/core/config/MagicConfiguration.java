@@ -16,6 +16,7 @@ import org.ssssssss.magicapi.datasource.model.MagicDynamicDataSource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class MagicConfiguration {
 
@@ -203,7 +204,7 @@ public class MagicConfiguration {
 		System.out.println(" | |\\/| | / _` | / _` || | / __|  / _ \\  | |_) || | ");
 		System.out.println(" | |  | || (_| || (_| || || (__  / ___ \\ |  __/ | | ");
 		System.out.println(" |_|  |_| \\__,_| \\__, ||_| \\___|/_/   \\_\\|_|   |___|");
-		System.out.println("                  |___/                        " + RequestHandler.class.getPackage().getImplementationVersion());
+		System.out.println("                  |___/                        " + Objects.toString(RequestHandler.class.getPackage().getImplementationVersion(), ""));
 		if(!plugins.isEmpty()){
 			System.out.println("集成插件：");
 			plugins.stream().peek(it -> System.out.print("- ")).forEach(System.out::println);
