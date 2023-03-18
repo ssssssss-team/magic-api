@@ -35,6 +35,7 @@
         <commons-io.version>2.7</commons-io.version>
         <commons-text.version>1.6</commons-text.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
+        <jakarta.version>6.0.0</jakarta.version>
         <fastjson.version>1.2.83</fastjson.version>
         <spring-boot-starter-log4j.version>1.3.8.RELEASE</spring-boot-starter-log4j.version>
         <java.version>1.8</java.version>
@@ -112,6 +113,11 @@
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
                 <version>${fastjson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>${jakarta.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -5,21 +5,32 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.ssssssss</groupId>
-        <artifactId>magic-api-servlet</artifactId>
+        <artifactId>magic-api-plugins</artifactId>
         <version>2.0.2</version>
     </parent>
-    <artifactId>magic-api-servlet-jakarta</artifactId>
+    <artifactId>magic-api-plugin-springdoc</artifactId>
     <packaging>jar</packaging>
-    <name>magic-api-servlet-jakarta</name>
-    <description>auto generate http api</description>
+    <name>magic-api-plugin-springdoc</name>
+    <description>magic-api-plugin-springdoc</description>
     <properties>
-        <spring-boot.version>3.0.4</spring-boot.version>
+        <springdoc.version>2.0.4</springdoc.version>
     </properties>
     <dependencies>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
-            <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <build>
