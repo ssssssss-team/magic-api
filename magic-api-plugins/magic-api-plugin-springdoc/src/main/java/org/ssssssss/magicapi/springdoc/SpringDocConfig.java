@@ -9,7 +9,7 @@ import org.ssssssss.magicapi.springdoc.entity.SwaggerEntity;
  *
  * @author mxd
  */
-@ConfigurationProperties(prefix = "magic-api.swagger")
+@ConfigurationProperties(prefix = "magic-api.springdoc")
 public class SpringDocConfig {
 
 	/**
