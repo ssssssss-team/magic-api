@@ -8,10 +8,10 @@
     </a>
     <a target="_blank" href="https://www.ssssssss.org"><img src="https://img.shields.io/badge/Docs-latest-blue.svg"/></a>
     <a target="_blank" href="https://github.com/ssssssss-team/magic-api/releases"><img src="https://img.shields.io/github/v/release/ssssssss-team/magic-api?logo=github"></a>
-    <a target="_blank" href='https://gitee.com/ssssssss-team/magic-api'><img src="https://gitee.com/ssssssss-team/magic-api/badge/star.svg?theme=white" /></a>
-    <a target="_blank" href='https://github.com/ssssssss-team/magic-api'><img src="https://img.shields.io/github/stars/ssssssss-team/magic-api.svg?style=social"/></a>
+    <a target="_blank" href="https://gitee.com/ssssssss-team/magic-api"><img src="https://gitee.com/ssssssss-team/magic-api/badge/star.svg?theme=white" /></a>
+    <a target="_blank" href="https://github.com/ssssssss-team/magic-api"><img src="https://img.shields.io/github/stars/ssssssss-team/magic-api.svg?style=social"/></a>
     <a target="_blank" href="LICENSE"><img src="https://img.shields.io/:license-MIT-blue.svg"></a>
-    <a target="_blank" href=https://qm.qq.com/cgi-bin/qm/qr?k=38qddUeqrk_x29Xril9a_jxnoCGTmPRF&jump_from=webapi"><img src="https://img.shields.io/badge/QQ群-700818216-blue"></a>
+    <a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=38qddUeqrk_x29Xril9a_jxnoCGTmPRF&jump_from=webapi"><img src="https://img.shields.io/badge/QQ群-700818216-blue"></a>
 </p>
 
 [特性](#特性) | [快速开始](#快速开始) | [文档/演示](#文档演示) | [示例项目](#示例项目) | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图)
@@ -52,7 +52,7 @@ magic-api 是一个基于Java的接口快速开发框架，编写接口将通过
 <dependency>
 	<groupId>org.ssssssss</groupId>
     <artifactId>magic-api-spring-boot-starter</artifactId>
-    <version>2.0.1</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 ## 修改application.properties
