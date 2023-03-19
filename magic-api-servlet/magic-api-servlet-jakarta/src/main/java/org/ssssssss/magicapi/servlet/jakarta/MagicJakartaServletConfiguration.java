@@ -48,8 +48,8 @@ public class MagicJakartaServletConfiguration implements WebMvcConfigurer {
 
 	@Override
 	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-		resolvers.add(new MagicJakartaHttpServletRequest.ArgumentsResolver());
-		resolvers.add(new MagicJakartaHttpServletResponse.ArgumentsResolver());
+		resolvers.add(0,new MagicJakartaHttpServletRequest.ArgumentsResolver());
+		resolvers.add(0,new MagicJakartaHttpServletResponse.ArgumentsResolver());
 	}
 
 	@Override
