@@ -17,10 +17,5 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.redisson</groupId>
-            <artifactId>redisson-spring-data-23</artifactId>
-            <version>3.15.6</version>
-        </dependency>
     </dependencies>
 </project>
