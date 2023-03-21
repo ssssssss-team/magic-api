@@ -40,7 +40,12 @@ public enum Options {
 	/**
 	 * 不接收未经定义的参数
 	 */
-	DISABLED_UNKNOWN_PARAMETER("不接收未经定义的参数", "disabled_unknown_parameter", "true");
+	DISABLED_UNKNOWN_PARAMETER("不接收未经定义的参数", "disabled_unknown_parameter", "true"),
+
+	/**
+	 * 禁止验证requestBody
+	 */
+	DISABLED_VALIDATE_REQUEST_BODY("禁止验证RequestBody", "disabled_validate_request_body", "false");
 
 	private final String name;
 	private final String value;

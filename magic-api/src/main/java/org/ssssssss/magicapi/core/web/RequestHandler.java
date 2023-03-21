@@ -150,7 +150,7 @@ public class RequestHandler extends MagicController {
 				context.set(VAR_NAME_REQUEST_BODY, bodyValue);
 			}
 			BaseDefinition requestBody = info.getRequestBodyDefinition();
-			if (requestBody != null && !CollectionUtils.isEmpty(requestBody.getChildren())) {
+			if (requestBody != null && !CONST_STRING_TRUE.equalsIgnoreCase(info.getOptionValue(Options.DISABLED_VALIDATE_REQUEST_BODY)) && !CollectionUtils.isEmpty(requestBody.getChildren())) {
 				requestBody.setName(StringUtils.defaultIfBlank(requestBody.getName(), "root"));
 				doValidate(scriptName, VAR_NAME_REQUEST_BODY, Collections.singletonList(requestBody), new HashMap<String, Object>() {{
 					put(requestBody.getName(), bodyValue);
