@@ -11,10 +11,9 @@
     <a target="_blank" href="https://gitee.com/ssssssss-team/magic-api"><img src="https://gitee.com/ssssssss-team/magic-api/badge/star.svg?theme=white" /></a>
     <a target="_blank" href="https://github.com/ssssssss-team/magic-api"><img src="https://img.shields.io/github/stars/ssssssss-team/magic-api.svg?style=social"/></a>
     <a target="_blank" href="LICENSE"><img src="https://img.shields.io/:license-MIT-blue.svg"></a>
-    <a target="_blank" href="https://qm.qq.com/cgi-bin/qm/qr?k=38qddUeqrk_x29Xril9a_jxnoCGTmPRF&jump_from=webapi"><img src="https://img.shields.io/badge/QQ群-700818216-blue"></a>
 </p>
 
-[特性](#特性) | [快速开始](#快速开始) | [文档/演示](#文档演示) | [示例项目](#示例项目) | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图)
+[特性](#特性) | [快速开始](#快速开始) | [文档/演示](#文档演示) | [示例项目](#示例项目) | <a target="_blank" href="http://ssssssss.org/changelog.html">更新日志</a> | [项目截图](#项目截图) | [交流群](#交流群)
 
 # 简介
 
