@@ -14,6 +14,12 @@ public class MagicTaskConfig {
 	private boolean enable = true;
 
 	/**
+	 * 是否打印日志
+	 * @since 2.1.0
+	 */
+	private boolean log = false;
+
+	/**
 	 * 线程池相关配置
 	 */
 	private final Pool pool = new Pool();
@@ -27,6 +33,14 @@ public class MagicTaskConfig {
 	 * 线程池前缀
 	 */
 	private String threadNamePrefix = "magic-task-";
+
+	public boolean isLog() {
+		return log;
+	}
+
+	public void setLog(boolean log) {
+		this.log = log;
+	}
 
 	public Pool getPool() {
 		return this.pool;

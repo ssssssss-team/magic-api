@@ -23,9 +23,12 @@ public class TaskMagicDynamicRegistry extends AbstractMagicDynamicRegistry<TaskI
 
 	private static final Logger logger = LoggerFactory.getLogger(TaskMagicDynamicRegistry.class);
 
-	public TaskMagicDynamicRegistry(MagicResourceStorage<TaskInfo> magicResourceStorage, TaskScheduler taskScheduler) {
+	private final boolean showLog;
+
+	public TaskMagicDynamicRegistry(MagicResourceStorage<TaskInfo> magicResourceStorage, TaskScheduler taskScheduler, boolean showLog) {
 		super(magicResourceStorage);
 		this.taskScheduler = taskScheduler;
+		this.showLog = showLog;
 	}
 
 	@EventListener(condition = "#event.type == 'task'")
@@ -54,14 +57,18 @@ public class TaskMagicDynamicRegistry extends AbstractMagicDynamicRegistry<TaskI
 				CronTask cronTask = new CronTask(() -> {
 					if (entity.isEnabled()) {
 						try {
-							logger.info("定时任务:[{}]开始执行", scriptName);
+							if (showLog) {
+								logger.info("定时任务:[{}]开始执行", scriptName);
+							}
 							MagicScriptContext magicScriptContext = new MagicScriptContext();
 							magicScriptContext.setScriptName(scriptName);
 							ScriptManager.executeScript(entity.getScript(), magicScriptContext);
 						} catch (Exception e) {
 							logger.error("定时任务执行出错", e);
 						} finally {
-							logger.info("定时任务:[{}]执行完毕", scriptName);
+							if (showLog) {
+								logger.info("定时任务:[{}]执行完毕", scriptName);
+							}
 						}
 					}
 				}, trigger);

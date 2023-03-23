@@ -43,7 +43,7 @@ public class MagicAPITaskConfiguration implements MagicPluginConfiguration {
 			poolTaskScheduler.setThreadNamePrefix(config.getThreadNamePrefix());
 			poolTaskScheduler.initialize();
 		}
-		return new TaskMagicDynamicRegistry(taskInfoMagicResourceStorage, poolTaskScheduler);
+		return new TaskMagicDynamicRegistry(taskInfoMagicResourceStorage, poolTaskScheduler, config.isLog());
 	}
 
 	@Override
