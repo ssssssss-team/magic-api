@@ -83,3 +83,11 @@ magic-api.resource.location=/data/magic-api
 | ![DEBUG](https://images.gitee.com/uploads/images/2021/0711/110515_755f178a_297689.gif "DEBUG") | ![参数提示](https://images.gitee.com/uploads/images/2021/0711/110322_9dd6d149_297689.gif "参数提示") |
 | ![远程推送](https://images.gitee.com/uploads/images/2021/0711/105803_b53e0d7e_297689.png "远程推送") | ![历史记录](https://images.gitee.com/uploads/images/2021/0711/105910_f2440ea4_297689.png "历史记录") |
 | ![数据源](https://images.gitee.com/uploads/images/2021/0711/105846_7ec51a50_297689.png "数据源") | ![全局搜索](https://images.gitee.com/uploads/images/2021/0711/105823_ac18ada7_297689.png "全局搜索") |
+
+# 交流群
+
+| 微信群 | QQ群 |
+| ----- | --- |
+| <img src="https://www.ssssssss.org/magic-api/images/wxcode.png" alt="作者微信"> | <img src="https://www.ssssssss.org/magic-api/images/qq-group-qrcode.png" alt="QQ群"> |
+| 备注：加群，邀您加入群聊| <a href="https://qm.qq.com/cgi-bin/qm/qr?k=38qddUeqrk_x29Xril9a_jxnoCGTmPRF&jump_from=webapi" target="_blank">点击加入QQ群：700818216</a> |
+
