@@ -4,11 +4,13 @@ package org.ssssssss.magicapi.utils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.ssssssss.script.asm.ClassReader;
 import org.ssssssss.script.functions.ObjectConvertExtension;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -39,6 +41,12 @@ public class ClassScanner {
 				}
 			} while ((loader = loader.getParent()) != null);
 		}
+		ClassLoader loader = Thread.currentThread().getContextClassLoader();
+		do {
+			if (loader instanceof URLClassLoader) {
+				classes.addAll(scan(((URLClassLoader) loader).getURLs()));
+			}
+		} while ((loader = loader.getParent()) != null);
 		classes.addAll(addJavaLibrary());
 		return new ArrayList<>(classes);
 	}
@@ -54,10 +62,14 @@ public class ClassScanner {
 					} else if (it.getURL().getPath().split("!").length > 1) {
 						return it.getURL().getPath().split("!")[1].substring(1).replace(".class", "").replaceAll("\\/", ".");
 					} else {
-						return null;
+						try (InputStream stream = it.getInputStream()) {
+							return new ClassReader(stream).getClassName().replace("/", ".");
+						} catch (Exception e) {
+							return null;
+						}
 					}
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
 				return null;
 			}
 			return null;
@@ -228,6 +240,6 @@ public class ClassScanner {
 	}
 
 	private static boolean isClass(String className) {
-		return className.endsWith(".class") && !className.contains("$");
+		return className.endsWith(".class") && !className.contains("$") && !className.contains("module-info");
 	}
 }
