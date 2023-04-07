@@ -175,9 +175,15 @@ public class BoundSql {
 		RequestEntity requestEntity = RequestContext.getRequestEntity();
 		interceptors.forEach(interceptor -> interceptor.preHandle(this, requestEntity));
 		Supplier<T> newSupplier = () -> {
-			Object result = supplier.get();
-			for (SQLInterceptor interceptor : interceptors) {
-				result = interceptor.postHandle(this, result, requestEntity);
+			Object result;
+			try {
+				result = supplier.get();
+				for (SQLInterceptor interceptor : interceptors) {
+					result = interceptor.postHandle(this, result, requestEntity);
+				}
+			} catch (Throwable e) {
+				interceptors.forEach(interceptor -> interceptor.handleException(this, e, requestEntity));
+				throw e;
 			}
 			return (T) result;
 		};

@@ -31,5 +31,14 @@ public interface SQLInterceptor {
 		return result;
 	}
 
+	/**
+	 * @since 2.1.0
+	 * @param boundSql	SQL信息
+	 * @param throwable 异常信息
+	 * @param requestEntity	请求信息
+	 */
+	default void handleException(BoundSql boundSql, Throwable throwable, RequestEntity requestEntity){
+	}
+
 
 }

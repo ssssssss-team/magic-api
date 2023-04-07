@@ -16,8 +16,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultSqlInterceptor implements SQLInterceptor {
 
-	@Override
-	public void preHandle(BoundSql boundSql, RequestEntity requestEntity) {
+	private void handleLog(BoundSql boundSql, RequestEntity requestEntity){
 		Logger logger = LoggerFactory.getLogger(requestEntity == null ? "Unknown" : requestEntity.getMagicScriptContext().getScriptName());
 		String parameters = Arrays.stream(boundSql.getParameters()).map(it -> {
 			if (it == null) {
@@ -33,5 +32,15 @@ public class DefaultSqlInterceptor implements SQLInterceptor {
 		if (parameters.length() > 0) {
 			logger.info("SQL参数：{}", parameters);
 		}
+	}
+	@Override
+	public Object postHandle(BoundSql boundSql, Object result, RequestEntity requestEntity) {
+		handleLog(boundSql, requestEntity);
+		return result;
+	}
+
+	@Override
+	public void handleException(BoundSql boundSql, Throwable throwable, RequestEntity requestEntity) {
+		handleLog(boundSql, requestEntity);
 	}
 }
