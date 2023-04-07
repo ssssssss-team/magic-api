@@ -29,8 +29,8 @@ const info = inject('info')
 .magic-component-info form label{
 	display: inline-block;
 	width: 75px;
-	height: 22px;
-	line-height: 22px;
+	height: var(--magic-input-height);
+	line-height: var(--magic-input-height);
 	font-weight: 400;
 	text-align: right;
 	padding: 0 5px;
