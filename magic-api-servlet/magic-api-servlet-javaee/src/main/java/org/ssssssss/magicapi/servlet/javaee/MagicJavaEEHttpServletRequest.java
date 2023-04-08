@@ -13,6 +13,7 @@ import org.ssssssss.magicapi.core.servlet.MagicCookie;
 import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
 import org.ssssssss.magicapi.core.servlet.MagicHttpSession;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,6 +84,10 @@ public class MagicJavaEEHttpServletRequest implements MagicHttpServletRequest {
 
 	@Override
 	public MagicCookie[] getCookies() {
+		Cookie[] cookies = request.getCookies();
+		if (cookies == null) {
+			return new MagicJavaEECookie[0];
+		}
 		return Arrays.stream(request.getCookies()).map(MagicJavaEECookie::new).toArray(MagicJavaEECookie[]::new);
 	}
 
