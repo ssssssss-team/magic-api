@@ -6,7 +6,7 @@ import javax.servlet.http.HttpSession;
 
 public class MagicJavaEEHttpSession implements MagicHttpSession {
 
-	private HttpSession session;
+	private final HttpSession session;
 
 	public MagicJavaEEHttpSession(HttpSession session) {
 		this.session = session;
@@ -20,5 +20,10 @@ public class MagicJavaEEHttpSession implements MagicHttpSession {
 	@Override
 	public void setAttribute(String key, Object value) {
 		session.setAttribute(key, value);
+	}
+
+	@Override
+	public <T> T getSession() {
+		return (T) session;
 	}
 }

@@ -6,7 +6,7 @@ import org.ssssssss.magicapi.core.servlet.MagicHttpSession;
 
 public class MagicJakartaHttpSession implements MagicHttpSession {
 
-	private HttpSession session;
+	private final HttpSession session;
 
 	public MagicJakartaHttpSession(HttpSession session) {
 		this.session = session;
@@ -20,5 +20,10 @@ public class MagicJakartaHttpSession implements MagicHttpSession {
 	@Override
 	public void setAttribute(String key, Object value) {
 		session.setAttribute(key, value);
+	}
+
+	@Override
+	public <T> T getSession() {
+		return (T) session;
 	}
 }

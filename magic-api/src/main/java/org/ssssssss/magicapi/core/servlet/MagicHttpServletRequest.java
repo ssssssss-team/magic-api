@@ -41,6 +41,8 @@ public interface MagicHttpServletRequest {
 	MultipartRequest resolveMultipart();
 
 	Principal getUserPrincipal();
+
+	<T> T getRequest();
 }
 
 

@@ -116,6 +116,11 @@ public class MagicJavaEEHttpServletRequest implements MagicHttpServletRequest {
 		return request.getUserPrincipal();
 	}
 
+	@Override
+	public <T> T getRequest() {
+		return (T) request;
+	}
+
 	public static class ArgumentsResolver implements HandlerMethodArgumentResolver {
 
 		@Override

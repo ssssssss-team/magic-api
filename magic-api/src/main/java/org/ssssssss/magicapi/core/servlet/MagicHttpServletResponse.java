@@ -17,4 +17,6 @@ public interface MagicHttpServletResponse {
 	public OutputStream getOutputStream() throws IOException;
 
 	public Collection<String> getHeaderNames();
+
+	public <T> T getResponse();
 }
