@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -279,14 +280,14 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@Valid(authorization = Authorization.DOWNLOAD)
 	public void download(String groupId, @RequestBody(required = false) List<SelectedResource> resources, MagicHttpServletRequest request, MagicHttpServletResponse response) throws IOException {
 		isTrue(allowVisit(request, Authorization.DOWNLOAD), PERMISSION_INVALID);
-		response.setContentType("application/octet-stream");
+		response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		magicAPIService.download(groupId, resources, os);
 		String filename = "magic-api-all.zip";
 		if (StringUtils.isBlank(groupId)) {
 			filename = "magic-api-group.zip";
 		}
-		response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(filename, "UTF-8"));
+		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + URLEncoder.encode(filename, "UTF-8"));
 		try (OutputStream stream = response.getOutputStream()) {
 			stream.write(os.toByteArray());
 			stream.flush();
