@@ -5,8 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,7 +20,6 @@ import org.ssssssss.magicapi.core.service.MagicAPIService;
 import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
 import org.ssssssss.magicapi.core.servlet.MagicHttpServletResponse;
 import org.ssssssss.magicapi.modules.db.SQLModule;
-import org.ssssssss.magicapi.modules.servlet.ResponseModule;
 import org.ssssssss.magicapi.utils.ClassScanner;
 import org.ssssssss.magicapi.utils.IoUtils;
 import org.ssssssss.magicapi.utils.SignUtils;
@@ -33,10 +30,8 @@ import org.ssssssss.script.ScriptClass;
 import org.ssssssss.script.parsing.Span;
 import org.ssssssss.script.parsing.Tokenizer;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -256,37 +251,45 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	}
 
 	@RequestMapping(value = "/config-js")
-	@ResponseBody
 	@Valid(requireLogin = false)
-	public ResponseEntity<?> configJs() {
-		ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok().contentType(MediaType.parseMediaType("application/javascript"));
+	public void configJs(MagicHttpServletResponse response) throws IOException {
+		response.setContentType("application/javascript");
+		response.setCharacterEncoding("UTF-8");
+		byte[] bytes = "var MAGIC_EDITOR_CONFIG = {}".getBytes();
 		if (configuration.getEditorConfig() != null) {
 			try {
 				String path = configuration.getEditorConfig();
 				if (path.startsWith(ResourceUtils.CLASSPATH_URL_PREFIX)) {
 					path = path.substring(ResourceUtils.CLASSPATH_URL_PREFIX.length());
-					return responseBuilder.body(IoUtils.bytes(new ClassPathResource(path).getInputStream()));
+					bytes = IoUtils.bytes(new ClassPathResource(path).getInputStream());
 				}
 				File file = ResourceUtils.getFile(configuration.getEditorConfig());
-				return responseBuilder.body(Files.readAllBytes(Paths.get(file.toURI())));
+				bytes = Files.readAllBytes(Paths.get(file.toURI()));
 			} catch (IOException e) {
 				logger.warn("读取编辑器配置文件{}失败", configuration.getEditorConfig());
 			}
 		}
-		return responseBuilder.body("var MAGIC_EDITOR_CONFIG = {}".getBytes());
+		try (OutputStream stream = response.getOutputStream()) {
+			stream.write(bytes);
+			stream.flush();
+		}
 	}
 
 	@RequestMapping("/download")
 	@Valid(authorization = Authorization.DOWNLOAD)
-	@ResponseBody
-	public ResponseEntity<?> download(String groupId, @RequestBody(required = false) List<SelectedResource> resources, MagicHttpServletRequest request) throws IOException {
+	public void download(String groupId, @RequestBody(required = false) List<SelectedResource> resources, MagicHttpServletRequest request, MagicHttpServletResponse response) throws IOException {
 		isTrue(allowVisit(request, Authorization.DOWNLOAD), PERMISSION_INVALID);
+		response.setContentType("application/octet-stream");
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		magicAPIService.download(groupId, resources, os);
+		String filename = "magic-api-all.zip";
 		if (StringUtils.isBlank(groupId)) {
-			return ResponseModule.download(os.toByteArray(), "magic-api-group.zip");
-		} else {
-			return ResponseModule.download(os.toByteArray(), "magic-api-all.zip");
+			filename = "magic-api-group.zip";
+		}
+		response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(filename, "UTF-8"));
+		try (OutputStream stream = response.getOutputStream()) {
+			stream.write(os.toByteArray());
+			stream.flush();
 		}
 	}
 

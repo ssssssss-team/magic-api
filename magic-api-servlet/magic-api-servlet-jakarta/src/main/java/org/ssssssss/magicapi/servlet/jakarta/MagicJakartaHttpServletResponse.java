@@ -43,6 +43,16 @@ public class MagicJakartaHttpServletResponse implements MagicHttpServletResponse
 	}
 
 	@Override
+	public void setContentType(String contentType) {
+		response.setContentType(contentType);
+	}
+
+	@Override
+	public void setCharacterEncoding(String characterEncoding) {
+		response.setCharacterEncoding(characterEncoding);
+	}
+
+	@Override
 	public OutputStream getOutputStream() throws IOException {
 		return response.getOutputStream();
 	}
