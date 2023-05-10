@@ -122,8 +122,4 @@ public class MybatisParser {
 		Node item = node.getAttributes().getNamedItem(attributeKey);
 		return item != null ? item.getNodeValue() : null;
 	}
-
-	public static void main(String[] args) {
-		System.out.println(escapeXml("<where> <if test=\"111\"> and 1 < 2 and 1<6 and 2>#{666}</if></where>"));
-	}
 }
