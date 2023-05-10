@@ -48,8 +48,8 @@ public class MagicJavaEEServletConfiguration implements WebMvcConfigurer {
 
 	@Override
 	public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-		resolvers.add(new MagicJavaEEHttpServletRequest.ArgumentsResolver());
-		resolvers.add(new MagicJavaEEHttpServletResponse.ArgumentsResolver());
+		resolvers.add(0, new MagicJavaEEHttpServletRequest.ArgumentsResolver());
+		resolvers.add(0, new MagicJavaEEHttpServletResponse.ArgumentsResolver());
 	}
 
 	@Bean

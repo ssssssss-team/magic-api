@@ -39,8 +39,17 @@ public class MagicJakartaHttpServletResponse implements MagicHttpServletResponse
 
 	@Override
 	public void addCookie(MagicCookie cookie) {
-		MagicJakartaCookie javaEECookie = (MagicJakartaCookie) cookie;
-		response.addCookie(javaEECookie.getOriginCookie());
+		response.addCookie(cookie.getCookie());
+	}
+
+	@Override
+	public void setContentType(String contentType) {
+		response.setContentType(contentType);
+	}
+
+	@Override
+	public void setCharacterEncoding(String characterEncoding) {
+		response.setCharacterEncoding(characterEncoding);
 	}
 
 	@Override
@@ -51,6 +60,11 @@ public class MagicJakartaHttpServletResponse implements MagicHttpServletResponse
 	@Override
 	public Collection<String> getHeaderNames() {
 		return response.getHeaderNames();
+	}
+
+	@Override
+	public <T> T getResponse() {
+		return (T) response;
 	}
 
 	public static class ArgumentsResolver implements HandlerMethodArgumentResolver {

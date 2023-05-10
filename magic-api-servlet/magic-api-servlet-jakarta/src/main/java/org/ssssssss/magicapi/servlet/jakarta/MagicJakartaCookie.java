@@ -21,7 +21,8 @@ public class MagicJakartaCookie implements MagicCookie {
 		return cookie.getValue();
 	}
 
-	public Cookie getOriginCookie(){
-		return cookie;
+	@Override
+	public <T> T getCookie() {
+		return (T) cookie;
 	}
 }

@@ -29,11 +29,6 @@ public class TrimSqlNode extends SqlNode {
 	 */
 	protected String suffixOverrides;
 
-	public static void main(String[] args) {
-		String sql = "11111?,";
-		System.out.println(sql.substring(0, sql.lastIndexOf(",")));
-	}
-
 	public void setPrefix(String prefix) {
 		this.prefix = prefix;
 	}

@@ -14,7 +14,13 @@ public interface MagicHttpServletResponse {
 
 	public void addCookie(MagicCookie cookie);
 
+	public void setContentType(String contentType);
+
+	public void setCharacterEncoding(String characterEncoding);
+
 	public OutputStream getOutputStream() throws IOException;
 
 	public Collection<String> getHeaderNames();
+
+	public <T> T getResponse();
 }
