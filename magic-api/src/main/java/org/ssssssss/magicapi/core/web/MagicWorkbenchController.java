@@ -252,6 +252,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	}
 
 	@RequestMapping(value = "/config-js")
+	@ResponseBody
 	@Valid(requireLogin = false)
 	public void configJs(MagicHttpServletResponse response) throws IOException {
 		response.setContentType("application/javascript");
