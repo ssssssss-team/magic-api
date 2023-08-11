@@ -780,4 +780,64 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule>, Dynami
 		}
 	}
 
+    @Comment("调用存储过程方法")
+    public Object callPro(
+            @Comment(name = "procName", value = "存储过程名称") String procName,
+            @Comment(name = "list", value = "[{\"p\":\"参数名\",\"io\":\"i/o/io\",\"t\":\"java.sql.Types\",\"v\":\"参数值\"}]") List<HashMap<String, Object>> list) {
+        List<String> strings = new ArrayList<>();
+        for (Map<String, Object> ignored : list) {
+            strings.add("?");
+        }
+        String result = String.join(",", strings);
+        final String callProcedureSql = "call " + procName + "(" + result + ")";
+        return this.call(callProcedureSql, list);
+    }
+
+    @Comment("调用函数方法")
+    public Object callFun(
+            @Comment(name = "funcName", value = "函数名称") String procName,
+            @Comment(name = "list", value = "[{\"p\":\"参数名\",\"io\":\"i/o/io\",\"t\":\"java.sql.type\",\"v\":\"参数值\"}]") List<HashMap<String, Object>> list) {
+        List<String> strings = new ArrayList<>();
+        for (Map<String, Object> ignored : list) {
+            strings.add("?");
+        }
+        String result = String.join(",", strings);
+        final String callFunctionSql = "{call " + procName + "(" + result + ")}";
+        return this.call(callFunctionSql, list);
+    }
+
+    private Object call(String sql, List<HashMap<String, Object>> list) {
+        List<SqlParameter> params = new ArrayList<>();
+        for (Map<String, Object> map : list) {
+            String paramName = (String) map.get("p");
+            int type = (int) map.get("t");
+            if ("i".equals(map.get("io"))) {
+                params.add(new SqlParameter(paramName, type));
+            } else if ("o".equals(map.get("io"))) {
+                params.add(new SqlOutParameter(paramName, type));
+            } else {
+                params.add(new SqlInOutParameter(paramName, type));
+            }
+        }
+        final String callFunctionSql = sql;
+        return this.dataSourceNode.getJdbcTemplate().call(
+                con -> {
+                    CallableStatement statement = con.prepareCall(callFunctionSql);
+                    for (int i = 0; i < list.size(); i++) {
+                        Map<String, Object> map = list.get(i);
+                        Object param = map.get("v");
+                        int type = (int) map.get("t");
+                        if ("i".equals(map.get("io"))) {
+                            statement.setObject(i + 1, param);
+                        } else if ("o".equals(map.get("io"))) {
+                            statement.registerOutParameter(i + 1, type);
+                        } else {
+                            statement.setObject(i + 1, param);
+                            statement.registerOutParameter(i + 1, type);
+                        }
+                    }
+                    return statement;
+                }, params);
+    }
+
 }
