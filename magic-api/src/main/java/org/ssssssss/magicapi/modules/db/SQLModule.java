@@ -1,5 +1,7 @@
 package org.ssssssss.magicapi.modules.db;
 
+import com.sun.org.apache.bcel.internal.generic.NEW;
+import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -16,6 +18,9 @@ import org.ssssssss.magicapi.modules.db.dialect.Dialect;
 import org.ssssssss.magicapi.modules.db.inteceptor.NamedTableInterceptor;
 import org.ssssssss.magicapi.modules.db.inteceptor.SQLInterceptor;
 import org.ssssssss.magicapi.modules.db.model.Page;
+import org.ssssssss.magicapi.modules.db.model.SqlMode;
+import org.ssssssss.magicapi.modules.db.model.StoreMode;
+import org.ssssssss.magicapi.modules.db.model.StoredParam;
 import org.ssssssss.magicapi.modules.db.provider.PageProvider;
 import org.ssssssss.magicapi.modules.db.table.NamedTable;
 import org.ssssssss.magicapi.core.interceptor.ResultProvider;
@@ -23,6 +28,8 @@ import org.ssssssss.magicapi.utils.ScriptManager;
 import org.ssssssss.script.MagicScriptContext;
 import org.ssssssss.script.annotation.Comment;
 import org.ssssssss.script.functions.DynamicAttribute;
+import org.ssssssss.script.parsing.GenericTokenParser;
+import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 import org.ssssssss.script.parsing.ast.statement.ClassConverter;
 import org.ssssssss.script.reflection.JavaReflection;
 import org.ssssssss.script.runtime.RuntimeContext;
@@ -31,6 +38,8 @@ import java.beans.Transient;
 import java.lang.reflect.Field;
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -81,6 +90,7 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule>, Dynami
 	private long ttl;
 	private String logicDeleteColumn;
 	private String logicDeleteValue;
+    public static List<SqlParameter> params;
 
 	public SQLModule() {
 
@@ -780,60 +790,37 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule>, Dynami
 		}
 	}
 
-    @Comment("调用存储过程方法")
-    public Object callPro(
-            @Comment(name = "procName", value = "存储过程名称") String procName,
-            @Comment(name = "list", value = "[{\"p\":\"参数名\",\"io\":\"i/o/io\",\"t\":\"java.sql.Types\",\"v\":\"参数值\"}]") List<HashMap<String, Object>> list) {
-        List<String> strings = new ArrayList<>();
-        for (Map<String, Object> ignored : list) {
-            strings.add("?");
-        }
-        String result = String.join(",", strings);
-        final String callProcedureSql = "call " + procName + "(" + result + ")";
-        return this.call(callProcedureSql, list);
+    @Comment("调用过程")
+    public Object call(RuntimeContext runtimeContext,
+                                            @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml) {
+        return call(runtimeContext, sqlOrXml, null);
+    }
+    private Object call(RuntimeContext runtimeContext,
+                        @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
+                        @Comment(name = "params", value = "变量信息") Map<String, Object> params){
+        return call(new BoundSql(runtimeContext, sqlOrXml, params, this),runtimeContext);
     }
 
-    @Comment("调用函数方法")
-    public Object callFun(
-            @Comment(name = "funcName", value = "函数名称") String procName,
-            @Comment(name = "list", value = "[{\"p\":\"参数名\",\"io\":\"i/o/io\",\"t\":\"java.sql.type\",\"v\":\"参数值\"}]") List<HashMap<String, Object>> list) {
-        List<String> strings = new ArrayList<>();
-        for (Map<String, Object> ignored : list) {
-            strings.add("?");
-        }
-        String result = String.join(",", strings);
-        final String callFunctionSql = "{call " + procName + "(" + result + ")}";
-        return this.call(callFunctionSql, list);
+    @Transient
+    public Object call(BoundSql boundSql,RuntimeContext runtimeContext) {
+        assertDatasourceNotNull();
+        return boundSql.execute(this.sqlInterceptors, () -> call(boundSql));
     }
 
-    private Object call(String sql, List<HashMap<String, Object>> list) {
-        List<SqlParameter> params = new ArrayList<>();
-        for (Map<String, Object> map : list) {
-            String paramName = (String) map.get("p");
-            int type = (int) map.get("t");
-            if ("i".equals(map.get("io"))) {
-                params.add(new SqlParameter(paramName, type));
-            } else if ("o".equals(map.get("io"))) {
-                params.add(new SqlOutParameter(paramName, type));
-            } else {
-                params.add(new SqlInOutParameter(paramName, type));
-            }
-        }
-        final String callFunctionSql = sql;
+    private Object call(BoundSql boundSql) {
         return this.dataSourceNode.getJdbcTemplate().call(
                 con -> {
-                    CallableStatement statement = con.prepareCall(callFunctionSql);
-                    for (int i = 0; i < list.size(); i++) {
-                        Map<String, Object> map = list.get(i);
-                        Object param = map.get("v");
-                        int type = (int) map.get("t");
-                        if ("i".equals(map.get("io"))) {
-                            statement.setObject(i + 1, param);
-                        } else if ("o".equals(map.get("io"))) {
-                            statement.registerOutParameter(i + 1, type);
-                        } else {
-                            statement.setObject(i + 1, param);
-                            statement.registerOutParameter(i + 1, type);
+                    CallableStatement statement = con.prepareCall(boundSql.getSql());
+                    Object[] parameters = boundSql.getParameters();
+                    for (int i = 0; i < parameters.length; i++) {
+                        StoredParam storedParam = (StoredParam) parameters[i];
+                        if (storedParam.getInOut() == StoreMode.IN) {
+                            statement.setObject(i + 1, storedParam.getValue());
+                        } else if (storedParam.getInOut() == StoreMode.OUT) {
+                            statement.registerOutParameter(i + 1, storedParam.getType());
+                        } else if (storedParam.getInOut() == StoreMode.INOUT) {
+                            statement.setObject(i + 1, storedParam.getValue());
+                            statement.registerOutParameter(i + 1, storedParam.getType());
                         }
                     }
                     return statement;
