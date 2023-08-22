@@ -33,7 +33,7 @@
         <magic-script.version>1.8.8</magic-script.version>
         <commons-compress.version>1.21</commons-compress.version>
         <commons-io.version>2.7</commons-io.version>
-        <commons-text.version>1.6</commons-text.version>
+        <commons-text.version>1.10.0</commons-text.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <jakarta.version>6.0.0</jakarta.version>
         <fastjson.version>1.2.83</fastjson.version>

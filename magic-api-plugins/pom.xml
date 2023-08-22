@@ -23,6 +23,7 @@
         <module>magic-api-plugin-elasticsearch</module>
         <module>magic-api-plugin-cluster</module>
         <module>magic-api-plugin-git</module>
+        <module>magic-api-plugin-nebula</module>
     </modules>
     <dependencies>
         <dependency>
