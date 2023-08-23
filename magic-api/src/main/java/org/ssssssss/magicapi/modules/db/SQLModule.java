@@ -18,8 +18,6 @@ import org.ssssssss.magicapi.modules.db.inteceptor.NamedTableInterceptor;
 import org.ssssssss.magicapi.modules.db.inteceptor.SQLInterceptor;
 import org.ssssssss.magicapi.modules.db.model.Page;
 import org.ssssssss.magicapi.modules.db.model.SqlTypes;
-import org.ssssssss.magicapi.modules.db.model.StoreMode;
-import org.ssssssss.magicapi.modules.db.model.StoredParam;
 import org.ssssssss.magicapi.modules.db.provider.PageProvider;
 import org.ssssssss.magicapi.modules.db.table.NamedTable;
 import org.ssssssss.magicapi.utils.ScriptManager;
@@ -777,41 +775,32 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule>, Dynami
 		}
 	}
 
-    @Comment("调用过程")
+    @Comment("调用存储过程")
     public Object call(RuntimeContext runtimeContext,
                                             @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml) {
-        return call(runtimeContext, sqlOrXml, null);
-    }
-    private Object call(RuntimeContext runtimeContext,
-                        @Comment(name = "sqlOrXml", value = "`SQL`语句或`xml`") String sqlOrXml,
-                        @Comment(name = "params", value = "变量信息") Map<String, Object> params){
-        return call(new BoundSql(runtimeContext, sqlOrXml, params, this),runtimeContext);
-    }
-
-    @Transient
-    public Object call(BoundSql boundSql,RuntimeContext runtimeContext) {
-        assertDatasourceNotNull();
-        return boundSql.execute(this.sqlInterceptors, () -> call(boundSql));
-    }
-
-    private Object call(BoundSql boundSql) {
-        return this.dataSourceNode.getJdbcTemplate().call(
-                con -> {
-                    CallableStatement statement = con.prepareCall(boundSql.getSql());
-                    Object[] parameters = boundSql.getParameters();
-                    for (int i = 0; i < parameters.length; i++) {
-                        StoredParam storedParam = (StoredParam) parameters[i];
-                        if (storedParam.getInOut() == StoreMode.IN) {
-                            statement.setObject(i + 1, storedParam.getValue());
-                        } else if (storedParam.getInOut() == StoreMode.OUT) {
-                            statement.registerOutParameter(i + 1, storedParam.getType());
-                        } else if (storedParam.getInOut() == StoreMode.INOUT) {
-                            statement.setObject(i + 1, storedParam.getValue());
-                            statement.registerOutParameter(i + 1, storedParam.getType());
-                        }
-                    }
-                    return statement;
-                }, params);
+		assertDatasourceNotNull();
+		BoundSql boundSql = new BoundSql(runtimeContext, sqlOrXml, Collections.emptyMap(), this);
+		return boundSql.execute(this.sqlInterceptors, () -> this.dataSourceNode.getJdbcTemplate().call(
+				con -> {
+					CallableStatement statement = con.prepareCall(boundSql.getSql());
+					Object[] parameters = boundSql.getParameters();
+					for (int i = 0, size = parameters.length; i < size; i++) {
+						Object parameter = parameters[i];
+						if (parameter instanceof SqlOutParameter) {
+							SqlOutParameter sop = (SqlOutParameter)parameter;
+							statement.registerOutParameter(i + 1, sop.getSqlType());
+						} else if(parameter instanceof SqlParameterValue){
+							SqlParameterValue spv = (SqlParameterValue)parameter;
+							if(spv.getName() != null){
+								statement.registerOutParameter(i + 1, spv.getSqlType());
+							}
+							statement.setObject(i + 1, spv.getValue());
+						} else {
+							statement.setObject(i + 1, parameter);
+						}
+					}
+					return statement;
+				}, boundSql.getDeclareParameters()));
     }
 
 }

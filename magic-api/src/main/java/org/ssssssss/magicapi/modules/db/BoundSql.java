@@ -1,5 +1,7 @@
 package org.ssssssss.magicapi.modules.db;
 
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.core.SqlParameter;
 import org.ssssssss.magicapi.core.context.RequestContext;
 import org.ssssssss.magicapi.core.context.RequestEntity;
 import org.ssssssss.magicapi.modules.db.inteceptor.SQLInterceptor;
@@ -8,9 +10,11 @@ import org.ssssssss.magicapi.modules.db.mybatis.SqlNode;
 import org.ssssssss.magicapi.modules.db.mybatis.TextSqlNode;
 import org.ssssssss.script.runtime.RuntimeContext;
 
+import java.sql.Types;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * SQL参数处理
@@ -135,6 +139,20 @@ public class BoundSql {
 	 */
 	public Object[] getParameters() {
 		return parameters.toArray();
+	}
+
+	public List<SqlParameter> getDeclareParameters(){
+		return this.parameters.stream()
+				.map(it -> {
+					if(it instanceof SqlParameter){
+						SqlParameter p = (SqlParameter) it;
+						if(p.getName() != null){
+							return new SqlOutParameter(p.getName(), p.getSqlType());
+						}
+					}
+					return new SqlParameter(Types.NULL);
+				})
+				.collect(Collectors.toList());
 	}
 
 	/**

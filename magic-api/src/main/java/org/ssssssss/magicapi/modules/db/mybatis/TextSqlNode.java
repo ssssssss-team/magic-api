@@ -2,18 +2,20 @@ package org.ssssssss.magicapi.modules.db.mybatis;
 
 import org.springframework.jdbc.core.SqlInOutParameter;
 import org.springframework.jdbc.core.SqlOutParameter;
-import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.SqlParameterValue;
 import org.ssssssss.magicapi.modules.db.SQLModule;
-import org.ssssssss.magicapi.modules.db.model.StoreMode;
-import org.ssssssss.magicapi.modules.db.model.StoredParam;
+import org.ssssssss.magicapi.modules.db.model.SqlTypes;
 import org.ssssssss.magicapi.utils.ScriptManager;
 import org.ssssssss.script.functions.StreamExtension;
 import org.ssssssss.script.parsing.GenericTokenParser;
 import org.ssssssss.script.parsing.ast.literal.BooleanLiteral;
 
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -40,8 +42,6 @@ public class TextSqlNode extends SqlNode {
 	private static final GenericTokenParser TYPE_TOKEN_PARSER = new GenericTokenParser(",", "}", true);
 
 	private static final GenericTokenParser INOUT_TOKEN_PARSER = new GenericTokenParser("@{", "(", true);
-
-	private static final GenericTokenParser PARAM_TOKEN_PARSER = new GenericTokenParser("(", ")", true);
 
 	/**
 	 * SQL
@@ -83,31 +83,26 @@ public class TextSqlNode extends SqlNode {
 			}
 		});
 		sql = OUT_TOKEN_PARSER.parse(sql, text -> {
-			StoredParam storedParam = new StoredParam();
-			String val = OUT_PARAM_TOKEN_PARSER.parse("@{" + text, param -> {
-				TYPE_TOKEN_PARSER.parse(text + "}", type -> {
-					if (param.indexOf("(") > 0) {
-						PARAM_TOKEN_PARSER.parse(param, variable -> {
-							Object value = ScriptManager.executeExpression(variable, varMap);
-							storedParam.setValue(value);
-							storedParam.setInOut(StoreMode.INOUT);
-							storedParam.setType(StoredParam.paramType(type));
-							return null;
-						});
-						INOUT_TOKEN_PARSER.parse("@{" + param, inoutParam -> {
-							SQLModule.params.add(new SqlInOutParameter(inoutParam, StoredParam.paramType(type)));
-							return null;
-						});
-					} else {
-						Object value = ScriptManager.executeExpression(param, varMap);
-						storedParam.setValue(value);
-						storedParam.setInOut(StoreMode.OUT);
-						storedParam.setType(StoredParam.paramType(type));
-						SQLModule.params.add(new SqlOutParameter(param, StoredParam.paramType(type)));
-					}
-					return null;
-				});
-				parameters.add(storedParam);
+			// 获取类型
+			AtomicInteger sqlType = new AtomicInteger(Types.NULL);
+			TYPE_TOKEN_PARSER.parse(text + "}", type -> {
+				sqlType.set(SqlTypes.getSqlType(type, true));
+				return null;
+			});
+			// 获取名称
+			OUT_PARAM_TOKEN_PARSER.parse("@{" + text, param -> {
+				int index = param.indexOf("(");
+				if (index > 0) {
+					// 获取入参值
+					String value = param.substring(index + 1, param.lastIndexOf(")"));
+					INOUT_TOKEN_PARSER.parse("@{" + param, inoutParam -> {
+						SqlInOutParameter p = new SqlInOutParameter(inoutParam, sqlType.get());
+						parameters.add(new SqlParameterValue(p, ScriptManager.executeExpression(value, varMap)));
+						return null;
+					});
+				} else {
+					parameters.add(new SqlOutParameter(param, sqlType.get()));
+				}
 				return null;
 			});
 			return "?";

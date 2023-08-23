@@ -20,6 +20,14 @@ public class SqlTypes {
 
 
     public static Integer getSqlType(String type){
-        return SQL_TYPE_MAPPINGS.get(type.toLowerCase());
+        return getSqlType(type, true);
+    }
+
+    public static Integer getSqlType(String type, boolean defaultNull){
+        Integer value =  SQL_TYPE_MAPPINGS.get(type.toLowerCase());
+        if(value == null && defaultNull){
+            return Types.NULL;
+        }
+        return value;
     }
 }
