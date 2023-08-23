@@ -83,9 +83,9 @@ public class MybatisParser {
 		Node node = stream.consume();
 		ForeachSqlNode foreachSqlNode = new ForeachSqlNode();
 		foreachSqlNode.setCollection(getNodeAttributeValue(node, "collection"));
-		foreachSqlNode.setSeparator(getNodeAttributeValue(node, "separator"));
-		foreachSqlNode.setClose(getNodeAttributeValue(node, "close"));
-		foreachSqlNode.setOpen(getNodeAttributeValue(node, "open"));
+		foreachSqlNode.setSeparator(getNodeAttributeValue(node, "separator", ","));
+		foreachSqlNode.setClose(getNodeAttributeValue(node, "close", ")"));
+		foreachSqlNode.setOpen(getNodeAttributeValue(node, "open", "("));
 		foreachSqlNode.setItem(getNodeAttributeValue(node, "item"));
 		foreachSqlNode.setIndex(getNodeAttributeValue(node, "index"));
 		return processChildren(foreachSqlNode, node);
@@ -118,8 +118,12 @@ public class MybatisParser {
 		return processChildren(new WhereSqlNode(), stream.consume());
 	}
 
-	private static String getNodeAttributeValue(Node node, String attributeKey) {
+	private static String getNodeAttributeValue(Node node, String attributeKey, String defaultValue) {
 		Node item = node.getAttributes().getNamedItem(attributeKey);
-		return item != null ? item.getNodeValue() : null;
+		return item != null ? item.getNodeValue() : defaultValue;
+	}
+
+	private static String getNodeAttributeValue(Node node, String attributeKey) {
+		return getNodeAttributeValue(node, attributeKey, null);
 	}
 }
