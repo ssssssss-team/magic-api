@@ -80,8 +80,15 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 	@GetMapping("/config.json")
 	@Valid(requireLogin = false)
 	@ResponseBody
-	public MagicAPIProperties readConfig() {
-		return properties;
+	public Map<String, Object> readConfig() {
+		Map<String, Object> configJson = new HashMap<>();
+		configJson.put("persistenceResponseBody", properties.isPersistenceResponseBody());
+		configJson.put("version", properties.getVersion());
+		configJson.put("web", properties.getWeb());
+		configJson.put("prefix", properties.getPrefix());
+		configJson.put("autoImportModuleList", properties.getAutoImportModuleList());
+		configJson.put("autoImportPackage", properties.getAutoImportPackage());
+		return configJson;
 	}
 
 	@GetMapping(value = "/classes.txt", produces = "text/plain")
