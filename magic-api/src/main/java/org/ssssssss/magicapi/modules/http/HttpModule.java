@@ -133,6 +133,12 @@ public class HttpModule {
 		return this;
 	}
 
+	@Comment("设置返回值为`String`")
+	public HttpModule expectString() {
+		this.responseType = String.class;
+		return this;
+	}
+
 	@Comment("发送`POST`请求")
 	public ResponseEntity<?> post() {
 		this.method(HttpMethod.POST);
