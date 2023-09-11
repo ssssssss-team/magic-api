@@ -33,9 +33,9 @@ public enum Options {
 	REQUIRE_LOGIN("该接口需要登录才允许访问", "require_login", "true"),
 
 	/**
-	 * 该接口需要不登录也可访问
+	 * 该接口不需要登录也可访问
 	 */
-	ANONYMOUS("该接口需要不登录也可访问", "anonymous", "true"),
+	ANONYMOUS("该接口不需要登录也可访问", "anonymous", "true"),
 
 	/**
 	 * 不接收未经定义的参数
