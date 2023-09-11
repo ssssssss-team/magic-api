@@ -4,10 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.ssssssss.magicapi.core.config.MagicConfiguration;
-import org.ssssssss.magicapi.core.model.ApiInfo;
-import org.ssssssss.magicapi.core.model.BaseDefinition;
-import org.ssssssss.magicapi.core.model.DataType;
-import org.ssssssss.magicapi.core.model.Path;
+import org.ssssssss.magicapi.core.model.*;
 import org.ssssssss.magicapi.core.service.MagicResourceService;
 import org.ssssssss.magicapi.core.service.impl.RequestMagicDynamicRegistry;
 import org.ssssssss.magicapi.utils.JsonUtils;
@@ -73,7 +70,7 @@ public class SwaggerProvider {
 		swaggerEntity.addSecurity(securityMap);
 
 		for (ApiInfo info : infos) {
-			String groupName = magicResourceService.getGroupName(info.getGroupId()).replace("/", "-");
+			String groupName = getRootGroupName(info.getGroupId());
 			String requestPath = PathUtils.replaceSlash(this.prefix + magicResourceService.getGroupPath(info.getGroupId()) + "/" + info.getPath());
 			SwaggerEntity.Path path = new SwaggerEntity.Path(info.getId());
 			path.addTag(groupName);
@@ -121,6 +118,14 @@ public class SwaggerProvider {
 		}
 
 		return swaggerEntity;
+	}
+
+	private String getRootGroupName(String groupId) {
+		Group group = magicResourceService.getGroup(groupId);
+		if (!Objects.equals(group.getParentId(), "0")) {
+			return getRootGroupName(group.getParentId());
+		}
+		return group.getName();
 	}
 
 	private List<Map<String, Object>> parseParameters(ApiInfo info) {

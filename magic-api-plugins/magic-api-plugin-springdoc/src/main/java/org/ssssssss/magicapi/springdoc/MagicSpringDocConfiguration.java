@@ -96,7 +96,6 @@ public class MagicSpringDocConfiguration implements MagicPluginConfiguration {
 
 
 	private void createSwaggerProvider(ObjectProvider<RequestMagicDynamicRegistry> requestMagicDynamicRegistryObjectProvider, MagicResourceService magicResourceService, ServletContext servletContext) throws NoSuchMethodException {
-
 		Mapping mapping = Mapping.create(requestMappingHandlerMapping);
 		RequestMappingInfo requestMappingInfo = mapping.paths(springDocConfig.getLocation()).build();
 		SwaggerEntity.License license = new SwaggerEntity.License("MIT", "https://gitee.com/ssssssss-team/magic-api/blob/master/LICENSE");
