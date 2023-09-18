@@ -13,7 +13,7 @@
     <name>magic-api-plugin-git</name>
     <description>magic-api-plugin-git</description>
     <properties>
-        <jgit.version>5.13.0.202109080827-r</jgit.version>
+        <jgit.version>6.6.1.202309021850-r</jgit.version>
     </properties>
     <dependencies>
         <dependency>
