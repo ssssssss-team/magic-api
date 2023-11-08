@@ -23,9 +23,19 @@ public enum Options {
 	PERMISSION("允许拥有该权限的访问", "permission"),
 
 	/**
+	 * 允许拥有该权限的查看
+	 */
+	PERMISSION_VISIBLE("允许拥有该权限的查看", "permission_visible"),
+
+	/**
 	 * 允许拥有该角色的访问
 	 */
 	ROLE("允许拥有该角色的访问", "role"),
+
+	/**
+	 * 允许拥有该角色的可查看
+	 */
+	ROLE_VISIBLE("允许拥有该角色的查看", "role_visible"),
 
 	/**
 	 * 该接口需要登录才允许访问
