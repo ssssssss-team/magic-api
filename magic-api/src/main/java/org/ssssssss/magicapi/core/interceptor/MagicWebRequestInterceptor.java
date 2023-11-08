@@ -31,8 +31,9 @@ public abstract class MagicWebRequestInterceptor {
 					magicCorsFilter.process(request, response);
 				}
 				Valid valid = handlerMethod.getMethodAnnotation(Valid.class);
+				boolean requiredLogin = authorizationInterceptor.requireLogin();
 				boolean validRequiredLogin = (valid == null || valid.requireLogin());
-				if (validRequiredLogin || !(authorizationInterceptor instanceof DefaultAuthorizationInterceptor)) {
+				if ((validRequiredLogin && requiredLogin) || !(authorizationInterceptor instanceof DefaultAuthorizationInterceptor)) {
 					request.setAttribute(Constants.ATTRIBUTE_MAGIC_USER,
 							authorizationInterceptor.getUserByToken(request.getHeader(Constants.MAGIC_TOKEN_HEADER)));
 				}
