@@ -175,7 +175,7 @@ public abstract class KeyValueResource implements Resource {
 			parent = parent.parent();
 		}
 		String path = this.getAbsolutePath()
-				.replace(parent.getAbsolutePath(), "")
+				.substring(parent.getAbsolutePath().length())
 				.replace("\\", "/")
 				.replace(this.separator, "/");
 		return path.startsWith("/") ? path.substring(1) : path;

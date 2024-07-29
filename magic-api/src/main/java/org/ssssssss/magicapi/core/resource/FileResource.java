@@ -146,7 +146,7 @@ public class FileResource implements Resource {
 			parent = parent.parent();
 		}
 		String path = this.getAbsolutePath()
-				.replace(parent.getAbsolutePath(), "")
+				.substring(parent.getAbsolutePath().length())
 				.replace("\\", "/");
 		if (isDirectory() && !path.endsWith("/")) {
 			path += "/";
