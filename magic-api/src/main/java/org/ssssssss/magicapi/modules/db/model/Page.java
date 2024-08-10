@@ -15,6 +15,9 @@ public class Page {
 	}
 
 	public Page(long limit, long offset) {
+        if (offset < 0) {
+			offset = 0;
+		}
 		this.limit = limit;
 		this.offset = offset;
 	}
