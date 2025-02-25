@@ -1,0 +1,350 @@
+@font-face{
+    font-family:JetBrainsMono;
+    src:url(JetBrainsMono-Regular.woff2) format("woff2");
+    font-weight:100;
+    font-style:normal
+}
+.ma-container {
+    font-size: 12px;
+    font-family: 'JetBrainsMono','Consolas', "Courier New",monospace, '微软雅黑';
+    letter-spacing: 0px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 1200px;
+    min-height: 600px;
+    --color: #000;
+    --empty-color: #505050;
+    --empty-key-color: #5263A0;
+    --background: #f2f2f2;
+    --empty-background: #B6B6B6;
+    --border-color: #cdcdcd;
+    --input-border-color: #bdbdbd;
+    --input-border-foucs-color: #0784DE;
+    --input-background: #fff;
+    --select-border-color: #808080;
+    --select-background: #e3e3e3;
+    --select-icon-background: #fff;
+    --select-option-background: #fff;
+    --select-hover-background: #e3f1fa;
+    --select-option-hover-background: #1A7DC4;
+    --select-option-hover-color: #fff;
+    --select-option-disabled-color: #c0c4cc;
+    --select-inputable-background: #fff;
+    --select-inputable-border: #bdbdbd;
+    --checkbox-background: #fff;
+    --checkbox-text-color: #fff;
+    --checkbox-border: #b0b0b0;
+    --checkbox-selected-border: #4F9EE3;
+    --checkbox-selected-background: #4F9EE3;
+    --scollbar-color: rgba(170, 170, 170, .7);
+    --scollbar-background: rgba(221, 221, 221, .3);
+    --scollbar-thumb-background: rgba(170, 170, 170, .4);
+    --scollbar-thumb-hover-background: rgba(170, 170, 170, .7);
+    --scollbar-scrollbar-corner-background: rgba(221, 221, 221, .3);
+    --header-title-color: #000;
+    --header-version-color: #333;
+    --header-default-color: #6e6e6e;
+
+    --dialog-button-hover-border-color: #99a0a5;
+    --dialog-button-hover-background: #E3F1FA;
+    --dialog-button-background: #E3E3E3;
+    --dialog-button-border: #ADADAD;
+
+    --dialog-border-color: #707070;
+    --dialog-shadow-color: #cfcfcf;
+
+    --middle-background: #F0F0F0;
+
+    --button-run-color: #59A869;
+    --button-hover-background: #d9d9d9;
+    --button-disabled-background: #BDBDBD;
+    --toolbox-border-right-color: #c0c0c0;
+    /* 左侧工具条边框颜色 */
+    --toolbox-border-color: #c9c9c9;
+    /* 图标颜色 */
+    --icon-color: #6e6e6e;
+    /* DEBUG图标颜色 */
+    --icon-debug-color: #59A869;
+    --icon-step-color: #389FD6;
+    /* 选中时背景颜色 */
+    --selected-background: #bdbdbd;
+    /* 悬浮时背景颜色 */
+    --hover-background: #d9d9d9;
+    /* 左侧工具条列表悬浮时背景颜色 */
+    --toolbox-list-hover-background: #d4d4d4;
+    --toolbox-background: #fff;
+    /* 左侧工具条列表选中时背景颜色 */
+    --toolbox-list-selected-background: #d4d4d4;
+    /* 左侧工具条列表中图标的颜色 */
+    --toolbox-list-icon-color: #aeb9c0;
+    /* 左侧工具条列表中span的文字颜色 */
+    --toolbox-list-span-color: #999;
+    /* 左侧工具条列表中label的文字颜色 */
+    --toolbox-list-label-color: #000;
+    /* 左侧工具条列表中箭头图标的颜色 */
+    --toolbox-list-arrow-color: #b3b3b3;
+    /* 左侧工具条列表中头部图标的颜色 */
+    --toolbox-list-header-icon-color: #7f7f7f;
+
+    /* 中间选项卡边框颜色 */
+    --tab-bar-border-color: #c9c9c9;
+    /* 底部状态条边框颜色 */
+    --footer-border-color: #919191;
+    /* 表格边框颜色*/
+    --table-col-border-color: #e5e5e5;
+    --table-row-border-color: #c0c0c0;
+    --table-even-background: #F2F5F9;
+    --table-hover-color: #fff;
+    --table-hover-background: #1A7DC4;
+
+
+    --breakpoints-background: #db5860;
+    --debug-line-background: #2154A6;
+    --breakpoint-line-background: #FAEAE6;
+
+    --todo-color: #008DDE;
+    --history-select-background: #1A7DC4;
+    --history-select-color: #fff;
+
+    --text-number-color: #0000FF;
+    --text-string-color: #008000;
+    --text-boolean-color: #000080;
+    --text-default-color: #000000;
+    --text-key-color: #660e7a;
+    --suggest-hover-background: #D6EBFF;
+    --suggest-hover-color: #000;
+    --statusbar-em-color: #007f31;
+    --run-log-background: #fff;
+    /* 日志级别颜色 */
+    --log-color-info: #00cd00;
+    --log-color-warn: #A66F00;
+    --log-color-debug: #00cccc;
+    --log-color-error: #cd0000;
+    --log-color-trace: #0000EE;
+    --log-color-cyan: #00CCCC;
+    --log-color-link: #006DCC;
+    scrollbar-color: var(--scollbar-color) var(--scollbar-color);
+    scrollbar-width: thin;
+    outline: 0;
+
+}
+
+.ma-container pre,
+.ma-container .monaco-editor{
+    font-family: 'JetBrainsMono','Consolas', "Courier New",monospace, '微软雅黑';
+}
+
+.ma-container * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.ma-container label {
+    font-weight: normal;
+}
+
+.ma-container .ma-logo,
+.ma-container .ma-dialog-wrapper .ma-dialog .ma-dialog-header {
+    background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAA/1BMVEUIfPoENm0CHz8CIUMAAAAAAwYqKioaGhoQEBAsLCwQEBAJCQkrKysDAwMCAgL6+vr19fUWFhaJiYn8/PylpaWAgID8/PxmZmYSEhLk5ORJSUnLy8vk5OSgoKAFBQXk5OS7u7upqakmJiaqqqqDg4Pp6em5ubmQkJBNTU3x8fF4eHjn5+cBAQE5OTlwcHDm5uafn5/Nzc1+fn6lpaX09PTs7OwpKSk5OTn8/PwsLCz5+flHR0fV1dVsbGzY2NhwcHAMDAzu7u5gYGAMDAwJCQkAAAAHBwcGBgYHBwcEBAQHBwcGBgZtbGyvrq5ERERLSkp5eHgvLy8CIkQABAgABw6+8utZAAAAAWJLR0QEj2jZUQAAAAd0SU1FB+UIFBENHjcTIfEAAACNSURBVBjTY2DAAIxMSIAZKMDEggRYwQJs7CwcnFws3Dy8EAE+fgFBIWERFlExcYiAhLCklLSMrJy8giJEQElYWUVVTV1DU0tbByygK6ynb2BoZGxiKmwGFjC3sLSytrG1s3dwdILY4szi4urm7uHJ4uXNitUdPr5g4AcX8A8Ag0CES9G0BAUjgRBMzwMA2+sWGs+mksMAAAAuelRYdGRhdGU6Y3JlYXRlAAAImTMyMDLUNbDQNTIIMbC0MjS2MjbQNrCwMjAAAEGIBQ9X33PQAAAALnpUWHRkYXRlOm1vZGlmeQAACJkzMjAy1DWw0DUyCDGwtDI0tjI20DawsDIwAABBiAUPfuDbWAAAAABJRU5ErkJggg==);
+}
+
+.ma-container input::-webkit-input-placeholder {
+    /* WebKit browsers */
+    font-size: 12px;
+}
+
+.ma-container input::-moz-placeholder {
+    /* Mozilla Firefox 19+ */
+    font-size: 12px;
+}
+
+.ma-container input:-ms-input-placeholder {
+    /* Internet Explorer 10+ */
+    font-size: 12px;
+}
+.ma-container * {
+    scrollbar-color: var(--scollbar-thumb-background) var(--scollbar-thumb-background);
+    scrollbar-track-color: var(--scollbar-thumb-background);
+    -ms-scrollbar-track-color: var(--scollbar-thumb-background);
+    scrollbar-width: thin;
+}
+.ma-container *::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+    background: var(--scollbar-background);
+}
+
+.ma-container *::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background: var(--scollbar-thumb-background);
+}
+
+.ma-container *::-webkit-scrollbar-thumb:hover {
+    background: var(--scollbar-thumb-hover-background);
+}
+
+.ma-container *::-webkit-scrollbar-corner {
+    background: var(--scollbar-scrollbar-corner-background);
+}
+
+.ma-container .not-select {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -khtml-user-select: none;
+    user-select: none;
+}
+
+.ma-container .monaco-editor .margin-view-overlays .codicon-folding-expanded,
+.ma-container .monaco-editor .margin-view-overlays .codicon-folding-collapsed {
+    margin-left: 12px !important;
+}
+
+.ma-container ul li {
+    list-style: none;
+}
+
+
+.ma-container .breakpoints {
+    background: var(--breakpoints-background);
+    width: 10px !important;
+    height: 10px !important;
+    right: 0px !important;
+    margin-left: 12px;
+    top: 5px;
+    border-radius: 5px;
+}
+
+.ma-container .debug-line {
+    background: var(--debug-line-background);
+    color: #fff !important;
+}
+
+.ma-container .breakpoint-line {
+    background: var(--breakpoint-line-background);
+}
+.ma-icon.ma-icon-http-api{
+    color: #87CEE7 !important;
+}
+.ma-icon.ma-icon-function{
+    color: #F3C373 !important;
+}
+
+.ma-container .ma-button {
+    height: 22px;
+    line-height: 22px;
+    background: var(--dialog-button-background);
+    text-align: center;
+    padding: 0 15px;
+    border: 1px solid var(--dialog-button-border);
+    outline: 0;
+    cursor: pointer;
+    color: var(--color);
+}
+.ma-container .ma-button.active,
+.ma-container .ma-button:hover {
+    background: var(--dialog-button-hover-background);
+    border-color: var(--dialog-button-hover-border-color);
+}
+
+.ma-request-wrapper {
+    background: var(--background);
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.ma-api-info {
+    padding: 5px;
+    border-bottom: 1px solid var(--tab-bar-border-color);
+    display: flex;
+}
+
+.ma-api-info * {
+    display: inline-block;
+}
+
+.ma-api-info label {
+    width: 75px;
+    text-align: right;
+    padding: 0 5px;
+    height: 22px;
+    line-height: 22px;
+}
+
+.ma-api-info > .ma-select {
+    width: 80px;
+}
+
+.ma-request-wrapper > div:not(.ma-api-info) {
+    position: absolute;
+    top: 33px;
+    bottom: 0px;
+    width: 100%;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.ma-request-wrapper > div > h3 {
+    color: var(--color);
+    font-size: 12px;
+    font-weight: inherit;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    border-bottom: 1px solid var(--tab-bar-border-color);
+}
+
+.ma-table-request-row {
+    display: flex;
+}
+
+.ma-container .monaco-list .monaco-list-row.focused{
+    background-color: var(--suggest-hover-background) !important;
+    color: var(--suggest-hover-color) !important;
+}
+.ma-container .monaco-list-row.focused .monaco-highlighted-label .highlight{
+    color: #0097fb !important
+}
+.ma-container .ma-status-container em,.ma-event .ma-content em{
+    color: var(--statusbar-em-color);
+    font-style: normal;
+    font-weight: bold;
+}
+
+.ma-log pre span.log-INFO{
+    color: var(--log-color-info);
+}
+.ma-log pre span.log-DEBUG{
+    color: var(--log-color-debug);
+}
+.ma-log pre span.log-ERROR{
+    color: var(--log-color-error);
+}
+.ma-log pre span.log-WARN{
+    color: var(--log-color-warn);
+}
+.ma-log pre span.log-TRACE{
+    color: var(--log-color-trace);
+}
+.ma-log pre span.log-cyan{
+    color: var(--log-color-cyan);
+}
+.ma-log pre a.log-link{
+    color: var(--log-color-link);
+}
+
+/** 旋转特效 **/
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
