@@ -11,7 +11,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import org.ssssssss.script.reflection.JavaReflection;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -84,7 +83,7 @@ public class Mapping {
 			RequestMapping requestMapping = AnnotatedElementUtils.findMergedAnnotation(method, RequestMapping.class);
 			if (requestMapping != null) {
 				String[] paths = Stream.of(requestMapping.value()).map(value -> PathUtils.replaceSlash(base + value)).toArray(String[]::new);
-				this.register(paths(paths).build(), target, method);
+				this.register(paths(paths).methods(requestMapping.method()).build(), target, method);
 			}
 		}
 		return this;
