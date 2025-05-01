@@ -424,7 +424,7 @@ public class NamedTable extends Attributes<Object> {
 			params.addAll(where.getParams());
 		} else if (primaryValue != null) {
 			builder.append(" where ").append(this.primary).append(" = ?");
-			params.add(primaryValue);
+			params.add(String.valueOf(primaryValue));
 		} else {
 			throw new MagicAPIException("主键值不能为空");
 		}
