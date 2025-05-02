@@ -203,7 +203,7 @@ public class MagicWorkbenchController extends MagicController implements MagicEx
 		return new JsonBean<>(true);
 	}
 
-	@GetMapping("/search")
+	@PostMapping("/search")
 	@ResponseBody
 	public JsonBean<List<Map<String, Object>>> search(String keyword, MagicHttpServletRequest request) {
 		if (StringUtils.isBlank(keyword)) {

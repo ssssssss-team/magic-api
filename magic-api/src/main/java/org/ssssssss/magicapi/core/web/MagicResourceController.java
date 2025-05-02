@@ -142,7 +142,7 @@ public class MagicResourceController extends MagicController implements MagicExc
 		return new JsonBean<>(service.unlock(id));
 	}
 
-	@GetMapping("/resource")
+	@PostMapping("/resource")
 	@ResponseBody
 	public JsonBean<Map<String, TreeNode<Attributes<Object>>>> resources(MagicHttpServletRequest request) {
 		Map<String, TreeNode<Group>> tree = service.tree();
@@ -180,7 +180,7 @@ public class MagicResourceController extends MagicController implements MagicExc
 					.stream()
 					.filter(it -> allowVisit(request, Authorization.VIEW, it))
 					.map(MagicEntity::simple)
-					.map((Function<MagicEntity, TreeNode<Attributes<Object>>>) TreeNode::new)
+					.map((Function<MagicEntity, TreeNode>) TreeNode::new)
 					.forEach(value::addChild);
 		}
 		return value;
