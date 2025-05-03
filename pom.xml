@@ -134,6 +134,13 @@
                     </archive>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <compilerArgument>-parameters</compilerArgument>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <profiles>
@@ -147,6 +154,7 @@
                         <configuration>
                             <source>1.8</source>
                             <target>1.8</target>
+                            <compilerArgument>-parameters</compilerArgument>
                         </configuration>
                     </plugin>
                     <!-- Source -->
