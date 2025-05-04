@@ -7,7 +7,7 @@
         <img alt="maven" src="https://img.shields.io/maven-central/v/org.ssssssss/magic-api.svg?style=flat-square">
     </a>
     <a target="_blank" href="https://www.ssssssss.org"><img src="https://img.shields.io/badge/Docs-latest-blue.svg"/></a>
-    <a target="_blank" href="https://github.com/ssssssss-team/magic-api/releases"><img src="https://img.shields.io/github/v/release/ssssssss-team/magic-api?logo=github"></a>
+    <a target="_blank" href="https://github.com/ssssssss-team/magic-api/releases"><img src="https://img.shields.io/github/v/tag/ssssssss-team/magic-api?logo=github&label=release"></a>
     <a target="_blank" href="https://gitee.com/ssssssss-team/magic-api"><img src="https://gitee.com/ssssssss-team/magic-api/badge/star.svg?theme=white" /></a>
     <a target="_blank" href="https://github.com/ssssssss-team/magic-api"><img src="https://img.shields.io/github/stars/ssssssss-team/magic-api.svg?style=social"/></a>
     <a target="_blank" href="LICENSE"><img src="https://img.shields.io/:license-MIT-blue.svg"></a>
