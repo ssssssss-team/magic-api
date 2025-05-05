@@ -70,7 +70,7 @@ magic-api.resource.location=/data/magic-api
 # 文档/演示
 
 - 文档地址：[https://ssssssss.org](https://ssssssss.org)
-- 在线演示：[https://magic-api.ssssssss.org](https://magic-api.ssssssss.org)
+- 在线演示：[https://magic-api.ssssssss.org.cn](https://magic-api.ssssssss.org.cn)
 
 # 示例项目
 
