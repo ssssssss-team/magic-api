@@ -33,7 +33,7 @@ public abstract class MagicWebRequestInterceptor {
 				Valid valid = handlerMethod.getMethodAnnotation(Valid.class);
 				boolean requiredLogin = authorizationInterceptor.requireLogin();
 				boolean validRequiredLogin = (valid == null || valid.requireLogin());
-				if ((validRequiredLogin && requiredLogin) || !(authorizationInterceptor instanceof DefaultAuthorizationInterceptor)) {
+				if (validRequiredLogin && requiredLogin) {
 					request.setAttribute(Constants.ATTRIBUTE_MAGIC_USER, authorizationInterceptor.getUserByToken(request.getHeader(Constants.MAGIC_TOKEN_HEADER)));
 				}
 				((MagicController) handler).doValid(request, valid);
