@@ -74,7 +74,7 @@ public class ElasticSearchRest {
 
 	private Response execute() throws IOException {
 		Request request = new Request(method, this.endpoint);
-		request.addParameters(parameters);
+		parameters.forEach(request::addParameter);
 		request.setEntity(entity);
 		return this.restClient.performRequest(request);
 	}
