@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
  */
 public interface Dialect {
 
-	Pattern REPLACE_ORDER_BY = Pattern.compile("order\\s+by\\s+[^,\\s]+(\\s+asc|\\s+desc)?(\\s*,\\s*[^,\\s]+(\\s+asc|\\s+desc)?)*", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+	Pattern REPLACE_ORDER_BY = Pattern.compile("\\s+order\\s+by\\s+[^,\\s]+(\\s+asc|\\s+desc)?(\\s*,\\s*[^,\\s]+(\\s+asc|\\s+desc)?)*\\s*$", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
 
 	/**
 	 * 根据jdbcUrl匹配
