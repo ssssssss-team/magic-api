@@ -14,10 +14,7 @@ import org.ssssssss.magicapi.core.servlet.MagicHttpServletRequest;
 import org.ssssssss.magicapi.utils.IoUtils;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 
 public class MagicResourceController extends MagicController implements MagicExceptionHandler {
@@ -180,6 +177,7 @@ public class MagicResourceController extends MagicController implements MagicExc
 					.stream()
 					.filter(it -> allowVisit(request, Authorization.VIEW, it))
 					.map(MagicEntity::simple)
+					.sorted(Comparator.comparing(MagicEntity::getName))
 					.map((Function<MagicEntity, TreeNode>) TreeNode::new)
 					.forEach(value::addChild);
 		}
