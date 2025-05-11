@@ -71,7 +71,7 @@ public class BoundSql {
 
 	private void init() {
 		Map<String, Object> varMap = new HashMap<>();
-		if (this.bindParameters != null) {
+		if (this.bindParameters != null && !this.bindParameters.isEmpty()) {
 			varMap.putAll(this.bindParameters);
 		} else {
 			varMap.putAll(runtimeContext.getVarMap());
