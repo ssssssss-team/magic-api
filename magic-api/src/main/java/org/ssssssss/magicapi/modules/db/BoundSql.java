@@ -141,6 +141,12 @@ public class BoundSql {
 		return parameters.toArray();
 	}
 
+	public List<Object[]> getBatchParameters() {
+		List<Object[]> args = new ArrayList<>();
+		parameters.forEach(parameter -> args.add((Object[]) parameter));
+		return args;
+	}
+
 	public List<SqlParameter> getDeclareParameters(){
 		return this.parameters.stream()
 				.map(it -> {
@@ -189,7 +195,7 @@ public class BoundSql {
 	 * 获取缓存值
 	 */
 	@SuppressWarnings("unchecked")
-	<T> T execute(List<SQLInterceptor> interceptors, Supplier<T> supplier) {
+	<T> T execute(List<SQLInterceptor> interceptors, Supplier<T> supplier, boolean cacheable) {
 		RequestEntity requestEntity = RequestContext.getRequestEntity();
 		interceptors.forEach(interceptor -> interceptor.preHandle(this, requestEntity));
 		Supplier<T> newSupplier = () -> {
@@ -205,6 +211,12 @@ public class BoundSql {
 			}
 			return (T) result;
 		};
-		return getCacheValue(this.getSql(), this.getParameters(), newSupplier);
+		if (cacheable) {
+			return getCacheValue(this.getSql(), this.getParameters(), newSupplier);
+		}
+		return newSupplier.get();
+	}
+	<T> T execute(List<SQLInterceptor> interceptors, Supplier<T> supplier) {
+		return execute(interceptors, supplier, true);
 	}
 }

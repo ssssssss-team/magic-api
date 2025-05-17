@@ -335,7 +335,8 @@ public class NamedTable extends Attributes<Object> {
 	}
 
 	@Comment("批量插入")
-	public int batchInsert(@Comment(name = "collection", value = "各项列和值") Collection<Map<String, Object>> collection, @Comment("batchSize") int batchSize) {
+	public int batchInsert(RuntimeContext runtimeContext,
+						   @Comment(name = "collection", value = "各项列和值") Collection<Map<String, Object>> collection, @Comment("batchSize") int batchSize) {
 		Set<String> keys = collection.stream().flatMap(it -> it.keySet().stream()).collect(Collectors.toSet());
 		if (keys.isEmpty()) {
 			throw new MagicAPIException("要插入的列不能为空");
@@ -348,14 +349,14 @@ public class NamedTable extends Attributes<Object> {
 		builder.append(") values (");
 		builder.append(StringUtils.join(Collections.nCopies(keys.size(), "?"), ","));
 		builder.append(")");
-		return this.sqlModule.batchUpdate(builder.toString(), batchSize, collection.stream()
+		return this.sqlModule.batchUpdate(runtimeContext, builder.toString(), batchSize, collection.stream()
 				.map(it -> keys.stream().map(it::get).toArray())
 				.collect(Collectors.toList()));
 	}
 
 	@Comment("批量插入")
-	public int batchInsert(@Comment(name = "collection", value = "各项列和值") Collection<Map<String, Object>> collection) {
-		return batchInsert(collection, 100);
+	public int batchInsert(RuntimeContext runtimeContext, @Comment(name = "collection", value = "各项列和值") Collection<Map<String, Object>> collection) {
+		return batchInsert(runtimeContext, collection, 100);
 	}
 
 	@Comment("执行`select`查询")

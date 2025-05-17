@@ -371,14 +371,11 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule>, Dynami
 	@Transient
 	public int update(BoundSql boundSql) {
 		assertDatasourceNotNull();
-		RequestEntity requestEntity = RequestContext.getRequestEntity();
-		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql, requestEntity));
-		Object value = dataSourceNode.getJdbcTemplate().update(boundSql.getSql(), boundSql.getParameters());
-		deleteCache(this.cacheName);
-		for (SQLInterceptor sqlInterceptor : sqlInterceptors) {
-			value = sqlInterceptor.postHandle(boundSql, value, requestEntity);
-		}
-		return (int) value;
+		return (int)boundSql.execute(sqlInterceptors, () -> {
+			Object value = dataSourceNode.getJdbcTemplate().update(boundSql.getSql(), boundSql.getParameters());
+			deleteCache(this.cacheName);
+			return value;
+		});
 	}
 
 	/**
@@ -435,11 +432,14 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule>, Dynami
 	 * 插入并返回主键
 	 */
 	@Comment("批量执行操作，返回受影响的行数")
-	public int batchUpdate(String sql, List<Object[]> args) {
+	public int batchUpdate(RuntimeContext runtimeContext, String sql, List<Object[]> args) {
 		assertDatasourceNotNull();
-		int[] values = dataSourceNode.getJdbcTemplate().batchUpdate(sql, args);
-		deleteCache(this.cacheName);
-		return Arrays.stream(values).sum();
+		BoundSql boundSql = new BoundSql(runtimeContext, sql, new ArrayList<>(args), this);
+		return boundSql.execute(sqlInterceptors, () -> {
+			int[] values = dataSourceNode.getJdbcTemplate().batchUpdate(boundSql.getSql(), boundSql.getBatchParameters());
+			deleteCache(this.cacheName);
+			return Arrays.stream(values).sum();
+		});
 	}
 
 	@Transient
@@ -461,25 +461,29 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule>, Dynami
 	 * 插入并返回主键
 	 */
 	@Comment("批量执行操作，返回受影响的行数")
-	public int batchUpdate(String sql, int batchSize, List<Object[]> args) {
+	public int batchUpdate(RuntimeContext runtimeContext, String sql, int batchSize, List<Object[]> args) {
 		assertDatasourceNotNull();
-		int[][] values = dataSourceNode.getJdbcTemplate().batchUpdate(sql, args, batchSize, (ps, arguments) -> {
-			int colIndex = 1;
-			for (Object value : arguments) {
-				if (value instanceof SqlParameterValue) {
-					SqlParameterValue paramValue = (SqlParameterValue) value;
-					StatementCreatorUtils.setParameterValue(ps, colIndex++, paramValue, paramValue.getValue());
-				} else {
-					StatementCreatorUtils.setParameterValue(ps, colIndex++, StatementCreatorUtils.javaTypeToSqlParameterType(value == null ? null : value.getClass()), value);
+		BoundSql boundSql = new BoundSql(runtimeContext, sql, new ArrayList<>(args), this);
+		return boundSql.execute(sqlInterceptors, () -> {
+			int[][] values = dataSourceNode.getJdbcTemplate().batchUpdate(boundSql.getSql(), boundSql.getBatchParameters(), batchSize, (ps, arguments) -> {
+				int colIndex = 1;
+				for (Object value : arguments) {
+					if (value instanceof SqlParameterValue) {
+						SqlParameterValue paramValue = (SqlParameterValue) value;
+						StatementCreatorUtils.setParameterValue(ps, colIndex++, paramValue, paramValue.getValue());
+					} else {
+						StatementCreatorUtils.setParameterValue(ps, colIndex++, StatementCreatorUtils.javaTypeToSqlParameterType(value == null ? null : value.getClass()), value);
+					}
 				}
+			});
+			deleteCache(this.cacheName);
+			int count = 0;
+			for (int[] value : values) {
+				count += Arrays.stream(value).sum();
 			}
-		});
-		deleteCache(this.cacheName);
-		int count = 0;
-		for (int[] value : values) {
-			count += Arrays.stream(value).sum();
-		}
-		return count;
+			return count;
+		}, false);
+
 	}
 
 	/**
@@ -495,15 +499,12 @@ public class SQLModule implements DynamicAttribute<SQLModule, SQLModule>, Dynami
 
 	@Transient
 	public Object insert(BoundSql boundSql, String primary) {
-		MagicKeyHolder keyHolder = new MagicKeyHolder(primary);
-		RequestEntity requestEntity = RequestContext.getRequestEntity();
-		sqlInterceptors.forEach(sqlInterceptor -> sqlInterceptor.preHandle(boundSql, requestEntity));
-		insert(boundSql, keyHolder);
-		Object value = keyHolder.getObjectKey();
-		for (SQLInterceptor sqlInterceptor : sqlInterceptors) {
-			value = sqlInterceptor.postHandle(boundSql, value, requestEntity);
-		}
-		return value;
+		return boundSql.execute(sqlInterceptors, () -> {
+			MagicKeyHolder keyHolder = new MagicKeyHolder(primary);
+			insert(boundSql, keyHolder);
+			deleteCache(this.cacheName);
+			return keyHolder.getObjectKey();
+		}, false);
 	}
 
 	/**
