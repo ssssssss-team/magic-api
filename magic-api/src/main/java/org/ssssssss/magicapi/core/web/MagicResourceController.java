@@ -100,7 +100,7 @@ public class MagicResourceController extends MagicController implements MagicExc
 	public JsonBean<MagicEntity> detail(@PathVariable("id") String id, MagicHttpServletRequest request) {
 		MagicEntity entity = MagicConfiguration.getMagicResourceService().file(id);
 		isTrue(allowVisit(request, Authorization.VIEW, entity), PERMISSION_INVALID);
-		return new JsonBean<>(MagicConfiguration.getMagicResourceService().file(id));
+		return new JsonBean<>(entity);
 	}
 
 	@PostMapping("/resource/move")

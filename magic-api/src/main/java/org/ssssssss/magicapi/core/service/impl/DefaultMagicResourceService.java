@@ -546,6 +546,10 @@ public class DefaultMagicResourceService implements MagicResourceService, JsonCo
 				entity.setCreateTime(System.currentTimeMillis());
 				entity.setCreateBy(WebUtils.currentUserName());
 			} else {
+				MagicEntity oldEntity = fileCache.get(entity.getId());
+				// 防止创建信息被修改
+				entity.setCreateBy(oldEntity.getCreateBy());
+				entity.setCreateTime(oldEntity.getCreateTime());
 				// 修改操作赋值
 				entity.setUpdateTime(System.currentTimeMillis());
 				entity.setUpdateBy(WebUtils.currentUserName());
