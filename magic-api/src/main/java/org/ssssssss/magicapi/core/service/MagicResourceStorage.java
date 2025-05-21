@@ -4,7 +4,6 @@ import org.ssssssss.magicapi.core.resource.Resource;
 import org.ssssssss.magicapi.core.model.MagicEntity;
 import org.ssssssss.magicapi.core.service.MagicResourceService;
 import org.ssssssss.magicapi.utils.JsonUtils;
-import org.ssssssss.magicapi.utils.ROT13Utils;
 
 import java.nio.charset.StandardCharsets;
 
@@ -40,8 +39,7 @@ public interface MagicResourceStorage<T extends MagicEntity> {
 	}
 
 	default T read(byte[] bytes) {
-		String encrypt = new String(bytes, StandardCharsets.UTF_8);
-		String content = ROT13Utils.decrypt(encrypt);
+		String content = new String(bytes, StandardCharsets.UTF_8);
 		if (requiredScript()) {
 			String separator = separatorWithCRLF;
 			int index = content.indexOf(separator);
