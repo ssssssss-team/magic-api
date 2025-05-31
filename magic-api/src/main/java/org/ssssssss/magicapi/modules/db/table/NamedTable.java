@@ -298,12 +298,12 @@ public class NamedTable extends Attributes<Object> {
 		if (data != null) {
 			data.forEach((key, value) -> this.columns.put(rowMapColumnMapper.apply(key), value));
 		}
-		String primaryValue = Objects.toString(this.columns.get(this.primary), "");
-		if (StringUtils.isBlank(primaryValue) && data != null) {
-			primaryValue = Objects.toString(data.get(this.primary), "");
+		Object primaryValue = this.columns.get(this.primary);
+		if (data != null && StringUtils.isBlank(Objects.toString(primaryValue, ""))) {
+			primaryValue = data.get(this.primary);
 		}
 		if (beforeQuery) {
-			if (StringUtils.isNotBlank(primaryValue)) {
+			if (primaryValue != null && StringUtils.isNotBlank(Objects.toString(primaryValue))) {
 				List<Object> params = new ArrayList<>();
 				params.add(primaryValue);
 				Integer count = sqlModule.selectInt(new BoundSql(runtimeContext, "select count(*) count from " + this.tableName + " where " + this.primary + " = ?", params, sqlModule));
@@ -316,7 +316,7 @@ public class NamedTable extends Attributes<Object> {
 			}
 		}
 
-		if (StringUtils.isNotBlank(primaryValue)) {
+		if (primaryValue != null && StringUtils.isNotBlank(Objects.toString(primaryValue, ""))) {
 			return update(runtimeContext, data);
 		}
 		return insert(runtimeContext, data);
@@ -425,7 +425,7 @@ public class NamedTable extends Attributes<Object> {
 			params.addAll(where.getParams());
 		} else if (primaryValue != null) {
 			builder.append(" where ").append(this.primary).append(" = ?");
-			params.add(String.valueOf(primaryValue));
+			params.add(primaryValue);
 		} else {
 			throw new MagicAPIException("主键值不能为空");
 		}
