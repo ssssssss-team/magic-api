@@ -1,11 +1,15 @@
 package org.ssssssss.magicapi.springdoc;
 
+import jakarta.servlet.ServletContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springdoc.core.properties.AbstractSwaggerUiConfigProperties;
+import org.springdoc.core.properties.SpringDocConfigProperties;
 import org.springdoc.core.properties.SwaggerUiConfigParameters;
 import org.springdoc.core.properties.SwaggerUiConfigProperties;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -23,9 +27,10 @@ import org.ssssssss.magicapi.springdoc.entity.SwaggerEntity;
 import org.ssssssss.magicapi.springdoc.entity.SwaggerProvider;
 import org.ssssssss.magicapi.utils.Mapping;
 
-import jakarta.servlet.ServletContext;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Configuration
 @EnableConfigurationProperties(SpringDocConfig.class)
@@ -60,6 +65,34 @@ public class MagicSpringDocConfiguration implements MagicPluginConfiguration {
 	@Override
 	public Plugin plugin() {
 		return new Plugin("SpringDoc");
+	}
+
+	@Bean
+	@Primary
+	@ConditionalOnMissingBean(SwaggerUiConfigParameters.class)
+	public SwaggerUiConfigProperties magicSwaggerUiConfigProperties(SwaggerUiConfigProperties swaggerUiConfigProperties, SpringDocConfigProperties springDocConfigProperties){
+		Set<AbstractSwaggerUiConfigProperties.SwaggerUrl> urls = swaggerUiConfigProperties.getUrls();
+		if (urls == null){
+			urls = new HashSet<>();
+			AbstractSwaggerUiConfigProperties.SwaggerUrl url = new AbstractSwaggerUiConfigProperties.SwaggerUrl("default", springDocConfigProperties.getApiDocs().getPath(), null);
+			urls.add(url);
+		}
+		urls.add(new AbstractSwaggerUiConfigProperties.SwaggerUrl(springDocConfig.getGroupName(), servletContext.getContextPath() + springDocConfig.getLocation(), null){
+			@Override
+			public String getUrl() {
+				try {
+					if (!createdMapping){
+						createdMapping = true;
+						createSwaggerProvider(requestMagicDynamicRegistryObjectProvider, magicResourceService, servletContext);
+					}
+				} catch (Exception e) {
+					logger.error("注册springdoc接口失败", e);
+				}
+				return super.getUrl();
+			}
+		});
+		swaggerUiConfigProperties.setUrls(urls);
+		return swaggerUiConfigProperties;
 	}
 
 	@Bean

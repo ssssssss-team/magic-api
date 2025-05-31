@@ -13,7 +13,7 @@
     <name>magic-api-plugin-springdoc</name>
     <description>magic-api-plugin-springdoc</description>
     <properties>
-        <springdoc.version>2.0.4</springdoc.version>
+        <springdoc.version>2.8.8</springdoc.version>
     </properties>
     <dependencies>
         <dependency>
