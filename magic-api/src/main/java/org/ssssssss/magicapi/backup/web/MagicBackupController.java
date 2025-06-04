@@ -48,7 +48,7 @@ public class MagicBackupController extends MagicController implements MagicExcep
 		return new JsonBean<>(service.backupById(id));
 	}
 
-	@GetMapping("/backup/rollback")
+	@PostMapping("/backup/rollback")
 	@ResponseBody
 	public JsonBean<Boolean> rollback(String id, Long timestamp) throws IOException {
 		notNull(service, BACKUP_NOT_ENABLED);
